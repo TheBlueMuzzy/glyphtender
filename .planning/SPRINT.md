@@ -16,7 +16,7 @@ Done when: Glyphtender gives the brain its readings, imagined seeds, candidate l
 - [ ] 🤖 2. Readings — src/ai/readings.ts: hand quality, my danger, rivals' danger, board fill, territory (who reaches each hex first, on insight.ts reachArea), end near
 - [ ] 🤖 3. Imagine — src/ai/imagine.ts: deal rivals' '?' seeds + the bag from the unseen letters (seeded); test it never uses the real hidden seeds
 - [ ] 🤖 4. Beliefs' evidence — src/ai/evidence.ts: each rival's Magic as SEEN growing on the board (no totals); a plain estimate now, fuzz comes with framework F20
-- [ ] 🤖 5. Behaviour meters — src/ai/meters.ts: reuse the award detectors in src/game/stats.ts (lockdown, pincer, weed toss, walled garden, hijack, power play, called it…) + near-rival turns, word length, multi-word share, times tangled, room to move
+- [x] 🤖 5. Behaviour meters — src/ai/meters.ts: reuse the award detectors in src/game/stats.ts (lockdown, pincer, weed toss, walled garden, hijack, power play, called it…) + near-rival turns, word length, multi-word share, times tangled, room to move
 - [ ] 🤖 6. TDD §2b AI section (files, data flow)
 
 ## F39 🧱 Goals + special decisions
@@ -29,11 +29,12 @@ Done when: all 7 goals score candidates sensibly (each has a hand-made position 
 
 ## F40 🎮 Seven personalities + three skills as data
 Done when: content/ai/ holds the 7 personalities (original ranges + priority), 3 skills and feel targets; bios in en.json; `npm run ai:arena` plays them against each other and prints a note per decision + a per-personality meter table.
-- [ ] 🤖 1. content/ai/personalities.json, skills.json, feel-targets.json, pace.json (+ Dev Kit _labels/_sections)
-- [ ] 🤖 2. Bios (one line each) in content/text/en.json `ai` (stand-in — Muzzy reviews tone)
+- [x] 🤖 1. content/ai/personalities.json, skills.json, feel-targets.json, pace.json (+ Dev Kit _labels/_sections)
+- [x] 🤖 2. Bios (one line each) in content/text/en.json `ai` (stand-in — Muzzy reviews tone)
 - [ ] 🤖 3. scripts/ai-arena.mjs (`npm run ai:arena -- --games 50 --seats bully,scholar`) — notes for one game, meter table for many
 - [ ] 🤖 4. Prove it: npm test, check:fast (golden SAME), arena run; first read of feel targets → Notes (tuning comes in F45)
 
 Check: framework ai tests green · Glyphtender npm test + check:fast green, golden SAME · `npm run ai:arena` runs all 7 · a decision takes ≤ ~300 ms at First Class on a phone budget.
 Ask Muzzy: F37 (4 AI calls — defaults in place: Strategist multi-word · banter big moments only · host may add AI online · personality names + seat glyphling).
 Notes:
+- F40 1–2 / F38 5 (personalities helper): the festive-booth source isn't readable from a worktree, so traits the digest doesn't give (e.g. Scholar's aggression) were filled by priority position (low-priority goals 5–45) — the Personality Check tunes them. Each content/ai file is an OBJECT (`personalities: [...]`, `skills: [...]`) so it can carry Dev Kit notes; notes are keyed by the path inside ONE item (fits the F23 AI tab, not the Tuning tab — which only reads content/tuning/, pace.json included). Every personality has extras.extraWordBonus (3; Strategist 8 — its multi-word lean, for SCORE). Shifts: danger/opportunity/hand for all (Survivor danger and Vulture opportunity stronger, Scholar hand stronger), endgame only Bully + Builder, desperation only Scholar + Survivor (as the original). feel-targets adds ops `nearAverage` / `neverExtreme` for Balanced and a `gotTangled` (0/1) meter for Survivor. Meters: `setups` = a no-Magic cast next to its own earlier seed (simple, as asked); `secondHalfRatio` divides by max(1st half, 1); `hijacks()` was lifted out of earnedAwards (same awards, golden SAME).
