@@ -1,6 +1,7 @@
 // What the turn bar says: whose turn, and what to do next. Words from content/text/en.json → game.
 import text from '../../content/text/en.json'
 import { useGameStore, type GameStore } from '../store/gameStore'
+import { isMyTurn } from '../store/myTurn'
 import { mayMoveOnly } from '../store/turnPlan'
 import { revealSteps, revealView } from '../store/revealPlan'
 import type { GameState } from '../engine/types'
@@ -12,8 +13,7 @@ const w = text.game
 /** A player's name: their colour ("Yellow") on one device; online, the name they typed in the lobby. */
 export const playerName = (seat: number) => useGameStore.getState().seats[seat]?.name ?? w.players[colourOf(seat)]
 
-type PromptState = Pick<GameStore, 'game' | 'move' | 'cast' | 'selected' | 'flying' | 'note' | 'wordsStatus' | 'handoff' | 'revealAt'>
-  & Partial<Pick<GameStore, 'seats'>>
+type PromptState = Pick<GameStore, 'game' | 'move' | 'cast' | 'selected' | 'flying' | 'note' | 'wordsStatus' | 'handoff' | 'revealAt' | 'seats'>
 
 /** The main line and a smaller line under it (whose turn / a hint). */
 export function promptFor(s: PromptState): { text: string; detail: string } {
@@ -22,8 +22,9 @@ export function promptFor(s: PromptState): { text: string; detail: string } {
   const player = playerName(game.current)
   const turnOf = fill(w.turnOf, { player })
   if (game.phase === 'over') return { text: revealPrompt(game, s.revealAt), detail: '' }
-  // Online, another device's turn: say what they're doing (their glide and throw replay on the board)
-  if (s.seats?.[game.current]?.kind === 'online') {
+  // Not a turn this device plays (online, another device's turn): say what they're doing (their glide and throw
+  // replay on the board)
+  if (!isMyTurn(s)) {
     const doing = game.phase === 'draft' ? w.prompts.othersDraft : game.phase === 'refresh' ? w.prompts.othersRefresh : w.prompts.othersTurn
     return { text: fill(doing, { player }), detail: '' }
   }

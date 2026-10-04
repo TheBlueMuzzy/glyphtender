@@ -8,6 +8,7 @@
 //            results · New game) sits at the bottom, in the very same spot as on the end screen.
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
+import { isMyTurn } from '../store/myTurn'
 import { mayMoveOnly } from '../store/turnPlan'
 import { revealSteps } from '../store/revealPlan'
 import { Button, Row, fill } from '../ui/kit'
@@ -57,8 +58,8 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const preview = usePreview()
   const game = s.game!
   if (game.phase === 'draft') return null
-  // Online: another device's turn, or my move is on its way to the server — the buttons wait
-  const notNow = s.waiting || (s.online !== null && s.online.mySeat !== game.current)
+  // Not a turn this device plays (online, another device's turn), or my move is on its way to the server — the buttons wait
+  const notNow = s.waiting || !isMyTurn(s)
 
   if (game.phase === 'refresh') {
     const refreshing = notNow || s.refreshFx !== null // (the refresh playing out on the tray)

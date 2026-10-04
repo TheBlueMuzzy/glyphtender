@@ -13,6 +13,8 @@ import animJson from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
 import type { GameView, OnlineAction } from '../../party/protocol'
 import { hexKey, sameHex } from '../engine/hex'
+import { flowOf } from '../engine/rules'
+import { mayAct } from '../table/flow'
 import { SEAT_COLOURS, type Action, type GameState, type TurnSummary } from '../engine/types'
 import { glideSeconds } from '../game/glide'
 import { reduceMotion } from '../ui/kit/blocks/motion'
@@ -111,7 +113,8 @@ function isOthersTurn(old: GameState, view: GameView, mySeat: number): boolean {
   // Our view must be the moment just before it: their turn, the glyphling still on `from`, the target still empty
   const glyphling = old.glyphlings.find((g) => g.id === turn.glyphlingId)
   const targetFree = !turn.target || !old.seeds[hexKey(turn.target)]
-  return old.phase === 'play' && old.current === turn.seat && !!glyphling && sameHex(glyphling.hex, turn.from) && targetFree
+  const flow = flowOf(old) // (the rules' turn flow: was it that seat's move + cast?)
+  return flow.level === 'play' && mayAct(flow, turn.seat) && !!glyphling && sameHex(glyphling.hex, turn.from) && targetFree
 }
 
 /** Replaces the game with the server's view (keeping my own tray order), and sprouts a seed that just landed. */

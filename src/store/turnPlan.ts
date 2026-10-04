@@ -3,7 +3,8 @@
 import { legalCasts, legalDraftHexes, legalMoves } from '../engine/engine'
 import { sameHex, type Hex } from '../engine/hex'
 import type { Action, GameState, SeedPiece } from '../engine/types'
-import { isLocalHuman, type Seat } from './seats'
+import { isMyTurn } from './myTurn'
+import type { Seat } from './seats'
 
 /** A glyphling moved on screen but not cast yet. */
 export interface PlannedMove {
@@ -62,7 +63,7 @@ type LitState = { game: GameState; move: PlannedMove | null; selected: Selection
 
 export function boardHighlight(s: LitState): Highlight | null {
   if (s.flying) return null
-  if (s.game.phase === 'play' && (s.waiting || !isLocalHuman(s.seats, s.game.current))) return null
+  if (s.game.phase === 'play' && (s.waiting || !isMyTurn(s))) return null
   return highlightFor(s.game, s.move, s.selected)
 }
 
@@ -71,7 +72,7 @@ export function boardHighlight(s: LitState): Highlight | null {
  * Only on this device's own turn (online, my waiting glyphling can be dragged in the draft while someone else places).
  */
 export function dropKind(s: LitState, hex: Hex | undefined): Highlight['kind'] | null {
-  if (s.waiting || !isLocalHuman(s.seats, s.game.current)) return null
+  if (s.waiting || !isMyTurn(s)) return null
   const lit = hex ? boardHighlight(s) : null
   return lit && hex && hexIn(lit.hexes, hex) ? lit.kind : null
 }

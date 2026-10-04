@@ -9,7 +9,7 @@
 import { legalMoves } from '../engine/engine'
 import { hexKey, type Hex } from '../engine/hex'
 import type { GameStore } from './gameStore'
-import { isLocalHuman } from './seats'
+import { isBusy, isMyTurn } from './myTurn'
 
 /** What was tapped (or picked up to drag): a board glyphling (id), a tray seed (its id) or a board hex. */
 export type Tap = { glyph: number } | { hand: string } | { hex: Hex }
@@ -21,8 +21,8 @@ type NopeState = Pick<GameStore, 'game' | 'move' | 'flying' | 'waiting' | 'hando
 
 export function nopeFor(s: NopeState, tap: Tap): NopeTarget | null {
   const game = s.game
-  if (!game || game.phase === 'over' || s.flying || s.waiting || s.handoff || s.refreshFx || (s.scoring ?? null) !== null) return null
-  const myTurn = isLocalHuman(s.seats, game.current)
+  if (!game || game.phase === 'over' || isBusy(s)) return null
+  const myTurn = isMyTurn(s)
   if ('glyph' in tap) {
     const g = game.glyphlings.find((x) => x.id === tap.glyph)
     if (!g) return null
