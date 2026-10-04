@@ -113,7 +113,7 @@ flowchart LR
 Goal: Glyphtender runs on the framework's Table foundation (Game core + events, Turns & flow, Zones & pieces, drag referee, Hand view, seats & per-seat views) with NO change a player can see — and is ready for AI (local and online) and a second game. Design: `../../framework/.planning/design/table.md`. Each slice is framework-first (dev/framework v0.4), switched over here in the same sprint; golden games + before-screenshots must match after every slice.
 - ✅ F29 🧱 Safety net: golden games (~300 seeded sim games, every action + a state fingerprint after each, 2–4 players, both boards) + before-screenshots of every screen at every size + compare scripts (`npm run check:golden`, `npm run check:shots`) — must:beta · sprint 08
   why: "plays and looks the same" must be proven, not hoped — every later slice is judged by it
-- 🟢 F30 🧱 Game core: every change is an action through one rules contract; replayable move record (seed + actions, also kept by the server for online games); `legalActions(state, seat)`; fast mode (skips end-screen bookkeeping) for sims + AI; every action returns events tagged with who may see them — must:beta · needs: F29
+- 🔨 F30 🧱 Game core: every change is an action through one rules contract; replayable move record (seed + actions, also kept by the server for online games); `legalActions(state, seat)`; fast mode (skips end-screen bookkeeping) for sims + AI; every action returns events tagged with who may see them — must:beta · needs: F29 · sprint 09
 - ⏳ F31 🧱 Events drive the screen: glide, throw, score sequence, trails, refresh stages, reveal, online replays of other seats, Dev Kit adapter all read events (replaces lastTurn diffing + store timers guessing) — must:beta · needs: F30
 - ⏳ F32 🧱 Turns & flow: Draft (snake) → Play (clockwise, skip fully tangled; refresh step) → Over as flow levels; who may act, "your turn", undo limits (move → cast) come from the flow — must:beta · needs: F30
 - ⏳ F33 🧱 Zones & pieces: board cells, hands, bag, planted seeds as zones; stable piece ids (ends the tray-order ↔ hand-index coupling); owner + shared states; visibility declared per zone — must:beta · needs: F30
@@ -122,7 +122,7 @@ Goal: Glyphtender runs on the framework's Table foundation (Game core + events, 
 - ⏳ F36 🧱 Seats & per-seat views: one seat model (local human · online human · local bot · online bot · reconnecting); pass-and-play switches the viewer seat; the server sends each seat its view + its events (per-seat events in the rooms kit); bots see only their seat's view; side-door leak tests (ids, hidden order, events, log, undo, seed) — must:beta · needs: F31, F33
 ```mermaid
 flowchart LR
-  F29[✅ F29 Safety net] --> F30[🟢 F30 Game core]
+  F29[✅ F29 Safety net] --> F30[🔨 F30 Game core]
   F30 --> F31[F31 Events drive screen]
   F30 --> F32[F32 Turns & flow]
   F30 --> F33[F33 Zones & pieces]
