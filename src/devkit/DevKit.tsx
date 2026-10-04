@@ -98,6 +98,19 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     if (!open && el.matches(':popover-open')) el.hidePopover()
   }, [open])
 
+  // A game that goes full screen on a tap (a phone's first tap) puts the page in the browser's top layer ABOVE the
+  // open panel, hiding it. Showing the popover again lifts it back on top.
+  useEffect(() => {
+    const lift = () => {
+      const el = panel.current
+      if (!openRef.current || !el?.showPopover || !el.matches(':popover-open')) return
+      el.hidePopover()
+      el.showPopover()
+    }
+    document.addEventListener('fullscreenchange', lift)
+    return () => document.removeEventListener('fullscreenchange', lift)
+  }, [])
+
   // ` toggles, Esc closes
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

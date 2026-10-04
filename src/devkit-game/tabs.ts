@@ -4,11 +4,14 @@
 //   1. make a component in src/devkit-game/, e.g. TableTab.tsx — it edits a content/ JSON file,
 //      with Save (saveContentFile) and Copy for Claude (copyText) from '../devkit/saveContent'
 //   2. list it below:  { id: 'table', label: 'Table', Panel: TableTab }
-import type { ComponentType } from 'react'
+// The AI tab comes from the framework (src/devkit/ai/) — Glyphtender plugs its AI into it in aiDevKit.ts.
+import type { DevKitTab } from '../devkit/DevKit'
+import { aiTab } from '../devkit/ai/aiTabEntry'
 import { registerDevKitGame } from '../devkit/devkitGame'
+import { glyphtenderAi } from './aiDevKit'
 import { glyphtenderAdapter } from './glyphtenderAdapter'
 
 // Plugs Glyphtender into the Dev Kit's Snapshots + Bug capture tabs (this file only loads with the Dev Kit)
 registerDevKitGame(glyphtenderAdapter)
 
-export const gameTabs: { id: string; label: string; Panel: ComponentType }[] = []
+export const gameTabs: DevKitTab[] = [aiTab(glyphtenderAi)]
