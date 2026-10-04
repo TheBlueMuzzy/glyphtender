@@ -317,3 +317,130 @@ describe('online store — turns', () => {
     expect(store().online!.version).toBe(0)
   })
 })
+
+describe('online store — the feed (F31): every change played once, in order', () => {
+  // Three players: this device is Yellow (seat 0); Blue and Red play from their own views.
+  let red: Conn
+  let rivals: Conn[]
+  const latest = (conn: Conn) => conn.seen.at(-1)!
+  /** My undelivered mail: only the views (the newest last). */
+  const myViews = () => me.mail.filter((m) => m.type === 'view' && m.view).map((m) => (m as { view: GameView }).view)
+  const keepRivalsPosted = () => {
+    for (const conn of rivals) for (const m of conn.mail.splice(0)) if (m.type === 'view' && m.view) conn.seen.push(m.view as GameView)
+  }
+  /** Watches every trail that draws on (one per replayed turn): the seats, in order. */
+  const watchTrails = () => {
+    const seats: number[] = []
+    const stop = useGameStore.subscribe((now, was) => { if (now.trail && now.trail !== was.trail) seats.push(now.trail.seat) })
+    return { seats, stop }
+  }
+
+  beforeEach(() => {
+    store().leaveGame()
+    stopOnline()
+    let n = 42
+    server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647) }), settings)
+    server.log = () => {}
+    me = new Conn('me')
+    blue = new Conn('blue')
+    red = new Conn('red')
+    rivals = [blue, red]
+    toServer(me, { type: 'join', name: 'Ada', persistentId: 'persistent-me', create: true })
+    toServer(blue, { type: 'join', name: 'Bo', persistentId: 'persistent-blue', create: false })
+    toServer(red, { type: 'join', name: 'Cy', persistentId: 'persistent-red', create: false })
+    toServer(blue, { type: 'ready', ready: true })
+    toServer(red, { type: 'ready', ready: true })
+    toServer(me, { type: 'start', options: {} })
+    deliver()
+    keepRivalsPosted()
+  })
+
+  /** The rivals play (from their own views) until it's my turn again — my mail waits, undelivered. */
+  function rivalsPlayUntilMe(seed: number) {
+    for (let i = 0; i < 20; i++) {
+      keepRivalsPosted()
+      const view = latest(rivals[0]) // (any rival's view says whose turn it is)
+      if (view.game.current === 0 || view.game.phase === 'over') return
+      const conn = rivals[view.game.current - 1]
+      const own = latest(conn)
+      const pick = randomAction(own.game, seed + i)
+      toServer(conn, { type: 'action', action: { kind: 'play', action: pick.action, version: own.version } })
+    }
+  }
+  /** Lets every replay, landing and score sequence play out. */
+  function playOut() {
+    for (let i = 0; i < 200; i++) {
+      if (store().flying) store().finishCast()
+      vi.advanceTimersByTime(250)
+    }
+  }
+  /** My first turn after the draft is played (everything delivered); then Blue and Red play — my mail waits. */
+  function myTurnThenRivals() {
+    for (let i = 0; i < 40 && !(store().game!.phase === 'play' && store().game!.current === 0); i++) {
+      const game = store().game!
+      if (game.current === 0 && !store().waiting) store().tapHex(legalDraftHexes(game)[0])
+      else rivalsPlayUntilMe(i + 1)
+      deliver()
+      keepRivalsPosted()
+      playOut()
+    }
+    yellowPlansAndCasts(3)
+    deliver()
+    store().finishCast()
+    playOut()
+    if (store().game!.phase === 'refresh') { store().refresh(true); deliver(); playOut() }
+    expect(store().game!.current).toBe(1)
+    const before = store().online!.version
+    rivalsPlayUntilMe(11)
+    return before
+  }
+
+  it('skipped views: only the newest view arrives, and each rival turn in it still plays out once, in order', () => {
+    const before = myTurnThenRivals()
+    const views = myViews()
+    me.mail = []
+    expect(views.length).toBeGreaterThan(1) // several views were sent…
+    const newest = views.at(-1)!
+    const turns = newest.feed.filter((c) => c.change > before && c.events.some((e) => e.type === 'moved'))
+    expect(turns.map((c) => c.events.find((e) => e.type === 'moved')!.seat)).toEqual([1, 2])
+    const trails = watchTrails()
+    receiveView(newest) // …but only the newest arrives
+    playOut()
+    trails.stop()
+    expect(trails.seats).toEqual([1, 2]) // Blue's turn, then Red's — each once
+    expect(store().online!.version).toBe(newest.version)
+    expect(store().game).toEqual(newest.game) // and the screen ends on the server's view
+    expect(store().trail).toBeNull()
+  })
+
+  it('a view that comes again (or an older one) plays nothing', () => {
+    myTurnThenRivals()
+    const views = myViews()
+    deliver()
+    playOut()
+    const shown = store().game
+    const happened = store().happened
+    const trails = watchTrails()
+    for (const view of views) receiveView(view) // every one of them again
+    playOut()
+    trails.stop()
+    expect(trails.seats).toEqual([])
+    expect(store().game).toBe(shown)
+    expect(store().happened).toBe(happened)
+  })
+
+  it('a gap too old for the feed (back after a long time): straight to the view, nothing animated', () => {
+    myTurnThenRivals()
+    const newest = myViews().at(-1)!
+    me.mail = []
+    const landedBefore = store().landed
+    receiveView({ ...newest, feed: newest.feed.slice(-1) }) // the changes before it have left the feed
+    expect(store().trail).toBeNull() // no replay…
+    expect(store().flying).toBe(false)
+    expect(store().landed).toBe(landedBefore) // …no sprout, no score sequence
+    expect(store().scoring).toBeNull()
+    expect(store().happened).toBeNull()
+    expect(store().game).toEqual(newest.game) // just the view
+    expect(store().online!.version).toBe(newest.version)
+  })
+})
