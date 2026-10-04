@@ -137,10 +137,10 @@ flowchart LR
 Goal: play solo or fill any seat (2–4, local or online) with an AI that feels like a person — seven recognisable personalities and three skills, chosen in New Game, at human pace, with a little banter — each personality proven by its behaviour over hundreds of AI-vs-AI games. Design: `design/ai.md` + `../../framework/.planning/design/ai.md`. Framework-first: each framework slice (its F19–F24) is built there and switched on here in the same sprint.
 - 🟢 F37 ❓ AI calls: Strategist (multi-word, rec.) · banter amount (big moments, rec.) · host adds AI online (yes, rec.) · names + portraits (personality name + seat glyphling for beta, rec.) — defaults in place, Muzzy confirms
   why: each one changes how the AI table feels (Fellowship, Hunted-but-cozy)
-- ⏳ F38 🧱 AI plug: readings (hand quality, danger, fill, territory, end near), imagined seeds, beliefs' evidence (rivals' visible scoring), behaviour meters (reuse award detectors), candidate cut; time one decision on a phone — must:beta · needs: framework F19
-- ⏳ F39 🧱 Goals + special decisions: 7 goal scorers (incl. territory in TRAP/ESCAPE), draft, refresh, "call it" self-tangle — must:beta · needs: F38
+- 🔨 F38 🧱 AI plug: readings (hand quality, danger, fill, territory, end near), imagined seeds, beliefs' evidence (rivals' visible scoring), behaviour meters (reuse award detectors), candidate cut; time one decision on a phone — must:beta · needs: framework F19 · sprint 14
+- 🔨 F39 🧱 Goals + special decisions: 7 goal scorers (incl. territory in TRAP/ESCAPE), draft, refresh, "call it" self-tangle — must:beta · needs: F38 · sprint 14
   why: "call it" on fuzzy beliefs → it sometimes ends the game while behind → Feels like a person + Secret-Magic tension
-- ⏳ F40 🎮 Seven personalities + three skills as data (content/ai/), bios, feel targets — must:beta · needs: F39, ~F37
+- 🔨 F40 🎮 Seven personalities + three skills as data (content/ai/), bios, feel targets — must:beta · needs: F39, ~F37 · sprint 14
 - ⏳ F41 🔧 Glyphtender in the Dev Kit AI tab + arena (`npm run ai:arena`): edit personalities in-game, watch AIs play with decision notes + belief meters — must:beta · needs: F40, framework F23, framework F24
   why: Muzzy tunes by eye ("select a personality, tweak the values")
 - ⏳ F42 🎮 Play vs AI: New Game seat = Human / AI (personality card + skill, "Surprise me"), thinking cue, human pace + Settings → AI speed, no handoff for bots, background thinking — must:beta · needs: F40, framework F20, framework F21
