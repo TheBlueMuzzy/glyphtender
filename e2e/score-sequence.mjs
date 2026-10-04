@@ -15,7 +15,7 @@ import { chromium } from 'playwright-core'
 import anim from '../content/tuning/anim.json' with { type: 'json' }
 
 const OUT = process.argv[2] ?? 'e2e-shots'
-const PORT = Number(process.argv[3] ?? 5243)
+const PORT = Number(process.argv[3] ?? 5244)
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },

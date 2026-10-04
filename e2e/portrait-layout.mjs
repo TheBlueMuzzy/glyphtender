@@ -5,7 +5,7 @@
 //   B014 every button and the tray sit at least layout.json → bottomRoom above the bottom edge (the phone's
 //        home/back gesture zone), on every size
 // At phone 390×844 and 360×780 (the checks), plus landscape 844×390 and desktop 1440×900 (fit + screenshots).
-// Starts its OWN dev server (default port 5196 — never Muzzy's 5180) and closes only that one at the end.
+// Starts its OWN dev server (default port 5198 — never Muzzy's 5180) and closes only that one at the end.
 //   npm run e2e:portrait [outDir] [port]
 import { mkdirSync } from 'node:fs'
 import { createServer } from 'vite'
@@ -13,7 +13,7 @@ import { chromium } from 'playwright-core'
 import layout from '../content/tuning/layout.json' with { type: 'json' }
 
 const OUT = process.argv[2] ?? 'e2e-shots'
-const PORT = Number(process.argv[3] ?? 5196)
+const PORT = Number(process.argv[3] ?? 5198)
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true, portrait: true },
   { name: 'phone-small', width: 360, height: 780, mobile: true, portrait: true },
