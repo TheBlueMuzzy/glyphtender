@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — musts not set (/define) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.6 Rebuilt on the Table (musts 0/8), then AI (musts not set — /define) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -109,8 +109,32 @@ flowchart LR
   F20[✅ F20] --> F28[F28 4 players]
 ```
 
+## v0.6 — Rebuilt on the Table  ← current  (plays and looks the same; prepares online + AI)
+Goal: Glyphtender runs on the framework's Table foundation (Game core + events, Turns & flow, Zones & pieces, drag referee, Hand view, seats & per-seat views) with NO change a player can see — and is ready for AI (local and online) and a second game. Design: `../../framework/.planning/design/table.md`. Each slice is framework-first (dev/framework v0.4), switched over here in the same sprint; golden games + before-screenshots must match after every slice.
+- 🟢 F29 🧱 Safety net: golden games (~300 seeded sim games, every action + a state fingerprint after each, 2–4 players, both boards) + before-screenshots of every screen at every size + compare scripts (`npm run check:golden`, `npm run check:shots`) — must:beta
+  why: "plays and looks the same" must be proven, not hoped — every later slice is judged by it
+- ⏳ F30 🧱 Game core: every change is an action through one rules contract; replayable move record (seed + actions, also kept by the server for online games); `legalActions(state, seat)`; fast mode (skips end-screen bookkeeping) for sims + AI; every action returns events tagged with who may see them — must:beta · needs: F29
+- ⏳ F31 🧱 Events drive the screen: glide, throw, score sequence, trails, refresh stages, reveal, online replays of other seats, Dev Kit adapter all read events (replaces lastTurn diffing + store timers guessing) — must:beta · needs: F30
+- ⏳ F32 🧱 Turns & flow: Draft (snake) → Play (clockwise, skip fully tangled; refresh step) → Over as flow levels; who may act, "your turn", undo limits (move → cast) come from the flow — must:beta · needs: F30
+- ⏳ F33 🧱 Zones & pieces: board cells, hands, bag, planted seeds as zones; stable piece ids (ends the tray-order ↔ hand-index coupling); owner + shared states; visibility declared per zone — must:beta · needs: F30
+- ⏳ F34 🧱 Drag referee: one yes/no answer drives the drop glow, the nope shake and the drop; the 7 rule copies in screen code (mayMoveOnly, nope, startDrag checks, pulse, danger, scorePops, reveal's tangle sum) move back into the rules — must:beta · needs: F32, F33
+- ⏳ F35 🧱 Hand view: the seed tray becomes the framework Hand view with a "rack" preset — pixel-identical, same drag/reorder/refresh behaviour — must:beta · needs: F34
+- ⏳ F36 🧱 Seats & per-seat views: one seat model (local human · online human · local bot · online bot · reconnecting); pass-and-play switches the viewer seat; the server sends each seat its view + its events (per-seat events in the rooms kit); bots see only their seat's view; side-door leak tests (ids, hidden order, events, log, undo, seed) — must:beta · needs: F31, F33
+```mermaid
+flowchart LR
+  F29[F29 Safety net] --> F30[F30 Game core]
+  F30 --> F31[F31 Events drive screen]
+  F30 --> F32[F32 Turns & flow]
+  F30 --> F33[F33 Zones & pieces]
+  F32 --> F34[F34 Drag referee]
+  F33 --> F34
+  F34 --> F35[F35 Hand view]
+  F31 --> F36[F36 Seats & views]
+  F33 --> F36
+```
+
 ## Later
-- **beta (AI) — waits until Muzzy can sit down and describe it (2026-10-01):** framework AI module from the original's goal-selection model (`research/original-digest.md §2`) · 7 personalities with bios + gentle banter · AI in any seat, 2–4 players, online idle takeover · AI at human pace + speed setting · Dev Kit AI tool (AI-vs-AI, personality sliders) · basic audio · sims: board size per player count, bag run-out, first-player edge · **Re-tune award thresholds with AI personalities (AI-vs-AI)** (the 14 skill awards' thresholds are provisional — research/sims.md 2026-10-02) · ❓ AI vocabulary tiers (Zipf 3/2/0 vs 4/3/0) · ❓ Strategist personality
+- **beta (AI) — after v0.6; built ON the Table (bots are seats, fair AI sees only its seat's view, local + online):** framework AI module from the original's goal-selection model (`research/original-digest.md §2`) · 7 personalities with bios + gentle banter · AI in any seat, 2–4 players, online idle takeover · AI at human pace + speed setting · Dev Kit AI tool (AI-vs-AI, personality sliders) · basic audio · sims: board size per player count, bag run-out, first-player edge · **Re-tune award thresholds with AI personalities (AI-vs-AI)** (the 14 skill awards' thresholds are provisional — research/sims.md 2026-10-02) · ❓ AI vocabulary tiers (Zipf 3/2/0 vs 4/3/0) · ❓ Strategist personality
 - **1.0:** tutorial · accessibility pass · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
 - **Should:** board themes · colour preference · random starting player · hint · topiary-grow cast effect
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings

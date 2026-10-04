@@ -140,6 +140,15 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D59 · 2026-10-04 · Rebuild on the framework's Table before AI — plays and looks the same (Muzzy)
+  Why: Muzzy: "AI can wait. this is more foundational" — prove the framework's lattice (Muzzy's BlokParty model: zones,
+  pieces, states, tags, seats) by rebuilding Glyphtender underneath, since the target experience is already known and
+  liked; then AI is a framework module from day one instead of Glyphtender-only code. Built with online + AI (local
+  and online) in mind: server referees with one rules contract, per-seat views AND events, bots are seats seeing only
+  their view, legalActions + fast mode + replayable move record. Guards: golden games + before-screenshots after every
+  slice. Plan: ROADMAP v0.6 F29–F36 · design: framework .planning/design/table.md · architecture map in this session's
+  notes (risks: store/onlinePlay timers, tray order ↔ hand index, log/insight fields, online secrecy, rules copied
+  into screen code).
 D58 · 2026-10-03 · Full screen: any tap on a phone, a button on a computer (Muzzy)
   Why: on a phone on its side the browser's bars pushed the game down and cut off the bottom; Muzzy sends links to
   friends and wants them to see the game "as it is meant to be experienced". Browsers never go full screen without a
