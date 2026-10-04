@@ -92,7 +92,7 @@ flowchart LR
 |---|---|---|
 | `content/data/boards.json` | board shapes (column heights), default board per player count | Obsidian |
 | `content/data/bag.json` | seed counts per letter (a plain `Q` since D47) | Obsidian / Dev Kit → Tuning |
-| `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer from ≥ 8, ≥ 3 each, ≤ half left, weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
+| `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer: a hunt over your turns took ≥ 75% of a ≥ 8-move glyphling's room (D68), weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
 | `content/tuning/rules.json` | hand size 8, min word 2, tangle bonus 3, tangles to end 2, ownership bonus 1 | Dev Kit → Tuning |
 | `content/tuning/layout.json` | stacked/side threshold, tray seed minimum (44) + gap, side panel share, board margin, drag lift + drag start distance | Dev Kit → Tuning |
 | `content/tuning/anim.json` | move glide (moveBase, movePerHex, moveSettle), turn trails (trailLead 0.5, trailHold 0.35), throw (flight, arc, hop), sprout, halo pulse (pulseTime — planned pieces only), handoff/reveal wait after a landing (wordGlowTime 1.4); word spotlight (spotlightHold 0.8, spotlightFade 0.12); reveal timings (revealTangles, tangleBlinkTime — split from pulseTime 2026-10-03, revealBonus, revealCount, revealWinner, revealPopTime); sprint 06: score sequence (scorePopDelay, scoreWordTime, scorePopGap, scorePopTime, scorePopHold, scoreFlyTime, scoreTotalHold, scoreTotalFade, scoreTotalGrow, scoreTotalMaxGrow — D52), turnPulseTime, noShakeTime | Dev Kit → Tuning |
@@ -141,6 +141,19 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D68 · 2026-10-04 · Pincer = the biggest share of one rival glyphling's room taken over a run of your turns (Muzzy)
+  Why: D57 ranked by the biggest raw cut in moves, so early pincers (glyphlings with lots of room) always won. Muzzy:
+  "% accumulated on one glyphling — 'Over 3 turns you squeezed Blue's glyphling from 14 moves to 2 (86%)' — this proves
+  aggressive play". How many pincers doesn't matter, only the share taken; there's no tangle link, so self-tangles can't
+  game it. Rule (stats.ts pincerHunts): a HUNT = a run of the holder's own turns in order, each cutting the same rival
+  glyphling (its moves at the start of the holder's turn → after their cast; move, cast or both); a holder turn that
+  doesn't cut it ends the run. from = its moves at the run's start, to = after the run's last cast (the owner's escapes
+  in between count honestly). Earned when from ≥ pincerMinFrom (8) and (from − to) / from ≥ pincerMinShare (new, 0.75);
+  pincerMinEach / pincerMaxLeft removed. Best = the bigger share, then the bigger from, then the later turn; the Story
+  star marks the run's LAST turn. Captions (en.json reason / reasonOne): "Over {turns} turns you squeezed {other}'s
+  glyphling from {from} moves to {to} ({pct}%)" / "In one turn you squeezed…". Mindless sims (npm run sim:awards,
+  2,400 games): 0.75 → random 30.3% / greedy 30.1% (2p 13–16%, 3p 25–36%, 4p 45–51%); 0.8 → 18% / 21%; 0.5 → ~82%.
+  0.75 keeps Muzzy's real game's Pincer (a 2-turn hunt 12 → 3 = 75%).
 D67 · 2026-10-04 · One seat model; every seat sees only what it may; bots see only their view (F36, built overnight)
   Table 0.6.0 seats.ts + rooms 0.2.0 (sendEventPerSeat — unused by Glyphtender: events ride in views, D64). The game's
   Seat = TableSeat (kind human | bot · where local | online · connected) + name + colour; localSeats (all people here),
@@ -276,6 +289,7 @@ D56 · 2026-10-03 · Same intention, same motion: the reveal's "+3"s fly into th
   is enough"); ALL points fly on the seed's arc (scoreFrames.flightFrames — in-game "+2"s too: "straight is boring and
   hard to read").
 D57 · 2026-10-03 · Pincer = halve a rival glyphling's moves with your move AND your cast in one turn (Muzzy)
+  REPLACED by D68 (2026-10-04): the biggest share of one glyphling's room over a run of your turns.
   Why: "9 → 5 → 1 moves" wasn't clear to a player. Muzzy: "reduced an opponent's movement options by half… rare-ish,
   ~10–25% of games". Chose: it had ≥ pincerMinFrom 8, the move and the cast each took ≥ 3, ≤ pincerMaxLeft 0.5 left.
   Mindless sim play: ~12% random / ~10% greedy (deliberate squeezes should land in 10–25%). Caption: "Your move and

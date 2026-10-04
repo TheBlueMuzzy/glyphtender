@@ -9,6 +9,7 @@ import endscreen from '../../content/tuning/endscreen.json'
 import { logIsComplete } from '../engine/log'
 import { hexAt, position } from '../engine/testkit'
 import { awardPoint, earnedAwards, scorecards, standings, storyChart } from './stats'
+import { awardText } from './endText'
 
 // ─── Hand-built logs ───
 // A turn: [seat, words as "WORD:owners" (owners = one digit per seed, e.g. "CAT:010"), extra fields]
@@ -113,7 +114,7 @@ describe('scorecards', () => {
 describe('awards (skill, earned only)', () => {
   // Fixed test thresholds (the real ones in endscreen.json are provisional and will be re-tuned)
   const T = {
-    ...endscreen, lockdownMinDrop: 5, lockdownMaxAfter: 2, pincerMinFrom: 6, pincerMinEach: 2, pincerMaxLeft: 0.5, weedMaxMagic: 0, weedMinBlocked: 6,
+    ...endscreen, lockdownMinDrop: 5, lockdownMaxAfter: 2, pincerMinFrom: 6, pincerMinShare: 0.5, weedMaxMagic: 0, weedMinBlocked: 6,
     weedMinCut: 4, walledMinMagic: 12, walledMaxSize: 40, hedgeMinOver: 2, powerPlayMin: 3, longWordMinSmall: 6, longWordMinLarge: 6,
     hijackMinFrom: 3, bridgeMinSide: 2, closeCallMinAfter: 4, tricksterMinBehind: 1, calledItMinLead: 1,
   }
@@ -140,18 +141,50 @@ describe('awards (skill, earned only)', () => {
     expect(ids(finished(2, [[0, [], { mobility: mob({ 1: [9, 9, 0] }) }]]))).not.toContain('lockdown:0')
   })
 
-  it('Pincer: the move AND the cast each cut the same rival glyphling', () => {
-    const g = finished(2, [[0, [], { mobility: mob({ 3: [8, 5, 2] }) }]])
-    expect(one(g, 'pincer')).toMatchObject({ holder: 0, values: { from: 8, to: 2 } })
-    // both cut, but it still has more than half its moves left: no pincer
-    expect(ids(finished(2, [[0, [], { mobility: mob({ 3: [12, 10, 7] }) }]]))).not.toContain('pincer:0')
-    // already cornered (fewer than pincerMinFrom moves): no pincer
-    expect(ids(finished(2, [[0, [], { mobility: mob({ 3: [5, 3, 1] }) }]]))).not.toContain('pincer:0')
-    // only the cast cut it (or only the move): no pincer
-    expect(ids(finished(2, [[0, [], { mobility: mob({ 3: [8, 8, 2] }) }]]))).not.toContain('pincer:0')
-    expect(ids(finished(2, [[0, [], { mobility: mob({ 3: [8, 2, 2] }) }]]))).not.toContain('pincer:0')
-    // two DIFFERENT glyphlings each cut once: no pincer
-    expect(ids(finished(2, [[0, [], { mobility: mob({ 2: [8, 4, 4], 3: [8, 8, 4] }) }]]))).not.toContain('pincer:0')
+  describe('Pincer (D68): the biggest share of one rival glyphling\'s room taken over a hunt (a run of your turns)', () => {
+    // Blue's glyphling 3, squeezed by Yellow (seat 0): [moves at the start of Yellow's turn, after the move, after the cast]
+    const hunt = (...steps: [number, number, number][]) =>
+      steps.flatMap((s, i): TurnPlan[] => [[0, [], { mobility: mob({ 3: s }) }], ...(i < steps.length - 1 ? [[1, []] as TurnPlan] : [])])
+    const name = (seat: number) => ['Yellow', 'Blue'][seat]
+
+    it('a 3-turn hunt, 14 → 2 = 86%, earns it — with the proof, and the star on the hunt\'s LAST turn', () => {
+      const g = finished(2, hunt([14, 11, 10], [10, 8, 6], [6, 4, 2]))
+      const a = one(g, 'pincer')
+      expect(a).toMatchObject({ holder: 0, seats: [0, 1], moment: 5, values: { other: 1, from: 14, to: 2, turns: 3, pct: 86 } })
+      expect(awardText(a!, name).reason).toBe('Over 3 turns you squeezed Blue\'s glyphling from 14 moves to 2\u00a0(86%)')
+    })
+    it('one turn: "In one turn…"; the move or the cast alone is enough', () => {
+      const a = one(finished(2, hunt([8, 8, 2])), 'pincer')!
+      expect(a.values).toMatchObject({ from: 8, to: 2, turns: 1, pct: 75 })
+      expect(awardText(a, name).reason).toBe('In one turn you squeezed Blue\'s glyphling from 8 moves to 2\u00a0(75%)')
+    })
+    it('its owner escaping between your turns counts honestly: it lowers the share', () => {
+      // 12 → 6, Blue escapes to 10, then 10 → 7: the hunt is 12 → 7 = 42%, under half
+      const escaped = finished(2, [[0, [], { mobility: mob({ 3: [12, 9, 6] }) }], [1, []], [0, [], { mobility: mob({ 3: [10, 9, 7] }) }]])
+      expect(ids(escaped)).not.toContain('pincer:0')
+      expect(ids(finished(2, hunt([12, 9, 6], [6, 5, 4])))).toContain('pincer:0') // without the escape: 12 → 4
+    })
+    it('a turn of yours that doesn\'t cut it ends the hunt: the next cut starts over', () => {
+      // 12 → 9, a turn that leaves it at 9, then 9 → 5: two hunts (25%, 44%), not 12 → 5
+      expect(ids(finished(2, hunt([12, 10, 9], [9, 9, 9], [9, 7, 5])))).not.toContain('pincer:0')
+      expect(one(finished(2, hunt([12, 10, 9], [9, 9, 9], [9, 6, 3])), 'pincer')?.values).toMatchObject({ from: 9, to: 3, turns: 1 })
+    })
+    it('the share wins, not the size: an early 1-turn 12 → 9 (25%) loses to a late 2-turn 6 → 1 (83%)', () => {
+      const g = finished(2, [...hunt([12, 10, 9]), [1, []], [0, [], { mobility: mob() }], [1, []], ...hunt([6, 4, 3], [3, 2, 1])])
+      const got = earnedAwards(g, { ...T, pincerMinShare: 0.2 }).find((a) => a.id === 'pincer')
+      expect(got).toMatchObject({ moment: 7, values: { from: 6, to: 1, turns: 2, pct: 83 } })
+    })
+    it('ties: the bigger starting room wins, then the later turn', () => {
+      // 8 → 4 and 12 → 6 are both 50%: 12 → 6 wins
+      const sizes = finished(2, [[0, [], { mobility: mob({ 2: [12, 9, 6], 3: [8, 6, 4] }) }]])
+      expect(one(sizes, 'pincer')?.values).toMatchObject({ other: 1, from: 12, to: 6 })
+      // the same 10 → 5 twice: the later one
+      expect(one(finished(2, hunt([10, 8, 5], [5, 5, 5], [10, 7, 5])), 'pincer')?.moment).toBe(5)
+    })
+    it('never from an already-cornered glyphling (fewer than pincerMinFrom moves), nor your own', () => {
+      expect(ids(finished(2, hunt([5, 3, 1])))).not.toContain('pincer:0')
+      expect(ids(finished(2, [[0, [], { mobility: mob({ 1: [12, 6, 0] }) }]]))).not.toContain('pincer:0')
+    })
   })
 
   it('Weed toss: a junk cast that took a rival’s scoring spot (bonus: refreshed after), or cut their moves', () => {
@@ -205,11 +238,12 @@ describe('awards (skill, earned only)', () => {
     expect(ids(game(own), { ...T, walledMaxSize: 1 })).not.toContain('walledGarden:0')
   })
 
-  it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its 5: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (12 → 9 → 5, since the halving rule)', () => {
+  it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its awards: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (a 2-turn hunt 12 → 3 = 75%, D68)', () => {
     const real = JSON.parse(readFileSync('e2e/fixtures/muzzy-zero-awards.json', 'utf8')).state.game as GameState
     const got = earnedAwards(real)
-    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['comeback:0', 'pincer:0', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0'])
+    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['comeback:0', 'pincer:0', 'pincer:1', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0'])
     expect(got.find((a) => a.id === 'walledGarden')?.values.n).toBe(43)
+    expect(got.find((a) => a.id === 'pincer' && a.holder === 0)?.values).toMatchObject({ from: 12, to: 3, turns: 2, pct: 75 })
   })
 
   it('Through the hedge: a scoring cast over 2+ of your own seeds', () => {
@@ -295,7 +329,7 @@ describe('awards (skill, earned only)', () => {
     const off = { ...T, awardOrder: { ...T.awardOrder, lockdown: 0 } }
     expect(earnedAwards(g, off).some((a) => a.id === 'lockdown')).toBe(false)
     const mixed = finished(2, [[0, ['GARDENS:0000000'], { mobility: mob({ 2: [9, 9, 2] }) }]])
-    expect(earnedAwards(mixed, T).map((a) => a.id)).toEqual(['lockdown', 'longWord', 'calledIt'])
+    expect(earnedAwards(mixed, T).map((a) => a.id)).toEqual(['lockdown', 'pincer', 'longWord', 'calledIt']) // (9 → 2 in one turn is a Pincer too)
   })
 
   it('an old log without the new facts: those awards just can’t be earned (no crash)', () => {

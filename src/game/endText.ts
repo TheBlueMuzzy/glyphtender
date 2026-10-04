@@ -12,12 +12,13 @@ type Name = (seat: number) => string
 
 /** "Lockdown" + "Blue's glyphling: 9 moves → 2" — the award's title and its proof. */
 export function awardText(award: Award, name: Name): { title: string; reason: string } {
-  const words = w.awards[award.id] as { title: string; reason: string; reasonCut?: string; refreshed?: string }
+  const words = w.awards[award.id] as { title: string; reason: string; reasonCut?: string; reasonOne?: string; refreshed?: string }
   const values = Object.fromEntries(Object.entries(award.values).map(([k, v]) => [k, typeof v === 'boolean' ? String(v) : v]))
   if (typeof award.values.other === 'number') values.other = name(award.values.other)
   let reason = words.reason
   if (award.id === 'weedToss' && award.values.kind === 'cut' && words.reasonCut) reason = words.reasonCut
   if (award.id === 'weedToss' && award.values.refreshed === true && words.refreshed) reason += words.refreshed
+  if (award.id === 'pincer' && award.values.turns === 1 && words.reasonOne) reason = words.reasonOne // (a one-turn hunt)
   return { title: words.title, reason: noOrphan(fill(reason, values)) } // (never one word alone on the last line)
 }
 

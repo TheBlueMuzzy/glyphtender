@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import endscreen from '../content/tuning/endscreen.json'
 import { logOf } from '../src/engine/log'
 import type { GameState } from '../src/engine/types'
-import { earnedAwards, walledCells } from '../src/game/stats'
+import { earnedAwards, pincerHunts, walledCells } from '../src/game/stats'
 
 const file = process.argv[2]
 if (!file) throw new Error('Usage: npx tsx scripts/award-near-misses.ts content/snapshots/<name>.json')
@@ -24,11 +24,10 @@ turns.forEach((turn) => {
   const m = turn.mobility
   if (m) {
     for (const g of seatsOf(turn.seat)) {
-      const [from, mid, to] = [m.before[g.id], m.afterMove[g.id], m.afterCast[g.id]]
-      if (from === undefined || mid === undefined || to === undefined) continue
+      const [from, to] = [m.before[g.id], m.afterCast[g.id]]
+      if (from === undefined || to === undefined) continue
       keep('lockdown: moves taken from one rival glyphling', from - to, `${at}: ${from} → ${to}`)
       keep('lockdown: …while leaving it ≤ ' + t.lockdownMaxAfter + ' (best drop that did)', to <= t.lockdownMaxAfter ? from - to : -1, `${at}: ${from} → ${to}`)
-      keep('pincer: smaller of move-cut / cast-cut', Math.min(from - mid, mid - to), `${at}: ${from} → ${mid} → ${to}`)
     }
     for (const g of game.glyphlings.filter((x) => x.seat === turn.seat)) {
       if (m.before[g.id] === 1) keep('closeCall: moves after escaping from 1', m.afterCast[g.id] ?? 0, at)
@@ -43,6 +42,10 @@ turns.forEach((turn) => {
   }
   keep('completeTangle: count', (turn.completeTangles ?? []).filter((c) => c.by !== null).length, at)
 })
+// pincer hunts (stats.ts pincerHunts): the biggest share of one rival glyphling's room over a run of your turns
+for (const h of pincerHunts(game)) {
+  if (h.from >= t.pincerMinFrom) keep('pincer: % of its moves taken over a hunt', Math.round(h.share * 100), `seat ${h.holder}, ${h.turns} turn(s) to round ${turns[h.lastIndex].round}: ${h.from} → ${h.to}`)
+}
 // walled gardens (stats.ts walledCells — whoever built the wall): Magic made inside from the turn it was small enough
 for (const cell of walledCells(game, t.walledMaxSize)) {
   const key = (h: { q: number; r: number }) => `${h.q},${h.r}`
@@ -69,7 +72,7 @@ if (end && last) {
 const need: Record<string, string> = {
   'lockdown: moves taken from one rival glyphling': `≥ ${t.lockdownMinDrop}`,
   ['lockdown: …while leaving it ≤ ' + t.lockdownMaxAfter + ' (best drop that did)']: `≥ ${t.lockdownMinDrop}`,
-  'pincer: smaller of move-cut / cast-cut': `≥ ${t.pincerMinEach} each, from ≥ ${t.pincerMinFrom}, ≤ ${t.pincerMaxLeft * 100}% left`,
+  'pincer: % of its moves taken over a hunt': `≥ ${Math.round(t.pincerMinShare * 100)} (from ≥ ${t.pincerMinFrom} moves)`,
   'closeCall: moves after escaping from 1': `≥ ${t.closeCallMinAfter} (and never tangled)`,
   'weedToss: Magic blocked by a 0-Magic cast': `≥ ${t.weedMinBlocked}`,
   'walledGarden: Magic made in a sealed pocket': `≥ ${t.walledMinMagic} (pocket ≤ ${t.walledMaxSize} hexes)`,
