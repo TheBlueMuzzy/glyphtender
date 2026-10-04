@@ -141,14 +141,14 @@ Goal: play solo or fill any seat (2–4, local or online) with an AI that feels 
 - ✅ F39 🧱 Goals + special decisions: 7 goal scorers (incl. territory in TRAP/ESCAPE), draft, refresh, "call it" self-tangle — must:beta · needs: F38 · sprint 14 · built 2026-10-04 (autonomous)
   why: "call it" on fuzzy beliefs → it sometimes ends the game while behind → Feels like a person + Secret-Magic tension
 - ✅ F40 🎮 Seven personalities + three skills as data (content/ai/), bios, feel targets — must:beta · needs: F39, ~F37 · sprint 14 · built 2026-10-04 (autonomous; first Personality Check: positional personalities rarely win → F45)
-- ⏳ F41 🔧 Glyphtender in the Dev Kit AI tab + arena (`npm run ai:arena`): edit personalities in-game, watch AIs play with decision notes + belief meters — must:beta · needs: F40, framework F23, framework F24
+- 🔨 F41 🔧 Glyphtender in the Dev Kit AI tab + arena (`npm run ai:arena`): edit personalities in-game, watch AIs play with decision notes + belief meters — must:beta · needs: F40, framework F23, framework F24
   why: Muzzy tunes by eye ("select a personality, tweak the values")
-- ⏳ F42 🎮 Play vs AI: New Game seat = Human / AI (personality card + skill, "Surprise me"), thinking cue, human pace + Settings → AI speed, no handoff for bots, background thinking — must:beta · needs: F40, framework F20, framework F21
+- 🔨 F42 🎮 Play vs AI: New Game seat = Human / AI (personality card + skill, "Surprise me"), thinking cue, human pace + Settings → AI speed, no handoff for bots, background thinking — must:beta · needs: F40, framework F20, framework F21
   why: solo play any time → the primary target (Hunted, but cozy) is reachable alone
 - ⏳ F43 🎮 Online AI: idle takeover plays as the AI (replaces the greedy bot), server-side thinking within its CPU budget; host can add AI seats in the lobby (should — F37) — must:beta · needs: F42
 - ⏳ F44 🎮 Banter bubbles: big moments → a short gentle line by the AI's chip; lines drafted by Claude, tone checked by Muzzy — must:beta · needs: F40, framework F22, ~F37
   why: gentle mischief → Fellowship with a computer; "even the Bully is mischievous, not mean"
-- ⏳ F45 🎛️ Personality Check pass: tune all 7 until feel targets are green, tell-apart ≥ 70%, everyone wins 35–65% vs Balanced, skill ladder holds; settles vocabulary tiers (GDD §9) — must:beta · needs: F41
+- 🔨 F45 🎛️ Personality Check pass: tune all 7 until feel targets are green, tell-apart ≥ 70%, everyone wins 35–65% vs Balanced, skill ladder holds; settles vocabulary tiers (GDD §9) — must:beta · needs: F41
   why: proves each personality *feels* like itself, not just that its numbers are set (D72)
 - ⏳ F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45
 - ⏳ F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45
