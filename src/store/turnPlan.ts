@@ -5,6 +5,7 @@ import { sameHex, type Hex } from '../engine/hex'
 import type { Action, GameState, SeedPiece } from '../engine/types'
 import { isMyTurn } from './myTurn'
 import type { Seat } from './seats'
+import { undoStep, type TurnSteps } from '../table/flow'
 
 /** A glyphling moved on screen but not cast yet. */
 export interface PlannedMove {
@@ -26,6 +27,21 @@ export interface Highlight {
   hexes: Hex[]
   kind: 'move' | 'cast'
 }
+
+/** A step of one turn. */
+export type TurnStep = 'move' | 'cast'
+
+/** The steps of a turn, in order (the Table's TurnSteps): move, then cast. Cast sends them as one action. */
+export const TURN_STEPS: TurnSteps<TurnStep> = ['move', 'cast']
+
+/** The steps planned so far this turn, in order (e.g. ['move'] once the glyphling has moved). */
+export const stepsDone = (move: PlannedMove | null, cast: PlannedCast | null): TurnStep[] =>
+  TURN_STEPS.filter((step) => (step === 'move' ? move !== null : cast !== null))
+
+/** What Undo takes back now: the cast, then the move — null at the turn's start (never the turn before: it's played).
+ *  The store's undo and the Undo button both ask this. */
+export const undoNow = (move: PlannedMove | null, cast: PlannedCast | null): TurnStep | null =>
+  undoStep(stepsDone(move, cast))
 
 /** Does this glyphling belong to the player whose turn it is? */
 export const isCurrents = (game: GameState, id: number) =>

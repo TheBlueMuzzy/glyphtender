@@ -18,7 +18,7 @@ import { parseWordList } from '../engine/words'
 import type { Action, GameState, WordList } from '../engine/types'
 import {
   castOptions, hexIn, highlightFor, inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
-  shuffled, turnAction, type PlannedCast, type PlannedMove, type Selection,
+  shuffled, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
 import { localSeats, needsHandoff, type Seat } from './seats'
 import { canPlayNow } from './myTurn'
@@ -346,12 +346,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ selected: null })
     },
 
-    // Undo takes back the last step: the cast, then the move.
+    // Undo takes back the last step: the cast, then the move — never past the turn's start (turnPlan.undoNow).
     undo: () => {
       const { cast, move } = get()
       if (!canPlay()) return
-      if (cast) return set({ cast: null, selected: null, note: null })
-      if (move) set({ ...noPlan() })
+      const step = undoNow(move, cast)
+      if (step === 'cast') return set({ cast: null, selected: null, note: null })
+      if (step === 'move') set({ ...noPlan() })
     },
 
     // Cast: the seed flies (the board animates it) and finishCast runs when it lands.

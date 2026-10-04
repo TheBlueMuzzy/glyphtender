@@ -3,7 +3,7 @@ import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
 import { hexKey } from '../engine/hex'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
-import { castOptions, dropKind, highlightFor, letterIn, moveInOrder, shuffled, TRAY_GAP } from './turnPlan'
+import { castOptions, dropKind, highlightFor, letterIn, moveInOrder, shuffled, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
 
 const store = () => useGameStore.getState()
 /** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
@@ -86,11 +86,19 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     store().tapSeed(seed(2))
     store().tapHex(hexAt('C6-4'))
     expect(store().cast).toEqual({ seed: seed(2), target: hexAt('C6-4') })
+    expect(stepsDone(store().move, store().cast)).toEqual(['move', 'cast'])
+    expect(undoNow(store().move, store().cast)).toBe('cast')
     store().undo()
     expect(store().cast).toBeNull()
     expect(store().move).not.toBeNull()
+    expect(undoNow(store().move, store().cast)).toBe('move')
     store().undo()
     expect(store().move).toBeNull()
+    // the turn's start: nothing left to take back (the Undo button is off), and Undo changes nothing
+    expect(undoNow(store().move, store().cast)).toBeNull()
+    const before = store().game
+    store().undo()
+    expect(store().game).toBe(before)
   })
 
   it("tapping the ghost sends the glyphling back; tapping the targeted seed sends it back to the tray", () => {
