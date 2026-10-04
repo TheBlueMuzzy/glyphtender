@@ -18,6 +18,7 @@ import { landingSeconds } from '../store/wordMarks'
 import { PlayerChip, reduceMotion, screens } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
 import { juiceFor } from './feel'
+import { frozen } from './freeze'
 import { playerName } from './prompt'
 import { useAnimTuning, useGardenTuning, useLayoutTuning } from './useTuning'
 
@@ -51,9 +52,9 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealAt, end, scoring])
 
-  // Each step waits its time, then the next one plays
+  // Each step waits its time, then the next one plays (?freeze, dev only: it waits for the screenshot script instead)
   useEffect(() => {
-    if (revealAt === null || revealAt >= end) return
+    if (revealAt === null || revealAt >= end || frozen) return
     const timer = setTimeout(() => setRevealAt(revealAt + 1), stepSeconds(steps[revealAt], timing) * 1000)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
