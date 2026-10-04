@@ -127,6 +127,19 @@
 .ai-shift .ai-num { width: 46px; }
 .ai-shift .ai-select { max-width: 8.5em; }
 
+/* steady goals: one row per goal, laid out like a Tuning row — [● goal] on top, then [slider] [box] [✕], its help
+   line under it; unset rows dimmed */
+.ai-steady { display: flex; flex-direction: column; gap: 6px; }
+.ai-steady-row {
+  display: grid;
+  grid-template-columns: 1fr 76px 30px;
+  align-items: center;
+  gap: 2px 6px;
+}
+.ai-steady-row .ai-steady-goal, .ai-steady-row .tt-row-help { grid-column: 1 / -1; }
+.ai-steady-goal { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #c9cad6; overflow-wrap: anywhere; }
+.ai-steady-row.is-unset .ai-steady-goal, .ai-steady-row.is-unset .tt-slider { opacity: 0.5; }
+
 /* watching + checking */
 .ai-watch, .ai-check { padding: 4px 0 8px; display: flex; flex-direction: column; gap: 6px; }
 .ai-watch-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }

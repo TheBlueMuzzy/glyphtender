@@ -6,6 +6,10 @@
 //   whatever happens) → ▶ Watch: an all-AI game starts on the board, decision notes and belief bars appear → ■ Stop.
 //   Desktop also: Run check (6 games, in a Web Worker) → the report link opens a page with the Personality Check,
 //   and the search box finds AI settings ("nerve").
+// F41 follow-ups (first size): focus 0.8 → 0.55 and goals.json's TRAP big-moment bar 55 → 60 → Save → each file
+//   differs from the hand-written one in exactly that ONE line (Save keeps the layout) → reload → both kept.
+//   Copy to new "Brute" → Save → en.json gains ai.personality.Brute { name: "the Brute", bio: Bully's bio }.
+//   Every AI file (personalities, goals, pace, en.json) is put back afterwards, whatever happens.
 // Every size: nothing in the AI tab sticks out of the panel, nothing scrolls sideways, no console errors.
 // Starts its OWN dev server (default port 5415 — never Muzzy's) and closes only that one.
 //   npm run e2e:devkit-ai [outDir] [port]
@@ -21,8 +25,21 @@ const SIZES = [
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 const FILE = 'content/ai/personalities.json'
+const GOALS = 'content/ai/goals.json'
+const TEXT = 'content/text/en.json'
+const SAVED_FILES = [FILE, GOALS, 'content/ai/pace.json', TEXT] // every file this test may save
 mkdirSync(OUT, { recursive: true })
 const original = readFileSync(FILE, 'utf8') // put back at the end, whatever happens (Claude tunes this file)
+const originals = Object.fromEntries(SAVED_FILES.map((f) => [f, readFileSync(f, 'utf8')]))
+const putBack = () => SAVED_FILES.forEach((f) => writeFileSync(f, originals[f]))
+
+/** The lines that differ between two versions of a file (same line count), or null when lines were added / removed. */
+function changedLines(before, after) {
+  const a = before.replace(/\r\n/g, '\n').split('\n')
+  const b = after.replace(/\r\n/g, '\n').split('\n')
+  if (a.length !== b.length) return null
+  return b.filter((line, n) => line !== a[n])
+}
 
 /** Parts of the AI tab sticking out past the panel's sides, and sideways scrolling. Runs in the page. */
 function clipped() {
@@ -111,12 +128,60 @@ try {
       else console.log(`  ok   saved, reloaded, still ${after}`)
       writeFileSync(FILE, original) // put the file back now (the finally does it too)
       await page.waitForTimeout(500)
+
+      // F41 follow-ups: focus + a goal's big-moment bar → Save → one line changed in each file → reload → kept
+      await page.reload()
+      await page.waitForFunction(() => window.__glyphtender !== undefined)
+      await openAiTab()
+      await openSection('AI: who it is')
+      await openSection('AI: big moments')
+      await page.getByLabel('focus', { exact: true }).fill('0.55')
+      await page.getByLabel('bigAt.TRAP', { exact: true }).fill('60')
+      await shot('1b-focus-bigAt')
+      await page.getByRole('button', { name: 'Save', exact: true }).click()
+      await page.getByRole('status').filter({ hasText: 'Saved' }).waitFor({ timeout: 5000 })
+      const people = changedLines(originals[FILE], readFileSync(FILE, 'utf8'))
+      const goals = changedLines(originals[GOALS], readFileSync(GOALS, 'utf8'))
+      if (people?.length !== 1 || !people[0].includes('"focus": 0.55')) fail(`personalities.json: expected only the focus line to change, got ${JSON.stringify(people)}`)
+      else console.log(`  ok   personalities.json: one line changed —${people[0]}`)
+      if (goals?.length !== 1 || !goals[0].includes('"TRAP": 60')) fail(`goals.json: expected only the bigAt line to change, got ${JSON.stringify(goals)}`)
+      else console.log(`  ok   goals.json: one line changed —${goals[0]}`)
+      await page.reload()
+      await page.waitForFunction(() => window.__glyphtender !== undefined)
+      await openAiTab()
+      await openSection('AI: who it is')
+      await openSection('AI: big moments')
+      const focusNow = await page.getByLabel('focus', { exact: true }).inputValue()
+      const bigNow = await page.getByLabel('bigAt.TRAP', { exact: true }).inputValue()
+      if (focusNow !== '0.55' || bigNow !== '60') fail(`after a reload focus = ${focusNow}, bigAt.TRAP = ${bigNow} (expected 0.55, 60)`)
+      else console.log('  ok   saved, reloaded: focus 0.55 and TRAP big moment 60 kept')
+
+      // Copy to new → its name and bio in en.json
+      await page.getByRole('button', { name: 'Copy to new…' }).click()
+      await page.getByLabel("New personality's name").fill('Brute')
+      await page.getByRole('button', { name: 'Copy', exact: true }).click()
+      await page.getByRole('button', { name: 'Save', exact: true }).click()
+      await page.getByRole('status').filter({ hasText: 'Saved' }).waitFor({ timeout: 5000 })
+      const texts = JSON.parse(readFileSync(TEXT, 'utf8')).ai.personality
+      if (texts.Brute?.name !== 'the Brute' || texts.Brute?.bio !== texts.Bully.bio) fail(`en.json Brute = ${JSON.stringify(texts.Brute)}`)
+      else console.log(`  ok   Copy to new: en.json has Brute = ${JSON.stringify(texts.Brute)}`)
+      putBack()
+      await page.waitForTimeout(800)
+      await page.reload()
+      await page.waitForFunction(() => window.__glyphtender !== undefined)
+      await openAiTab()
     }
 
     // The rest of the editor: goals, shifts, skill, bio — screenshot them open
-    for (const title of ['AI: who it is', 'AI: mood shifts', 'AI: banter, nerve & words', 'AI: bio', 'AI: skill']) await openSection(title)
+    for (const title of ['AI: who it is', 'AI: mood shifts', 'AI: banter, nerve & words', 'AI: bio', 'AI: big moments', 'AI: pace', 'AI: skill']) await openSection(title)
     await section('AI: who it is').scrollIntoViewIfNeeded()
     await shot('2-editor')
+    await panel.locator('.ai-steady').evaluate((el) => el.scrollIntoView({ block: 'center' }))
+    await shot('2b-steady')
+    await section('AI: big moments').scrollIntoViewIfNeeded()
+    await shot('2c-big-moments')
+    await section('AI: pace').scrollIntoViewIfNeeded()
+    await shot('2d-pace')
     await section('AI: mood shifts').scrollIntoViewIfNeeded()
     await shot('3-shifts')
     ;(await page.evaluate(clipped)).forEach((p) => fail(`sticks out: ${p}`))
@@ -165,7 +230,7 @@ try {
     }
   }
 } finally {
-  writeFileSync(FILE, original)
+  putBack()
   await browser.close()
   await server.close()
 }

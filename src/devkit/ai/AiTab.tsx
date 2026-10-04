@@ -1,9 +1,11 @@
 // AI TOOL — tune the game's AI opponents: pick a personality (or copy one into a new one), drag its trait ranges,
-// reorder its goals, set its nudge / chattiness / extras, its mood shifts and its bio; pick a skill and set its
-// numbers. Then watch AIs play with their thoughts showing, or run the Personality Check over many games.
+// reorder its goals, set its nudge / focus / steady goals / chattiness / extras, its mood shifts and its bio; pick a
+// skill and set its numbers; edit the game's own AI settings files (goals.json's big-moment bars, pace.json) as
+// Tuning rows. Then watch AIs play with their thoughts showing, or run the Personality Check over many games.
 //   The parts sit in sections named by the content files' own "_sections" (+ the tab's: bio, watch, check), so the
 //   Dev Kit's search box finds them ("nerve", "wobble"). Readable names and help lines come from "_labels" / "_help".
-//   Save writes the changed files whole (content/ai/… and the bio's text file) — their notes stay as they were.
+//   Save writes the changed files whole (content/ai/… and the bio's text file) — their notes stay as they were, and
+//   the Save endpoint keeps their hand-written layout (vite/formatJson.ts).
 //   Problems (a goal missing from the list, a range upside down) come from the game's validate callback; Save waits
 //   until there are none.
 // The game plugs it in with aiTab(…) (aiTabEntry.ts) from src/devkit-game/tabs.ts. Shapes: aiTypes.ts. Thinking: aiLogic.ts.
@@ -12,12 +14,14 @@ import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { Section, SectionIndex } from '../search/Section'
 import { DevKitSearch } from '../search/searchContext'
 import { searchTerms } from '../search/searchLogic'
+import { FieldRow } from '../tuning/FieldRow'
+import { listTuningChanges, tuningChanged, valueAt, withValue } from '../tuning/tuningLogic'
 import { CheckPanel } from './CheckPanel'
 import { RangeSlider } from './RangeSlider'
 import { WatchPanel } from './WatchPanel'
 import {
   BIO_SECTION, CHECK_SECTION, WATCH_SECTION, aiSections, copyPersonality, freeId, getAt, helpOf, labelOf, listChanges,
-  listOf, moveGoal, newShift, searchAi, setAt, withList, withRange, type AiSection,
+  listOf, moveGoal, newShift, searchAi, setAt, settingsName, steadyLabel, withList, withRange, withSteady, type AiSection,
 } from './aiLogic'
 import type { AiFile, AiPersonality, AiShift, AiSkill, DevKitAi } from './aiTypes'
 import '../tuning/tuning.css'
@@ -34,6 +38,10 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
   const [skills, setSkills] = useState(savedSkills)
   const [savedBios, setSavedBios] = useState(() => ai.bios?.data ?? {})
   const [bios, setBios] = useState(savedBios)
+  // The game's AI settings files (goals.json, pace.json…), by name ("goals") — as loaded, as saved, as edited
+  const [loadedSettings] = useState(() => Object.fromEntries((ai.settings ?? []).map((f) => [settingsName(f.path), f.data])))
+  const [savedSettings, setSavedSettings] = useState(loadedSettings)
+  const [settings, setSettings] = useState(loadedSettings)
   const [pickedId, setPickedId] = useState(() => savedPeople[0]?.id ?? '')
   const [skillId, setSkillId] = useState(() => savedSkills[Math.min(1, savedSkills.length - 1)]?.id ?? '') // the middle one, if any
   const [newName, setNewName] = useState<string | null>(null) // "Copy to new" is asking for a name
@@ -50,7 +58,9 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
   const peopleChanged = !same(people, savedPeople)
   const skillsChanged = !same(skills, savedSkills)
   const biosChanged = !same(bios, savedBios)
-  const unsaved = peopleChanged || skillsChanged || biosChanged
+  const settingsPath = (name: string) => ai.settings?.find((f) => settingsName(f.path) === name)?.path ?? name
+  const settingsChanged = Object.keys(settings).filter((name) => tuningChanged(settings[name], savedSettings[name]))
+  const unsaved = peopleChanged || skillsChanged || biosChanged || settingsChanged.length > 0
   const problems = people.flatMap((p) => ai.validate?.(p) ?? [])
   const isChanged = (path: (p: AiPersonality) => unknown) => !savedPicked || !same(path(picked), path(savedPicked))
 
@@ -62,7 +72,14 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
   function copyToNew() {
     const id = freeId(newName ?? '', people.map((p) => p.id))
     setPeople((list) => [...list, copyPersonality(picked, id)])
-    if (ai.bios) setBios((b) => setAt(b, ai.bios!.at(id), bio))
+    // Its bio (a copy of this one's) and, if the game keeps names there too, its name for players ("the Brute")
+    const texts = ai.bios
+    if (texts) {
+      setBios((b) => {
+        const named = texts.nameAt ? setAt(b, texts.nameAt(id), texts.nameFor?.(id) ?? id) : b
+        return setAt(named, texts.at(id), bio)
+      })
+    }
     setPickedId(id)
     setNewName(null)
     setStatus({ kind: 'info', text: `${id} is a copy of ${picked.id} — not saved yet.` })
@@ -72,6 +89,7 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
     setPeople(savedPeople)
     setSkills(savedSkills)
     setBios(savedBios)
+    setSettings(savedSettings)
     if (!savedPeople.some((p) => p.id === pickedId)) setPickedId(savedPeople[0]?.id ?? '')
   }
 
@@ -95,9 +113,14 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
         await saveContentFile(ai.bios.path, bios)
         written.push(ai.bios.path)
       }
+      for (const name of settingsChanged) {
+        await saveContentFile(settingsPath(name), settings[name])
+        written.push(settingsPath(name))
+      }
       setSavedPeople(people)
       setSavedSkills(skills)
       setSavedBios(bios)
+      setSavedSettings(settings)
       setStatus({ kind: 'ok', text: `Saved ${written.join(', ')} — refresh and it stays.` })
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save: ${(e as Error).message}` })
@@ -110,6 +133,10 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
       ...listChanges(savedSkills, skills).map((l) => `${ai.skills.path} → ${l}`),
       ...people.filter((p) => ai.bios && !same(getAt(bios, ai.bios.at(p.id)), getAt(savedBios, ai.bios.at(p.id))))
         .map((p) => `${ai.bios!.path} → ${p.id} bio: "${String(getAt(bios, ai.bios!.at(p.id)) ?? '')}"`),
+      ...people.filter((p) => ai.bios?.nameAt && !same(getAt(bios, ai.bios.nameAt(p.id)), getAt(savedBios, ai.bios.nameAt(p.id))))
+        .map((p) => `${ai.bios!.path} → ${p.id} name: "${String(getAt(bios, ai.bios!.nameAt!(p.id)) ?? '')}"`),
+      ...Object.keys(settings).flatMap((name) =>
+        listTuningChanges(name, savedSettings[name], settings[name]).map((c) => `${settingsPath(name)} → ${c.name.split(': ').pop()} ${c.from} → ${c.to}`)),
     ]
     const text = lines.length
       ? `AI tab changes in ${document.title}${CAN_SAVE ? (unsaved ? ' (not saved yet)' : ' (saved)') : ' (live build — please put these in the files)'}:\n${lines.map((l) => `- ${l}`).join('\n')}`
@@ -148,6 +175,10 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
         return <Row key={key} file={P} path="goals" changed={isChanged((p) => p.goals)}><GoalList goals={picked.goals} onChange={(goals) => edit({ ...picked, goals })} /></Row>
       case 'nudge':
         return <NumberRow key={key} file={P} path="nudge" value={picked.nudge} saved={savedPicked?.nudge} min={0} max={1} step={0.05} onChange={(nudge) => edit({ ...picked, nudge })} />
+      case 'focus': // optional: missing = 0 (it always blends)
+        return <NumberRow key={key} file={P} path="focus" value={picked.focus ?? 0} saved={savedPicked ? savedPicked.focus ?? 0 : undefined} min={0} max={1} step={0.05} onChange={(focus) => edit({ ...picked, focus })} />
+      case 'steady': // optional: one row per goal, empty = not set
+        return <Steady key={key} file={P} goals={picked.goals} steady={picked.steady ?? {}} saved={savedPicked?.steady ?? {}} changed={isChanged((p) => p.steady)} onChange={(goal, weight) => edit(withSteady(picked, goal, weight))} />
       case 'chattiness':
         return <NumberRow key={key} file={P} path="chattiness" value={picked.chattiness} saved={savedPicked?.chattiness} min={0} max={100} step={1} onChange={(chattiness) => edit({ ...picked, chattiness })} />
       case 'shifts':
@@ -189,6 +220,26 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
   function body(section: AiSection) {
     if (section.file === 'personalities') return section.keys.map(personalityPart)
     if (section.file === 'skills') return section.keys.map(skillPart)
+    if (section.file === 'settings') {
+      return (
+        <>
+          {section.note && <p className="tt-help">{section.note}</p>}
+          {section.fields?.map((item) => (
+            <FieldRow
+              key={`${item.file}:${item.path}`}
+              filePath={settingsPath(item.file)}
+              item={item}
+              value={valueAt(settings[item.file], item.path)}
+              savedValue={valueAt(savedSettings[item.file], item.path)}
+              loadedValue={valueAt(loadedSettings[item.file], item.path)}
+              ranges={settings[item.file]?._ranges}
+              terms={terms}
+              onChange={(value) => setSettings((all) => ({ ...all, [item.file]: withValue(all[item.file], item.path, value) }))}
+            />
+          ))}
+        </>
+      )
+    }
     if (section.title === BIO_SECTION && ai.bios) {
       return (
         <Row file={P} path="bio" label="Bio (the one line players read)" changed={!same(getAt(bios, bioPath), getAt(savedBios, bioPath))}>
@@ -205,8 +256,12 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
   const terms = searchTerms(search.query)
   const searching = terms.length > 0
   const shown: AiSection[] = searching ? searchAi(sections, search.query) : sections
-  const sectionChanged = (s: AiSection) =>
-    s.file === 'personalities' ? s.keys.some((k) => isChanged((p) => p[k])) : s.file === 'skills' ? s.keys.some((k) => !same(skill[k], savedSkill?.[k])) : s.title === BIO_SECTION && biosChanged
+  const sectionChanged = (s: AiSection) => {
+    if (s.file === 'personalities') return s.keys.some((k) => isChanged((p) => p[k]))
+    if (s.file === 'skills') return s.keys.some((k) => !same(skill[k], savedSkill?.[k]))
+    if (s.file === 'settings') return (s.fields ?? []).some((f) => valueAt(settings[f.file], f.path) !== valueAt(savedSettings[f.file], f.path))
+    return s.title === BIO_SECTION && biosChanged
+  }
 
   return (
     <div className="tt ai">
@@ -343,6 +398,52 @@ function GoalList({ goals, onChange }: { goals: string[]; onChange: (goals: stri
         </li>
       ))}
     </ol>
+  )
+}
+
+type SteadyProps = {
+  file: AiFile
+  goals: string[]
+  steady: Record<string, number>
+  saved: Record<string, number>
+  changed: boolean
+  onChange: (goal: string, weight: number | undefined) => void
+}
+
+/** The goals every move also tries for: one row per goal — a slider and a box (0–1). An empty box = not set. */
+function Steady({ file, goals, steady, saved, changed, onChange }: SteadyProps) {
+  return (
+    <Row file={file} path="steady" changed={changed}>
+      <div className="ai-steady">
+        {goals.map((goal) => {
+          const weight = steady[goal]
+          const help = helpOf(file, `steady.${goal}`)
+          return (
+            <div key={goal} className={weight === undefined ? 'ai-steady-row is-unset' : 'ai-steady-row'}>
+              <span className="ai-steady-goal">
+                {weight !== saved[goal] && <span className="tt-dot" title="Changed, not saved yet" />}
+                {steadyLabel(file, goal)}
+              </span>
+              <input className="tt-slider" type="range" min={0} max={1} step={0.05} value={weight ?? 0} aria-label={`steady.${goal} slider`} onChange={(e) => onChange(goal, Number(e.target.value))} />
+              <input
+                className="ai-num"
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                placeholder="—"
+                value={weight ?? ''}
+                aria-label={`steady.${goal}`}
+                onChange={(e) => onChange(goal, e.target.value === '' ? undefined : Number.isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : weight)}
+              />
+              <button className="tt-reset" disabled={weight === undefined} onClick={() => onChange(goal, undefined)} aria-label={`Clear steady ${goal}`} title="Not set (it only tries for this goal when it rolls it)">✕</button>
+              {help && <p className="tt-row-help">{help}</p>}
+            </div>
+          )
+        })}
+        <p className="tt-row-help">Empty = not set: it only tries for that goal when it rolls it.</p>
+      </div>
+    </Row>
   )
 }
 

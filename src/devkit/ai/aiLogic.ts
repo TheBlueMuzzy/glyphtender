@@ -1,7 +1,8 @@
 // THE AI TAB'S THINKING — plain functions, no screen (tested in aiLogic.test.ts). The tab (AiTab.tsx) uses them to
 // edit personalities and skills without ever changing the rest of a content file (_help, _labels, _sections stay).
 import { filterSections, readableKey, type Section } from '../search/searchLogic'
-import type { AiFile, AiPersonality, AiShift, DevKitAi } from './aiTypes'
+import { tuningSections, type TuningItem } from '../tuning/tuningSections'
+import type { AiFile, AiPersonality, AiSettingsFile, AiShift, DevKitAi } from './aiTypes'
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
@@ -54,6 +55,24 @@ export function freeId(base: string, taken: string[]): string {
   const clean = base.replace(/[^A-Za-z0-9_-]/g, '') || 'New'
   if (!taken.includes(clean)) return clean
   for (let n = 2; ; n++) if (!taken.includes(`${clean}${n}`)) return `${clean}${n}`
+}
+
+/**
+ * Set (or clear) how much every move also tries for one goal: steady[goal] = 0–1. undefined = not set (the key goes);
+ * when no goal is left, "steady" itself goes, so the personality is as if it never had one.
+ */
+export function withSteady(p: AiPersonality, goal: string, weight: number | undefined): AiPersonality {
+  const steady = { ...p.steady }
+  if (weight === undefined) delete steady[goal]
+  else steady[goal] = clamp(weight, 0, 1)
+  const next: AiPersonality = { ...p, steady }
+  if (Object.keys(steady).length === 0) delete next.steady
+  return next
+}
+
+/** A steady goal's row name: the file's _labels "steady.<GOAL>" if it has one, else the goal's id ("TRAP"). */
+export function steadyLabel(file: AiFile, goal: string): string {
+  return noteOf(file, '_labels', `steady.${goal}`) ?? goal
 }
 
 /** A full copy (nothing shared with the original) under a new name. */
@@ -123,7 +142,14 @@ export function listChanges(before: { id: string }[], after: { id: string }[]): 
 
 /** One searchable setting: its key path in the file, readable name and help line. */
 export type AiItem = { key: string; label: string; help?: string; file: string }
-export type AiSection = Section<AiItem> & { file: 'personalities' | 'skills' | 'tab'; keys: string[] }
+export type AiSection = Section<AiItem> & {
+  file: 'personalities' | 'skills' | 'settings' | 'tab'
+  keys: string[]
+  /** A settings section's rows (the Tuning tab's FieldRow): file = the settings file's name ("goals"). */
+  fields?: TuningItem[]
+  /** A settings section's note for the whole file (its _help "_file"), shown at the top. */
+  note?: string
+}
 
 export const BIO_SECTION = 'AI: bio'
 export const WATCH_SECTION = 'AI: watch a game'
@@ -154,7 +180,36 @@ function fileSections(file: AiFile, which: 'personalities' | 'skills', fallbackT
   })
 }
 
-/** Every section of the AI tab, in order: the personality's, its bio, the skill's, then watching and checking. */
+/** "content/ai/goals.json" → "goals" — the name a settings file's rows go by (TuningItem.file). */
+export const settingsName = (path: string) => (path.split('/').pop() ?? path).replace(/\.json$/, '')
+
+/** The whole-file note of a settings file: _help as one string, or its "_file" line. */
+function fileNote(data: Record<string, unknown>): string | undefined {
+  const help = data._help
+  if (typeof help === 'string') return help
+  const line = help && typeof help === 'object' ? (help as Record<string, unknown>)._file : undefined
+  return typeof line === 'string' ? line : undefined
+}
+
+/** The game's settings files (goals.json, pace.json…) in sections, exactly like the Tuning tab groups its files. */
+function settingsSections(files: AiSettingsFile[]): AiSection[] {
+  const named = files.map((f) => ({ name: settingsName(f.path), data: f.data }))
+  return tuningSections(named).map((s) => {
+    const first = named.find((f) => f.name === s.items[0]?.file)
+    return {
+      id: `ai:${s.title}`,
+      title: s.title,
+      file: 'settings',
+      keys: [],
+      fields: s.items,
+      note: first && fileNote(first.data),
+      items: s.items.map((item) => ({ key: item.path, label: item.label, help: item.help, file: `${item.file}.json` })),
+    }
+  })
+}
+
+/** Every section of the AI tab, in order: the personality's, its bio, the game's AI settings (goals, pace…), the
+ *  skill's, then watching and checking. */
 export function aiSections(ai: DevKitAi): AiSection[] {
   const tabSection = (title: string, items: [string, string][]): AiSection => ({
     id: `ai:${title}`, title, file: 'tab', keys: [], items: items.map(([key, label]) => ({ key, label, file: 'AI tab' })),
@@ -162,6 +217,7 @@ export function aiSections(ai: DevKitAi): AiSection[] {
   return [
     ...fileSections(ai.personalities, 'personalities', 'AI: personality'),
     ...(ai.bios ? [tabSection(BIO_SECTION, [['bio', 'Bio (the one line players read)']])] : []),
+    ...settingsSections(ai.settings ?? []),
     ...fileSections(ai.skills, 'skills', 'AI: skill'),
     ...(ai.watch ? [tabSection(WATCH_SECTION, [['watch', 'Watch AIs play: notes and beliefs']])] : []),
     ...(ai.runCheck ? [tabSection(CHECK_SECTION, [['check', 'Run the Personality Check (N games, report)']])] : []),
