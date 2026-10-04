@@ -3,7 +3,7 @@ Started 2026-10-04 · Milestone v0.6 · Features: F33, F32 (in this order)
 
 ## F33 🧱 Zones & pieces
 Done when: every seed has a stable id from setup to the end; actions, the tray and the server name seeds by id (no hand-index coupling); hidden zones (bag, rivals' hands) never send ids; old saves + snapshots still load — and check:golden + check:shots say SAME (links for Muzzy).
-- [ ] 🤖 1. Framework (v0.4 F15): zones + pieces in table/ (zone rules: owner, who may see inside, ordered; pieces with stable ids; take/find/hide helpers) — framework branch dev/table, Table 0.2.0
+- [x] 🤖 1. Framework (v0.4 F15): zones + pieces in table/ (zone rules: owner, who may see inside, ordered; pieces with stable ids; take/find/hide helpers) — framework branch dev/table, Table 0.2.0
 - [ ] 🤖 2. Seeds get stable ids (assigned from the unshuffled bag list after the shuffle — no new RNG calls); hands / bag / planted seeds carry them; Action.seed + refresh setAside name ids; goldenView unchanged (letters); golden replay translates recorded hand positions → ids — src/engine/{types,setup,draft,turn,refresh,rules,sim,golden,testkit}.ts
 - [ ] 🤖 3. Secrets: rules.viewFor sends no ids for the bag or rivals' hands; drew/setAside events carry ids only to that seat; leak tests — src/engine/rules.ts, party/server.test.ts
 - [ ] 🤖 4. Tray follows seeds by id: trayOrder of ids (gameStore, turnPlan TRAY_GAP, refreshFx.refillInPlace, SeedTray, Board, usePieceInput, devHook.findCast, onlinePlay incl. startReplay, Dev Kit glyphtenderAdapter) — fixes B018 (snapshot tray gap)
