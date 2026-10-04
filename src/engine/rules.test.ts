@@ -6,9 +6,9 @@ import { selfTest } from '../table/selfTest'
 import { goldenView } from './golden'
 import { legalCasts, legalMoves } from './moves'
 import { addMove, eventsFor, replay, type MoveRecord } from '../table/core'
-import { glyphtenderRules, legalActions, setupGame, type GameEvent, type GameSetup } from './rules'
+import { glyphtenderRules, HIDDEN, legalActions, setupGame, viewFor, type GameEvent, type GameSetup } from './rules'
 import { greedyAction, randomAction } from './sim'
-import { hexAt, position } from './testkit'
+import { byPosition, hexAt, lettersOf, position } from './testkit'
 import { parseWordList } from './words'
 import type { Action, GameState } from './types'
 
@@ -34,13 +34,17 @@ function playUntil(setup: GameSetup, done: (s: GameState) => boolean, rngStart =
 /** An action as legalActions would list it: a cast names the FIRST seed of its letter in hand. */
 function asListed(state: GameState, action: Action): Action {
   const hand = state.hands[state.current]
-  if (action.type === 'turn' && action.seed !== null) return { ...action, seed: hand.indexOf(hand[action.seed]) }
+  const letterOf = (id: string) => hand.find((s) => s.id === id)!.letter
+  if (action.type === 'turn' && action.seed !== null) {
+    const letter = letterOf(action.seed)
+    return { ...action, seed: hand.find((s) => s.letter === letter)!.id }
+  }
   if (action.type === 'refresh') {
-    const firsts = action.setAside.map((i) => hand[i]).sort()
-    // the first n of each letter, smallest index first
+    const letters = action.setAside.map(letterOf).sort()
+    // the first n of each letter, in hand order
     const picked: number[] = []
-    for (const letter of firsts) picked.push(hand.findIndex((l, i) => l === letter && !picked.includes(i)))
-    return { ...action, setAside: picked.sort((a, b) => a - b) }
+    for (const letter of letters) picked.push(hand.findIndex((s, i) => s.letter === letter && !picked.includes(i)))
+    return { ...action, setAside: picked.sort((a, b) => a - b).map((i) => hand[i].id) }
   }
   return action
 }
@@ -66,7 +70,8 @@ describe('setup', () => {
     const plain = rules.setup({ players: 2, seed: 5 })
     const online = rules.setup({ players: 2, seed: 5, bagSeed: 99, rngSeed: 4242 })
     expect(online.bag).not.toEqual(plain.bag)
-    expect([...online.bag].sort()).toEqual([...plain.bag].sort())
+    expect(lettersOf(online.bag).sort()).toEqual(lettersOf(plain.bag).sort())
+    expect(online.bag.map((s) => s.id).sort()).toEqual(plain.bag.map((s) => s.id).sort()) // the same seeds, same ids
     expect(online.rng).toBe(4242)
   })
 })
@@ -105,8 +110,8 @@ describe('legalActions', () => {
     })
     const actions = legalActions(s, 0)
     for (const a of actions) expect(rules.check(s, 0, a)).toBeNull()
-    const seeds = new Set(actions.map((a) => (a.type === 'turn' ? a.seed : -1)))
-    expect([...seeds].sort()).toEqual([0, 1, 3]) // E (first), A, T — never the second E
+    const seeds = new Set(actions.map((a) => (a.type === 'turn' ? a.seed : null)))
+    expect([...seeds]).toEqual([0, 1, 3].map((i) => s.hands[0][i].id)) // E (first), A, T — never the second E
     // exactly: every move × 3 letters × every cast target
     let expected = 0
     for (const id of [0, 1]) for (const to of legalMoves(s, id)) expected += 3 * legalCasts(s, id, to).length
@@ -132,11 +137,12 @@ describe('legalActions', () => {
       hands: [['B', 'E', 'A', 'E'], ['O']],
       bag: ['V', 'W', 'X', 'Y', 'Z'],
     })
-    const s = rules.apply(turned, 0, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }).state
+    const s = rules.apply(turned, 0, byPosition(turned, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') })).state
     expect(s.phase).toBe('refresh')
-    expect(s.hands[0]).toEqual(['E', 'A', 'E'])
+    expect(lettersOf(s.hands[0])).toEqual(['E', 'A', 'E'])
     const actions = legalActions(s, 0)
-    expect(actions.map((a) => (a.type === 'refresh' ? a.setAside : null))).toEqual([[], [1], [0], [0, 1], [0, 2], [0, 1, 2]])
+    const ids = (positions: number[]) => positions.map((i) => s.hands[0][i].id)
+    expect(actions.map((a) => (a.type === 'refresh' ? a.setAside : null))).toEqual([[], [1], [0], [0, 1], [0, 2], [0, 1, 2]].map(ids))
     for (const a of actions) expect(rules.check(s, 0, a)).toBeNull()
   })
 
@@ -195,22 +201,22 @@ describe('events — what happened, and who may see it', () => {
     }
     return { steps, final: state }
   }
-  const sorted = (letters: string[]) => [...letters].sort().join('')
+  const sorted = (ids: string[]) => [...ids].sort().join()
 
   for (const players of [2, 3, 4]) {
-    it(`${players} players: each seat's events rebuild its own hand exactly, and never show another hand`, () => {
+    it(`${players} players: each seat's events rebuild its own hand exactly (by id), and never show another hand`, () => {
       const { steps, final } = playedGame(players, 5 + players)
       for (let seat = 0; seat < players; seat++) {
-        const hand: string[] = [] // this seat's hand, from ONLY the events it may see
+        const hand: string[] = [] // this seat's hand (seed ids), from ONLY the events it may see
         for (const { events } of steps) {
           for (const e of eventsFor(events, seat)) {
-            if (e.type === 'drew' || e.type === 'setAside') expect(e.seat).toBe(seat) // letters: only ever your own
-            if (e.type === 'drew') hand.push(...e.letters)
-            if (e.type === 'cast' && e.seat === seat) hand.splice(hand.indexOf(e.letter), 1)
-            if (e.type === 'setAside') for (const l of e.letters) hand.splice(hand.indexOf(l), 1)
+            if (e.type === 'drew' || e.type === 'setAside') expect(e.seat).toBe(seat) // seeds: only ever your own
+            if (e.type === 'drew') hand.push(...e.seeds.map((s) => s.id))
+            if (e.type === 'cast' && e.seat === seat) hand.splice(hand.indexOf(e.seed.id), 1)
+            if (e.type === 'setAside') for (const s of e.seeds) hand.splice(hand.indexOf(s.id), 1)
           }
         }
-        expect(sorted(hand)).toBe(sorted(final.hands[seat]))
+        expect(sorted(hand)).toBe(sorted(final.hands[seat].map((s) => s.id)))
       }
     })
   }
@@ -223,8 +229,8 @@ describe('events — what happened, and who may see it', () => {
         kinds.add(e.type)
         expect(e.seen === 'all' || e.seen.seats.length > 0).toBe(true)
         if (e.seen !== 'all' || e.type === 'gameOver') continue // gameOver: the end, the whole truth
-        expect(json(e)).not.toMatch(/"letters"|"magic"|"tangleMagic"|"bag"|"hands?"/)
-        if (e.type === 'cast') expect(after.seeds[`${e.target.q},${e.target.r}`]?.letter).toBe(e.letter) // on the board now
+        expect(json(e)).not.toMatch(/"letters"|"seeds"|"magic"|"tangleMagic"|"bag"|"hands?"/)
+        if (e.type === 'cast') expect(after.seeds[`${e.target.q},${e.target.r}`]).toMatchObject(e.seed) // on the board now
       }
     }
     expect([...kinds].sort()).toEqual(['cast', 'drew', 'drewHidden', 'gameOver', 'moved', 'placed', 'refreshed', 'scored', 'setAside', 'tangled', 'turnStarted'])
@@ -237,11 +243,31 @@ describe('events — what happened, and who may see it', () => {
         if (e.type === 'drew' || e.type === 'setAside') expect(e.seen).toEqual({ seats: [e.seat] })
         if (e.type === 'drewHidden') {
           expect(e.seen).toEqual({ seats: [0, 1, 2].filter((s) => s !== e.seat) })
-          expect(json(e)).not.toMatch(/letters/)
+          expect(json(e)).not.toMatch(/letters|seed-/) // a count: no letters, no ids
         }
       }
     }
   })
+
+  for (const players of [2, 3, 4]) {
+    it(`${players} players: no view or event a seat may see ever names a seed in the bag or a rival's hand (F33)`, () => {
+      const { steps } = playedGame(players, 30 + players)
+      for (let seat = 0; seat < players; seat++) {
+        // Seeds this seat may know by id: ones it has held (even after setting them aside) and planted ones (public)
+        const known = new Set<string>()
+        for (const { before, events, after } of steps) {
+          if (after.phase === 'over') break // the reveal: the whole truth
+          for (const s of [...before.hands[seat], ...after.hands[seat], ...Object.values(after.seeds)]) known.add(s.id)
+          const view = viewFor(after, seat)
+          const secret = [...after.bag, ...after.hands.filter((_, s) => s !== seat).flat()].map((s) => s.id)
+          const sent = JSON.stringify([view, eventsFor(events, seat)])
+          for (const id of secret) if (!known.has(id)) expect(sent).not.toContain(`"${id}"`)
+          // the view itself: every hidden seed is '?' (no id, no letter) — you may know how many, never which
+          expect([...view.bag, ...view.hands.filter((_, s) => s !== seat).flat()].every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true)
+        }
+      }
+    })
+  }
 
   it('every action ends with who acts next — or the game over, with the winners', () => {
     const { steps, final } = playedGame(2, 8)

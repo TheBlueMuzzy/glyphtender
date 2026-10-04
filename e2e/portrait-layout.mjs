@@ -103,7 +103,7 @@ try {
     await page.evaluate(() => window.__glyphtender.store.setState({ note: null }))
     // a cast that makes no Magic → the refresh question (2 lines + a small line on a phone), then Keep all → pass on
     const pick = await page.evaluate(() => window.__glyphtender.findCast(false) ?? window.__glyphtender.findCast(true))
-    const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf(${pick.seed})`)
+    const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf('${pick.seed}')`)
     await tap(page.locator(`[data-tray-pos="${pos}"]`))
     await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     await moment('aimed')

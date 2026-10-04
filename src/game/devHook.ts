@@ -18,11 +18,11 @@ export function installDevHook() {
     store: useGameStore,
     /** The online session (room code, the live room) — read-only use by the online e2e. */
     online: useOnline,
-    /** For the planned move: a seed (hand index) and target hex that make Magic (or, with false, none). */
+    /** For the planned move: a seed (its id) and target hex that make Magic (or, with false, none). */
     findCast(wantMagic: boolean) {
       const { game, move, words } = useGameStore.getState()
       if (!game || !move || !words) return null
-      for (let seed = 0; seed < game.hands[game.current].length; seed++) {
+      for (const { id: seed } of game.hands[game.current]) {
         for (const target of castOptions(game, move)) {
           const { magic } = previewTurn(game, { type: 'turn', glyphling: move.glyphling, to: move.to, seed, target }, words)
           if (magic > 0 === wantMagic) return { seed, hex: hexKey(target) }
@@ -31,7 +31,7 @@ export function installDevHook() {
       return null
     },
     /** Word spotlight e2e: plays random legal actions until the player to move can grow exactly `count` words with one
-     *  cast, jumps the store there, and returns that turn (glyphling, move-to hex, hand index, target hex, the words) — or null. */
+     *  cast, jumps the store there, and returns that turn (glyphling, move-to hex, seed id, target hex, the words) — or null. */
     findWordsTurn(count: number, seed = 1) {
       const { game, words, stats, online } = useGameStore.getState()
       if (!game || !words || online) return null
@@ -42,13 +42,13 @@ export function installDevHook() {
           for (const g of state.glyphlings.filter((x) => x.seat === state.current && !state.tangled.includes(x.id))) {
             for (const to of legalMoves(state, g.id)) {
               for (const target of legalCasts(state, g.id, to)) {
-                for (let hand = 0; hand < state.hands[state.current].length; hand++) {
-                  const turn = { type: 'turn' as const, glyphling: g.id, to, seed: hand, target }
+                for (const { id: seed } of state.hands[state.current]) {
+                  const turn = { type: 'turn' as const, glyphling: g.id, to, seed, target }
                   const made = previewTurn(state, turn, words).words
                   if (made.length !== count) continue
                   useGameStore.getState().loadState(state, stats)
                   return {
-                    glyphling: g.id, to: hexKey(to), seed: hand, target: hexKey(target),
+                    glyphling: g.id, to: hexKey(to), seed, target: hexKey(target),
                     words: made.map((w) => ({ word: w.word, magic: w.magic, hexes: w.hexes.map(hexKey) })),
                   }
                 }

@@ -58,7 +58,7 @@ try {
       const [q, r] = pick.to.split(',').map(Number)
       await act(`(s) => s.tapHex({ q: ${q}, r: ${r} })`)
       await glidesDone()
-      await act(`(s) => s.tapSeed(${pick.seed})`)
+      await act(`(s) => s.tapSeed('${pick.seed}')`)
       const [tq, tr] = pick.target.split(',').map(Number)
       await act(`(s) => s.tapHex({ q: ${tq}, r: ${tr} })`)
       const aimed = (await page.evaluate(() => [...document.querySelectorAll('[data-planned-words] [data-spot-of="planned"]')].map((g) => g.dataset.word)))

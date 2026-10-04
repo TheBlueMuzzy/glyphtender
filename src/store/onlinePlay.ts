@@ -83,7 +83,7 @@ function startFrom(view: GameView) {
       wordIndicators: view.options?.wordIndicators ?? true, // the host's choice, the same on every screen
     },
     stats: view.results?.stats ?? emptyStats(game.config.players),
-    trayOrder: game.hands.map((hand) => inHandOrder(hand.length)),
+    trayOrder: game.hands.map(inHandOrder),
   })
 }
 
@@ -121,10 +121,10 @@ function apply(view: GameView) {
   const mine = view.by === online.mySeat
   const myRefresh = mine && sent?.type === 'refresh' ? sent.setAside : null
   const order = view.game.hands.map((hand, seat) => {
-    if (seat !== online.mySeat) return inHandOrder(hand.length)
-    if (myRefresh) return refillInPlace(trayOrder[seat] ?? [], myRefresh, hand.length) // new seeds take the set-aside places
+    if (seat !== online.mySeat) return inHandOrder(hand) // (other players' seeds come as '?': no ids — nothing to follow)
+    if (myRefresh) return refillInPlace(trayOrder[seat] ?? [], myRefresh, hand) // new seeds take the set-aside places
     const removed = !mine || sent?.type !== 'turn' || sent.seed === null ? [] : [sent.seed]
-    return refillInPlace(trayOrder[seat] ?? [], removed, hand.length) // a cast: the drawn seed takes its place
+    return refillInPlace(trayOrder[seat] ?? [], removed, hand) // a cast: the drawn seed takes its place
   })
   const turn = view.game.lastTurn
   const sprout = turn?.target && isNewTurn(old.lastTurn, turn) ? { key: hexKey(turn.target), count: (landed?.count ?? 0) + 1 } : landed
@@ -140,9 +140,12 @@ function apply(view: GameView) {
   })
   // a seed that just landed scores now (its words one at a time); the next view waits for it to fade
   if (sprout !== landed) store().startScoring()
-  // the new seeds grow into the emptied places (hand indexes from the kept count on are the new ones)
-  if (myRefresh) store().refreshArrived(newSeedSlots(order[online.mySeat], old.hands[online.mySeat].length - myRefresh.length))
+  // the new seeds grow into the emptied places (the ids that weren't in my hand before)
+  if (myRefresh) store().refreshArrived(newSeedSlots(order[online.mySeat], old.hands[online.mySeat]))
 }
+
+/** The stand-in id of another player's seed while its throw is replayed (startReplay) — no real seed has this id. */
+export const REPLAY_SEED = 'replay'
 
 const isNewTurn = (before: TurnSummary | null, turn: TurnSummary) =>
   !before || before.seat !== turn.seat || before.glyphlingId !== turn.glyphlingId || !sameHex(before.from, turn.from) || !sameHex(before.to, turn.to)
@@ -153,8 +156,10 @@ function startReplay(view: GameView) {
   const turn = view.game.lastTurn!
   const old = store().game!
   replaying = view
-  // The seed they cast is public now (it's about to land), so the old view holds it in their first slot for the throw
-  const game = turn.letter ? { ...old, hands: old.hands.map((hand, seat) => (seat === turn.seat ? [turn.letter!, ...hand.slice(1)] : hand)) } : old
+  // The seed they cast is public now (it's about to land), so the old view holds it in their first slot for the throw.
+  // Their hand is all '?' (no ids), so it goes in as a stand-in piece, REPLAY_SEED — never a real seed's id.
+  const thrown = turn.letter ? { id: REPLAY_SEED, letter: turn.letter } : null
+  const game = thrown ? { ...old, hands: old.hands.map((hand, seat) => (seat === turn.seat ? [thrown, ...hand.slice(1)] : hand)) } : old
   // First their trail draws on and holds, so you see who's playing, where from and where to (reduce motion: it just shows)
   set({ game, trail: trailOf(turn), move: null, cast: null, selected: null, note: null })
   const timing = anim.current
@@ -168,7 +173,7 @@ function startReplay(view: GameView) {
     replayTimer = setTimeout(() => {
       replayTimer = null
       if (replaying !== view) return
-      if (turn.letter && turn.target) set({ cast: { seed: 0, target: turn.target }, flying: true })
+      if (turn.letter && turn.target) set({ cast: { seed: REPLAY_SEED, target: turn.target }, flying: true })
       else landed() // a move-only turn is just the glide
     }, glideMs)
   }, trailMs)

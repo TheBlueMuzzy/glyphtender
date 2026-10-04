@@ -185,7 +185,7 @@ try {
               await tapGlyph(page.locator(`[data-glyph="${id}"]`)) // pick the moved glyphling up again: its moves glow
               continue
             }
-            const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf(${pick.seed})`)
+            const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf('${pick.seed}')`)
             await tap(page.locator(`[data-tray-pos="${pos}"]`))
             await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
             await shot('13-indicators-off')
@@ -383,7 +383,7 @@ try {
         const after = await store((s) => s.trayOrder[s.game.current].join())
         if (before === after) fail(`${size.name}: dragging in the tray after the move did not reorder it`)
         // (the reorder drag leaves that seed picked up — B004 — tap it again to put it down)
-        const held = await store((s) => (s.selected?.kind === 'seed' ? s.trayOrder[s.game.current].indexOf(s.selected.index) : -1))
+        const held = await store((s) => (s.selected?.kind === 'seed' ? s.trayOrder[s.game.current].indexOf(s.selected.id) : -1))
         if (held >= 0) await tap(page.locator(`[data-tray-pos="${held}"]`))
       }
       // Cast (a move-only turn if the hand is empty)
@@ -392,7 +392,7 @@ try {
         const wantMagic = !grewWords && turn > 3
         const pick = await page.evaluate((m) => window.__glyphtender.findCast(m), wantMagic)
           ?? await page.evaluate((m) => window.__glyphtender.findCast(m), !wantMagic)
-        const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf(${pick.seed})`)
+        const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf('${pick.seed}')`)
         const seedTile = page.locator(`[data-tray-pos="${pos}"]`)
         const target = () => page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`)
         if (turn === 2) {
@@ -423,7 +423,7 @@ try {
           continue
         }
         // The tray never re-sorts on a cast: note every seed's place now, check them after the landing
-        const trayBefore = await store((s) => ({ seat: s.game.current, letters: s.trayOrder[s.game.current].map((i) => s.game.hands[s.game.current][i] ?? '_') }))
+        const trayBefore = await store((s) => ({ seat: s.game.current, letters: s.trayOrder[s.game.current].map((id) => s.game.hands[s.game.current].find((seed) => seed.id === id)?.letter ?? '_') }))
         await tap(castButton())
         if (wantMagic && magic > 0) {
           await page.waitForTimeout(120)
@@ -435,7 +435,7 @@ try {
           grewWords = true
         }
         await waitLanded()
-        const trayAfter = await store(`(s) => s.trayOrder[${trayBefore.seat}].map((i) => s.game.hands[${trayBefore.seat}][i] ?? '_')`)
+        const trayAfter = await store(`(s) => s.trayOrder[${trayBefore.seat}].map((id) => s.game.hands[${trayBefore.seat}].find((seed) => seed.id === id)?.letter ?? '_')`)
         const moved = trayBefore.letters.flatMap((l, p) => (p !== pos && trayAfter[p] !== l ? [p] : []))
         if (moved.length) fail(`${size.name} turn ${turn}: the tray re-sorted on the cast: ${trayBefore.letters.join('')} → ${trayAfter.join('')}`)
         else if (turn <= 2) console.log(`ok   ${size.name} turn ${turn}: tray kept its order on the cast · ${trayBefore.letters.join('')} → ${trayAfter.join('')}`)
@@ -444,7 +444,7 @@ try {
       }
       await waitLanded()
       if (await store((s) => s.game.phase === 'refresh')) {
-        const twoSeeds = await store((s) => s.trayOrder[s.game.current].flatMap((i, p) => (i >= 0 ? [p] : [])).filter((_, n) => n === 0 || n === 2))
+        const twoSeeds = await store((s) => s.trayOrder[s.game.current].flatMap((id, p) => (id !== 'gap' ? [p] : [])).filter((_, n) => n === 0 || n === 2))
         for (const p of twoSeeds) await tap(page.locator(`[data-tray-pos="${p}"][data-hand]`))
         if (!refreshed) await shot('10-refresh')
         if (!refreshed) await refreshPlaysOut(twoSeeds)
@@ -459,7 +459,7 @@ try {
       // Between turns: shuffle the tray
       if (turn === 2) {
         await tap(page.getByRole('button', { name: 'Shuffle' }))
-        const shuffledOk = await store((s) => s.trayOrder[s.game.current].filter((i) => i >= 0).sort().join() === [...s.game.hands[s.game.current].keys()].join())
+        const shuffledOk = await store((s) => s.trayOrder[s.game.current].filter((id) => id !== 'gap').sort().join() === s.game.hands[s.game.current].map((seed) => seed.id).sort().join())
         if (!shuffledOk) fail(`${size.name}: shuffle lost a seed`)
       }
     }

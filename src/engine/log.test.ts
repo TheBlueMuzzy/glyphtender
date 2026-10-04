@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { getBoard } from './boards'
-import { applyAction, legalDraftHexes, legalMoves } from './engine'
+import { legalDraftHexes, legalMoves } from './engine'
 import { hexKey, neighbours } from './hex'
 import { logOf } from './log'
 import { randomAction } from './sim'
 import { newGame } from './setup'
-import { hexAt, position, wordsOf } from './testkit'
+import { applyAt, hexAt, position, wordsOf } from './testkit'
 import type { GameState } from './types'
 
 const words = wordsOf('AT', 'CAT', 'TO', 'QUIT', 'EAT', 'TEA', 'ATE', 'NET', 'TEN', 'IN', 'IT', 'ON', 'NO', 'AN')
@@ -22,7 +22,7 @@ describe('the game log (log.ts)', () => {
       seeds: [{ 'C6-2': 'C' }, { 'C6-3': 'A', 'C7-4': 'O' }],
       hands: [['T'], ['E']], bag: ['X'],
     })
-    const next = applyAction({ ...s, magic: [4, 9] }, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }, words)
+    const next = applyAt({ ...s, magic: [4, 9] }, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }, words)
     const [turn] = logOf(next).turns
     expect(turn).toMatchObject({ turnNo: 1, round: 1, seat: 0, glyphlingId: 0, letter: 'T', magic: 8, refreshed: 0, refresh: false })
     const cat = turn.words.find((w) => w.word === 'CAT')!
@@ -34,19 +34,19 @@ describe('the game log (log.ts)', () => {
 
   it('Qu is one seed in the letters', () => {
     const s = position({ glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, seeds: [{ 'C6-2': 'Qu', 'C6-3': 'I' }], hands: [['T'], []] })
-    const next = applyAction(s, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }, words)
+    const next = applyAt(s, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }, words)
     expect(logOf(next).turns[0].words[0]).toMatchObject({ word: 'QUIT', letters: ['Qu', 'I', 'T'], owners: [0, 0, 0], ownMagic: 3 })
   })
 
   it('a refresh is logged once, on the refresh, with how many seeds were set aside', () => {
     const s = position({ glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, hands: [['Z', 'C', 'F'], ['E']], bag: ['A', 'B', 'D', 'E', 'G', 'H', 'I'] })
-    const cast = applyAction(s, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }, words)
+    const cast = applyAt(s, { type: 'turn', glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }, words)
     expect(cast.phase).toBe('refresh')
     expect(logOf(cast).turns).toEqual([]) // not finished yet
-    const done = applyAction(cast, { type: 'refresh', setAside: [0, 1] }, words)
+    const done = applyAt(cast, { type: 'refresh', setAside: [0, 1] }, words)
     expect(logOf(done).turns).toHaveLength(1)
     expect(logOf(done).turns[0]).toMatchObject({ refreshed: 2, refresh: true, magic: 0, words: [] })
-    const keepAll = applyAction(cast, { type: 'refresh', setAside: [] }, words)
+    const keepAll = applyAt(cast, { type: 'refresh', setAside: [] }, words)
     expect(logOf(keepAll).turns[0]).toMatchObject({ refreshed: 0, refresh: true })
   })
 
@@ -58,7 +58,7 @@ describe('the game log (log.ts)', () => {
       hands: [['S'], ['T']],
     })
     const before: GameState = { ...s, tangled: [2], magic: [2, 5] }
-    const next = applyAction(before, { type: 'turn', glyphling: 1, to: hexAt('C1-3'), seed: 0, target: hexAt('C1-2') }, words)
+    const next = applyAt(before, { type: 'turn', glyphling: 1, to: hexAt('C1-3'), seed: 0, target: hexAt('C1-2') }, words)
     const log = logOf(next)
     const last = log.turns.at(-1)!
     expect(last.newlyTangled).toEqual([0])
@@ -71,8 +71,8 @@ describe('the game log (log.ts)', () => {
 
   it('a glyphling that comes free is logged as freed', () => {
     const s = position({ glyphlings: { 0: 'C1-1', 1: 'C6-5', 2: 'C1-2', 3: 'C8-5' }, seeds: [{}, { 'C2-2': 'C', 'C2-3': 'D' }], hands: [['S'], ['T']] })
-    const a = applyAction(s, { type: 'turn', glyphling: 1, to: hexAt('C6-4'), seed: 0, target: hexAt('C6-5') }, words)
-    const b = applyAction(a, { type: 'turn', glyphling: 2, to: hexAt('C1-4'), seed: 0, target: hexAt('C1-3') }, words)
+    const a = applyAt(s, { type: 'turn', glyphling: 1, to: hexAt('C6-4'), seed: 0, target: hexAt('C6-5') }, words)
+    const b = applyAt(a, { type: 'turn', glyphling: 2, to: hexAt('C1-4'), seed: 0, target: hexAt('C1-3') }, words)
     expect(logOf(b).turns.map((t) => [t.newlyTangled, t.freed])).toEqual([[[0], []], [[], [0]]])
     expect(logOf(b).turns.map((t) => t.round)).toEqual([1, 1])
   })
@@ -85,7 +85,7 @@ describe('the game log (log.ts)', () => {
         while (state.phase !== 'over') {
           const pick = randomAction(state, rng)
           rng = pick.rng
-          state = applyAction(state, pick.action, words)
+          state = applyAt(state, pick.action, words)
         }
         const log = logOf(state)
         expect(log.turns).toHaveLength(state.turnCount)
@@ -116,11 +116,11 @@ describe('the game log (log.ts)', () => {
     const s = position({ glyphlings: { 0: 'C6-7', 2: 'C11-1', 3: 'C11-4' }, seeds: [ring] })
     const draft: GameState = { ...s, phase: 'draft', draftIndex: s.draftOrder.length - 1, current: s.draftOrder.at(-1)! }
     expect(draft.current).toBe(0)
-    const placed = applyAction(draft, { type: 'draft', hex: legalDraftHexes(draft)[0] }, words)
+    const placed = applyAt(draft, { type: 'draft', hex: legalDraftHexes(draft)[0] }, words)
     expect(placed.phase).toBe('play')
     expect(placed.tangled).toEqual([0]) // stuck from the start of play
     const mover = placed.glyphlings.find((g) => g.seat === 0 && g.id !== 0)!
-    const next = applyAction(placed, { type: 'turn', glyphling: mover.id, to: legalMoves(placed, mover.id)[0], seed: null, target: null }, words)
+    const next = applyAt(placed, { type: 'turn', glyphling: mover.id, to: legalMoves(placed, mover.id)[0], seed: null, target: null }, words)
     const [turn] = logOf(next).turns
     expect(turn.tangledAfter).toContain(0)
     expect(turn.newlyTangled).not.toContain(0)
@@ -139,7 +139,7 @@ describe('complete tangles in the log', () => {
     glyphlings: { 0: 'C1-1', 1: 'C6-5', 2: 'C6-8', 3: 'C1-4', ...extra },
     seeds, hands: Array.from({ length: players }, () => ['S']),
   })
-  const completes = (s: GameState) => logOf(applyAction(s, blueCloses, words)).turns[0].completeTangles
+  const completes = (s: GameState) => logOf(applyAt(s, blueCloses, words)).turns[0].completeTangles
 
   it('only Blue seeds next to it (the corner: the board edge is ignored) → Blue completed it', () => {
     expect(completes(corner([{}, { 'C2-2': 'A', 'C2-3': 'B' }]))).toEqual([{ glyphling: 0, by: 1 }])
@@ -165,7 +165,7 @@ describe('complete tangles in the log', () => {
       glyphlings: { 0: 'C1-1', 1: 'C1-4', 2: 'C6-5', 3: 'C6-8' },
       seeds: [{ 'C2-2': 'A', 'C2-3': 'B' }, {}], hands: [['S'], ['S']],
     })
-    const next = applyAction(s, { type: 'turn', glyphling: 1, to: hexAt('C1-3'), seed: 0, target: hexAt('C1-2') }, words)
+    const next = applyAt(s, { type: 'turn', glyphling: 1, to: hexAt('C1-3'), seed: 0, target: hexAt('C1-2') }, words)
     expect(logOf(next).turns[0].completeTangles).toEqual([{ glyphling: 0, by: null }])
   })
   it('two players complete one each in one game; nothing logged on turns with no new tangle', () => {
@@ -173,9 +173,9 @@ describe('complete tangles in the log', () => {
       glyphlings: { 0: 'C1-1', 1: 'C11-4', 2: 'C11-1', 3: 'C1-4' },
       seeds: [{ 'C10-2': 'A', 'C10-3': 'B' }, { 'C2-2': 'C', 'C2-3': 'D' }], hands: [['S'], ['T']],
     })
-    const one = applyAction(s, { type: 'turn', glyphling: 1, to: hexAt('C11-3'), seed: 0, target: hexAt('C11-2') }, words)
+    const one = applyAt(s, { type: 'turn', glyphling: 1, to: hexAt('C11-3'), seed: 0, target: hexAt('C11-2') }, words)
     expect(one.phase).toBe('play')
-    const two = applyAction(one, blueCloses, words)
+    const two = applyAt(one, blueCloses, words)
     expect(two.phase).toBe('over')
     expect(logOf(two).turns.map((t) => t.completeTangles)).toEqual([[{ glyphling: 2, by: 0 }], [{ glyphling: 0, by: 1 }]])
   })

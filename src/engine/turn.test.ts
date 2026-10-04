@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { applyAction, checkAction } from './engine'
 import { DIRECTIONS, addHex, hexKey, sameHex, type Hex } from './hex'
 import { legalCasts, legalMoves } from './moves'
-import { hexAt, position, wordsOf } from './testkit'
+import { applyAt, checkAt, hexAt, lettersOf, position, wordsOf } from './testkit'
 
 const words = wordsOf()
 const has = (list: Hex[], label: string) => list.some((h) => sameHex(h, hexAt(label)))
@@ -49,16 +48,16 @@ describe('move (GDD §4.4)', () => {
   it('refuses a move that is not in a straight line or is blocked', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C11-1', 3: 'C11-4' }, seeds: [{ 'C6-3': 'A' }], hands: [['T']] })
     const bent = { type: 'turn' as const, glyphling: 0, to: addHex(step('C6-5', 3), DIRECTIONS[2]), seed: 0, target: hexAt('C6-5') }
-    expect(checkAction(s, bent)).toMatch(/straight line/)
+    expect(checkAt(s, bent)).toMatch(/straight line/)
     const blocked = { type: 'turn' as const, glyphling: 0, to: hexAt('C6-2'), seed: 0, target: hexAt('C6-5') }
-    expect(() => applyAction(s, blocked, words)).toThrow(/straight line/)
+    expect(() => applyAt(s, blocked, words)).toThrow(/straight line/)
   })
 
   it('only lets you move your own glyphling, on your turn', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C11-1', 3: 'C3-4' }, hands: [['A'], ['B']] })
     const action = { type: 'turn' as const, glyphling: 3, to: step('C3-4', 3), seed: 0, target: hexAt('C3-4') }
-    expect(checkAction(s, action)).toMatch(/another player/)
-    expect(checkAction({ ...s, current: 1 }, action)).toBeNull()
+    expect(checkAt(s, action)).toMatch(/another player/)
+    expect(checkAt({ ...s, current: 1 }, action)).toBeNull()
   })
 })
 
@@ -85,16 +84,18 @@ describe('cast (GDD §4.5)', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C11-1', 3: 'C11-4' }, hands: [['A']] })
     const to = hexAt('C6-4')
     expect(has(legalCasts(s, 0, to), 'C6-5')).toBe(true)
-    const next = applyAction(s, { type: 'turn', glyphling: 0, to, seed: 0, target: hexAt('C6-5') }, words)
-    expect(next.seeds[hexKey(hexAt('C6-5'))]).toEqual({ letter: 'A', seat: 0 })
+    const next = applyAt(s, { type: 'turn', glyphling: 0, to, seed: 0, target: hexAt('C6-5') }, words)
+    expect(next.seeds[hexKey(hexAt('C6-5'))]).toMatchObject({ letter: 'A', seat: 0 })
   })
 
   it('refuses a target that is not a legal cast', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C6-8', 3: 'C11-4' }, hands: [['A']] })
     const action = { type: 'turn' as const, glyphling: 0, to: hexAt('C6-4'), seed: 0, target: hexAt('C6-9') }
-    expect(() => applyAction(s, action, words)).toThrow(/straight line onto an empty hex/)
-    expect(checkAction(s, { ...action, target: hexAt('C6-8') })).not.toBeNull() // a glyphling stands there
-    expect(checkAction(s, { ...action, seed: 3, target: hexAt('C6-5') })).toMatch(/not in your hand/)
+    expect(() => applyAt(s, action, words)).toThrow(/straight line onto an empty hex/)
+    expect(checkAt(s, { ...action, target: hexAt('C6-8') })).not.toBeNull() // a glyphling stands there
+    expect(checkAt(s, { ...action, seed: 3, target: hexAt('C6-5') })).toMatch(/not in your hand/)
+    expect(checkAt(s, { ...action, seed: 'seed-999', target: hexAt('C6-5') })).toMatch(/not in your hand/) // an unknown id
+    expect(checkAt(s, { ...action, seed: s.hands[0][0].id, target: hexAt('C6-5') })).toBeNull() // named by its id
   })
 })
 
@@ -102,12 +103,12 @@ describe('you must cast if you can (GDD §4.8)', () => {
   it('refuses move-only when a cast is possible', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C11-1', 3: 'C11-4' }, hands: [['A']] })
     const action = { type: 'turn' as const, glyphling: 0, to: hexAt('C6-4'), seed: null, target: null }
-    expect(checkAction(s, action)).toMatch(/must cast/)
+    expect(checkAt(s, action)).toMatch(/must cast/)
   })
 
   it('allows move-only with an empty hand', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C11-1', 3: 'C11-4' }, hands: [[], ['B']] })
-    const next = applyAction(s, { type: 'turn', glyphling: 0, to: hexAt('C6-4'), seed: null, target: null }, words)
+    const next = applyAt(s, { type: 'turn', glyphling: 0, to: hexAt('C6-4'), seed: null, target: null }, words)
     expect(sameHex(next.glyphlings[0].hex, hexAt('C6-4'))).toBe(true)
     expect(Object.keys(next.seeds)).toHaveLength(0)
   })
@@ -122,10 +123,11 @@ describe('after the cast', () => {
   it('moves the seed from hand to board and passes play to the next seat, leaving the old state alone', () => {
     const s = position({ glyphlings: { 0: 'C6-5', 1: 'C1-1', 2: 'C11-1', 3: 'C11-4' }, hands: [['A', 'Q'], ['B']] })
     const copy = JSON.parse(JSON.stringify(s))
-    const next = applyAction(s, { type: 'turn', glyphling: 0, to: hexAt('C6-4'), seed: 1, target: hexAt('C6-2') }, words)
+    const next = applyAt(s, { type: 'turn', glyphling: 0, to: hexAt('C6-4'), seed: 1, target: hexAt('C6-2') }, words)
     expect(s).toEqual(copy)
-    expect(next.hands[0]).toEqual(['A'])
-    expect(next.seeds[hexKey(hexAt('C6-2'))]).toEqual({ letter: 'Q', seat: 0 })
+    expect(lettersOf(next.hands[0])).toEqual(['A'])
+    expect(next.seeds[hexKey(hexAt('C6-2'))]).toEqual({ ...s.hands[0][1], seat: 0 }) // the planted seed keeps its id
+    expect(next.seeds[hexKey(hexAt('C6-2'))].letter).toBe('Q')
     expect(next.current).toBe(1)
     expect(next.lastTurn?.letter).toBe('Q')
   })

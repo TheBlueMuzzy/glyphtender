@@ -2,7 +2,7 @@
 // Nothing here changes the game: the planned move and cast only become real when Cast sends the action.
 import { legalCasts, legalDraftHexes, legalMoves } from '../engine/engine'
 import { sameHex, type Hex } from '../engine/hex'
-import type { Action, GameState } from '../engine/types'
+import type { Action, GameState, SeedPiece } from '../engine/types'
 import { isLocalHuman, type Seat } from './seats'
 
 /** A glyphling moved on screen but not cast yet. */
@@ -11,14 +11,14 @@ export interface PlannedMove {
   to: Hex
 }
 
-/** A seed aimed at a hex but not thrown yet. `seed` is its index in the hand. */
+/** A seed aimed at a hex but not thrown yet. `seed` is its id (F33). */
 export interface PlannedCast {
-  seed: number
+  seed: string
   target: Hex
 }
 
-/** The piece being held: a glyphling on the board or a seed in the tray (by hand index). */
-export type Selection = { kind: 'glyphling'; id: number } | { kind: 'seed'; index: number } | null
+/** The piece being held: a glyphling on the board or a seed in the tray (by its id). */
+export type Selection = { kind: 'glyphling'; id: number } | { kind: 'seed'; id: string } | null
 
 /** Which hexes to light up, and how (the same filled template: move = the player's colour, cast = a lighter shade). */
 export interface Highlight {
@@ -94,10 +94,10 @@ export const hexIn = (list: Hex[], hex: Hex) => list.some((h) => sameHex(h, hex)
  * An empty place in a tray order: a seed was cast or set aside and nothing new has come for it yet. The tray never
  * closes up round it (Muzzy 2026-10-01: "don't resort. it's confusing/jarring") — refreshFx.refillInPlace fills it.
  */
-export const TRAY_GAP = -1
+export const TRAY_GAP = 'gap' // (never a real seed id: those are "seed-0", "seed-1"…)
 
 /** A tray order with the seed at position `from` moved to position `to` (dropped into an empty place: it just moves there). */
-export function moveInOrder(order: number[], from: number, to: number): number[] {
+export function moveInOrder(order: string[], from: number, to: number): string[] {
   const next = [...order]
   if (next[to] === TRAY_GAP) {
     ;[next[from], next[to]] = [TRAY_GAP, next[from]]
@@ -109,7 +109,7 @@ export function moveInOrder(order: number[], from: number, to: number): number[]
 }
 
 /** A shuffled copy of a tray order (plain random — the tray order isn't part of the game rules). */
-export function shuffled(order: number[], random: () => number = Math.random): number[] {
+export function shuffled<T>(order: T[], random: () => number = Math.random): T[] {
   const next = [...order]
   for (let i = next.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1))
@@ -118,5 +118,8 @@ export function shuffled(order: number[], random: () => number = Math.random): n
   return next
 }
 
-/** 0, 1, 2 … n-1 — the tray order of a freshly dealt hand. */
-export const inHandOrder = (n: number) => Array.from({ length: n }, (_, i) => i)
+/** The tray order of a freshly dealt hand: its seeds' ids, in hand order. */
+export const inHandOrder = (hand: readonly SeedPiece[]) => hand.map((seed) => seed.id)
+
+/** The letter of the seed with this id in a hand, or undefined if it isn't there. */
+export const letterIn = (hand: readonly SeedPiece[], id: string) => hand.find((seed) => seed.id === id)?.letter

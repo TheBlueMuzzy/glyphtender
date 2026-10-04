@@ -7,6 +7,7 @@ import { legalCasts, legalMoves } from './moves'
 import { randomInt } from './rng'
 import { glyphtenderRules } from './rules'
 import { fullBag } from './setup'
+import { idsAreUnique } from '../table/zones'
 import type { Action, GameState, WordList } from './types'
 
 export interface SimOptions {
@@ -50,7 +51,7 @@ export function randomAction(state: GameState, rng: number): { action: Action; r
   if (state.phase === 'draft') return { action: { type: 'draft', hex: pick(legalDraftHexes(state)) }, rng: pos }
   if (state.phase === 'refresh') {
     // Set aside each seed with a 1-in-3 chance.
-    const setAside = state.hands[state.current].flatMap((_, i) => (pick([0, 1, 2]) === 0 ? [i] : []))
+    const setAside = state.hands[state.current].flatMap((seed) => (pick([0, 1, 2]) === 0 ? [seed.id] : []))
     return { action: { type: 'refresh', setAside }, rng: pos }
   }
   const mine = state.glyphlings.filter((g) => g.seat === state.current && legalMoves(state, g.id).length > 0)
@@ -60,7 +61,7 @@ export function randomAction(state: GameState, rng: number): { action: Action; r
   const hand = state.hands[state.current]
   const casts = legalCasts(state, g.id, to)
   if (hand.length === 0 || casts.length === 0) return { action: { type: 'turn', glyphling: g.id, to, seed: null, target: null }, rng: pos }
-  const seed = pick(hand.map((_, i) => i))
+  const seed = pick(hand).id // picks by position (the same random call as always), names the seed by its id
   return { action: { type: 'turn', glyphling: g.id, to, seed, target: pick(casts) }, rng: pos }
 }
 
@@ -91,6 +92,7 @@ export function checkInvariants(before: GameState, action: Action, after: GameSt
   const total = fullBag().length
   if (seedTotal(after) !== total) throw new Error(`Seed count is ${seedTotal(after)}, should be ${total}`)
   for (const hand of after.hands) if (hand.length > after.config.rules.handSize) throw new Error(`A hand has ${hand.length} seeds`)
+  if (!idsAreUnique(after.bag, ...after.hands, Object.values(after.seeds))) throw new Error('A seed id is in two places at once')
   const glyphlingHexes = after.glyphlings.map((g) => hexKey(g.hex))
   if (new Set(glyphlingHexes).size !== glyphlingHexes.length) throw new Error('Two glyphlings share a hex')
   if (glyphlingHexes.some((k) => after.seeds[k])) throw new Error('A glyphling stands on a seed')
@@ -122,14 +124,15 @@ export function simulateGame(options: SimOptions): SimResult {
     if (picked.action.type === 'turn' && (state.lastTurn?.words.length ?? 0) > 0) scoringTurns++
     if (picked.action.type === 'turn' && isQ(state.lastTurn?.letter ?? null)) q.cast = true
     if (picked.action.type === 'turn' && state.lastTurn?.words.some((w) => w.hexes.some((h) => isQ(state.seeds[hexKey(h)]?.letter ?? null)))) q.scored = true
-    if (picked.action.type === 'refresh' && picked.action.setAside.some((i) => isQ(before.hands[before.current][i]))) q.refreshed = true
+    const action = picked.action
+    if (action.type === 'refresh' && before.hands[before.current].some((s) => action.setAside.includes(s.id) && isQ(s.letter))) q.refreshed = true
     if (state.phase === 'over') {
       // Self-tangle: a glyphling of the seat who just played became tangled on this turn.
       const newly = state.tangled.filter((id) => !before.tangled.includes(id))
       selfTangle = newly.some((id) => state.glyphlings.find((g) => g.id === id)?.seat === state.lastTurn?.seat)
     }
   }
-  q.stuck = state.hands.some((hand) => hand.some(isQ))
+  q.stuck = state.hands.some((hand) => hand.some((s) => isQ(s.letter)))
   return { turns: state.turnCount, winners: state.winners, magic: state.magic, bagRanOut, selfTangle, scoringTurns, q }
 }
 

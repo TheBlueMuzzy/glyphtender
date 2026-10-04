@@ -4,9 +4,10 @@ import { withoutSeed } from './insight'
 import { findGlyphling, includesHex, legalCasts, legalMoves } from './moves'
 import { endTurn } from './tangle'
 import { findWords, type FoundWord } from './wordFinder'
-import type { GameState, LogBlock, MadeWord, TurnSummary, WordList } from './types'
+import { indexOfPiece, takePiece } from '../table/zones'
+import type { GameState, LogBlock, MadeWord, SeedPiece, TurnSummary, WordList } from './types'
 
-export type TurnAction = { type: 'turn'; glyphling: number; to: Hex; seed: number | null; target: Hex | null }
+export type TurnAction = { type: 'turn'; glyphling: number; to: Hex; seed: string | null; target: Hex | null }
 
 /** Why this turn isn't allowed, or null if it is. */
 export function checkTurn(state: GameState, action: TurnAction): string | null {
@@ -23,10 +24,15 @@ export function checkTurn(state: GameState, action: TurnAction): string | null {
     if (hand.length > 0 && casts.length > 0) return 'You must cast a seed when you can'
     return null
   }
-  if (!Number.isInteger(action.seed) || action.seed < 0 || action.seed >= hand.length) return 'That seed is not in your hand'
+  if (typeof action.seed !== 'string' || indexOfPiece(hand, action.seed) < 0) return 'That seed is not in your hand'
   if (!action.target) return 'Pick where to cast the seed'
   if (!includesHex(casts, action.target)) return "A seed flies in a straight line onto an empty hex, over your own pieces but not other players'"
   return null
+}
+
+/** The letter of the seed with this id in a hand (throws if it isn't there). */
+export function seedLetter(hand: readonly SeedPiece[], id: string): string {
+  return takePiece(hand, id).piece.letter
 }
 
 /** Moves the glyphling and plants the seed (no scoring) — the board as it is right after the cast. */
@@ -35,10 +41,9 @@ export function moveAndCast(state: GameState, action: TurnAction): GameState {
   if (problem) throw new Error(problem)
   const glyphlings = state.glyphlings.map((g) => (g.id === action.glyphling ? { ...g, hex: { ...action.to } } : g))
   if (action.seed === null || !action.target) return { ...state, glyphlings }
-  const hand = [...state.hands[state.current]]
-  const [letter] = hand.splice(action.seed, 1)
-  const hands = state.hands.map((h, seat) => (seat === state.current ? hand : h))
-  const seeds = { ...state.seeds, [hexKey(action.target)]: { letter, seat: state.current } }
+  const { piece, rest } = takePiece(state.hands[state.current], action.seed)
+  const hands = state.hands.map((h, seat) => (seat === state.current ? rest : h))
+  const seeds = { ...state.seeds, [hexKey(action.target)]: { ...piece, seat: state.current } } // a planted seed keeps its id
   return { ...state, glyphlings, hands, seeds }
 }
 
@@ -71,7 +76,7 @@ export function applyTurn(state: GameState, action: TurnAction, words: WordList,
     glyphlingId: action.glyphling,
     from: { ...findGlyphling(state, action.glyphling).hex },
     to: { ...action.to },
-    letter: action.seed === null ? null : state.hands[seat][action.seed],
+    letter: action.seed === null ? null : seedLetter(state.hands[seat], action.seed),
     target: action.target ? { ...action.target } : null,
     words: preview.words,
     magic: preview.magic,
@@ -105,10 +110,10 @@ export function blockedSpot(after: GameState, seat: number, target: Hex | null, 
   let best: LogBlock | null = null
   for (let rival = 0; rival < after.config.players; rival++) {
     if (rival === seat) continue
-    const letters = [...new Set(open.hands[rival] ?? [])].filter((l) => /^[A-Z]$/.test(l))
+    const letters = [...new Set((open.hands[rival] ?? []).map((p) => p.letter))].filter((l) => /^[A-Z]$/.test(l))
     let top: { magic: number; word: string } | null = null
     for (const letter of letters) {
-      const planted = { ...open, seeds: { ...open.seeds, [hexKey(target)]: { letter, seat: rival } } }
+      const planted = { ...open, seeds: { ...open.seeds, [hexKey(target)]: { id: 'what-if', letter, seat: rival } } }
       const made = magicFor(planted, findWords(planted, target, words), rival)
       const total = made.reduce((sum, w) => sum + w.magic, 0)
       if (total > (top?.magic ?? 0)) top = { magic: total, word: made.map((w) => w.word).join(' + ') }

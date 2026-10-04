@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { applyAction } from './engine'
 import { hexKey } from './hex'
 import { reachArea, seedsFlownOver, turnMobility } from './insight'
 import { logOf } from './log'
 import { blockedSpot } from './turn'
-import { hexAt, position, wordsOf } from './testkit'
+import { applyAt, hexAt, position, wordsOf } from './testkit'
 
 const words = wordsOf('CAT', 'AT', 'TO')
 const turn = (glyphling: number, to: string, target: string | null) =>
@@ -20,8 +19,8 @@ describe('what a turn did to the board (insight.ts → the game log)', () => {
   })
 
   it('mobility: every glyphling’s legal moves before the move, after it, after the cast', () => {
-    const next = applyAction(squeeze, turn(0, 'C8-5', 'C10-3'), words)
-    const done = next.phase === 'refresh' ? applyAction(next, { type: 'refresh', setAside: [] }, words) : next
+    const next = applyAt(squeeze, turn(0, 'C8-5', 'C10-3'), words)
+    const done = next.phase === 'refresh' ? applyAt(next, { type: 'refresh', setAside: [] }, words) : next
     const [t] = logOf(done).turns
     expect(t.mobility!.before[2]).toBe(9)
     expect(t.mobility!.afterMove[2]).toBe(2)
@@ -30,7 +29,7 @@ describe('what a turn did to the board (insight.ts → the game log)', () => {
   })
 
   it('turnMobility rebuilds the earlier boards from the board after the cast', () => {
-    const after = applyAction(squeeze, turn(0, 'C8-5', 'C10-3'), words)
+    const after = applyAt(squeeze, turn(0, 'C8-5', 'C10-3'), words)
     expect(turnMobility(after, 0, hexAt('C8-8'), hexAt('C10-3'))).toMatchObject({ before: expect.arrayContaining([9]), afterCast: expect.arrayContaining([0]) })
     // a move-only turn: after the move = after the cast
     const m = turnMobility(after, 0, hexAt('C8-8'), null)
@@ -42,10 +41,10 @@ describe('what a turn did to the board (insight.ts → the game log)', () => {
       glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' },
       seeds: [{ 'C6-5': 'A', 'C6-4': 'B' }, {}], hands: [['T'], []],
     })
-    const after = applyAction(s, turn(0, 'C6-6', 'C6-2'), words)
+    const after = applyAt(s, turn(0, 'C6-6', 'C6-2'), words)
     expect(seedsFlownOver(after, 0, hexAt('C6-6'), hexAt('C6-2'))).toBe(2)
     expect(seedsFlownOver(after, 0, hexAt('C6-6'), null)).toBe(0)
-    expect(logOf(after.phase === 'refresh' ? applyAction(after, { type: 'refresh', setAside: [] }, words) : after).turns[0].castOver).toBe(2)
+    expect(logOf(after.phase === 'refresh' ? applyAt(after, { type: 'refresh', setAside: [] }, words) : after).turns[0].castOver).toBe(2)
   })
 
   // Yellow's seeds wall off the C1-1/C1-2 corner except C1-3; Yellow steps to C1-2 and casts onto C1-3: sealed.
@@ -56,7 +55,7 @@ describe('what a turn did to the board (insight.ts → the game log)', () => {
   })
 
   it('a garden: every hex a glyphling could ever walk to — seeds are walls, glyphlings aren’t (Walled garden, stats.ts)', () => {
-    const walled = applyAction(corner, turn(0, 'C1-2', 'C1-3'), words)
+    const walled = applyAt(corner, turn(0, 'C1-2', 'C1-3'), words)
     expect([...reachArea(walled, hexAt('C1-2'))].sort()).toEqual([hexKey(hexAt('C1-1')), hexKey(hexAt('C1-2'))].sort())
     expect(reachArea(corner, hexAt('C11-1')).has(hexKey(hexAt('C11-4')))).toBe(true)
   })
@@ -70,8 +69,8 @@ describe('a spot a rival could have scored on (turn.ts blockedSpot → the log�
     hands: [['Z'], blueHand], bag: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
   })
   const play = (blueHand: string[]) => {
-    const after = applyAction(plan(blueHand), turn(0, 'C5-5', 'C6-4'), words) // Yellow's junk Z onto C6-4
-    return { after, logged: logOf(applyAction(after, { type: 'refresh', setAside: [] }, words)).turns[0] }
+    const after = applyAt(plan(blueHand), turn(0, 'C5-5', 'C6-4'), words) // Yellow's junk Z onto C6-4
+    return { after, logged: logOf(applyAt(after, { type: 'refresh', setAside: [] }, words)).turns[0] }
   }
 
   it('Yellow’s junk Z took the hex where Blue’s T would have made CAT (+4: 3 letters + 1 own seed)', () => {
@@ -85,6 +84,6 @@ describe('a spot a rival could have scored on (turn.ts blockedSpot → the log�
   it('the pending fact never outlives its turn', () => {
     const { after } = play(['T'])
     expect(after.pendingLog?.blocked).toBeTruthy() // waiting for the refresh…
-    expect(applyAction(after, { type: 'refresh', setAside: [] }, words).pendingLog).toBeNull() // …then into the log
+    expect(applyAt(after, { type: 'refresh', setAside: [] }, words).pendingLog).toBeNull() // …then into the log
   })
 })
