@@ -5,6 +5,8 @@ import { useGameStore } from './gameStore'
 import { boardTrail, trailKey, trailOf } from './trail'
 
 const store = () => useGameStore.getState()
+/** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
+const seed = (i: number) => store().game!.hands[store().game!.current][i].id
 const shown = () => boardTrail(store())
 
 /** Yellow to play: glyphling 0 at C6-7 (can move up to C6-6 and cast onto C6-4). */
@@ -20,7 +22,7 @@ function yellowToPlay() {
 function planYellowTurn() {
   store().tapGlyphling(0)
   store().tapHex(hexAt('C6-6'))
-  store().tapSeed(0)
+  store().tapSeed(seed(0))
   store().tapHex(hexAt('C6-4'))
 }
 
@@ -56,7 +58,7 @@ describe('turn trails', () => {
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
     expect(shown()).toEqual({ mode: 'plan', trail: { seat: 0, glyphlingId: 0, from: hexAt('C6-7'), to: hexAt('C6-6'), target: null } })
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     expect(shown()?.trail.target).toEqual(hexAt('C6-4'))
     store().undo() // the cast comes back: just the move

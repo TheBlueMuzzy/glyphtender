@@ -72,10 +72,10 @@ export interface GameStore {
   selected: Selection
   /** True while a thrown seed is in the air — nothing can be touched. */
   flying: boolean
-  /** Refresh mode: hand indexes set aside. */
-  setAside: number[]
-  /** Each seat's tray order (hand indexes, left to right). Only the screen cares; the rules don't. */
-  trayOrder: number[][]
+  /** Refresh mode: the ids of the seeds set aside. */
+  setAside: string[]
+  /** Each seat's tray order (seed ids, left to right; TRAY_GAP = an empty place). Only the screen cares; the rules don't. */
+  trayOrder: string[][]
   /** The seed that just landed (hexKey) and a counter that changes every landing, for the grow + glow. */
   landed: { key: string; count: number } | null
   note: Note | null
@@ -113,13 +113,13 @@ export interface GameStore {
   setWords: (words: WordList) => void
   tapGlyphling: (id: number) => void
   grabGlyphling: (id: number) => void
-  tapSeed: (index: number) => void
-  grabSeed: (index: number) => void
+  tapSeed: (id: string) => void
+  grabSeed: (id: string) => void
   tapHex: (hex: Hex) => void
   undo: () => void
   startCast: () => void
   finishCast: () => void
-  toggleSetAside: (index: number) => void
+  toggleSetAside: (id: string) => void
   refresh: (keepAll?: boolean) => void
   /** Online: my refresh's view has come — the new seeds grow into these tray positions. */
   refreshArrived: (newSlots: number[]) => void
@@ -250,7 +250,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         seats: localSeats(players, text.game.players), stats: emptyStats(players),
-        trayOrder: game.hands.map((h) => inHandOrder(h.length)),
+        trayOrder: game.hands.map(inHandOrder),
       })
     },
     leaveGame: () => {
@@ -297,20 +297,20 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     // Tap a tray seed: in refresh mode it's set aside; otherwise hold it to cast (after a move).
-    tapSeed: (index) => {
+    tapSeed: (id) => {
       const { game, selected, cast, move } = get()
       if (!game || !canPlay()) return
-      if (game.phase === 'refresh') return get().toggleSetAside(index)
+      if (game.phase === 'refresh') return get().toggleSetAside(id)
       if (game.phase !== 'play') return
       if (!move) return set({ note: 'moveFirst' })
-      if (cast?.seed !== index && selected?.kind === 'seed' && selected.index === index) return set({ selected: null })
-      get().grabSeed(index)
+      if (cast?.seed !== id && selected?.kind === 'seed' && selected.id === id) return set({ selected: null })
+      get().grabSeed(id)
     },
-    grabSeed: (index) => {
+    grabSeed: (id) => {
       const { game, cast, move } = get()
       if (!game || !canPlay() || game.phase !== 'play' || !move) return
       // Picking up the targeted seed takes it back off the board
-      set({ selected: { kind: 'seed', index }, cast: cast?.seed === index ? null : cast, note: null })
+      set({ selected: { kind: 'seed', id }, cast: cast?.seed === id ? null : cast, note: null })
     },
 
     // Tap a hex: place (draft), move there, cast there, or take back what's planned there.
@@ -324,7 +324,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         if (!next) return
         const dealt = next.phase === 'play' // the draft is over and seeds are dealt: pass the device before turn 1
         return set({
-          ...noPlan(), game: next, trayOrder: dealt ? next.hands.map((h) => inHandOrder(h.length)) : get().trayOrder,
+          ...noPlan(), game: next, trayOrder: dealt ? next.hands.map(inHandOrder) : get().trayOrder,
           handoff: dealt ? handoffTo(null, next, false) : null,
         })
       }
@@ -334,7 +334,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         return set({ move: { glyphling: selected.id, to: hex }, cast: null, selected: null, note: null })
       }
       if (selected?.kind === 'seed' && move && hexIn(castOptions(game, move), hex)) {
-        return set({ cast: { seed: selected.index, target: hex }, selected: null, note: null })
+        return set({ cast: { seed: selected.id, target: hex }, selected: null, note: null })
       }
       if (cast && sameHex(cast.target, hex)) return set({ cast: null, note: null }) // the seed goes back to the tray
       const origin = move && game.glyphlings.find((g) => g.id === move.glyphling)?.hex
@@ -375,7 +375,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!next) return set({ flying: false })
       const seat = game.current
       const order = [...trayOrder]
-      order[seat] = refillInPlace(order[seat] ?? [], cast ? [cast.seed] : [], next.hands[seat].length) // the drawn seed takes the cast one's place
+      order[seat] = refillInPlace(order[seat] ?? [], cast ? [cast.seed] : [], next.hands[seat]) // the drawn seed takes the cast one's place
       const landed = cast ? { key: hexKey(cast.target), count: (get().landed?.count ?? 0) + 1 } : get().landed
       const played = next.lastTurn ? addTurn(stats, next.lastTurn) : stats
       set({ ...noPlan(), game: next, flying: false, trayOrder: order, landed, stats: played, handoff: handoffTo(seat, next, cast !== null) })
@@ -401,10 +401,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
       get().online?.resume()
     },
 
-    toggleSetAside: (index) => {
+    toggleSetAside: (id) => {
       const { setAside, game } = get()
       if (!canPlay() || game?.phase !== 'refresh') return
-      set({ setAside: setAside.includes(index) ? setAside.filter((i) => i !== index) : [...setAside, index] })
+      set({ setAside: setAside.includes(id) ? setAside.filter((x) => x !== id) : [...setAside, id] })
     },
     // Refresh N (or Keep all = set nothing aside): refill to a full hand; set-aside seeds go back in the bag.
     // The player who just played does this BEFORE the device is passed on. It plays out on the tray first
@@ -412,8 +412,9 @@ export const useGameStore = create<GameStore>()((set, get) => {
     refresh: (keepAll = false) => {
       const { game, setAside, trayOrder, online } = get()
       if (!game || !canPlay() || game.phase !== 'refresh') return
-      const chosen = keepAll ? [] : [...setAside].sort((a, b) => a - b)
       const seat = game.current
+      // (in hand order, whatever order they were tapped in — the order they go back into the bag in)
+      const chosen = keepAll ? [] : game.hands[seat].filter((seed) => setAside.includes(seed.id)).map((seed) => seed.id)
       const slots = refreshSlots(trayOrder[seat] ?? [], chosen)
       const { shrinkMs } = refreshTimes(slots.length, anim.current, reduceMotion())
       if (online) {
@@ -429,11 +430,11 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const next = send({ type: 'refresh', setAside: chosen })
       if (!next) return
       const order = [...trayOrder]
-      order[seat] = refillInPlace(order[seat] ?? [], chosen, next.hands[seat].length)
+      order[seat] = refillInPlace(order[seat] ?? [], chosen, next.hands[seat])
       const passOn = () => set({ ...noPlan(), game: next, trayOrder: order, handoff: handoffTo(seat, next, false), refreshFx: null })
       if (shrinkMs === 0) return passOn()
       set({ refreshFx: { seat, slots, stage: 'out' }, selected: null })
-      const newSlots = newSeedSlots(order[seat], game.hands[seat].length - chosen.length)
+      const newSlots = newSeedSlots(order[seat], game.hands[seat])
       after(shrinkMs, () => growIn({ seat, slots, newSlots, stage: 'in', hand: next.hands[seat], order: order[seat] }, passOn))
     },
     refreshArrived: (newSlots) => {
@@ -470,7 +471,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         ...noPlan(), game, flying: false, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         seats: get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players),
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
-        trayOrder: game.hands.map((h) => inHandOrder(h.length)),
+        trayOrder: game.hands.map(inHandOrder),
       })
     },
   }

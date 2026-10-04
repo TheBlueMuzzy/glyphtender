@@ -48,7 +48,7 @@ function yellowToPlay(options: { hideSeeds: boolean; wordIndicators?: boolean })
 function playYellow(seed: number) {
   store().tapGlyphling(0)
   store().tapHex(hexAt('C6-6'))
-  store().tapSeed(seed)
+  store().tapSeed(store().game!.hands[0][seed].id) // (seed = a hand position)
   store().tapHex(hexAt('C6-4'))
   store().startCast()
   store().finishCast()

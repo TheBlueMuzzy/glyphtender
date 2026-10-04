@@ -22,7 +22,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { getBoard } from '../engine/boards'
 import { hexCorners, hexKey, hexToPixel, type Hex } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
-import { boardHighlight } from '../store/turnPlan'
+import { boardHighlight, letterIn } from '../store/turnPlan'
 import { dangers } from '../store/danger'
 import { revealSteps } from '../store/revealPlan'
 import { colourOf, glyphlingArt, seedArt } from './art'
@@ -125,7 +125,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const player = colours[colourOf(seat)]
   const castTint = castColour(player, colours.background, colours.castShade) // the cast options: the same template, another shade
   const moved = move && game.glyphlings.find((g) => g.id === move.glyphling)
-  const plannedLetter = cast ? game.hands[seat][cast.seed] : null
+  const plannedLetter = cast ? letterIn(game.hands[seat], cast.seed) ?? null : null
   const highlight = boardHighlight({ game, move, selected, flying, waiting, seats })
   const lit = board.cells.filter((h) => highlight?.hexes.some((x) => hexKey(x) === hexKey(h)))
   // Word indicators off: nothing shows which seeds make a word (players spot words themselves)

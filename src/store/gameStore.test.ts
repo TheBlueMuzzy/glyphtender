@@ -1,11 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { hexAt, position, wordsOf } from '../engine/testkit'
+import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
 import { hexKey } from '../engine/hex'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
-import { castOptions, dropKind, highlightFor, moveInOrder, shuffled, TRAY_GAP } from './turnPlan'
+import { castOptions, dropKind, highlightFor, letterIn, moveInOrder, shuffled, TRAY_GAP } from './turnPlan'
 
 const store = () => useGameStore.getState()
+/** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
+const seed = (i: number) => store().game!.hands[store().game!.current][i].id
+/** A seat's tray as hand positions (0 = the hand's first seed), TRAY_GAP for an empty place — easy to read in a test. */
+const trayPositions = (seat = 0) =>
+  store().trayOrder[seat].map((id) => (id === TRAY_GAP ? TRAY_GAP : store().game!.hands[seat].findIndex((s) => s.id === id)))
 const words = wordsOf('AT', 'TA')
 
 /** Yellow to play: glyphling 0 at C6-7 (can move up to C6-6 and cast onto C6-4). */
@@ -34,7 +39,8 @@ describe('game store — draft', () => {
     }
     expect(seats).toEqual([0, 1, 1, 0])
     expect(store().game?.phase).toBe('play')
-    expect(store().trayOrder).toEqual([[0, 1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6, 7]])
+    expect([trayPositions(0), trayPositions(1)]).toEqual([[0, 1, 2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6, 7]])
+    expect(store().trayOrder[0]).toEqual(store().game!.hands[0].map((s) => s.id)) // the tray follows seeds by id
   })
 
   it('a tap on a hex that is not allowed changes nothing', () => {
@@ -57,7 +63,7 @@ describe('game store — draft', () => {
 describe('game store — planning a turn (One Cast + undo)', () => {
   it('a seed can only be picked up after a move', () => {
     yellowToPlay()
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     expect(store().note).toBe('moveFirst')
     expect(store().selected).toBeNull()
   })
@@ -77,9 +83,9 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
     expect(store().move).toEqual({ glyphling: 0, to: hexAt('C6-6') })
-    store().tapSeed(2)
+    store().tapSeed(seed(2))
     store().tapHex(hexAt('C6-4'))
-    expect(store().cast).toEqual({ seed: 2, target: hexAt('C6-4') })
+    expect(store().cast).toEqual({ seed: seed(2), target: hexAt('C6-4') })
     store().undo()
     expect(store().cast).toBeNull()
     expect(store().move).not.toBeNull()
@@ -91,7 +97,7 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     store().tapHex(hexAt('C6-4')) // the faded seed
     expect(store().cast).toBeNull()
@@ -110,7 +116,7 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     const gold = castOptions(store().game!, store().move)
     expect(gold.length).toBeGreaterThan(0)
     expect(lit()).toEqual({ kind: 'cast', hexes: gold }) // no seed picked yet
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     expect(lit()).toEqual({ kind: 'cast', hexes: gold })
     store().tapHex(hexAt('C6-4'))
     expect(lit()).toEqual({ kind: 'cast', hexes: gold }) // aimed: the other choices stay lit
@@ -140,7 +146,7 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     expect(drop('C6-7')).toBeNull() // where it stands
     expect(drop('C1-1')).toBeNull() // not in a straight line
     store().tapHex(hexAt('C6-6'))
-    store().grabSeed(0)
+    store().grabSeed(seed(0))
     expect(drop('C6-4')).toBe('cast')
     expect(drop('C6-6')).toBeNull() // the glyphling's own hex
     expect(dropKind({ ...store(), game: store().game! }, undefined)).toBeNull() // over the tray, off the board
@@ -150,18 +156,18 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     const other = castOptions(store().game!, store().move).find((h) => hexKey(h) !== hexKey(hexAt('C6-4')))!
     store().tapHex(other)
-    expect(store().cast).toEqual({ seed: 0, target: other })
+    expect(store().cast).toEqual({ seed: seed(0), target: other })
   })
 
   it('with a seed aimed, tapping the ghost still sends the glyphling back (its hex is gold too, but the ghost wins)', () => {
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     expect(castOptions(store().game!, store().move).some((h) => hexKey(h) === hexKey(hexAt('C6-7')))).toBe(true) // the ghost's hex is gold
     store().tapHex(hexAt('C6-7')) // the ghost
@@ -174,7 +180,7 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     const before = store().game
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     expect(store().game).toBe(before)
   })
@@ -185,7 +191,7 @@ describe('game store — Cast', () => {
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0) // B — makes no word
+    store().tapSeed(seed(0)) // B — makes no word
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     expect(store().flying).toBe(true)
@@ -194,7 +200,7 @@ describe('game store — Cast', () => {
     store().finishCast()
     const game = store().game!
     expect(store().flying).toBe(false)
-    expect(game.seeds[hexKey(hexAt('C6-4'))]).toEqual({ letter: 'B', seat: 0 })
+    expect(game.seeds[hexKey(hexAt('C6-4'))]).toMatchObject({ letter: 'B', seat: 0 })
     expect(store().landed?.count).toBe(1)
     expect(store().move).toBeNull()
   })
@@ -203,16 +209,16 @@ describe('game store — Cast', () => {
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast()
     expect(store().game?.phase).toBe('refresh')
-    expect(store().trayOrder[0]).toEqual([TRAY_GAP, 0, 1, 2, 3, 4, 5, 6]) // one seed cast, none drawn yet: its place stays empty
-    store().tapSeed(1)
-    store().tapSeed(3)
-    store().tapSeed(1) // tap again: keep it after all
-    expect(store().setAside).toEqual([3])
+    expect(trayPositions()).toEqual([TRAY_GAP, 0, 1, 2, 3, 4, 5, 6]) // one seed cast, none drawn yet: its place stays empty
+    store().tapSeed(seed(1))
+    store().tapSeed(seed(3))
+    store().tapSeed(seed(1)) // tap again: keep it after all
+    expect(store().setAside).toEqual([seed(3)])
     vi.useFakeTimers()
     store().refresh()
     vi.runAllTimers() // the refresh plays out on the tray first (B011 — refreshFx.test.ts)
@@ -227,27 +233,27 @@ describe('game store — Cast', () => {
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast()
-    store().tapSeed(2)
+    store().tapSeed(seed(2))
     store().refresh(true)
-    expect(store().game?.hands[0]).toEqual(['C', 'D', 'F', 'G', 'H', 'J', 'K', 'V'])
+    expect(lettersOf(store().game!.hands[0])).toEqual(['C', 'D', 'F', 'G', 'H', 'J', 'K', 'V'])
   })
 
   it('the tray keeps its own order across a turn', () => {
     yellowToPlay()
     store().moveTraySeed(7, 0) // K to the front
-    expect(store().trayOrder[0]).toEqual([7, 0, 1, 2, 3, 4, 5, 6])
+    expect(trayPositions()).toEqual([7, 0, 1, 2, 3, 4, 5, 6])
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast() // B cast: K is now hand index 6, still shown first; B's place stays empty
-    expect(store().trayOrder[0]).toEqual([6, TRAY_GAP, 0, 1, 2, 3, 4, 5])
-    expect(store().game?.hands[0][store().trayOrder[0][0]]).toBe('K')
+    expect(trayPositions()).toEqual([6, TRAY_GAP, 0, 1, 2, 3, 4, 5])
+    expect(store().game!.hands[0][6].letter).toBe('K')
   })
 })
 
@@ -264,12 +270,12 @@ describe("the tray never re-sorts on a cast (Muzzy 2026-10-01: don't resort, it'
   const castFromTray = (handIndex: number) => {
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(handIndex)
+    store().tapSeed(seed(handIndex))
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast()
   }
-  const trayLetters = (seat = 0) => store().trayOrder[seat].map((i) => (i === TRAY_GAP ? '_' : store().game!.hands[seat][i]))
+  const trayLetters = (seat = 0) => store().trayOrder[seat].map((id) => (id === TRAY_GAP ? '_' : letterIn(store().game!.hands[seat], id)))
 
   it("a cast that makes Magic: the drawn seed takes the cast seed's place, no other seed moves", () => {
     yellowCanMakeAT()
@@ -295,7 +301,7 @@ describe("the tray never re-sorts on a cast (Muzzy 2026-10-01: don't resort, it'
     yellowToPlay()
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(3) // F — makes no word
+    store().tapSeed(seed(3)) // F — makes no word
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast()
@@ -308,8 +314,8 @@ describe("the tray never re-sorts on a cast (Muzzy 2026-10-01: don't resort, it'
 describe('tray order helpers', () => {
 
   it('moveInOrder moves one seed; shuffled keeps every seed', () => {
-    expect(moveInOrder([0, 1, 2, 3], 3, 1)).toEqual([0, 3, 1, 2])
-    expect(moveInOrder([0, TRAY_GAP, 1, 2], 3, 1)).toEqual([0, 2, 1, TRAY_GAP]) // into an empty place: nothing else moves
+    expect(moveInOrder(['a', 'b', 'c', 'd'], 3, 1)).toEqual(['a', 'd', 'b', 'c'])
+    expect(moveInOrder(['a', TRAY_GAP, 'b', 'c'], 3, 1)).toEqual(['a', 'c', 'b', TRAY_GAP]) // into an empty place: nothing else moves
     expect([...shuffled([0, 1, 2, 3, 4, 5, 6, 7])].sort()).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
   })
 })
@@ -330,8 +336,8 @@ describe('game store — loading an older game', () => {
     }
     store().loadState({ ...game, lastTurn, log: { turns: [logged], end: null } })
     const loaded = store().game!
-    expect(loaded.hands[0]).toEqual(['Q', 'A'])
-    expect(loaded.bag).toEqual(['Q', 'W'])
+    expect(lettersOf(loaded.hands[0])).toEqual(['Q', 'A'])
+    expect(lettersOf(loaded.bag)).toEqual(['Q', 'W'])
     expect(Object.values(loaded.seeds).map((s) => s.letter)).toEqual(['Q'])
     expect(loaded.lastTurn?.letter).toBe('Q')
     expect(loaded.log?.turns[0].letter).toBe('Q')

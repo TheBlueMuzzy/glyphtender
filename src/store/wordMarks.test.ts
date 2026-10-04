@@ -4,10 +4,10 @@ import { readFileSync } from 'node:fs'
 import { beforeAll, describe, expect, it } from 'vitest'
 import animJson from '../../content/tuning/anim.json'
 import { hideSecrets } from '../../party/views'
-import { applyAction, checkAction, newGame, previewTurn } from '../engine/engine'
+import { newGame } from '../engine/engine'
 import { hexKey } from '../engine/hex'
 import { randomAction } from '../engine/sim'
-import { hexAt, position, wordsOf } from '../engine/testkit'
+import { applyAt, checkAt, hexAt, position, previewAt, wordsOf } from '../engine/testkit'
 import { parseWordList } from '../engine/words'
 import type { WordList } from '../engine/types'
 import { landingSeconds, popsTotal, scorePops, scoreSequence, totalSize, uniqueHexes, type ScorePop } from './wordMarks'
@@ -17,7 +17,7 @@ beforeAll(() => { words = parseWordList(readFileSync('public/words/words.csv', '
 
 // Yellow moves glyphling 0 from C6-7 to C6-6 and casts T onto C6-4: CAT down (C Yellow's, A Blue's) + TO (O Blue's)
 const castT = { type: 'turn' as const, glyphling: 0, to: hexAt('C6-6'), seed: 0, target: hexAt('C6-4') }
-const catAndTo = () => applyAction(position({
+const catAndTo = () => applyAt(position({
   glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, hands: [['T'], ['E']], bag: ['X'],
   seeds: [{ 'C6-2': 'C' }, { 'C6-3': 'A', 'C7-4': 'O' }],
 }), castT, wordsOf('CAT', 'TO'))
@@ -37,7 +37,7 @@ describe('score pops', () => {
   })
 
   it('uses the rules’ ownership bonus (none → every seed pops 1)', () => {
-    const game = applyAction(position({
+    const game = applyAt(position({
       glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, hands: [['T'], []], seeds: [{ 'C6-3': 'A' }], rules: { ownershipBonus: 0 },
     }), castT, wordsOf('AT'))
     expect(scorePops(game, game.lastTurn!).map((p) => p.amount)).toEqual([1, 1])
@@ -51,7 +51,7 @@ describe('score pops', () => {
       for (let i = 0; i < 400 && state.phase !== 'over'; i++) {
         const pick = randomAction(state, rng)
         rng = pick.rng
-        state = applyAction(state, pick.action, words)
+        state = applyAt(state, pick.action, words)
         if (pick.action.type !== 'turn' || !state.lastTurn?.words.length) continue
         const pops = scorePops(state, state.lastTurn)
         expect(popsTotal(pops)).toBe(state.lastTurn.magic)
@@ -126,9 +126,9 @@ describe('score sequence (words score one at a time)', () => {
       seeds: [{ 'C6-2': 'C' }, { 'C6-3': 'A', 'C7-4': 'O' }],
     })
     const list = wordsOf('CAT', 'TO')
-    expect(checkAction(before, castT)).toBeNull()
-    const aimed = previewTurn(before, castT, list).words.map((w) => w.word)
-    const after = applyAction(before, castT, list)
+    expect(checkAt(before, castT)).toBeNull()
+    const aimed = previewAt(before, castT, list).words.map((w) => w.word)
+    const after = applyAt(before, castT, list)
     expect(after.lastTurn!.words.map((w) => w.word)).toEqual(aimed)
     const pops = scorePops(after, after.lastTurn!)
     const order = scoreSequence(pops, animJson).words.map((_, i) => after.lastTurn!.words[i].word)

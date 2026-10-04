@@ -164,7 +164,7 @@ async function menusAndGame(size) {
     await tap(option('move', Math.floor((await optionCount('move')) / 2)))
     const pick = await page.evaluate(() => window.__glyphtender.findCast(false))
     if (!pick) throw new Error('no cast without Magic from this move (the fixed game changed?)')
-    const pos = await store(page, `(s) => s.trayOrder[s.game.current].indexOf(${pick.seed})`)
+    const pos = await store(page, `(s) => s.trayOrder[s.game.current].indexOf('${pick.seed}')`)
     await tap(page.locator(`[data-tray-pos="${pos}"]`))
     await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     await shot(page, size, 'game-planned')

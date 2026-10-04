@@ -15,7 +15,7 @@ import settings from '../../content/rooms.json'
 import animJson from '../../content/tuning/anim.json'
 import { glideSeconds } from '../game/glide'
 import { useGameStore } from './gameStore'
-import { actionRefused, connectOnline, receiveView, stopOnline } from './onlinePlay'
+import { actionRefused, connectOnline, receiveView, REPLAY_SEED, stopOnline } from './onlinePlay'
 import { boardHighlight, castOptions, dropKind, TRAY_GAP } from './turnPlan'
 import { boardTrail } from './trail'
 
@@ -66,7 +66,7 @@ function yellowPlansAndCasts(seed = 1) {
   store().tapHex(pick.to)
   const targets = castOptions(game, { glyphling: pick.glyphling, to: pick.to })
   if (game.hands[0].length > 0 && targets.length > 0) {
-    store().tapSeed(0)
+    store().tapSeed(game.hands[0][0].id)
     store().tapHex(targets[0])
   }
   store().startCast()
@@ -138,10 +138,10 @@ describe('online store — starting and the draft', () => {
     finishDraft()
     const game = store().game!
     expect(game.phase).toBe('play')
-    expect(game.hands[0].every((s) => s !== HIDDEN)).toBe(true)
-    expect(game.hands[1].every((s) => s === HIDDEN)).toBe(true)
+    expect(game.hands[0].every((s) => s.id.startsWith('seed-') && s.letter !== HIDDEN)).toBe(true)
+    expect(game.hands[1].every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true)
     expect(store().handoff).toBeNull()
-    expect(store().trayOrder[0]).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+    expect(store().trayOrder[0]).toEqual(game.hands[0].map((s) => s.id))
   })
 })
 
@@ -149,7 +149,7 @@ describe('online store — turns', () => {
   it('my Cast: the action leaves at once, the view waits for the seed to land, then it sprouts', () => {
     finishDraft()
     const before = [...store().trayOrder[0]]
-    const beforeLetters = before.map((i) => store().game!.hands[0][i])
+    const castId = store().game!.hands[0][0].id // (yellowPlansAndCasts casts the hand's first seed)
     yellowPlansAndCasts()
     expect(store().flying).toBe(true)
     expect(sent.at(-1)).toMatchObject({ kind: 'play', action: { type: 'turn' } })
@@ -162,9 +162,9 @@ describe('online store — turns', () => {
     expect(store().landed!.count).toBe(landedBefore + 1)
     expect(store().trayOrder[0].filter((i) => i !== TRAY_GAP)).toHaveLength(store().game!.hands[0].length)
     // the tray never re-sorts on a cast: every other seed is where it was (the cast seed's place is refilled or empty)
-    const cast = before.indexOf(0)
-    store().trayOrder[0].forEach((i, pos) => {
-      if (pos !== cast) expect(store().game!.hands[0][i]).toBe(beforeLetters[pos])
+    const cast = before.indexOf(castId)
+    store().trayOrder[0].forEach((id, pos) => {
+      if (pos !== cast) expect(id).toBe(before[pos])
     })
   })
 
@@ -208,11 +208,12 @@ describe('online store — turns', () => {
     vi.advanceTimersByTime(glideSeconds(turn.from, turn.to, animJson) * 1000)
     if (turn.letter) {
       expect(store().flying).toBe(true)
-      expect(store().game!.hands[1][0]).toBe(turn.letter) // the seed in the air is public now
+      expect(store().game!.hands[1][0]).toEqual({ id: REPLAY_SEED, letter: turn.letter }) // the seed in the air is public now…
+      expect(store().cast?.seed).toBe(REPLAY_SEED) // …held by a stand-in id: Blue's real seed ids never reach me
       store().finishCast()
     }
     expect(store().online!.version).toBe(blueView().version)
-    expect(store().game!.hands[1].every((s) => s === HIDDEN)).toBe(true)
+    expect(store().game!.hands[1].every((s) => s.id === HIDDEN)).toBe(true)
     expect(store().move).toBeNull()
     expect(store().trail).toBeNull()
     expect(boardTrail(store())).toBeNull() // landed: no trail stays on the board
@@ -287,8 +288,7 @@ describe('online store — turns', () => {
     vi.advanceTimersByTime(2000)
     expect(store().refreshFx).toBeNull()
     // kept seeds stayed where they were
-    const kept = orderBefore.filter((_, pos) => pos !== 1).length
-    expect(store().trayOrder[0].filter((i) => i < kept)).toHaveLength(kept)
+    orderBefore.forEach((id, pos) => { if (pos !== 1 && id !== TRAY_GAP) expect(store().trayOrder[0][pos]).toBe(id) }) // (an empty place may fill)
   })
 
   it('a whole game to the end: the reveal gets the full truth and the end table', () => {

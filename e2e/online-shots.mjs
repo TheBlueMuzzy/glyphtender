@@ -56,7 +56,7 @@ async function playTurn(p) {
     // B011, once: Refresh 1 plays out on MY tray (shrink, then the server's new seed grows in), then play passes on
     refreshSeen = true
     // (the cast seed's place stays empty — the tray never re-sorts — so pick the second seed actually there)
-    const place = await p.store((s) => s.trayOrder[s.online.mySeat].flatMap((i, pos) => (i >= 0 ? [pos] : []))[1])
+    const place = await p.store((s) => s.trayOrder[s.online.mySeat].flatMap((id, pos) => (id !== 'gap' ? [pos] : []))[1])
     await p.tap(page.locator(`[data-tray-pos="${place}"]`))
     await p.tap(page.getByRole('button', { name: 'Refresh 1' }))
     const fx = await p.store((s) => s.refreshFx)
@@ -75,7 +75,7 @@ async function playTurn(p) {
     await p.tap(option('move').nth(Math.floor(Math.random() * count)))
     const pick = await page.evaluate(() => window.__glyphtender.findCast(true) ?? window.__glyphtender.findCast(false))
     if (pick) {
-      const pos = await p.store(`(s) => s.trayOrder[s.online.mySeat].indexOf(${pick.seed})`)
+      const pos = await p.store(`(s) => s.trayOrder[s.online.mySeat].indexOf('${pick.seed}')`)
       await p.tap(page.locator(`[data-tray-pos="${pos}"]`))
       await p.tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     }

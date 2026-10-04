@@ -11,10 +11,10 @@ import { hexKey, type Hex } from '../engine/hex'
 import type { GameStore } from './gameStore'
 import { isLocalHuman } from './seats'
 
-/** What was tapped (or picked up to drag): a board glyphling (id), a tray seed (hand index) or a board hex. */
-export type Tap = { glyph: number } | { hand: number } | { hex: Hex }
+/** What was tapped (or picked up to drag): a board glyphling (id), a tray seed (its id) or a board hex. */
+export type Tap = { glyph: number } | { hand: string } | { hex: Hex }
 
-/** The piece to shake: a glyphling (id), a planted seed (hexKey) or a tray seed (hand index). */
+/** The piece to shake: a glyphling (id), a planted seed (hexKey) or a tray seed (its id). */
 export type NopeTarget = { kind: 'glyph' | 'seed' | 'hand'; key: string }
 
 type NopeState = Pick<GameStore, 'game' | 'move' | 'flying' | 'waiting' | 'handoff' | 'seats'> & Partial<Pick<GameStore, 'refreshFx' | 'scoring'>>
@@ -32,7 +32,7 @@ export function nopeFor(s: NopeState, tap: Tap): NopeTarget | null {
   if ('hand' in tap) {
     if (game.phase === 'draft') return null // the draft tray holds glyphlings to place, not seeds
     const waitingForMove = game.phase === 'play' && !s.move
-    return !myTurn || waitingForMove ? { kind: 'hand', key: String(tap.hand) } : null
+    return !myTurn || waitingForMove ? { kind: 'hand', key: tap.hand } : null
   }
   const key = hexKey(tap.hex)
   return game.seeds[key] ? { kind: 'seed', key } : null // planted seeds stay put (the aimed one isn't planted yet)

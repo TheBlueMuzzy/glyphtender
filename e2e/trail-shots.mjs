@@ -169,7 +169,7 @@ try {
       await tap(page.locator(`[data-glyph="${turn.glyphling}"]`)) // let go: the cast rings show
 
       // plan-cast: aim the seed (the lighter cast template + the dotted path — no arc)
-      const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf(${turn.seed})`)
+      const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf('${turn.seed}')`)
       await tap(page.locator(`[data-tray-pos="${pos}"]`))
       await tap(page.locator(`[data-option="cast"] circle[data-hex="${turn.target}"]`))
       await shot(`${who}-plan-cast`)

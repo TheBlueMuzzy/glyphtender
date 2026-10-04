@@ -14,7 +14,7 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { hexCorners } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
-import { TRAY_GAP } from '../store/turnPlan'
+import { letterIn, TRAY_GAP } from '../store/turnPlan'
 import { reduceMotion } from '../ui/kit'
 import { colourOf, glyphlingArt, seedArt } from './art'
 import { juiceFor } from './feel'
@@ -103,22 +103,23 @@ export function SeedTray({ layout, boxWidth }: Props) {
     const slots = Math.max(game.config.rules.handSize, order.length)
     tiles = Array.from({ length: slots }, (_, pos) => {
       const { x, y } = centre(pos)
-      const index = order[pos]
-      if (index === TRAY_GAP) return <g key={`empty-${pos}`} data-tray-pos={pos}>{slot(x, y)}</g> // a cast seed's place (a seed can be dropped into it)
-      if (index === undefined || index >= hand.length) return <g key={`empty-${pos}`}>{slot(x, y)}</g>
-      const aimed = myTurn && cast?.seed === index // on the board, waiting for Cast
-      if (aimed) return <g key={`hand-${index}`} data-hand={index} data-tray-pos={pos} opacity={0.8}>{slot(x, y)}{ring(x, y, true)}</g>
+      const id = order[pos] // the seed in this place, by its id
+      if (id === TRAY_GAP) return <g key={`empty-${pos}`} data-tray-pos={pos}>{slot(x, y)}</g> // a cast seed's place (a seed can be dropped into it)
+      const letter = id === undefined ? undefined : letterIn(hand, id)
+      if (id === undefined || letter === undefined) return <g key={`empty-${pos}`}>{slot(x, y)}</g>
+      const aimed = myTurn && cast?.seed === id // on the board, waiting for Cast
+      if (aimed) return <g key={`hand-${id}`} data-hand={id} data-tray-pos={pos} opacity={0.8}>{slot(x, y)}{ring(x, y, true)}</g>
       const inRefresh = (stage === 'in' ? refreshing?.newSlots : refreshing?.slots)?.includes(pos) ?? false // its seed going, or its new one coming
       if (inRefresh && stage === 'gone') return <g key={`empty-${pos}`}>{slot(x, y)}</g> // (online: waiting for the new seeds)
-      const held = myTurn && ((selected?.kind === 'seed' && selected.index === index) || (stage !== 'in' && setAside.includes(index)))
+      const held = myTurn && ((selected?.kind === 'seed' && selected.id === id) || (stage !== 'in' && setAside.includes(id)))
       const waiting = !refreshing && (!myTurn || (game.phase === 'play' && !move))
       const lift = held ? -tile * 0.08 : 0
       const piece = <>
-        <image href={seedArt(hand[index], seat)} x={x - art / 2} y={y - art / 2} width={art} height={art} />
+        <image href={seedArt(letter, seat)} x={x - art / 2} y={y - art / 2} width={art} height={art} />
         {held && ring(x, y, false)}
       </>
       return (
-        <g key={`hand-${index}`} data-hand={index} data-tray-pos={pos} data-held={held || undefined}
+        <g key={`hand-${id}`} data-hand={id} data-tray-pos={pos} data-held={held || undefined}
           transform={`translate(0 ${lift})`} opacity={waiting ? 0.55 : 1}>
           {slot(x, y)}
           {inRefresh ? <g key={`refresh-${stage}`} data-refresh-slot={pos} className="game-refresh-slot">{piece}</g> : piece}

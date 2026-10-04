@@ -12,15 +12,17 @@ import versionFile from '../../version.json'
 import type { DevKitGame } from '../devkit/devkitGame'
 import { getBoard } from '../engine/boards'
 import type { Hex } from '../engine/hex'
-import { SEAT_COLOURS, type GameState } from '../engine/types'
+import { SEAT_COLOURS, type GameState, type SeedPiece } from '../engine/types'
 import { useGameStore, type GameOptions, type GameStore } from '../store/gameStore'
+import { TRAY_GAP } from '../store/turnPlan'
 import type { PlayerStats } from '../store/stats'
 import { closeAllScreens } from '../ui/newGame'
 
 /** What a snapshot holds for Glyphtender. */
 export interface GlyphtenderMoment {
   game: GameState | null // null = on the main menu
-  trayOrder: number[][]
+  /** Each seat's tray, left to right: seed ids, TRAY_GAP for an empty place. (Snapshots before F33: hand indexes, -1 = empty.) */
+  trayOrder: (string | number)[][]
   /** The end table's numbers so far (best turn, longest word, words made). Missing in older snapshots. */
   stats?: PlayerStats[]
   /** The table options the game started with (word indicators, hide seeds…). Missing in older snapshots. */
@@ -87,6 +89,32 @@ export function gameEvents(before: GameStore, after: GameStore): string[] {
   return lines
 }
 
+/**
+ * A snapshot's tray order as seed ids, or null if it doesn't fit the hands (then the tray starts in hand order).
+ * It fits when, in every seat, each seed in the hand is in the tray exactly once; empty places (TRAY_GAP) may sit
+ * anywhere (B018: a snapshot taken right after a cast, with an empty place, used to lose its tray order).
+ * Snapshots from before F33 hold hand indexes (-1 = an empty place): index i becomes the id of the hand's i-th seed
+ * (`hands` = the game as loaded, its seeds in the same places as the saved one's).
+ */
+export function savedTrayOrder(saved: unknown, hands: SeedPiece[][]): string[][] | null {
+  if (!Array.isArray(saved) || saved.length !== hands.length) return null
+  const orders: string[][] = []
+  for (let seat = 0; seat < hands.length; seat++) {
+    const order = saved[seat]
+    if (!Array.isArray(order)) return null
+    const ids = order.map((place: unknown) => {
+      if (place === TRAY_GAP || place === -1) return TRAY_GAP
+      if (typeof place === 'number') return hands[seat][place]?.id ?? 'not in the hand'
+      return typeof place === 'string' ? place : 'not in the hand'
+    })
+    const seeds = ids.filter((id) => id !== TRAY_GAP)
+    const everySeedOnce = seeds.length === hands[seat].length && hands[seat].every((seed) => seeds.includes(seed.id)) && new Set(seeds).size === seeds.length
+    if (!everySeedOnce) return null
+    orders.push(ids)
+  }
+  return orders
+}
+
 // A saved moment from a file or an older build: check it's shaped like one before handing it to the store
 function isMoment(state: unknown): state is GlyphtenderMoment {
   const s = state as GlyphtenderMoment | null
@@ -111,10 +139,9 @@ export const glyphtenderAdapter: DevKitGame = {
     if (!state.game) return store.leaveGame()
     const stats = state.stats?.length === state.game.config.players ? state.stats : undefined
     store.loadState(state.game, stats) // clears the planned move / cast / flying seed; brings an older save up to date (engine/migrate.ts)
-    // Keep the tray order the snapshot had, if it still fits the hands (loadState reset it to 1, 2, 3…)
-    const fits = state.trayOrder?.length === state.game.hands.length &&
-      state.trayOrder.every((order, seat) => order.length === state.game!.hands[seat].length)
-    useGameStore.setState({ landed: null, ...(fits ? { trayOrder: state.trayOrder } : {}), ...(state.options ? { options: state.options } : {}) })
+    // Keep the tray order the snapshot had — empty places too (B018) — if it still fits the hands (loadState reset it to hand order)
+    const trayOrder = savedTrayOrder(state.trayOrder, useGameStore.getState().game!.hands)
+    useGameStore.setState({ landed: null, ...(trayOrder ? { trayOrder } : {}), ...(state.options ? { options: state.options } : {}) })
   },
 
   canRestore: () => useGameStore.getState().online === null, // online: never

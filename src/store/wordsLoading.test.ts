@@ -4,6 +4,8 @@ import { hexAt, position } from '../engine/testkit'
 import { useGameStore } from './gameStore'
 
 const store = () => useGameStore.getState()
+/** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
+const seed = (i: number) => store().game!.hands[store().game!.current][i].id
 
 /** Yellow to play with glyphling 0 at C6-7 and the given hand (an empty hand = a move-only turn). */
 function yellowToPlay(hand: string[]) {
@@ -36,7 +38,7 @@ describe('B002 — no word list', () => {
     yellowToPlay(['B'])
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    store().tapSeed(0)
+    store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     expect(store().note).toBe('wordsFailed')

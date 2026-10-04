@@ -1,9 +1,10 @@
 // Glyphtender's Dev Kit adapter: a snapshot round-trips through the store, and turns show up as events.
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { hexAt, position, wordsOf } from '../engine/testkit'
+import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
 import { useGameStore } from '../store/gameStore'
 import { screens } from '../ui/kit'
-import { describeGlyphtender, glyphtenderAdapter, type GlyphtenderMoment } from './glyphtenderAdapter'
+import { TRAY_GAP } from '../store/turnPlan'
+import { describeGlyphtender, glyphtenderAdapter, savedTrayOrder, type GlyphtenderMoment } from './glyphtenderAdapter'
 
 const store = () => useGameStore.getState()
 
@@ -29,7 +30,8 @@ describe('glyphtenderAdapter', () => {
     store().loadState(yellowToPlay())
     store().moveTraySeed(0, 2)
     const saved = JSON.parse(JSON.stringify(glyphtenderAdapter.getState())) as GlyphtenderMoment
-    expect(saved.trayOrder[0]).toEqual([1, 2, 0])
+    const [b, c, d] = saved.game!.hands[0].map((s) => s.id)
+    expect(saved.trayOrder[0]).toEqual([c, d, b]) // the tray holds seed ids
 
     // Play on: plan a move, then load something else
     store().grabGlyphling(0)
@@ -42,6 +44,37 @@ describe('glyphtenderAdapter', () => {
     expect(store().trayOrder).toEqual(saved.trayOrder)
     expect(store().move).toBeNull()
     expect(store().flying).toBe(false)
+  })
+
+  it('B018: a snapshot taken with an empty tray place (a cast seed, nothing drawn) keeps its tray order, gap and all', () => {
+    // Yellow casts C (no word, an empty bag: nothing drawn) — its place stays empty: B _ D
+    store().loadState(position({ glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, hands: [['B', 'C', 'D'], ['E']], bag: [] }))
+    store().moveTraySeed(2, 0) // D B C
+    store().moveTraySeed(2, 1) // D C B — the player's own order
+    store().grabGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    store().tapSeed(store().game!.hands[0][1].id) // C
+    store().tapHex(hexAt('C6-4'))
+    store().startCast()
+    store().finishCast()
+    const [b, d] = store().game!.hands[0].map((s) => s.id)
+    expect(store().trayOrder[0]).toEqual([d, TRAY_GAP, b])
+    const saved = JSON.parse(JSON.stringify(glyphtenderAdapter.getState())) as GlyphtenderMoment
+
+    store().startGame({ players: 2, seed: 99 })
+    glyphtenderAdapter.setState(saved)
+    expect(store().trayOrder[0]).toEqual([d, TRAY_GAP, b]) // before F33 it fell back to hand order: B D
+  })
+
+  it('an older snapshot (tray as hand positions, -1 = an empty place) restores its tray order as ids', () => {
+    const game = position({ glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, hands: [['B', 'C', 'D'], ['E']], bag: [] })
+    const [b, c, d] = game.hands[0].map((s) => s.id)
+    glyphtenderAdapter.setState({ game, trayOrder: [[2, -1, 0, 1], [0]] })
+    expect(store().trayOrder).toEqual([[d, TRAY_GAP, b, c], [game.hands[1][0].id]])
+    // a tray that doesn't fit the hands (a seed missing, or twice) falls back to hand order
+    glyphtenderAdapter.setState({ game, trayOrder: [[2, 0], [0]] })
+    expect(store().trayOrder[0]).toEqual([b, c, d])
+    expect(savedTrayOrder([[d, d, b], [0]], game.hands)).toBeNull()
   })
 
   it('B006: a snapshot carries the end table stats and the table options', () => {
@@ -74,8 +107,8 @@ describe('glyphtenderAdapter', () => {
     const lastTurn = { seat: 1, glyphlingId: 2, from: hexAt('C11-2'), to: hexAt('C11-1'), letter: 'Qu', target: hexAt('C6-2'), words: [], magic: 0, drew: 0 }
     glyphtenderAdapter.setState({ game: { ...game, lastTurn }, trayOrder: [] })
     const loaded = store().game!
-    expect(loaded.hands[0]).toEqual(['Q', 'A'])
-    expect(loaded.bag).toEqual(['Q', 'W'])
+    expect(lettersOf(loaded.hands[0])).toEqual(['Q', 'A'])
+    expect(lettersOf(loaded.bag)).toEqual(['Q', 'W'])
     expect(Object.values(loaded.seeds).map((s) => s.letter)).toEqual(['Q'])
     expect(loaded.lastTurn?.letter).toBe('Q')
   })
