@@ -1,0 +1,8 @@
+/* NEW GAME — layout only (the look is the kit's). An AI seat's card holds one size whatever personality is showing:
+   every bio is piled in one spot (invisible copies), so the card is as tall as the longest bio and the real one sits
+   at the top of that space (NewGameScreen.tsx). */
+@layer game {
+  .new-game-bio { display: grid; }
+  .new-game-bio > * { grid-area: 1 / 1; }
+  .new-game-bio-sizer { visibility: hidden; }
+}

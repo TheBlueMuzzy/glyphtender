@@ -2,6 +2,7 @@
 import text from '../../content/text/en.json'
 import { useGameStore, type GameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
+import { isLocalBot } from '../store/seats'
 import { mayMoveOnly } from '../store/turnPlan'
 import { revealSteps, revealView } from '../store/revealPlan'
 import type { GameState } from '../engine/types'
@@ -13,7 +14,7 @@ const w = text.game
 /** A player's name: their colour ("Yellow") on one device; online, the name they typed in the lobby. */
 export const playerName = (seat: number) => useGameStore.getState().seats[seat]?.name ?? w.players[colourOf(seat)]
 
-type PromptState = Pick<GameStore, 'game' | 'move' | 'cast' | 'selected' | 'flying' | 'note' | 'wordsStatus' | 'handoff' | 'revealAt' | 'seats'>
+type PromptState = Pick<GameStore, 'game' | 'move' | 'cast' | 'selected' | 'flying' | 'note' | 'wordsStatus' | 'handoff' | 'revealAt' | 'seats'> & Partial<Pick<GameStore, 'online'>>
 
 /** The main line and a smaller line under it (whose turn / a hint). */
 export function promptFor(s: PromptState): { text: string; detail: string } {
@@ -25,6 +26,8 @@ export function promptFor(s: PromptState): { text: string; detail: string } {
   // Not a turn this device plays (online, another device's turn): say what they're doing (their glide and throw
   // replay on the board)
   if (!isMyTurn(s)) {
+    // An AI on this device (F42): thinking until its turn starts playing out (the glide, the throw)
+    if (!s.online && isLocalBot(s.seats[game.current]) && !s.move && !s.flying) return { text: fill(w.prompts.aiThinking, { player }), detail: '' }
     const doing = game.phase === 'draft' ? w.prompts.othersDraft : game.phase === 'refresh' ? w.prompts.othersRefresh : w.prompts.othersTurn
     return { text: fill(doing, { player }), detail: '' }
   }
@@ -55,7 +58,7 @@ export function promptSizers(names: string[]): { texts: string[]; detail: string
   const player = names.reduce((a, b) => (b.length > a.length ? b : a), '')
   const p = w.prompts, r = w.reveal
   const turnPrompts = [p.move, p.moveHeld, p.cast, p.castHeld, p.ready, p.moveOnly, p.flying, p.refresh, p.loading, p.wordsFailed]
-  const withName = [p.draft, p.handoff, p.othersTurn, p.othersDraft, p.othersRefresh, r.bonus, r.counting]
+  const withName = [p.draft, p.handoff, p.othersTurn, p.othersDraft, p.othersRefresh, p.aiThinking, r.bonus, r.counting]
   return {
     texts: [
       ...turnPrompts, r.tangles,
