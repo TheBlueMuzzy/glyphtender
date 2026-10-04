@@ -109,34 +109,10 @@ export const hexIn = (list: Hex[], hex: Hex) => list.some((h) => sameHex(h, hex)
 
 /**
  * An empty place in a tray order: a seed was cast or set aside and nothing new has come for it yet. The tray never
- * closes up round it (Muzzy 2026-10-01: "don't resort. it's confusing/jarring") — refreshFx.refillInPlace fills it.
+ * closes up round it (Muzzy 2026-10-01: "don't resort. it's confusing/jarring") — Table rack.ts refillRack fills it.
+ * The tray order maths (move, shuffle, refill) is the framework Table's rack (src/table/rack.ts); this is its GAP.
  */
-export const TRAY_GAP = 'gap' // (never a real seed id: those are "seed-0", "seed-1"…)
-
-/** A tray order with the seed at position `from` moved to position `to` (dropped into an empty place: it just moves there). */
-export function moveInOrder(order: string[], from: number, to: number): string[] {
-  const next = [...order]
-  if (next[to] === TRAY_GAP) {
-    ;[next[from], next[to]] = [TRAY_GAP, next[from]]
-    return next
-  }
-  const [picked] = next.splice(from, 1)
-  next.splice(to, 0, picked)
-  return next
-}
-
-/** A shuffled copy of a tray order (plain random — the tray order isn't part of the game rules). */
-export function shuffled<T>(order: T[], random: () => number = Math.random): T[] {
-  const next = [...order]
-  for (let i = next.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1))
-    ;[next[i], next[j]] = [next[j], next[i]]
-  }
-  return next
-}
-
-/** The tray order of a freshly dealt hand: its seeds' ids, in hand order. */
-export const inHandOrder = (hand: readonly SeedPiece[]) => hand.map((seed) => seed.id)
+export { GAP as TRAY_GAP } from '../table/rack'
 
 /** The letter of the seed with this id in a hand, or undefined if it isn't there. */
 export const letterIn = (hand: readonly SeedPiece[], id: string) => hand.find((seed) => seed.id === id)?.letter

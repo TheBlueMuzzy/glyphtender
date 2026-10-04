@@ -4,9 +4,10 @@
 //   gone — online only: shrunk, waiting for the server's new seeds (the slots stay empty)
 //   in   — the new seeds grow into those same slots, with a small overshoot (refreshGrowTime; feel.json refreshGrow)
 // Only then does play pass on (the handoff). Keep all, or reduce motion → no animation, it just happens.
+// Which places refresh, and where the new seeds go, is Table rack.ts: placesOf (the set-aside / drawn seeds' places)
+// and refillRack (kept seeds stay put; new ones take the empty places — the tray NEVER re-sorts).
 import type { AnimTuning } from '../game/useTuning'
 import type { SeedPiece } from '../engine/types'
-import { TRAY_GAP } from './turnPlan'
 
 export interface RefreshFx {
   /** Whose tray is refreshing. */
@@ -19,31 +20,6 @@ export interface RefreshFx {
   /** Pass-and-play, stage "in": the new hand and tray order, shown before the game moves on to the next player. */
   hand?: SeedPiece[]
   order?: string[]
-}
-
-/** The tray positions of the set-aside seeds (by id), left to right. */
-export function refreshSlots(order: string[], setAside: string[]): number[] {
-  return order.flatMap((id, pos) => (setAside.includes(id) ? [pos] : []))
-}
-
-/** The tray order after seeds leave the hand — a cast (one seed) or a refresh (the set-aside ones) — and new ones come.
- *  NOTHING SHIFTS: kept seeds stay where they were (the tray follows each seed by its id), and every new seed takes an
- *  empty place, left to right (a removed seed's place, or an older gap); any extra new seed goes on the end. If there
- *  aren't enough new seeds, the places left over stay empty (TRAY_GAP) — they never close up.
- *  `newHand` = the hand after (kept seeds + the drawn ones, in the engine's order: the drawn ones come in that order). */
-export function refillInPlace(order: string[], removed: string[], newHand: readonly SeedPiece[]): string[] {
-  const inHand = new Set(newHand.map((seed) => seed.id))
-  const stays = (id: string) => id !== TRAY_GAP && !removed.includes(id) && inHand.has(id)
-  const fresh = newHand.map((seed) => seed.id).filter((id) => !order.some((placed) => placed === id && stays(placed)))
-  const next = order.map((id) => (stays(id) ? id : (fresh.shift() ?? TRAY_GAP)))
-  next.push(...fresh) // more new seeds than empty places: on the end
-  while (next.length > 0 && next[next.length - 1] === TRAY_GAP) next.pop() // an empty place at the end is just a free slot
-  return next
-}
-
-/** The tray positions holding new seeds: the seeds just drawn (`drawn` = their ids — the rules' 'drew' event). */
-export function newSeedSlots(order: string[], drawn: readonly string[]): number[] {
-  return order.flatMap((id, pos) => (id !== TRAY_GAP && drawn.includes(id) ? [pos] : []))
 }
 
 /** How long each stage lasts, in ms (the last slot's stagger included; the pause sits after the shrink).

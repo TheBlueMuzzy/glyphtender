@@ -3,7 +3,8 @@ import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
 import { hexKey } from '../engine/hex'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
-import { castOptions, dropKind, highlightFor, letterIn, moveInOrder, shuffled, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
+import { castOptions, dropKind, highlightFor, letterIn, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
+import { moveInRack, shuffleRack } from '../table/rack'
 
 const store = () => useGameStore.getState()
 /** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
@@ -321,10 +322,10 @@ describe("the tray never re-sorts on a cast (Muzzy 2026-10-01: don't resort, it'
 
 describe('tray order helpers', () => {
 
-  it('moveInOrder moves one seed; shuffled keeps every seed', () => {
-    expect(moveInOrder(['a', 'b', 'c', 'd'], 3, 1)).toEqual(['a', 'd', 'b', 'c'])
-    expect(moveInOrder(['a', TRAY_GAP, 'b', 'c'], 3, 1)).toEqual(['a', 'c', 'b', TRAY_GAP]) // into an empty place: nothing else moves
-    expect([...shuffled([0, 1, 2, 3, 4, 5, 6, 7])].sort()).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+  it('moveInRack moves one seed; shuffleRack keeps every seed', () => {
+    expect(moveInRack(['a', 'b', 'c', 'd'], 3, 1)).toEqual(['a', 'd', 'b', 'c'])
+    expect(moveInRack(['a', TRAY_GAP, 'b', 'c'], 3, 1)).toEqual(['a', 'c', 'b', TRAY_GAP]) // into an empty place: nothing else moves
+    expect([...shuffleRack([0, 1, 2, 3, 4, 5, 6, 7])].sort()).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
   })
 })
 
