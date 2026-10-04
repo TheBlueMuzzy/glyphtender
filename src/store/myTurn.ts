@@ -20,12 +20,13 @@ export function isMyTurn(s: TurnState): boolean {
   return s.seats.some((who, seat) => isLocalHuman(who) && mayAct(flow, seat))
 }
 
-type BusyState = Pick<GameStore, 'flying' | 'waiting' | 'handoff'> & Partial<Pick<GameStore, 'refreshFx' | 'scoring'>>
+type BusyState = Pick<GameStore, 'flying' | 'waiting' | 'handoff'> & Partial<Pick<GameStore, 'refreshFx' | 'scoring' | 'trail'>>
 
 /** A quiet moment — nothing can be touched: a seed in the air, my action on its way to the server, the device being
- *  passed on, a refresh playing out on the tray, or a cast's score playing out. */
+ *  passed on, a refresh playing out on the tray, a cast's score playing out, or (online) a turn being played out on
+ *  the board — its trail is up (a turn the server played for me looks like my turn, but it isn't mine to touch: B020). */
 export function isBusy(s: BusyState): boolean {
-  return s.flying || s.waiting || s.handoff !== null || (s.refreshFx ?? null) !== null || (s.scoring ?? null) !== null
+  return s.flying || s.waiting || s.handoff !== null || (s.refreshFx ?? null) !== null || (s.scoring ?? null) !== null || (s.trail ?? null) !== null
 }
 
 /** May the screen touch the game right now? It's my turn, and it isn't a quiet moment. */

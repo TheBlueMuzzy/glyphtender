@@ -128,7 +128,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const castTint = castColour(player, colours.background, colours.castShade) // the cast options: the same template, another shade
   const moved = move && game.glyphlings.find((g) => g.id === move.glyphling)
   const plannedLetter = cast ? letterIn(game.hands[seat], cast.seed) ?? null : null
-  const highlight = boardHighlight({ game, move, selected, flying, waiting, seats })
+  const highlight = boardHighlight({ game, move, selected, flying, waiting, seats, trail: replayTrail })
   const lit = board.cells.filter((h) => highlight?.hexes.some((x) => hexKey(x) === hexKey(h)))
   // Word indicators off: nothing shows which seeds make a word (players spot words themselves)
   const planned: SpotWord[] = indicators && !flying ? preview?.words ?? NO_WORDS : NO_WORDS

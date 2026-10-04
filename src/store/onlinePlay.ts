@@ -7,6 +7,8 @@
 //     when the seed lands, my change is shown (if its view hasn't come yet we wait; every WAIT_FOR_VIEW_MS
 //     without it, we ask the server to send it again). My change is never replayed — I've just seen it. (Which change
 //     answers my action: the view's myLastAction — the change my own last action made, B021.)
+//   · A turn the SERVER played for my seat (the turn clock ran out, or a bot took over while I was idle) is not my
+//     answer: it plays out like anyone else's turn — trail, glide, throw (B020).
 //   · OTHER seats' turns are played out from their events (moved, cast, scored) on the game as it was — their
 //     trail draws on in their colour and holds (trail.ts; anim.json trailLead + trailHold), the glyphling glides
 //     from → to, the throw starts after glideSeconds, lands — then the change is shown and the runeblossom
@@ -15,7 +17,8 @@
 //   · The LAST change of a view shows the view itself (the server's truth). A change before it (two came in one
 //     view) is shown by putting its public facts on the game on screen (happened.ts showChange).
 //   · MY refresh plays out on my own tray (B011, refreshFx.ts): the set-aside seeds shrink while the action
-//     travels; its view waits for the shrink, then the new seeds (the drew event) grow in. Nobody else sees my seeds.
+//     travels; its view waits for the shrink, then the new seeds (the drew event) grow in — and the next change waits
+//     for the grow too (B020). Nobody else sees my seeds.
 //   · A gap too old for the feed (back after a long time away): no animation — straight to the view.
 import animJson from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
@@ -82,6 +85,8 @@ export function roomSeatsChanged(seats: readonly { kind: 'human' | 'bot'; connec
 /** The server refused my action (a stale version, or something illegal): drop the plan, ask for the true view. */
 export function actionRefused() {
   if (!store().online) return
+  // (a turn being played out — e.g. the one the server played for me instead — is left to finish: it ends on the truth)
+  if (replaying) return void set({ waiting: false, refreshFx: null, note: 'problem' })
   set({ move: null, cast: null, selected: null, setAside: [], flying: false, waiting: false, refreshFx: null, note: 'problem' })
   toServer({ kind: 'sync' })
 }
@@ -117,11 +122,13 @@ function startFrom(view: GameView) {
 }
 
 /** Plays the changes not shown yet, in order, one at a time (a flying seed, a replay, a cast's score sequence or my
- *  refresh's shrink holds the queue — the store calls resume → here when the score has faded). */
+ *  refresh's shrink and grow hold the queue — the store calls resume → here when it's done). While my refresh waits
+ *  for its new seeds (stage 'gone') the queue flows: that's when their view comes. */
 function showNext() {
   for (;;) {
     const { flying, online, game, refreshFx, scoring } = store()
-    if (flying || replaying || scoring !== null || refreshFx?.stage === 'out' || !online || !game) return
+    const refreshing = refreshFx !== null && refreshFx.stage !== 'gone'
+    if (flying || replaying || scoring !== null || refreshing || !online || !game) return
     if (!playing) {
       const view = inbox.shift()
       if (!view) return
@@ -141,7 +148,7 @@ function showNext() {
     const change = playing.changes.shift()!
     const last = playing.changes.length === 0
     if (last) playing = null
-    if (canReplay(game, change, online.mySeat)) return startReplay(view, change, last)
+    if (canReplay(game, change, view)) return startReplay(view, change, last)
     show(view, change, last)
   }
 }
@@ -150,10 +157,14 @@ function showNext() {
  *  sent it on = yes. A turn the server played for me doesn't count.) */
 const myActionApplied = (view: GameView) => view.myLastAction > sentOn
 
-/** Is this change another player's turn that we can play out on the game we're showing now? */
-function canReplay(shown: GameState, change: Happened, mySeat: number): boolean {
+/** Is this change the answer to an action I sent myself (not one the server played for my seat)? */
+const answersMe = (view: GameView, change: Happened) => change.change === view.myLastAction
+
+/** Is this change a turn we can play out on the game we're showing now — another player's, or one the server played
+ *  for me (turn clock, bot)? My own answered turn is never replayed: I've just seen it. */
+function canReplay(shown: GameState, change: Happened, view: GameView): boolean {
   const turn = turnOf(change.events)
-  if (!turn || turn.seat === mySeat) return false
+  if (!turn || answersMe(view, change)) return false
   // Our game must be the moment just before it: their turn, the glyphling still on `from`, the target still empty
   const glyphling = shown.glyphlings.find((g) => g.id === turn.glyphlingId)
   const targetFree = !turn.target || !shown.seeds[hexKey(turn.target)]
@@ -171,7 +182,7 @@ function show(view: GameView, change: Happened, last: boolean) {
   if (!online || !shown) return
   const me = online.mySeat
   const { events } = change
-  const mine = actorOf(events) === me
+  const mine = actorOf(events) === me && answersMe(view, change) // (the answer to my own action)
   const game = last ? view.game : showChange(shown, events, me, view.game.hands[me] ?? [])
   const thrown = eventOf(events, 'cast')
   const left = thrown?.seat === me ? [thrown.seed.id] : [] // (set-aside seeds are simply gone from the hand)
@@ -227,8 +238,11 @@ function startReplay(view: GameView, change: Happened, last: boolean) {
   replaying = current
   // The seed they cast is public now (it's about to land), so the game holds it in their first slot for the throw.
   // Their hand is all '?' (no ids), so it goes in as a stand-in piece, REPLAY_SEED — never a real seed's id.
-  const thrown = turn.letter ? { id: REPLAY_SEED, letter: turn.letter } : null
+  // A turn the server played for ME (B020): the seed is already in my hand, so it's thrown by its own id.
+  const mine = turn.seat === store().online!.mySeat
+  const thrown = turn.letter && !mine ? { id: REPLAY_SEED, letter: turn.letter } : null
   const game = thrown ? { ...old, hands: old.hands.map((hand, seat) => (seat === turn.seat ? [thrown, ...hand.slice(1)] : hand)) } : old
+  const seedId = mine ? eventOf(change.events, 'cast')?.seed.id : REPLAY_SEED
   // First their trail draws on and holds, so you see who's playing, where from and where to (reduce motion: it just shows)
   set({ game, trail: trailOf(turn), move: null, cast: null, selected: null, note: null })
   const timing = anim.current
@@ -242,7 +256,7 @@ function startReplay(view: GameView, change: Happened, last: boolean) {
     replayTimer = setTimeout(() => {
       replayTimer = null
       if (replaying !== current) return
-      if (turn.letter && turn.target) set({ cast: { seed: REPLAY_SEED, target: turn.target }, flying: true })
+      if (turn.letter && turn.target && seedId) set({ cast: { seed: seedId, target: turn.target }, flying: true })
       else landed() // a move-only turn is just the glide
     }, glideMs)
   }, trailMs)

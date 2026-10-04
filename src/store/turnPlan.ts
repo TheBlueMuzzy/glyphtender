@@ -6,6 +6,7 @@ import type { Action, GameState, SeedPiece } from '../engine/types'
 import { mayMoveOnly as rulesMayMoveOnly } from '../engine/rules'
 import { isMyTurn } from './myTurn'
 import type { Seat } from './seats'
+import type { Trail } from './trail'
 import { undoStep, type TurnSteps } from '../table/flow'
 import { boardTargets, NEW_GLYPHLING, onHex, refereeFor, type Piece } from './referee'
 
@@ -89,13 +90,14 @@ export function highlightFor(game: GameState, move: PlannedMove | null, selected
 /**
  * What the board lights up on THIS device: nothing while a seed flies; in play, only the plan of a player on this
  * device that can still change — online, another player's turn is replayed with its move in the store (the glide),
- * and that move is not something to cast from here (no gold for them); nor is my own once it's gone to the server.
+ * and that move is not something to cast from here (no gold for them); nor is my own once it's gone to the server,
+ * nor a turn the server played for me being played out (its trail is up — B020).
  * In the draft everyone sees where the next glyphling may go. (The glow's own "may act" — TDD D63.)
  */
-type LitState = { game: GameState; move: PlannedMove | null; selected: Selection; flying: boolean; waiting: boolean; seats: Seat[] }
+type LitState = { game: GameState; move: PlannedMove | null; selected: Selection; flying: boolean; waiting: boolean; seats: Seat[]; trail?: Trail | null }
 
 export function boardHighlight(s: LitState): Highlight | null {
-  const glowNow = !s.flying && (s.game.phase !== 'play' || (!s.waiting && isMyTurn(s)))
+  const glowNow = !s.flying && (s.game.phase !== 'play' || (!s.waiting && !s.trail && isMyTurn(s)))
   return glowNow ? highlightFor(s.game, s.move, s.selected) : null
 }
 

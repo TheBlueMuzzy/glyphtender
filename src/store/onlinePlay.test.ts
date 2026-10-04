@@ -18,6 +18,8 @@ import { useGameStore } from './gameStore'
 import { actionRefused, connectOnline, receiveView, REPLAY_SEED, roomSeatsChanged, stopOnline } from './onlinePlay'
 import { boardHighlight, castOptions, dropKind, TRAY_GAP } from './turnPlan'
 import { boardTrail } from './trail'
+import { canPlayNow } from './myTurn'
+import { pulsingGlyphlings } from './turnPulse'
 
 let words: WordList
 beforeAll(() => { words = parseWordList(readFileSync('public/words/words.csv', 'utf8')) })
@@ -349,9 +351,9 @@ describe('online store — turns', () => {
     expect(sent.at(-1)).toEqual({ kind: 'sync' })
   })
 
-  it('B011: my refresh plays out on my tray — shrink (its view waits), then the new seeds grow in', () => {
+  /** Plays (both seats) until it's my refresh — a turn of mine that made no Magic. */
+  function playUntilMyRefresh() {
     finishDraft()
-    // play until it's my refresh (a turn of mine that made no Magic)
     for (let i = 0; i < 400 && !(store().game!.current === 0 && store().game!.phase === 'refresh'); i++) {
       const game = store().game!
       if (store().flying) store().finishCast()
@@ -362,6 +364,10 @@ describe('online store — turns', () => {
       vi.advanceTimersByTime(1000)
     }
     expect(store().game!.phase).toBe('refresh')
+  }
+
+  it('B011: my refresh plays out on my tray — shrink (its view waits), then the new seeds grow in', () => {
+    playUntilMyRefresh()
     const orderBefore = [...store().trayOrder[0]]
     store().tapSeed(orderBefore[1]) // the seed in tray place 1
     store().refresh()
@@ -378,6 +384,67 @@ describe('online store — turns', () => {
     expect(store().refreshFx).toBeNull()
     // kept seeds stayed where they were
     orderBefore.forEach((id, pos) => { if (pos !== 1 && id !== TRAY_GAP) expect(store().trayOrder[0][pos]).toBe(id) }) // (an empty place may fill)
+  })
+
+  it("B020: Blue's turn waits until my refresh's new seeds have grown in (not just shrunk), then replays", () => {
+    playUntilMyRefresh()
+    store().tapSeed(store().trayOrder[0][1])
+    store().refresh()
+    deliver()
+    vi.advanceTimersByTime(animJson.refreshShrinkTime * 1000 + animJson.refreshPause * 1000)
+    expect(store().refreshFx?.stage).toBe('in') // my new seed is growing in…
+    bluePlays(5) // …when Blue's turn arrives
+    deliver()
+    for (let i = 0; i < 100 && store().refreshFx; i++) { // while my new seeds grow…
+      expect(store().trail).toBeNull() // …nothing of Blue's turn yet
+      vi.advanceTimersByTime(10)
+    }
+    expect(store().refreshFx).toBeNull() // grown
+    expect(store().trail?.seat).toBe(1) // now Blue's turn plays out
+  })
+
+  it('B020: when the turn clock runs out and the server plays my turn, it replays like any other turn', () => {
+    finishDraft()
+    yellowPlansAndCasts()
+    deliver()
+    store().finishCast()
+    if (store().game!.phase === 'refresh') { store().refresh(true); deliver() }
+    server.game = { ...server.game!, options: { ...server.game!.options, turnSeconds: 60 } } // (the host's turn timer)
+    for (let i = 1; server.game!.game.current === 1; i++) bluePlays(i) // Blue's turn (and refresh) — my clock starts
+    deliver()
+    for (let i = 0; i < 40; i++) { // Blue's turn plays out on my screen
+      if (store().flying) store().finishCast()
+      vi.advanceTimersByTime(250)
+    }
+    expect(store().game!.current).toBe(0)
+    expect(store().trail).toBeNull()
+    const before = store().game!
+    const version = server.game!.version
+    for (let i = 0; i < 70 && server.game!.version === version; i++) vi.advanceTimersByTime(1000) // I'm idle: the clock runs out
+    expect(server.game!.version).toBeGreaterThan(version) // the server played my turn for me
+    const newest = me.mail.filter((m) => m.type === 'view').at(-1) as { view: GameView }
+    deliver()
+    // First my trail draws on (in my colour), nothing has moved yet — and I can't touch anything while it plays
+    const trail = store().trail!
+    expect(trail?.seat).toBe(0)
+    expect(store().game!.glyphlings).toEqual(before.glyphlings)
+    expect(canPlayNow(store())).toBe(false)
+    expect(pulsingGlyphlings(store())).toEqual([]) // (no "your turn" breathing for a turn that's already played)
+    vi.advanceTimersByTime((animJson.trailLead + animJson.trailHold) * 1000)
+    expect(store().move).toEqual({ glyphling: trail.glyphlingId, to: trail.to }) // …then my glyphling glides
+    expect(boardHighlight({ ...store(), game: store().game! })).toBeNull() // no cast rings for it
+    vi.advanceTimersByTime(glideSeconds(trail.from, trail.to, animJson) * 1000)
+    if (trail.target) {
+      expect(store().flying).toBe(true) // …and throws (my own seed: its real id, it's in my hand)
+      expect(store().cast?.seed).not.toBe(REPLAY_SEED)
+      expect(before.hands[0].some((s) => s.id === store().cast?.seed)).toBe(true)
+      store().finishCast()
+    }
+    for (let i = 0; i < 40; i++) vi.advanceTimersByTime(250) // the score (and the server's "keep all") play out
+    expect(store().online!.version).toBe(newest.view.version)
+    expect(store().game).toEqual(newest.view.game)
+    expect(store().trail).toBeNull()
+    expect(store().note).toBeNull()
   })
 
   it('a whole game to the end: the reveal gets the full truth and the end table', () => {

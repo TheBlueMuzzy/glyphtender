@@ -492,7 +492,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
     refreshArrived: (newSlots) => {
       const fx = get().refreshFx
-      if (fx) growIn({ seat: fx.seat, slots: fx.slots, newSlots, stage: 'in' }, () => set({ refreshFx: null }))
+      // once grown, the views that waited are shown (a rival's turn never starts while my new seeds grow — B020)
+      if (fx) growIn({ seat: fx.seat, slots: fx.slots, newSlots, stage: 'in' }, () => { set({ refreshFx: null }); get().online?.resume() })
     },
 
     moveTraySeed: (from, to) => {
