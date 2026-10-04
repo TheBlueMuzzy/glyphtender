@@ -39,6 +39,7 @@ type Answer<Result> = { id: number; result: Result } | { id: number; error: stri
 export interface WorkerLike {
   postMessage(message: unknown): void
   addEventListener(type: 'message', listener: (event: { data: unknown }) => void): void
+  addEventListener(type: 'error', listener: (event: { message?: string }) => void): void
   terminate?(): void
 }
 
@@ -72,9 +73,18 @@ export function makeThinker<Request, Result>(worker: WorkerLike): Thinker<Reques
     if ('error' in answer) w.reject(new Error(answer.error))
     else w.resolve(answer.result)
   })
+  // The worker itself crashed (failed to load, ran out of memory…): every question still waiting gets an error, and so
+  // does every later one — the game can fall back to thinking on the page instead of waiting forever.
+  let crashed: string | null = null
+  worker.addEventListener('error', (event) => {
+    crashed = event.message || 'the thinking worker stopped working'
+    for (const w of waiting.values()) w.reject(new Error(crashed))
+    waiting.clear()
+  })
   return {
     think(request) {
       if (stopped) return Promise.reject(new Error('This thinker was stopped'))
+      if (crashed) return Promise.reject(new Error(crashed))
       const id = nextId++
       return new Promise<Result>((resolve, reject) => {
         waiting.set(id, { resolve, reject })
