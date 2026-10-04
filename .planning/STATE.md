@@ -1,7 +1,7 @@
 ## ▶ RESUME HERE
-Sprint 10 — The game knows its pieces and its turns by name (F33 Zones & pieces, then F32 Turns & flow; 0/12 tasks; .planning/SPRINT.md). Framework-first in framework branch dev/table (table/ module → src/table via install-table.mjs).
-Next: `/develop` continues with the next unticked task. Every slice ends with check:golden + check:shots SAME and their results pages LINKED for Muzzy (dev server /e2e-shots/golden.html, /e2e-shots/report.html) — never hand him npm commands.
-Riskiest places: tray order ↔ hand order (F33 replaces it with seed ids) · online secrecy (no ids for hidden seeds) · gameStore + onlinePlay timer sequencing · log/insight fields the end screen reads. Keep RNG call order or golden games change.
+AUTONOMOUS RUN (Muzzy, 2026-10-04 4 am: "When you finish this sprint, just go ahead and finish the rest of these sprints for the refactor. Just don't move on to AI yet."). Plan: finish Sprint 10 (F33 Zones & pieces → F32 Turns & flow), then sprints for F31 Events drive the screen, F34 Drag referee, F35 Hand view, F36 Seats & per-seat views — framework-first each. STOP when v0.6 is built: no AI, no /deliver, nothing to main / live.
+Features built overnight are marked ✅ "built overnight — Muzzy's play check pending" (checks SAME, tests + e2e green); Muzzy plays them in the morning.
+Every slice ends with check:golden + check:shots SAME and their results pages LINKED for Muzzy (dev server /e2e-shots/golden.html, /e2e-shots/report.html) — never hand him npm commands.
 Still open (Ask Muzzy, not blocking): phones on their side — Results scrolls 13–45 px, Scorecard 291 px. B019 (768×343 prompt over ☰) waits until after v0.6.
 
 ## Where we are
