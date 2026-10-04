@@ -102,10 +102,10 @@ flowchart LR
 | `content/ui/settings.json` | Settings screen rows (kit standard list; `"on": false` hides a row — language, account and placeholder links are off for now); the game's own: Gameplay → Tray position (Standard / Flipped) | Obsidian |
 | `content/text/en.json` | every player-facing word — menu, new game (`newGame`), turn prompts, notes, buttons, pause, rules (3 pages), handoff, reveal, end table (`game` section) | Obsidian |
 | `content/rooms.json` | online rooms: seats 2–4, missed turns before a bot (2), dropped player → bot after (60 s), empty room kept (5 min), bots allowed (no) · Glyphtender: turn timer choices (the first = the default: 0 = off, then 60, 90, 120 s), bot turn delay (1.5 s). The server bundles it: a change needs a server rebuild | Obsidian |
-| `content/ai/personalities.json` | the 7 personalities: trait ranges, goal priority, nudge, mood-shift strengths, chattiness, Nerve, vocabulary modifier (D70) | Dev Kit → AI |
-| `content/ai/skills.json` | Apprentice / First Class / Archmage: candidates, imagined worlds, pick spread, belief noise, vocabulary Zipf | Dev Kit → AI |
-| `content/ai/feel-targets.json` | each personality's feel targets as behaviour meters + thresholds (D72) | Dev Kit → AI / Obsidian |
-| `content/ai/pace.json` | think times per action kind, speed presets, thinking time budget (phone) | Dev Kit → Tuning |
+| `content/ai/personalities.json` | the 7 personalities: trait ranges, goal priority, nudge, mood shifts (reading → trait), chattiness, extras { nerve, vocabulary, extraWordBonus } (D70). Shape: `{ _help, _labels, _sections, personalities: Personality[] }` — notes keyed by the setting's path inside ONE personality | Dev Kit → AI (F23) / Obsidian |
+| `content/ai/skills.json` | Apprentice / First Class / Archmage: candidates, imagined worlds, pick spread + top N, wobble, belief noise, extras.zipf. Shape: `{ …notes, skills: Skill[] }` | Dev Kit → AI (F23) / Obsidian |
+| `content/ai/feel-targets.json` | each personality's feel targets (D72): `personalities.<Id>` = [{ meter (src/ai/meters.ts), op `>=` `<=` `tableBest` `tableWorst` `nearAverage` `neverExtreme`, value?, label }] + `all` = [{ check, min?, max?, label }] | Dev Kit → AI / Obsidian |
+| `content/ai/pace.json` | think times per action kind (draft, moveCast, refresh: min/max s), speeds (slow 0.5 · normal 1 · fast 2 · instant 0 = no wait), timeBudgetMs. Tuning-tab format (_labels/_sections/_ranges by path) — but the Tuning tab only reads content/tuning/, so it shows up with the AI tab (F23) or if moved | Dev Kit → AI (F23) |
 | `content/credits.json` | fonts, word list | organize-assets |
 
 ## 4. Standards

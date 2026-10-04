@@ -1,0 +1,32 @@
+{
+  "_help": {
+    "_file": "The 3 AI skills: HOW WELL it plays (what it wants is the personality — personalities.json). Any personality can play at any skill. Starting values from design/ai.md's skills table; candidate counts get checked by the phone-speed timing spike (F38 task 1). Notes are keyed by the setting's name inside ONE skill.",
+    "id": "The skill's name in code. Its name for players lives in content/text/en.json → ai.skill.<id>.",
+    "candidates": "The most moves it looks at in one decision. More = finds better moves, thinks longer.",
+    "worlds": "How many versions of the hidden seeds (rivals' hands, the bag) it imagines and averages over. More = fewer surprises.",
+    "spread": "0–1: it keeps moves within this share of its best one (1 = only the very best).",
+    "topN": "…and picks among at most this many of them, weighted by how good they are. Fewer = sharper.",
+    "wobble": "0–1: widens every trait range around its centre — a less skilled player is less consistent.",
+    "beliefNoise": "0–1: how blurry its guess of everyone's secret Magic is. Higher = misreads who's winning more often (and calls the game wrong more often).",
+    "extras.zipf": "Vocabulary: it only AIMS for words at least this common (Zipf score; 3 ≈ 22k words, 2 ≈ 44k, 0 = all 63k). The personality's vocabulary modifier is added. Any word it makes by accident still counts."
+  },
+  "_labels": {
+    "id": "Name (code)",
+    "candidates": "Moves looked at per decision",
+    "worlds": "Hidden-seed worlds imagined",
+    "spread": "Picks within this share of its best move (0–1)",
+    "topN": "…among at most this many moves",
+    "wobble": "Trait wobble (0–1, higher = less consistent)",
+    "beliefNoise": "Blur on its Magic guesses (0–1)",
+    "extras": "Glyphtender extras (vocabulary)",
+    "extras.zipf": "Vocabulary: aims only for words this common (Zipf)"
+  },
+  "_sections": {
+    "AI: skill": ["id", "candidates", "worlds", "spread", "topN", "wobble", "beliefNoise", "extras"]
+  },
+  "skills": [
+    { "id": "Apprentice", "candidates": 150, "worlds": 1, "spread": 0.7, "topN": 8, "wobble": 0.3, "beliefNoise": 0.6, "extras": { "zipf": 3 } },
+    { "id": "FirstClass", "candidates": 300, "worlds": 2, "spread": 0.8, "topN": 5, "wobble": 0.1, "beliefNoise": 0.35, "extras": { "zipf": 2 } },
+    { "id": "Archmage", "candidates": 800, "worlds": 4, "spread": 0.92, "topN": 3, "wobble": 0, "beliefNoise": 0.1, "extras": { "zipf": 0 } }
+  ]
+}
