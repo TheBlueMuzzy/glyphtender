@@ -36,6 +36,7 @@
     "e2e:trails": "node e2e/trail-shots.mjs",
     "fixtures:end": "node scripts/end-fixtures.mjs",
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
+    "e2e:devkit-ai": "node e2e/devkit-ai.mjs",
     "e2e:fullscreen": "node e2e/fullscreen.mjs",
     "shots:record": "node e2e/shots.mjs record",
     "check:shots": "node e2e/shots.mjs check",

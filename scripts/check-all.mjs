@@ -35,6 +35,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['score', 'e2e/score-sequence.mjs', 'e2e-shots 5407'],
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
+  ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 

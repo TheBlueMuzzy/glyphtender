@@ -92,7 +92,7 @@ try {
     if (sectionCount < 10) fail(`expected the Tuning sections, found ${sectionCount}`)
     const openAtStart = await panel.locator('.devkit-body:not([hidden]) .dk-section[data-open]').count()
     if (openAtStart) fail(`${openAtStart} sections open at the start (they start closed)`)
-    if (!(await panel.locator('.dk-index .dk-chip').first().isVisible())) fail('no section chips at the top of Tuning')
+    if (!(await panel.locator('.devkit-body:not([hidden]) .dk-index .dk-chip').first().isVisible())) fail('no section chips at the top of Tuning')
     console.log(`  ${sectionCount} sections`)
     await shot('1-tuning-sections')
 
@@ -143,7 +143,7 @@ try {
 
     // A chip opens + scrolls to its section
     await page.locator('.devkit-scroll').evaluate((el) => { el.scrollTop = 0 })
-    await panel.locator('.dk-index .dk-chip').first().click()
+    await panel.locator('.devkit-body:not([hidden]) .dk-index .dk-chip').first().click()
     await page.waitForTimeout(700)
     const firstId = await panel.locator('.devkit-body:not([hidden]) .dk-section').first().getAttribute('data-dk-section')
     if (!(await page.evaluate(sectionTop, firstId))?.open) fail('a chip did not open its section')
@@ -152,7 +152,7 @@ try {
     await box.fill('pop')
     await page.getByRole('button', { name: 'Clear the search' }).click()
     if ((await box.inputValue()) !== '') fail('✕ did not clear the search')
-    if (!(await panel.locator('.dk-index').isVisible())) fail('after ✕ the normal view (chips) is not back')
+    if (!(await panel.locator('.devkit-body:not([hidden]) .dk-index').isVisible())) fail('after ✕ the normal view (chips) is not back')
     await box.fill('trail')
     await page.keyboard.press('Escape')
     if ((await box.inputValue()) !== '') fail('Esc did not clear the search')
