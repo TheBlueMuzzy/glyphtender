@@ -1,11 +1,11 @@
 ## ▶ RESUME HERE
-Sprint 08 — A safety net that proves nothing changed (F29, 0/7 tasks; .planning/SPRINT.md). Milestone v0.6 Rebuilt on the Table (ROADMAP F29–F36, D59, design `../../framework/.planning/design/table.md`).
-Next: `/develop` → makes branch dev/table, starts task 1 (scripts/golden.mjs: ~300 seeded sim games, action + fingerprint each).
+Sprint 08 done — F29 Safety net ✅ (approved 2026-10-04): `check:golden` (300 games, ~6 s) + `check:shots` (192 shots, ~3.5 min) both SAME; each writes a results page to LINK for Muzzy (dev server /e2e-shots/golden.html, /e2e-shots/report.html) — never hand him npm commands.
+Next: `/sprint` → plan F30 Game core (🟢 ready) on branch dev/table. Each v0.6 slice ends with both checks SAME + their links.
 Riskiest places (architecture map 2026-10-04): gameStore + onlinePlay timer sequencing · tray order ↔ engine hand order · log/insight fields the end screen reads · online secrecy (hideSecrets, startReplay hand poke, server re-seed) · 7 rule copies in screen code. Keep RNG call order or golden games change.
-Still open (Ask Muzzy, not blocking): phones on their side — Results scrolls 13–45 px, Scorecard 291 px.
+Still open (Ask Muzzy, not blocking): phones on their side — Results scrolls 13–45 px, Scorecard 291 px. B019 (768×343 prompt over ☰) waits until after v0.6.
 
 ## Where we are
-Stage: define → develop · Milestone: v0.6 Rebuilt on the Table · Sprint: 08 · Doing: F29 Safety net · Branch: main (/develop makes dev/table) · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
+Stage: develop · Milestone: v0.6 Rebuilt on the Table · Sprint: — (08 done; next: F30) · Doing: planning · Branch: dev/table · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
