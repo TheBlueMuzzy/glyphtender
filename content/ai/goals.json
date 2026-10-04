@@ -1,0 +1,25 @@
+{
+  "_help": {
+    "_file": "Each goal's BIG-MOMENT bar: when a turn's best move for its main goal scores at least this (the goal's own scale), the personality pounces — its focus keeps only moves that good for that goal, and spelling just breaks ties. Below the bar it blends (hunts AND spells). Set at about the top quarter of each goal's chances in real AI games (2026-10-04).",
+    "bigAt.TRAP": "Hunting: ≈ 5 points per rival move cut, a tangle 50+. 55 ≈ cutting 11 moves, or a tangle.",
+    "bigAt.SCORE": "Magic-ish points for the best word play. 17 ≈ a strong word turn.",
+    "bigAt.DENY": "Blocking a rival's best spot. 13 ≈ a spot worth a big word to them.",
+    "bigAt.ESCAPE": "Getting out of danger. 73 ≈ a real rescue.",
+    "bigAt.BUILD": "Setting up its own words. 24 ≈ a strong setup.",
+    "bigAt.STEAL": "Growing a rival's word into its own. 13 ≈ a real steal.",
+    "bigAt.DUMP": "Shedding junk letters. 9 ≈ dumping a really bad letter well."
+  },
+  "_labels": {
+    "bigAt.TRAP": "Big moment: hunt (TRAP)",
+    "bigAt.SCORE": "Big moment: spell (SCORE)",
+    "bigAt.DENY": "Big moment: block (DENY)",
+    "bigAt.ESCAPE": "Big moment: escape (ESCAPE)",
+    "bigAt.BUILD": "Big moment: set up (BUILD)",
+    "bigAt.STEAL": "Big moment: steal (STEAL)",
+    "bigAt.DUMP": "Big moment: dump junk (DUMP)"
+  },
+  "_sections": {
+    "AI: big moments": ["bigAt"]
+  },
+  "bigAt": { "TRAP": 55, "SCORE": 17, "DENY": 13, "ESCAPE": 73, "BUILD": 24, "STEAL": 13, "DUMP": 9 }
+}

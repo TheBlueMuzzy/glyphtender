@@ -7,8 +7,9 @@
 //   4. Want   — walk the goal priority list: a goal wins when a d100 roll comes in at or under its trait's value.
 //               None wins → the first goal.
 //   5. Look   — imagine the hidden things (skill.worlds times), take up to skill.candidates moves from the plug.
-//   6. Score  — each move: the main goal (0–1 among these moves) + nudge × the other goals (0–1, weighted by their
-//               traits), averaged over the imagined worlds. The main goal sets the character; the nudge lets it pick
+//   6. Score  — each move: the main goal (0–1 among these moves) + each other goal (0–1) × (its steady weight +
+//               nudge × its trait ÷ 100), averaged over the imagined worlds. Steady goals = what every move also tries
+//               for ("try to score, but also try to bully"). The main goal sets the character; the nudge lets it pick
 //               the hunt that ALSO spells.
 //   7. Choose — keep the moves within skill.spread of the best, at most skill.topN, pick one weighted by score.
 //   8. Explain— a Decision with a plain-English note (Dev Kit, bug reports — never players).
@@ -36,6 +37,7 @@ export function personalityProblems<View, Action, World>(p: Personality, plug: G
     if (!(r.min >= 0 && r.max <= 100 && r.min <= r.max)) problems.push(`${p.id}: trait "${trait}" range ${r.min}–${r.max} must be inside 0–100, low to high`)
   }
   if (!(p.nudge >= 0 && p.nudge <= 1)) problems.push(`${p.id}: nudge ${p.nudge} must be 0–1`)
+  if (p.focus !== undefined && !(p.focus >= 0 && p.focus <= 1)) problems.push(`${p.id}: focus ${p.focus} must be 0–1`)
   return problems
 }
 
@@ -113,7 +115,7 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
           return {
             action: s.special.action,
             rng: pos,
-            decision: { action: s.special.action, goal: s.special.goal, rolls: [], readings, shifts, traits, considered: 1, mainGoalMattered: true, chosen: { move, score: 1, why: [s.special.why] }, alternatives: [], note },
+            decision: { action: s.special.action, goal: s.special.goal, rolls: [], readings, shifts, traits, considered: 1, mainGoalMattered: true, bigMoment: false, chosen: { move, score: 1, why: [s.special.why] }, alternatives: [], note },
           }
         }
       }
@@ -130,26 +132,31 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
       if (!actions.length) throw new Error(`${personality.id} has no move to make (seat ${seat})`)
 
       // 6. Score: every goal that counts, averaged over the imagined worlds, then 0–1 within this decision.
-      const others = personality.nudge > 0 ? plug.goals.filter((g) => g !== main) : []
+      const steady = personality.steady ?? {}
+      const others = plug.goals.filter((g) => g !== main && (personality.nudge > 0 || (steady[g.id] ?? 0) > 0))
       const scored = [main, ...others].map((goal) => {
         const values = actions.map((a) => contexts.reduce((sum, ctx) => sum + goal.score(a, ctx).value, 0) / contexts.length)
         const lo = Math.min(...values)
         const hi = Math.max(...values)
         return { goal, values, norm: values.map((v) => (hi > lo ? (v - lo) / (hi - lo) : 0)), mattered: hi > lo }
       })
-      const weightOf = (goalId: string) => Math.max(0, traits[traitOf(goalId)] ?? 0)
-      const otherWeight = scored.slice(1).reduce((s, g) => s + weightOf(g.goal.id), 0)
-      const combined = actions.map((_, i) => {
-        const nudge = scored.slice(1).reduce((s, g) => s + (otherWeight > 0 ? weightOf(g.goal.id) / otherWeight : 1 / (scored.length - 1)) * g.norm[i], 0)
-        return scored[0].norm[i] + personality.nudge * nudge
-      })
+      // Each other goal adds its steady weight (goals every move tries for) + nudge × (its trait ÷ 100): a greedy
+      // Bully still likes a hunt that spells, a Bully with no greed doesn't care. (Not a share split between the
+      // goals — that made every one of them too faint.)
+      const weightOf = (goalId: string) => (steady[goalId] ?? 0) + personality.nudge * (Math.max(0, traits[traitOf(goalId)] ?? 0) / 100)
+      const combined = actions.map((_, i) => scored[0].norm[i] + scored.slice(1).reduce((s, g) => s + weightOf(g.goal.id) * g.norm[i], 0))
 
-      // 7. Choose like a person.
-      const best = Math.max(...combined)
-      const worst = Math.min(...combined)
+      // 7. Choose like a person. Focus first: only moves at least `focus` good for the main goal stay in the running
+      //    (a Bully always picks a real hunt), then the nudge decides among them — identity from the main goal,
+      //    strength from the others.
+      const bigMoment = scored[0].mattered && (main.bigAt === undefined || Math.max(...scored[0].values) >= main.bigAt)
+      const focus = bigMoment ? (personality.focus ?? 0) : 0
+      const inFocus = actions.map((_, i) => i).filter((i) => scored[0].norm[i] >= focus - 1e-9)
+      const best = Math.max(...inFocus.map((i) => combined[i]))
+      const worst = Math.min(...inFocus.map((i) => combined[i]))
       const floor = best - (1 - skill.spread) * (best - worst)
       // Shuffled first, so equally good moves are equally likely (a person doesn't always take the first of a tie).
-      const near = shuffle(actions.map((_, i) => i).filter((i) => combined[i] >= floor - 1e-9), pos)
+      const near = shuffle(inFocus.filter((i) => combined[i] >= floor - 1e-9), pos)
       pos = near.rng
       const order = near.items.sort((a, b) => combined[b] - combined[a]).slice(0, Math.max(1, skill.topN))
       const gap = best - worst || 1
@@ -171,7 +178,8 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
       const rollText = won.roll <= won.threshold ? `${main.trait} ${won.threshold} vs roll ${won.roll}` : 'nothing rolled — first goal'
       const shiftText = shifts.length ? `; moods: ${shifts.map((s) => `${s.trait} ${s.by > 0 ? '+' : ''}${s.by} (${s.because})`).join(', ')}` : ''
       const flat = scored[0].mattered ? '' : ` (${main.id} saw no difference — the other goals chose)`
-      const note = `${personality.id} rolled ${main.id} (${rollText}${shiftText}). ${move}${why.length ? ' — ' + why.join('; ') : ''}${flat}. Looked at ${actions.length}.`
+      const big = bigMoment && (personality.focus ?? 0) > 0 && main.bigAt !== undefined ? ' Big moment — went for it.' : ''
+      const note = `${personality.id} rolled ${main.id} (${rollText}${shiftText}).${big} ${move}${why.length ? ' — ' + why.join('; ') : ''}${flat}. Looked at ${actions.length}.`
       return {
         action: actions[chosenIndex],
         rng: pos,
@@ -184,6 +192,7 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
           traits,
           considered: actions.length,
           mainGoalMattered: scored[0].mattered,
+          bigMoment,
           chosen: { move, score: round(combined[chosenIndex]), why },
           alternatives: order.filter((i) => i !== chosenIndex).slice(0, 3).map((i) => ({ move: plug.describe(actions[i], worlds[0]), score: round(combined[i]) })),
           note,

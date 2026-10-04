@@ -32,8 +32,16 @@ export interface Personality {
   traits: Record<string, Range>
   /** Goal ids in priority order: the goal roll walks this list. */
   goals: string[]
-  /** How much the OTHER goals count when scoring a move, 0–1 (0 = only the main goal; the original AI). */
+  /** How much the OTHER goals count when scoring a move, 0–1 (0 = only the main goal; the original AI). Each other
+   *  goal adds up to nudge × its trait ÷ 100. */
   nudge: number
+  /** 0–1: how single-minded at a BIG MOMENT (the main goal's best move reaches the goal's `bigAt`): only moves at
+   *  least this good for the main goal (0 = worst, 1 = best of this turn's) are considered; the other goals then pick
+   *  among them. On ordinary turns it blends. Missing = 0 (always blends). */
+  focus?: number
+  /** Goals EVERY move also tries for, whatever the roll, with a weight 0–1 (Glyphtender: { SCORE: 0.6 } — "try to
+   *  score, but also try to bully"). Missing = none. */
+  steady?: Record<string, number>
   shifts: Shift[]
   /** 0–100: how likely it is to say something at a banter moment. */
   chattiness: number
@@ -84,6 +92,9 @@ export interface Goal<View, Action, World> {
   id: string
   /** The trait whose range decides how often this goal wins the roll. */
   trait: string
+  /** A big moment for this goal: its best move scores at least this (the goal's own scale). Missing = every turn
+   *  counts as one (focus always applies). Games keep these numbers in data. */
+  bigAt?: number
   score(action: Action, ctx: Context<View, World>): GoalScore
 }
 
@@ -125,6 +136,8 @@ export interface Decision<Action> {
   /** How many moves it scored, and the main goal had any opinion at all (false = every move scored the same). */
   considered: number
   mainGoalMattered: boolean
+  /** The main goal saw a big moment, so it focused on it. */
+  bigMoment: boolean
   chosen: { move: string; score: number; why: string[] }
   /** The next best moves it might have picked instead. */
   alternatives: { move: string; score: number }[]

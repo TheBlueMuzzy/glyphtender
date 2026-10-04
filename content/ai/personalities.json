@@ -11,7 +11,9 @@
     "traits.opportunism": "STEAL — grow a rival's word into one it owns most of.",
     "traits.pragmatism": "DUMP — shed junk letters, far from every glyphling.",
     "goals": "The goal roll walks this list in order: each goal rolls against its trait; the first to succeed is the turn's main goal (all fail → the first one).",
-    "nudge": "0–1. How much the OTHER goals count when scoring a move. 0 = only the main goal (the original AI); higher = it favours two-birds moves.",
+    "nudge": "0–1. How much the OTHER goals count when scoring a move: each adds up to nudge × its trait ÷ 100. 0 = only the main goal (the original AI); higher = it favours two-birds moves.",
+    "focus": "0–1. How single-minded at a BIG MOMENT (its main goal's best move reaches that goal's bar in goals.json): only moves at least this good for the main goal are considered (0 = any move, 1 = only the best); the other goals just break ties — it pounces. On ordinary turns it blends.",
+    "steady.SCORE": "0–1. How much EVERY move also tries to score, whatever goal it rolled (Muzzy: \"try to score, but also try to bully\"). 0 = only when it rolled SCORE.",
     "shifts": "Mood shifts: when a reading (0–10) climbs from `from` to `full`, the trait's whole range moves by up to `by`. `from` above `full` = it grows as the reading FALLS. Readings: myDanger, rivalDanger, fill (board fill), behind / ahead (believed Magic gap), handQuality (10 = great), territory, endNear.",
     "chattiness": "0–100: how likely it is to say something at a banter moment (big moments only).",
     "extras.nerve": "How far ahead (in believed Magic) it must think it is before it ends the game itself (\"calls it\"). Lower = bolder, calls it wrong more often.",
@@ -30,6 +32,9 @@
     "traits.pragmatism": "Pragmatism → DUMP",
     "goals": "Goal order (first = tried first)",
     "nudge": "Two-birds nudge from the other goals (0–1)",
+    "focus": "Focus at a big moment (0–1)",
+    "steady": "Goals every move also tries for",
+    "steady.SCORE": "Always tries to score too (0–1)",
     "shifts": "Mood shifts",
     "chattiness": "Banter: how chatty (0–100)",
     "extras": "Glyphtender extras (nerve, vocabulary, multi-word bonus)",
@@ -38,7 +43,7 @@
     "extras.extraWordBonus": "SCORE: bonus per extra word in one cast"
   },
   "_sections": {
-    "AI: who it is": ["id", "goals", "nudge"],
+    "AI: who it is": ["id", "goals", "nudge", "focus", "steady"],
     "AI: traits": ["traits"],
     "AI: mood shifts": ["shifts"],
     "AI: banter, nerve & words": ["chattiness", "extras"]
@@ -56,7 +61,9 @@
         "pragmatism": { "min": 20, "max": 40 }
       },
       "goals": ["TRAP", "DENY", "STEAL", "SCORE", "ESCAPE", "BUILD", "DUMP"],
-      "nudge": 0.2,
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
@@ -81,7 +88,9 @@
         "pragmatism": { "min": 50, "max": 70 }
       },
       "goals": ["SCORE", "BUILD", "DENY", "DUMP", "ESCAPE", "STEAL", "TRAP"],
-      "nudge": 0.2,
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
@@ -106,7 +115,9 @@
         "pragmatism": { "min": 40, "max": 60 }
       },
       "goals": ["BUILD", "SCORE", "ESCAPE", "DENY", "DUMP", "STEAL", "TRAP"],
-      "nudge": 0.2,
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
@@ -132,7 +143,9 @@
         "pragmatism": { "min": 30, "max": 50 }
       },
       "goals": ["STEAL", "DENY", "SCORE", "BUILD", "ESCAPE", "DUMP", "TRAP"],
-      "nudge": 0.2,
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
@@ -156,7 +169,9 @@
         "pragmatism": { "min": 40, "max": 60 }
       },
       "goals": ["ESCAPE", "BUILD", "SCORE", "DENY", "DUMP", "STEAL", "TRAP"],
-      "nudge": 0.2,
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 4, "full": 9, "trait": "caution", "by": 30 },
         { "reading": "myDanger", "from": 4, "full": 9, "trait": "aggression", "by": -20 },
@@ -181,7 +196,9 @@
         "pragmatism": { "min": 35, "max": 55 }
       },
       "goals": ["SCORE", "BUILD", "DENY", "ESCAPE", "STEAL", "DUMP", "TRAP"],
-      "nudge": 0.4,
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
@@ -206,6 +223,8 @@
       },
       "goals": ["SCORE", "ESCAPE", "DENY", "BUILD", "STEAL", "DUMP", "TRAP"],
       "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
       "shifts": [
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
         { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },

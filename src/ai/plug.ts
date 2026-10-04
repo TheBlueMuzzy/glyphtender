@@ -20,6 +20,7 @@ import { trapGoal } from './goals/trap'
 import { imagineWorld } from './imagine'
 import { mobilityNow, movesFrom, occupiedHexes, openDirections, turnKey, type TurnAction } from './look'
 import { readingsFor } from './readings'
+import goalsFile from '../../content/ai/goals.json'
 
 export type GlyphPlug = GamePlug<SeatView, Action, GameState>
 
@@ -91,7 +92,11 @@ export function describeAction(action: Action, world: GameState): string {
 /** Glyphtender's plug for this word list. `beliefNoise` = the skill's (how fuzzy its idea of rivals' Magic is). */
 export function glyphtenderPlug(words: WordList, beliefNoise = 0.5): GlyphPlug {
   return {
-    goals: [trapGoal(words), scoreGoal(words), denyGoal(words), escapeGoal(words), buildGoal(words), stealGoal(words), dumpGoal(words)],
+    // Each goal's big-moment bar comes from content/ai/goals.json (Dev Kit / Obsidian).
+    goals: [trapGoal(words), scoreGoal(words), denyGoal(words), escapeGoal(words), buildGoal(words), stealGoal(words), dumpGoal(words)].map((g) => ({
+      ...g,
+      bigAt: (goalsFile.bigAt as Record<string, number>)[g.id],
+    })),
     readings: (view, seat) => readingsFor(view, seat, words, beliefNoise),
     imagine: imagineWorld,
     candidates: candidateMoves,

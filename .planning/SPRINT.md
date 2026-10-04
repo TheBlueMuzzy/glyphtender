@@ -28,3 +28,11 @@ Done when: positional personalities win their share (everyone 35–65% vs Balanc
 Check: npm test · check:fast (golden SAME) · check:full · `npm run ai:arena` report · screenshots at 390×844, 360×780, 844×390, 768×343, 1100 wide, 1440×900, 1920×1080.
 Ask Muzzy: F37 (4 AI calls — defaults in place) · bios' tone (en.json ai.personality.*.bio).
 Notes:
+- **F45 diagnosis (2026-10-04, `scripts/ai-diagnose.mjs` head-to-heads + arena):** Bully vs Scholar 0–30: Bully Magic 28 words + 14 tangles vs Scholar 104 + 2; Bully refreshed on 35% of its turns (its hunting casts spell nothing); **tangling while behind helps the leader** — 2 tangles end the game, so the Bully's tangle let the Scholar self-tangle to end it while ahead (14/30 games).
+- Tuning (one knob at a time, 60 mixed games + ladder each):
+  - brain: other goals nudge by their own trait (not a share split) — tiny effect alone.
+  - TRAP: a tangle that ends the game / leaves it one from the end is worth nothing while it believes it's behind; ending while behind −100 → the Bully stopped handing the Scholar the ending (ended 9 → 2 of 30), still 0 wins.
+  - nudge 0.2 → 1 for all: wins spread (Bully 17% vs Scholar, Balanced 45%) but tell-apart 61% → 36%, Bully's hunting halved — identity lost.
+  - **Muzzy's call (2026-10-04): "make sure they are scoring points WHILE performing their personality goal… but maybe bully looks at whether it can pincer really strongly and will prio that over spelling."** → brain: **steady goals** (every move also tries to SCORE, 0.6) + **big moments** (content/ai/goals.json bigAt per goal ≈ top quarter of its chances; then focus 0.8 keeps only strong main-goal moves, spelling breaks ties), nudge 0.3. Result: Bully wins 15% (was 6%), tangles 0.94/game, cuts 5.4 rival moves/turn (table best), tell-apart 52%, for-all 3/5; Scholar 73% · Strategist 65% · Balanced 53% · Vulture 26% · Survivor 16% · Builder 7%.
+  - Muzzy floated (2026-10-04): tangles worth more for players behind (catch-up, scaling with place) — discussed: secret Magic means players can't aim for it unless the reveal shows it plainly; sim it beside a flat bigger tangle bonus → numbers to Muzzy (rules = his call).
+
