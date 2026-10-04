@@ -4,7 +4,7 @@
 //               (everything else is the planned turn)
 //   setState:   jumps the store to that game — the planned move / cast / flying seed are cleared (store.loadState),
 //               and any open menu (end table, Pause) is closed. Older snapshots without stats / options still restore
-//               (the stats start from nothing, the options stay as they are)
+//               (the stats start from nothing, the options stay as they are); an old "Qu" seed loads as a plain "Q" (F24, in store.loadState)
 //   canRestore: only offline — in an online game a restore would change play for the others (and this device only holds its own view)
 //   onEvent:    a short line each time the game moves on: a draft placement, a turn, a phase change, a tangle, a note
 // Reads and writes the store only through its public getState / setState / subscribe / loadState.
@@ -110,7 +110,7 @@ export const glyphtenderAdapter: DevKitGame = {
     closeAllScreens() // a menu from the moment we're leaving (the end table, Pause) would sit on top, stuck
     if (!state.game) return store.leaveGame()
     const stats = state.stats?.length === state.game.config.players ? state.stats : undefined
-    store.loadState(state.game, stats) // clears the planned move / cast / flying seed
+    store.loadState(state.game, stats) // clears the planned move / cast / flying seed; brings an older save up to date (engine/migrate.ts)
     // Keep the tray order the snapshot had, if it still fits the hands (loadState reset it to 1, 2, 3…)
     const fits = state.trayOrder?.length === state.game.hands.length &&
       state.trayOrder.every((order, seat) => order.length === state.game!.hands[seat].length)

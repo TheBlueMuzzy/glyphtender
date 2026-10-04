@@ -52,6 +52,9 @@
   .kit-screen > [data-slot="bottom-right"] { grid-area: bottom-right; justify-self: end; }
   /* Screen stack layers: no box of their own, they only carry "inert" for the screens inside */
   .kit-layer { display: contents; }
+  /* An open screen with another one on top is hidden (ScreenStack sets data-covered): only the top screen shows.
+     visibility (not display: none) keeps its scroll position; !important so no game rule can make it peek through */
+  .kit-layer[data-covered], .kit-layer[data-covered] * { visibility: hidden !important; }
   /* <ScreenStack overlay>: open screens cover the whole window above a game that isn't built from Screens */
   .kit-overlay { position: fixed; inset: 0; z-index: var(--kit-overlay-z, 100); pointer-events: none; }
   .kit-overlay[data-open] { pointer-events: auto; }
@@ -80,7 +83,8 @@
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) button:disabled { cursor: not-allowed; }
 
-  .kit-text { margin: 0; overflow-wrap: anywhere; }
+  /* text-wrap: pretty — wrapped lines never end with one word alone on the last line (no orphans) */
+  .kit-text { margin: 0; overflow-wrap: anywhere; text-wrap: pretty; }
   .kit-text[data-kind="display"] { font-size: var(--text-display); line-height: 1.1; font-weight: 800; }
   .kit-text[data-kind="title"] { font-size: var(--text-title); line-height: 1.15; font-weight: 700; }
   .kit-text[data-kind="heading"] { font-size: var(--text-heading); line-height: 1.2; font-weight: 700; }
@@ -92,6 +96,8 @@
   .kit-button[data-icon] { padding: 0; aspect-ratio: 1; font-size: var(--text-title); line-height: 1; }
   /* size="…px": as tall as the game asks (e.g. a board hex), and at least that wide — never below target-min */
   .kit-button[data-sized] { min-block-size: max(var(--target-min), var(--kit-button-size)); min-inline-size: max(var(--target-min), var(--kit-button-size)); }
+  /* compact: a gap-m each side of the label instead of gap-l (a row of big buttons on one line on a narrow phone) */
+  .kit-button[data-compact]:not([data-icon]) { padding-inline: var(--gap-m); }
   .kit-button:disabled:not([data-state="loading"]) { opacity: 0.5; }
   .kit-spinner { inline-size: 1em; block-size: 1em; border-radius: 50%; border: 0.15em solid; animation: kit-spin 0.8s linear infinite; }
   @keyframes kit-spin { to { transform: rotate(1turn); } }
@@ -113,6 +119,19 @@
   .kit-stepper .kit-picker-value { flex-basis: 2.5rem; }
 
   .kit-tabs { display: flex; flex-wrap: wrap; gap: var(--gap-xs); padding: var(--gap-xs); }
+
+  /* Carousel: one item at a time, sliding sideways; every item as tall as the tallest, so nothing jumps as it moves */
+  .kit-carousel { display: flex; flex-direction: column; align-items: stretch; gap: var(--gap-xs); min-inline-size: 0; }
+  .kit-carousel-row { display: flex; align-items: center; gap: var(--gap-xs); min-inline-size: 0; }
+  .kit-carousel-row > .kit-button { flex: none; }
+  .kit-carousel-view { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; touch-action: pan-y; cursor: pointer; }
+  /* every item in one spot (the tallest sets the height); only the current one shows — Carousel.tsx slides the one
+     leaving and the one arriving, so it loops past the end without rushing back */
+  .kit-carousel-track { display: grid; }
+  .kit-carousel-item { grid-area: 1 / 1; min-inline-size: 0; display: flex; align-items: center; justify-content: center; visibility: hidden; }
+  .kit-carousel-item[data-current] { visibility: visible; }
+  .kit-carousel-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap-xs); }
+  .kit-carousel-dot { inline-size: 0.5rem; block-size: 0.5rem; }
   .kit-tab { flex: 1 0 auto; padding: var(--gap-s) var(--gap-l); border: 0; background: none; font-weight: 600; }
 
   .kit-field { display: flex; flex-direction: column; gap: var(--gap-xs); }
@@ -185,9 +204,16 @@
 
   /* Appearing: panels and cards play the style's entrance once (fade, float, pop, blink, flicker) */
   .kit-panel, .kit-card { animation: var(--enter) var(--motion-normal) var(--ease) backwards; }
-  /* A dialog dims what's under it, fading the dim in (its panel plays the entrance above) */
-  .kit-screen[data-dialog] { background: color-mix(in srgb, var(--bg) 70%, transparent); transition: background-color var(--motion-normal) var(--ease); }
-  @starting-style { .kit-screen[data-dialog] { background-color: transparent; } }
+  /* A dialog dims what's under it, fading the dim in (its panel plays the entrance above).
+     A screen opened over another screen dims too, dialog or not: the screen under it is hidden (ScreenStack data-covered),
+     so the top one carries the one dim over the game — e.g. Rules (not a dialog) opened from Pause (a dialog) */
+  .kit-screen[data-dialog], .kit-layer[data-over] > .kit-screen {
+    background: color-mix(in srgb, var(--bg) 70%, transparent); transition: background-color var(--motion-normal) var(--ease); }
+  @starting-style {
+    .kit-screen[data-dialog] { background-color: transparent; }
+    /* opened over another screen: the dim was already there (the screen under it hides at once), so no fade-in flash */
+    .kit-layer[data-over] > .kit-screen { background-color: color-mix(in srgb, var(--bg) 70%, transparent); }
+  }
 
   /* Pressing: things shrink and/or sink (the style decides how much and how fast).
      A sinking button drops onto its shadow, so the shadow goes. */
@@ -226,6 +252,8 @@
   .kit-picker, .kit-tabs, .kit-input { background: var(--surface); color: var(--on-surface); border: var(--border-width) solid var(--border); }
   .kit-input { caret-color: var(--primary); }
   .kit-tab { color: var(--muted); }
+  .kit-carousel-dot { background: var(--border); border-radius: 50%; }
+  .kit-carousel-dot[data-state="on"] { background: var(--primary); filter: var(--glow); }
   .kit-tab[data-state="active"] { background: var(--primary); color: var(--on-primary); }
 
   .kit-listrow + .kit-listrow { border-block-start: var(--border-width) solid var(--border); }

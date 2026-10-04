@@ -1,10 +1,11 @@
 // Starting a new game: the shuffled bag and the snake draft order.
 import bagJson from '../../content/data/bag.json'
 import { defaultBoardFor, defaultRules, getBoard } from './boards'
+import { emptyLog } from './log'
 import { shuffle } from './rng'
 import type { GameConfig, GameState, RuleNumbers } from './types'
 
-/** Every seed in the bag (content/data/bag.json), unshuffled, e.g. ["A","A",…,"Qu",…]. */
+/** Every seed in the bag (content/data/bag.json), unshuffled, e.g. ["A","A",…,"Q",…]. */
 export function fullBag(): string[] {
   const seeds: string[] = []
   for (const [letter, count] of Object.entries(bagJson.seeds)) {
@@ -53,5 +54,6 @@ export function newGame(options: NewGameOptions): GameState {
     winners: [],
     turnCount: 0,
     rng: shuffled.rng,
+    log: emptyLog(),
   }
 }

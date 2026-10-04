@@ -2,13 +2,15 @@
 //   · MY seat plans and animates exactly like pass-and-play. Cast sends the action at once (gameStore.ts);
 //     when the seed lands, the server's new view replaces the game (if it hasn't come yet we wait; every
 //     WAIT_FOR_VIEW_MS without it, we ask the server to send it again).
-//   · OTHER seats' turns arrive as views with `lastTurn`. They're replayed on the OLD view first — the
-//     glyphling glides from → to, the throw starts after glideSeconds, lands — then the new view is applied
-//     and the runeblossom sprouts. Views that arrive meanwhile wait in the inbox and play in order.
+//   · OTHER seats' turns arrive as views with `lastTurn`. They're replayed on the OLD view first — their trail
+//     draws on in their colour and holds (trail.ts; anim.json trailLead + trailHold), the glyphling glides
+//     from → to, the throw starts after glideSeconds, lands — then the new view is applied and the runeblossom
+//     sprouts; the trail is gone with the landing. Views that arrive meanwhile wait in the inbox and play in order.
 //   · Anything else (draft placements, refreshes, a rejoin after a gap) is simply applied.
 //   · MY refresh plays out on my own tray (B011, refreshFx.ts): the set-aside seeds shrink while the action
 //     travels; its view waits for the shrink, then the new seeds grow in. Nobody else sees my seeds.
 import animJson from '../../content/tuning/anim.json'
+import { liveTuning } from '../devkit/tuning/liveTuning'
 import type { GameView, OnlineAction } from '../../party/protocol'
 import { hexKey, sameHex } from '../engine/hex'
 import { SEAT_COLOURS, type Action, type GameState, type TurnSummary } from '../engine/types'
@@ -17,11 +19,14 @@ import { reduceMotion } from '../ui/kit/blocks/motion'
 import { useGameStore, type OnlineLink } from './gameStore'
 import type { Seat } from './seats'
 import { emptyStats } from './stats'
-import { inHandOrder, reconcileOrder } from './turnPlan'
+import { inHandOrder } from './turnPlan'
+import { trailOf } from './trail'
 import { newSeedSlots, refillInPlace } from './refreshFx'
 
 /** How long to wait for my own action's view before asking again (design §6 timers table; counted from Cast). */
 export const WAIT_FOR_VIEW_MS = 3000
+
+const anim = liveTuning('anim', animJson) // the replay's timings (read when a replay starts, so the Dev Kit's changes count)
 
 const store = () => useGameStore.getState()
 const set = (part: Partial<ReturnType<typeof store>>) => useGameStore.setState(part)
@@ -71,7 +76,7 @@ function startFrom(view: GameView) {
   const online: OnlineLink = { mySeat: view.mySeat, gameId: view.gameId, version: view.version, post, landed, resume: showNext }
   const seats: Seat[] = view.names.map((name, seat) => ({ kind: seat === view.mySeat ? 'local' : 'online', name, colour: SEAT_COLOURS[seat] }))
   set({
-    game, online, seats, waiting: false, flying: false, handoff: null, revealAt: null, landed: null, refreshFx: null,
+    game, online, seats, waiting: false, flying: false, handoff: null, revealAt: null, landed: null, refreshFx: null, trail: null, scoring: null,
     move: null, cast: null, selected: null, setAside: [], note: null,
     options: {
       players: game.config.players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: false,
@@ -82,11 +87,12 @@ function startFrom(view: GameView) {
   })
 }
 
-/** Shows the waiting views in order, one at a time (a flying seed, a replay or my refresh's shrink holds the queue). */
+/** Shows the waiting views in order, one at a time (a flying seed, a replay, a cast's score sequence or my refresh's
+ *  shrink holds the queue — the store calls resume → here when the score has faded). */
 function showNext() {
   while (inbox.length > 0) {
-    const { flying, online, game, refreshFx } = store()
-    if (flying || replaying || refreshFx?.stage === 'out' || !online || !game) return
+    const { flying, online, game, refreshFx, scoring } = store()
+    if (flying || replaying || scoring !== null || refreshFx?.stage === 'out' || !online || !game) return
     const view = inbox.shift()!
     if (view.version <= online.version) {
       // The server answered a sync (or a rejoin) with the game as it was: it never got my action
@@ -118,7 +124,7 @@ function apply(view: GameView) {
     if (seat !== online.mySeat) return inHandOrder(hand.length)
     if (myRefresh) return refillInPlace(trayOrder[seat] ?? [], myRefresh, hand.length) // new seeds take the set-aside places
     const removed = !mine || sent?.type !== 'turn' || sent.seed === null ? [] : [sent.seed]
-    return reconcileOrder(trayOrder[seat] ?? [], removed, hand.length)
+    return refillInPlace(trayOrder[seat] ?? [], removed, hand.length) // a cast: the drawn seed takes its place
   })
   const turn = view.game.lastTurn
   const sprout = turn?.target && isNewTurn(old.lastTurn, turn) ? { key: hexKey(turn.target), count: (landed?.count ?? 0) + 1 } : landed
@@ -128,12 +134,14 @@ function apply(view: GameView) {
   }
   set({
     game: view.game, online: { ...online, version: view.version }, trayOrder: order, landed: sprout,
-    waiting: mine ? false : store().waiting, flying: false,
+    waiting: mine ? false : store().waiting, flying: false, trail: null,
     move: null, cast: null, selected: null, setAside: [], note: null,
     stats: view.results?.stats ?? store().stats,
   })
+  // a seed that just landed scores now (its words one at a time); the next view waits for it to fade
+  if (sprout !== landed) store().startScoring()
   // the new seeds grow into the emptied places (hand indexes from the kept count on are the new ones)
-  if (myRefresh) store().refreshArrived(newSeedSlots(order[online.mySeat], (trayOrder[online.mySeat]?.length ?? 0) - myRefresh.length))
+  if (myRefresh) store().refreshArrived(newSeedSlots(order[online.mySeat], old.hands[online.mySeat].length - myRefresh.length))
 }
 
 const isNewTurn = (before: TurnSummary | null, turn: TurnSummary) =>
@@ -147,15 +155,23 @@ function startReplay(view: GameView) {
   replaying = view
   // The seed they cast is public now (it's about to land), so the old view holds it in their first slot for the throw
   const game = turn.letter ? { ...old, hands: old.hands.map((hand, seat) => (seat === turn.seat ? [turn.letter!, ...hand.slice(1)] : hand)) } : old
-  set({ game, move: { glyphling: turn.glyphlingId, to: turn.to }, cast: null, selected: null, note: null })
-  // The glide plays first; the throw leaves from where the glyphling lands (F15)
-  const glideMs = reduceMotion() ? 0 : glideSeconds(turn.from, turn.to, animJson) * 1000
+  // First their trail draws on and holds, so you see who's playing, where from and where to (reduce motion: it just shows)
+  set({ game, trail: trailOf(turn), move: null, cast: null, selected: null, note: null })
+  const timing = anim.current
+  const trailMs = ((reduceMotion() ? 0 : timing.trailLead) + timing.trailHold) * 1000
   replayTimer = setTimeout(() => {
     replayTimer = null
     if (replaying !== view) return
-    if (turn.letter && turn.target) set({ cast: { seed: 0, target: turn.target }, flying: true })
-    else landed() // a move-only turn is just the glide
-  }, glideMs)
+    // Then the glide; the throw leaves from where the glyphling lands (F15)
+    set({ move: { glyphling: turn.glyphlingId, to: turn.to } })
+    const glideMs = reduceMotion() ? 0 : glideSeconds(turn.from, turn.to, timing) * 1000
+    replayTimer = setTimeout(() => {
+      replayTimer = null
+      if (replaying !== view) return
+      if (turn.letter && turn.target) set({ cast: { seed: 0, target: turn.target }, flying: true })
+      else landed() // a move-only turn is just the glide
+    }, glideMs)
+  }, trailMs)
 }
 
 // ─── The link the store calls ───────────────────────────────────────

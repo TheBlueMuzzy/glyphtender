@@ -4,7 +4,7 @@
 // (Show my seeds) → fast-forward to the end with the dev hook →
 // Skip the Magic reveal → end table → New game → a game with word indicators OFF → Settings → Tray position Flipped → Menu.
 // Checks the move glide (a planned move and Undo slide the glyphling; 4b = frozen halfway), the turn pulse (3b), the "no"
-// shake (3c, frozen mid-shake), the drop target while dragging (6), gold cast hexes right after the move (5a), the white
+// shake (3c, frozen mid-shake), the drop target while dragging (6), cast options (a lighter shade) + planned path in the player's colour right after the move (5a), the white
 // word border (7), the score pops (9b pops · 9c flying · 9d the total; after every turn none of their numbers is left — B007) and indicators off (13: no border, plain Cast, no pops).
 // Checks every screenshot: nothing past a screen edge, buttons ≥ 44 px AND about a board hex tall, the prompt inside its
 // box and just above the tray, tray seeds real size, no console errors; the flipped layout (14) and its column width.
@@ -17,6 +17,7 @@ import layout from '../content/tuning/layout.json' with { type: 'json' }
 import garden from '../content/tuning/garden.json' with { type: 'json' }
 import anim from '../content/tuning/anim.json' with { type: 'json' }
 import { leftoverPops } from './leftover-pops.mjs'
+import { castColour } from '../src/game/castShade.ts'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const PORT = Number(process.argv[3] ?? 5188)
@@ -149,27 +150,24 @@ try {
       await page.evaluate((sel) => document.querySelectorAll(sel).forEach((el) => el.getAnimations().forEach((a) => a.play())), selector)
       return count
     }
-    // The score pops after a word grows: each seed's "+1"/"+2" (9b), flying together (9c), the turn's total (9d).
-    // Every pop animation is frozen at the same moment (Web Animations' currentTime counts from the landing).
+    // The score sequence after a word grows (one shared clock — every part is one animation from the landing): the
+    // first word's seeds popping "+1"/"+2" (9b), its points flying into the glyphling's total (9c), the final total (9d).
     const scorePopShots = async () => {
       const turn = await store((s) => ({ magic: s.game.lastTurn.magic, seeds: s.game.lastTurn.words.reduce((n, w) => n + w.hexes.length, 0) }))
       const pops = await page.locator('[data-score-pop]').count()
-      const total = await page.locator('[data-score-total]').textContent()
+      const total = await page.locator('[data-score-count]').last().textContent()
       if (pops !== turn.seeds) fail(`${size.name}: ${pops} score pops for ${turn.seeds} seeds in the words`)
-      if (total !== `+${turn.magic}`) fail(`${size.name}: the pops' total says ${total}, the turn made ${turn.magic}`)
+      if (total !== `+${turn.magic}`) fail(`${size.name}: the final total says ${total}, the turn made ${turn.magic}`)
       const times = await page.evaluate(() => {
-        const timings = (el) => el.getAnimations().map((a) => a.effect.getComputedTiming())
-        const all = [...document.querySelectorAll('[data-score-pop]')].flatMap(timings)
-        const fly = Math.max(...all.map((t) => t.delay))
-        const flyTime = Math.min(...all.filter((t) => t.delay === fly).map((t) => t.duration))
-        const totalAt = timings(document.querySelector('[data-score-total]'))[0].delay
-        return { popped: fly - 60, flying: fly + flyTime * 0.5, total: totalAt + 450 }
+        const at = (el, k) => { const a = el.getAnimations()[0]; return a.effect.getKeyframes()[k].computedOffset * a.effect.getComputedTiming().duration }
+        const pop = document.querySelector('[data-score-pop]'), last = [...document.querySelectorAll('[data-score-count]')].at(-1)
+        return { popped: at(pop, 4) - 30, flying: (at(pop, 4) + at(pop, 5)) / 2, total: at(last, 3) - 100 }
       })
-      // (the grown words' border fades on the same clock — frozen with them, so each picture is one true moment)
-      await frozenShot('9b-score-pops', '[data-score-pops] text, [data-grown]', times.popped)
-      await frozenShot('9c-pops-flying', '[data-score-pops] text, [data-grown]', times.flying)
-      await frozenShot('9d-score-total', '[data-score-pops] text, [data-grown]', times.total)
-      console.log(`${pops === turn.seeds ? 'ok  ' : 'FAIL'} ${size.name} 9b-9d score pops · ${pops} pops → ${total}`)
+      const parts = '[data-score-pops] text, [data-score-total], [data-spot-of="grown"]'
+      await frozenShot('9b-score-pops', parts, times.popped)
+      await frozenShot('9c-pops-flying', parts, times.flying)
+      await frozenShot('9d-score-total', parts, times.total)
+      console.log(`${pops === turn.seeds && total === `+${turn.magic}` ? 'ok  ' : 'FAIL'} ${size.name} 9b-9d score sequence · ${pops} pops → ${total}`)
     }
     // Word indicators off: plan a word-making cast (trying each glyphling and move) — plain "Cast", no border, no pops
     const indicatorsOffTurn = async () => {
@@ -227,10 +225,10 @@ try {
       await tune(garden)
       console.log(`ok   ${size.name} B010 planned seed looks · solid (filter, no opacity) · ${garden.plannedSeedLook} drawn · shots b010-*`)
     }
-    // B011: Refresh 2 (tray places 0 and 2 set aside) plays out on the tray — they shrink away, the new seeds grow into
+    // B011: Refresh 2 (the 1st and 3rd seeds in the tray set aside) plays out on the tray — they shrink away, the new seeds grow into
     // their places — and only THEN does play pass on (the handoff). Slowed right down (sent as the Dev Kit would) so
     // each stage can be caught and pictured; the file's own timings come back at the end.
-    const refreshPlaysOut = async () => {
+    const refreshPlaysOut = async (twoSeeds) => {
       const tuneAnim = (data) => page.evaluate((data) => window.dispatchEvent(new CustomEvent('devkit:tuning', { detail: { file: 'anim', data } })), data)
       await tuneAnim({ ...anim, refreshShrinkTime: 1.2, refreshGrowTime: 1.2, refreshStagger: 0.2, refreshPause: 0.3 })
       const moment = () => page.evaluate(() => {
@@ -244,15 +242,16 @@ try {
       const seat = await store((s) => s.game.current)
       await tap(page.getByRole('button', { name: 'Refresh 2' }))
       const out = await moment()
-      if (out.fx?.stage !== 'out' || out.fx.slots.join() !== '0,2') fail(`${size.name}: B011: Refresh 2 did not start shrinking tray places 0 and 2 (${JSON.stringify(out.fx)})`)
-      if (out.animated.join() !== '0,2') fail(`${size.name}: B011: shrinking animations on tray places [${out.animated}], expected [0,2]`)
-      await tap(page.locator('[data-tray-pos="1"]')) // locked while it plays: this sets nothing aside
+      const places = twoSeeds.join()
+      if (out.fx?.stage !== 'out' || out.fx.slots.join() !== places) fail(`${size.name}: B011: Refresh 2 did not start shrinking tray places ${places} (${JSON.stringify(out.fx)})`)
+      if (out.animated.join() !== places) fail(`${size.name}: B011: shrinking animations on tray places [${out.animated}], expected [${places}]`)
+      await tap(page.locator('[data-tray-pos][data-hand]').first()) // locked while it plays: this sets nothing aside
       if ((await store((s) => s.setAside.length)) !== 2) fail(`${size.name}: B011: a tray tap got through during the refresh`)
       await page.waitForTimeout(700)
       await page.screenshot({ path: `${OUT}/${size.name}-10b-refresh-shrinking.png` })
       await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx?.stage === 'in', null, { timeout: 5000 })
       const grow = await moment()
-      if (grow.animated.join() !== grow.fx.newSlots.join() || !grow.fx.newSlots.includes(0) || !grow.fx.newSlots.includes(2)) {
+      if (grow.animated.join() !== grow.fx.newSlots.join() || !twoSeeds.every((p) => grow.fx.newSlots.includes(p))) {
         fail(`${size.name}: B011: growing animations on tray places [${grow.animated}], new seeds in [${grow.fx.newSlots}]`)
       }
       await page.waitForTimeout(600)
@@ -358,10 +357,21 @@ try {
         if (turn === 1) {
           if (!(await gliding())) fail(`${size.name}: the planned move did not glide`)
           else await midGlideShot('4b-gliding')
-          // the moved glyphling's cast range glows gold straight away, before a seed is picked
+          // the moved glyphling's cast range shows straight away, before a seed is picked — the filled template in a
+          // lighter shade of the player's colour (castShade, no dashed outline), and a dotted path from where it stood
           const gold = await optionCount('cast')
           const withSeeds = await store((s) => s.game.hands[s.game.current].length > 0)
-          if (withSeeds && gold === 0) fail(`${size.name}: no gold cast hexes right after the move`)
+          if (withSeeds && gold === 0) fail(`${size.name}: no cast hexes right after the move`)
+          const look = await page.evaluate(() => ({
+            options: [...new Set([...document.querySelectorAll('[data-option="cast"] > polygon[data-hex]')].map((el) => el.getAttribute('fill')))].join(),
+            rings: document.querySelectorAll('[data-option="cast"] polygon[stroke-dasharray]').length,
+            trail: document.querySelector('[data-trail="plan"] [data-trail-part="path"] > :last-child')?.getAttribute('stroke') ?? null,
+          }))
+          const colour = garden[['yellow', 'blue', 'purple', 'pink'][await store((s) => s.game.current)]]
+          const tint = castColour(colour, garden.background, garden.castShade)
+          if (withSeeds && (look.options !== tint || look.rings !== 0)) fail(`${size.name}: cast options not filled in ${tint} (a lighter ${colour}) without dashes (${JSON.stringify(look)})`)
+          if (look.trail !== colour) fail(`${size.name}: no dotted path in the player's colour from the glyphling's spot (${look.trail})`)
+          else console.log(`ok   ${size.name} 5a cast options in ${tint} (lighter ${colour}) + planned path in ${colour}`)
           await shot('5a-cast-range-after-move')
         }
       }
@@ -412,25 +422,32 @@ try {
           turn-- // play this turn again
           continue
         }
+        // The tray never re-sorts on a cast: note every seed's place now, check them after the landing
+        const trayBefore = await store((s) => ({ seat: s.game.current, letters: s.trayOrder[s.game.current].map((i) => s.game.hands[s.game.current][i] ?? '_') }))
         await tap(castButton())
         if (wantMagic && magic > 0) {
           await page.waitForTimeout(120)
           await page.screenshot({ path: `${OUT}/${size.name}-8-throw.png` })
           await waitLanded()
-          await page.waitForTimeout(350) // the runeblossom has sprouted; the words keep their border for a moment
+          await page.waitForTimeout(350) // the runeblossom has sprouted; its words score one at a time, then fade
           await page.screenshot({ path: `${OUT}/${size.name}-9-grown.png` })
           await scorePopShots()
           grewWords = true
         }
+        await waitLanded()
+        const trayAfter = await store(`(s) => s.trayOrder[${trayBefore.seat}].map((i) => s.game.hands[${trayBefore.seat}][i] ?? '_')`)
+        const moved = trayBefore.letters.flatMap((l, p) => (p !== pos && trayAfter[p] !== l ? [p] : []))
+        if (moved.length) fail(`${size.name} turn ${turn}: the tray re-sorted on the cast: ${trayBefore.letters.join('')} → ${trayAfter.join('')}`)
+        else if (turn <= 2) console.log(`ok   ${size.name} turn ${turn}: tray kept its order on the cast · ${trayBefore.letters.join('')} → ${trayAfter.join('')}`)
       } else {
         await tap(castButton()) // End turn
       }
       await waitLanded()
       if (await store((s) => s.game.phase === 'refresh')) {
-        await tap(page.locator('[data-tray-pos="0"]'))
-        await tap(page.locator('[data-tray-pos="2"]'))
+        const twoSeeds = await store((s) => s.trayOrder[s.game.current].flatMap((i, p) => (i >= 0 ? [p] : [])).filter((_, n) => n === 0 || n === 2))
+        for (const p of twoSeeds) await tap(page.locator(`[data-tray-pos="${p}"][data-hand]`))
         if (!refreshed) await shot('10-refresh')
-        if (!refreshed) await refreshPlaysOut()
+        if (!refreshed) await refreshPlaysOut(twoSeeds)
         else await tap(page.getByRole('button', { name: 'Refresh 2' }))
         await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx === null, null, { timeout: 8000 })
         if (!(await store((s) => s.game.phase !== 'refresh'))) fail(`${size.name}: refresh did not happen`)
@@ -442,7 +459,7 @@ try {
       // Between turns: shuffle the tray
       if (turn === 2) {
         await tap(page.getByRole('button', { name: 'Shuffle' }))
-        const shuffledOk = await store((s) => [...s.trayOrder[s.game.current]].sort().join() === [...s.game.hands[s.game.current].keys()].join())
+        const shuffledOk = await store((s) => s.trayOrder[s.game.current].filter((i) => i >= 0).sort().join() === [...s.game.hands[s.game.current].keys()].join())
         if (!shuffledOk) fail(`${size.name}: shuffle lost a seed`)
       }
     }
@@ -457,7 +474,7 @@ try {
     await table.waitFor({ timeout: 5000 })
     await page.waitForTimeout(500)
     await shot('11-game-over')
-    const stars = await page.getByRole('img', { name: 'Winner' }).count()
+    const stars = await page.locator('.game-end-player[data-winner]').count()
     if (stars < 1) fail(`${size.name}: no winner marked`)
     // B005: closed results stay closed (nothing reopens them by itself); the Results button brings them back
     await page.keyboard.press('Escape')

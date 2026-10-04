@@ -2,14 +2,19 @@
 // data-hex (hexKey) and data-glyph (glyphling id); usePieceInput turns them into store actions.
 //
 // PIECE STATES — one look for every piece (GDD §4 "Piece states"):
-//   options  — hexes you could pick: soft glow + dot (teal = move there, gold = cast there)
+//   options  — hexes you could pick, in the CURRENT PLAYER's colour: a soft filled hex + dot. Move there = the
+//              player's colour · cast there = the same template in a lighter shade of it (garden.json castShade)
 //   held     — the piece you're holding: solid ring in the player's colour
 //   planned  — moved/targeted but not cast yet: pulsing halo at the hex edge (a targeted seed also gets a solid
 //              "not planted yet" look — garden.json plannedSeedLook, PlannedSeedLook.tsx)
 //   done     — plain piece
 //   drop here — while dragging, the legal hex under the piece: a brighter, filled option (dropTarget.ts)
-// WORDS (word indicators on): a white border behind the seeds — planned while aiming, then after they grow (WordBorders.tsx).
+// WORDS (word indicators on): a white border behind the seeds — planned while aiming (2+ words → the word spotlight:
+// one word lit at a time, looping, with a "QUA +4" label — F25). After the cast lands the words SCORE one at a time in
+// that order (ScorePops.tsx: outline + "QUA", seed pops fly to the glyphling's growing total), then all of it fades.
 // MOVES glide from hex to hex (useGlide.ts) — a planned move, Undo, and moves made anywhere else.
+// TURN TRAILS (TurnTrail.tsx, trail.ts), in the player's colour, under the pieces: the plan (dotted move path) and
+// another player's replayed turn (draws on before the glide). No cast arc; gone once the seed lands.
 // DANGER CUES (DangerCue.tsx): 1 move left = dashed thorny ring in the owner's colour · tangled = a vine wraps it
 // Colours: content/tuning/garden.json · timings: anim.json · margin: layout.json.
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -21,7 +26,8 @@ import { boardHighlight } from '../store/turnPlan'
 import { dangers } from '../store/danger'
 import { revealSteps } from '../store/revealPlan'
 import { colourOf, glyphlingArt, seedArt } from './art'
-import { boardShift, type TraySide } from './boardPlace'
+import { boardShift, boardView, type TraySide } from './boardPlace'
+import { castColour } from './castShade'
 import { DangerCue } from './DangerCue'
 import { PLANNED_FILTER_ID } from './plannedLook'
 import { PlannedSeedFilter } from './PlannedSeedLook'
@@ -30,11 +36,15 @@ import { useGlide } from './useGlide'
 import { useTurnPulse } from './useTurnPulse'
 import { pulsingGlyphlings } from '../store/turnPulse'
 import { ScorePops } from './ScorePops'
-import { WordBorders } from './WordBorders'
-import { uniqueHexes } from '../store/wordMarks'
+import { WordBorders, WordLabels, type SpotWord } from './WordBorders'
+import { useWordSpotlight } from './useWordSpotlight'
+import { TurnTrail } from './TurnTrail'
+import { boardTrail, trailKey as trailKeyOf } from '../store/trail'
 import { usePreview } from './usePreview'
 import { HEX, useThrow } from './useThrow'
 import { useAnimTuning, useGardenTuning, useLayoutTuning } from './useTuning'
+
+const NO_WORDS: SpotWord[] = []
 
 type Props = {
   /** Reports how wide one hex is on screen (pixels), so the tray can match it. */
@@ -54,6 +64,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const seats = useGameStore((s) => s.seats)
   const waiting = useGameStore((s) => s.waiting)
   const indicators = useGameStore((s) => s.options?.wordIndicators ?? true)
+  const replayTrail = useGameStore((s) => s.trail)
   const finishCast = useGameStore((s) => s.finishCast)
   const colours = useGardenTuning()
   const timing = useAnimTuning()
@@ -64,13 +75,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const seedRef = useRef<SVGGElement>(null)
 
   // The board's own area, plus a margin, as the SVG viewBox
-  const view = useMemo(() => {
-    const points = board.cells.map((h) => hexToPixel(h, HEX))
-    const xs = points.map((p) => p.x), ys = points.map((p) => p.y)
-    const pad = boardMargin + 1
-    const minX = Math.min(...xs) - pad, minY = Math.min(...ys) - pad
-    return { minX, minY, w: Math.max(...xs) + pad - minX, h: Math.max(...ys) + pad - minY }
-  }, [board, boardMargin])
+  const view = useMemo(() => boardView(board.cells, boardMargin), [board, boardMargin])
 
   // Measure the on-screen hex width whenever the board's box changes size, and move the board toward the tray
   // (the viewBox slides the other way; the box's spare room shows the board there)
@@ -97,7 +102,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
     () => (flying && move && cast ? { glyphling: move.glyphling, from: move.to, to: cast.target } : null),
     [flying, move, cast],
   )
-  useThrow({ svgRef, seedRef, flight, onLanded: finishCast, landed, timing, colours })
+  useThrow({ svgRef, seedRef, flight, onLanded: finishCast, landed, timing })
 
   // Where each glyphling is drawn (a planned move shows it on its new hex); a change of spot glides there
   const spots = useMemo(
@@ -118,18 +123,30 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   // ---- what's where, with the planned move and cast shown ----
   const seat = game.current
   const player = colours[colourOf(seat)]
+  const castTint = castColour(player, colours.background, colours.castShade) // the cast options: the same template, another shade
   const moved = move && game.glyphlings.find((g) => g.id === move.glyphling)
   const plannedLetter = cast ? game.hands[seat][cast.seed] : null
   const highlight = boardHighlight({ game, move, selected, flying, waiting, seats })
   const lit = board.cells.filter((h) => highlight?.hexes.some((x) => hexKey(x) === hexKey(h)))
-  const glow = highlight?.kind === 'cast' ? colours.castGlow : colours.moveGlow
   // Word indicators off: nothing shows which seeds make a word (players spot words themselves)
-  const outlined = indicators && !flying ? uniqueHexes(preview?.words.flatMap((w) => w.hexes) ?? []) : []
-  const grown = indicators && landed && game.lastTurn ? uniqueHexes(game.lastTurn.words.flatMap((w) => w.hexes)) : []
+  const planned: SpotWord[] = indicators && !flying ? preview?.words ?? NO_WORDS : NO_WORDS
   // The score pops belong to the seed that just landed (its turn grew words)
   const turn = game.lastTurn
   const pops = indicators && landed && turn?.target && hexKey(turn.target) === landed.key && turn.words.length > 0 ? turn : null
+  // The words it grew score one at a time, then fade with the final total (ScorePops plays them; they start and end dark,
+  // so nothing from this turn is left once the next one starts — the store's `scoring` holds the next turn till then)
+  const grown: SpotWord[] = pops ? pops.words : NO_WORDS
+  // The turn trail: a replayed turn (live) or my plan — trail.ts
+  const shownTrail = useMemo(() => boardTrail({ game, trail: replayTrail, move, cast }), [game, replayTrail, move, cast])
+  useWordSpotlight(svgRef, 'planned', planned, 0, 1, timing, colours.spotlightLabel)
   const s = colours.pieceScale
+  // Where a word's label may go: off every piece (seeds, glyphlings where they're drawn, the aimed seed), inside the board's box
+  const taken = useMemo(() => [
+    ...Object.keys(game.seeds).map((k) => { const [q, r] = k.split(',').map(Number); return { q, r } }),
+    ...spots.map((p) => p.hex),
+    ...(cast ? [cast.target] : []),
+  ], [game.seeds, spots, cast])
+  const labelBox = useMemo(() => ({ minX: view.minX - shift.x, minY: view.minY - shift.y, w: view.w, h: view.h }), [view, shift])
   const at = (h: Hex) => hexToPixel(h, HEX)
 
   // A ring at the hex's own edge — outside the art's coloured frame, so it reads as a halo
@@ -155,7 +172,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       })}
 
       {/* Made words: a white border under the seeds (so it frames the letters instead of covering them) */}
-      <WordBorders planned={outlined} grown={grown} grownKey={landed?.count ?? 0} colours={colours} />
+      <WordBorders planned={planned} grown={grown} grownKey={landed?.count ?? 0} colours={colours} />
 
       {moved && (
         <image data-hex={hexKey(moved.hex)} href={glyphlingArt(moved.seat)} x={at(moved.hex).x - s} y={at(moved.hex).y - s}
@@ -163,20 +180,23 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       )}
 
       {/* Options sit above the ghost, so a hex you can cast back onto is still clearly lit */}
+      {/* One template — soft filled hex + dot: move = the player's colour, cast = a lighter shade of it (castShade) */}
       {lit.map((h) => {
         const { x, y } = at(h)
+        const cast = highlight?.kind === 'cast'
         return (
           <g key={`lit-${hexKey(h)}`} data-option={highlight?.kind}>
-            <polygon data-hex={hexKey(h)} points={hexCorners(x, y, HEX * 0.97)} fill={glow} opacity={colours.glowStrength} />
-            <circle data-hex={hexKey(h)} cx={x} cy={y} r={0.18} fill={glow} />
+            <polygon data-hex={hexKey(h)} points={hexCorners(x, y, HEX * 0.97)} fill={cast ? castTint : player}
+              opacity={cast ? colours.castFill : colours.glowStrength} />
+            <circle data-hex={hexKey(h)} cx={x} cy={y} r={0.18} fill={cast ? castTint : player} />
           </g>
         )
       })}
 
-      {/* "Drop here" marks, one per option colour, hidden until a drag is over a legal hex (dropTarget.ts moves them).
+      {/* "Drop here" marks, one per option kind, hidden until a drag is over a legal hex (dropTarget.ts moves them).
           The hex fills bright AND a glow ring spills past its edge, so it still shows round the piece floating over it. */}
       {(['move', 'cast'] as const).map((kind) => {
-        const colour = kind === 'cast' ? colours.castGlow : colours.moveGlow
+        const colour = kind === 'cast' ? castTint : player
         return (
           <g key={`drop-${kind}`} data-drop-target={kind} visibility="hidden" pointerEvents="none">
             <polygon points={hexCorners(0, 0, HEX * 1.16)} fill="none" stroke={colour} strokeWidth={0.26} strokeOpacity={colours.dropStrength} strokeLinejoin="round" />
@@ -184,6 +204,9 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
           </g>
         )
       })}
+
+      {/* The turn trail — under the seeds and glyphlings, so it never covers a letter */}
+      {shownTrail && <TurnTrail key={trailKeyOf(shownTrail.trail)} trail={shownTrail.trail} mode={shownTrail.mode} colours={colours} timing={timing} />}
 
       {Object.entries(game.seeds).map(([key, seed]) => {
         const [q, r] = key.split(',').map(Number)
@@ -222,7 +245,11 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
         )
       })}
 
-      {pops && <ScorePops key={`pops-${landed?.count}`} game={game} turn={pops} colours={colours} timing={timing} pxPerHex={pxPerHex} />}
+      {/* The lit word's label ("QUA +4") — above the pieces, on a spot that covers no letters */}
+      <WordLabels planned={planned} grown={grown} grownKey={landed?.count ?? 0} colours={colours} pxPerHex={pxPerHex}
+        taken={taken} view={labelBox} />
+
+      {pops && <ScorePops key={`pops-${landed?.count}`} game={game} turn={pops} colours={colours} timing={timing} pxPerHex={pxPerHex} view={labelBox} />}
 
       {game.phase === 'over' && <RevealMarks game={game} steps={reveal} at={revealAt} colours={colours} timing={timing} />}
 

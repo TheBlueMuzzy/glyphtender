@@ -12,10 +12,11 @@ import { liveTuning } from '../devkit/tuning/liveTuning'
 import { reduceMotion } from '../ui/kit/blocks/motion'
 import { applyAction, checkAction, legalDraftHexes, newGame } from '../engine/engine'
 import { hexKey, sameHex, type Hex } from '../engine/hex'
+import { migrateGame } from '../engine/migrate'
 import { parseWordList } from '../engine/words'
 import type { Action, GameState, WordList } from '../engine/types'
 import {
-  castOptions, hexIn, highlightFor, inHandOrder, isCurrents, mayMoveOnly, moveInOrder, reconcileOrder,
+  castOptions, hexIn, highlightFor, inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
   shuffled, turnAction, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
 import { isLocalHuman, localSeats, needsHandoff, type Seat } from './seats'
@@ -23,6 +24,8 @@ import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
 import { newSeedSlots, refillInPlace, refreshSlots, refreshTimes, type RefreshFx } from './refreshFx'
+import { landingSeconds } from './wordMarks'
+import type { Trail } from './trail'
 
 /** Short messages for taps that can't do anything (their words live in content/text/en.json → game.notes). */
 export type Note = 'moveFirst' | 'notYours' | 'tangled' | 'wordsLoading' | 'wordsFailed' | 'problem'
@@ -90,6 +93,11 @@ export interface GameStore {
   waiting: boolean
   /** A refresh playing out on the tray (refreshFx.ts) — nothing can be touched, and play passes on after it. */
   refreshFx: RefreshFx | null
+  /** Online: another player's turn being replayed — its trail draws on in their colour before the glide (trail.ts). */
+  trail: Trail | null
+  /** A cast's score playing out on the board (the landing's count; wordMarks.scoreSequence) — nothing can be touched and
+   *  the next turn (online: the next view) waits until it has faded away. null = nothing scoring. */
+  scoring: number | null
   /** The last piece that said "no" to a tap (it shakes); the count changes every time, so the same piece can shake again. */
   nope: (NopeTarget & { count: number }) | null
 
@@ -114,6 +122,10 @@ export interface GameStore {
   refresh: (keepAll?: boolean) => void
   /** Online: my refresh's view has come — the new seeds grow into these tray positions. */
   refreshArrived: (newSlots: number[]) => void
+  /** A seed just landed (store.landed): if its turn grew words (and word indicators are on), its score plays out now. */
+  startScoring: () => void
+  /** The score sequence has faded away: play may go on (online: the views that waited are shown). */
+  endScoring: () => void
   moveTraySeed: (from: number, to: number) => void
   shuffleTray: () => void
   /** Before a tap or drag does its thing: if the piece can't be touched it shakes "no" (nope.ts). True = refused. */
@@ -127,6 +139,7 @@ const noPlan = (): Pick<GameStore, 'move' | 'cast' | 'selected' | 'setAside' | '
   ({ move: null, cast: null, selected: null, setAside: [], note: null })
 const NO_WORDS: WordList = new Map() // the draft and refresh never read words
 const anim = liveTuning('anim', animFile) // the refresh's timings (read when a refresh starts)
+const SCORE_BEAT_MS = 120 // the score sequence's timer waits this much past the fade (see startScoring)
 
 export const useGameStore = create<GameStore>()((set, get) => {
   // Sends an engine action; says "problem" instead of crashing if it was somehow illegal.
@@ -168,8 +181,15 @@ export const useGameStore = create<GameStore>()((set, get) => {
   // passed on, not while waiting for the server, not while a refresh plays out, and only when the seat
   // whose turn it is belongs to a human on this device.
   const canPlay = () => {
-    const { game, flying, handoff, seats, waiting, refreshFx } = get()
-    return game !== null && !flying && !waiting && handoff === null && refreshFx === null && isLocalHuman(seats, game.current)
+    const { game, flying, handoff, seats, waiting, refreshFx, scoring } = get()
+    return game !== null && !flying && !waiting && handoff === null && refreshFx === null && scoring === null && isLocalHuman(seats, game.current)
+  }
+
+  // The score sequence's own timer: one at a time; leaving or jumping the game stops it
+  let scoreTimer: ReturnType<typeof setTimeout> | null = null
+  const stopScoring = () => {
+    if (scoreTimer) clearTimeout(scoreTimer)
+    scoreTimer = null
   }
 
   // The refresh playing out (refreshFx.ts): one timer at a time; leaving or jumping the game stops it
@@ -213,7 +233,9 @@ export const useGameStore = create<GameStore>()((set, get) => {
     online: null,
     waiting: false,
     refreshFx: null,
+    trail: null,
     nope: null,
+    scoring: null,
 
     startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators }) => {
       const game = newGame({ players, seed, boardName, rules: minWordLength ? { minWordLength } : undefined })
@@ -222,15 +244,17 @@ export const useGameStore = create<GameStore>()((set, get) => {
         wordIndicators: wordIndicators ?? true,
       }
       stopRefreshFx()
+      stopScoring()
       set({
-        ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null,
+        ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         seats: localSeats(players, text.game.players), stats: emptyStats(players),
         trayOrder: game.hands.map((h) => inHandOrder(h.length)),
       })
     },
     leaveGame: () => {
       stopRefreshFx()
-      set({ ...noPlan(), game: null, flying: false, landed: null, handoff: null, revealAt: null, online: null, waiting: false, refreshFx: null })
+      stopScoring()
+      set({ ...noPlan(), game: null, flying: false, landed: null, handoff: null, revealAt: null, online: null, waiting: false, refreshFx: null, trail: null, scoring: null })
     },
     showSeeds: () => set({ handoff: null }),
     setRevealAt: (step) => set({ revealAt: step }),
@@ -349,10 +373,30 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!next) return set({ flying: false })
       const seat = game.current
       const order = [...trayOrder]
-      order[seat] = reconcileOrder(order[seat] ?? [], cast ? [cast.seed] : [], next.hands[seat].length)
+      order[seat] = refillInPlace(order[seat] ?? [], cast ? [cast.seed] : [], next.hands[seat].length) // the drawn seed takes the cast one's place
       const landed = cast ? { key: hexKey(cast.target), count: (get().landed?.count ?? 0) + 1 } : get().landed
       const played = next.lastTurn ? addTurn(stats, next.lastTurn) : stats
       set({ ...noPlan(), game: next, flying: false, trayOrder: order, landed, stats: played, handoff: handoffTo(seat, next, cast !== null) })
+      if (cast) get().startScoring()
+    },
+    // The words a landing grew score one at a time (ScorePops / useScoreSequence draw it); until it has faded away
+    // nothing can be touched, and online the next view waits (Muzzy: nothing from a turn survives into the next)
+    startScoring: () => {
+      const { game, landed, options } = get()
+      stopScoring()
+      const turn = game?.lastTurn
+      const scores = (options?.wordIndicators ?? true) && !!landed && !!turn?.target && hexKey(turn.target) === landed.key && turn.words.length > 0
+      if (!game || !scores) return set({ scoring: null })
+      set({ scoring: landed!.count })
+      // (+ a beat: the board's animations start a frame or two after this, and the fade's last frame must be painted
+      // before anything of the next turn shows)
+      scoreTimer = setTimeout(() => get().endScoring(), landingSeconds(game, true, anim.current) * 1000 + SCORE_BEAT_MS)
+    },
+    endScoring: () => {
+      stopScoring()
+      if (get().scoring === null) return
+      set({ scoring: null })
+      get().online?.resume()
     },
 
     toggleSetAside: (index) => {
@@ -387,7 +431,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const passOn = () => set({ ...noPlan(), game: next, trayOrder: order, handoff: handoffTo(seat, next, false), refreshFx: null })
       if (shrinkMs === 0) return passOn()
       set({ refreshFx: { seat, slots, stage: 'out' }, selected: null })
-      const newSlots = newSeedSlots(order[seat], (trayOrder[seat]?.length ?? 0) - chosen.length)
+      const newSlots = newSeedSlots(order[seat], game.hands[seat].length - chosen.length)
       after(shrinkMs, () => growIn({ seat, slots, newSlots, stage: 'in', hand: next.hands[seat], order: order[seat] }, passOn))
     },
     refreshArrived: (newSlots) => {
@@ -416,10 +460,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       return target !== null
     },
 
-    loadState: (game, stats) => {
+    loadState: (saved, stats) => {
+      const game = migrateGame(saved) // an older save brought up to date (the old "Qu" seed → "Q")
       stopRefreshFx()
+      stopScoring()
       set({
-        ...noPlan(), game, flying: false, handoff: null, revealAt: null, refreshFx: null,
+        ...noPlan(), game, flying: false, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         seats: get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players),
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
         trayOrder: game.hands.map((h) => inHandOrder(h.length)),

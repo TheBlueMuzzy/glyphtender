@@ -1,7 +1,8 @@
 // A 2-PLAYER ONLINE GAME THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — a phone (390×844, Ada, the host)
 // and a desktop (1440×900, Bo) in two separate browsers (own storage = two different players):
 // Play online → Create (code) / Join by code → lobby (Bo ready, one shot at 844×390) → Start → the draft and a few
-// turns by taps (shots of the other player's turn arriving mid-glide) → Bo reloads mid-game and gets his seat back
+// turns by taps (shots of the other player's turn arriving: its trail in their colour before the glide, mid-glide, then
+// no trail left after the landing) → Bo reloads mid-game and gets his seat back
 // → the host's browser closes: Bo becomes host, keeps playing, a bot takes Ada's seat after botTakesOverAfterMs
 // (B015: Bo sees "Away", then a toast + the robot badge on Ada's portrait — shots 4c/4d — and "Ada is back" after)
 // → Ada comes back by the code and takes her seat back → both play to the end → the Magic reveal + end table on
@@ -14,12 +15,11 @@
 // Starts its OWN `wrangler dev` (default port 1995 — never 1997, where `npm run party:dev` runs) and Vite
 // (default 5311) and stops only those. The page finds that server through VITE_PARTY_PORT (ui/online/session.ts).
 //   npm run e2e:online [outDir] [vitePort] [partyPort]
-import { spawn, execSync } from 'node:child_process'
 import { mkdirSync, readFileSync } from 'node:fs'
-import { createServer as netServer } from 'node:net'
-import { createServer } from 'vite'
-import { chromium } from 'playwright-core'
 import { leftoverPops } from './leftover-pops.mjs'
+import garden from '../content/tuning/garden.json' with { type: 'json' }
+import anim from '../content/tuning/anim.json' with { type: 'json' }
+import { makePlayer, secretsIn, startServers } from './online-kit.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const VITE_PORT = Number(process.argv[3] ?? 5311)
@@ -32,91 +32,16 @@ const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
 const check = (what, ok) => { if (!ok) fail(what) }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
-// ---- our own servers (never anyone else's) ----
-const portFree = (port) => new Promise((ok) => {
-  const probe = netServer().once('error', () => ok(false)).once('listening', () => probe.close(() => ok(true))).listen(port, '0.0.0.0')
-})
-if (!(await portFree(PARTY_PORT))) throw new Error(`Port ${PARTY_PORT} is busy — pass another: npm run e2e:online e2e-shots 5311 <port>`)
-const party = spawn(`npx wrangler dev --port ${PARTY_PORT} --ip 127.0.0.1 --inspector-port 0`, { shell: true, cwd: process.cwd() })
-let partyLog = ''
-party.stdout.on('data', (d) => { partyLog += d })
-party.stderr.on('data', (d) => { partyLog += d })
-const stopParty = () => {
-  try { process.platform === 'win32' ? execSync(`taskkill /PID ${party.pid} /T /F`, { stdio: 'ignore' }) : party.kill() } catch { /* already gone */ }
-}
-for (let t = 0; t < 120 && !/Ready on/.test(partyLog); t++) await wait(500)
-if (!/Ready on/.test(partyLog)) { stopParty(); throw new Error(`wrangler dev didn't start:\n${partyLog}`) }
-process.env.VITE_PARTY_PORT = String(PARTY_PORT) // the page talks to OUR server
-const vite = await createServer({ server: { port: VITE_PORT, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
-await vite.listen()
-const browser = await chromium.launch()
-
-// Everything visible must be inside the screen, and buttons big enough for a finger (as e2e:pass)
-function problems() {
-  const out = []
-  for (const el of document.querySelectorAll('.game button, .game-tray, .game-garden, .kit-screen button, .kit-text')) {
-    const r = el.getBoundingClientRect()
-    if (!r.width || !r.height || el.closest('.kit-scroll, [data-scroll]')) continue
-    const name = (el.textContent || el.getAttribute('class') || '').trim().slice(0, 30)
-    if (r.left < -0.5 || r.top < -0.5 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) out.push(`clipped: ${name}`)
-    if (el.tagName === 'BUTTON' && (r.height < 43.5 || r.width < 43.5)) out.push(`small button: ${name} ${Math.round(r.width)}×${Math.round(r.height)}`)
-  }
-  return out
-}
-
-// ---- the secrecy check: every frame a browser received, before the results ----
-const HIDDEN = '?'
-function secretsIn(frame) {
-  let message
-  try { message = JSON.parse(frame) } catch { return [] }
-  const out = []
-  if (/persistent/i.test(frame)) out.push('a persistentId')
-  if (message.type !== 'view' || !message.view) return out
-  const { game, mySeat, results } = message.view
-  if (game.phase === 'over') return out // the reveal: the whole truth, on purpose
-  game.hands.forEach((hand, seat) => { if (seat !== mySeat && hand.some((s) => s !== HIDDEN)) out.push(`seat ${seat}'s seeds`) })
-  if (game.bag.some((s) => s !== HIDDEN)) out.push('the bag')
-  if (game.rng !== 0 || game.config.seed !== 0) out.push('the rng / seed')
-  if ([...game.magic, ...game.tangleMagic].some((m) => m !== 0) || game.winners.length) out.push('Magic totals')
-  if (game.lastTurn && (game.lastTurn.magic !== 0 || game.lastTurn.words.some((w) => w.magic !== 0))) out.push("last turn's Magic")
-  if (results) out.push('results')
-  return out
-}
-
-// ---- a player = a browser context (own storage) + its page ----
-function player(name, context, size) {
-  const me = { name, context, size, page: null, frames: [], errors: [] }
-  me.open = async () => {
-    const page = await context.newPage()
-    page.on('console', (m) => m.type() === 'error' && me.errors.push(m.text()))
-    page.on('pageerror', (e) => me.errors.push(e.message))
-    page.on('websocket', (ws) => ws.on('framereceived', (f) => me.frames.push(String(f.payload))))
-    await page.goto(`http://127.0.0.1:${VITE_PORT}/`)
-    me.page = page
-  }
-  me.tap = (loc) => (size.mobile ? loc.tap() : loc.click())
-  // A glyphling whose turn it is pulses (it never holds still), so Playwright's "wait until stable" would wait forever
-  me.tapGlyph = (loc) => (size.mobile ? loc.tap({ force: true }) : loc.click({ force: true }))
-  me.store = (fn) => me.page.evaluate(`(${fn})(window.__glyphtender.store.getState())`)
-  me.room = (fn) => me.page.evaluate(`(${fn})(window.__glyphtender.online.getState())`)
-  me.shot = async (label, settle = 400) => {
-    await me.page.waitForFunction(() => [...document.querySelectorAll('[data-glide]')].every((g) => g.getAnimations().length === 0), null, { timeout: 4000 }).catch(() => {})
-    await me.page.waitForTimeout(settle)
-    const tag = `${me.page.viewportSize().width}x${me.page.viewportSize().height}`
-    await me.page.screenshot({ path: `${OUT}/online-${tag}-${label}.png` })
-    const out = await me.page.evaluate(problems)
-    out.forEach((p) => fail(`${name} ${label}: ${p}`))
-    console.log(`${out.length ? 'FAIL' : 'ok  '} ${name} ${tag} ${label}`)
-  }
-  return me
-}
+// ---- our own servers (never anyone else's) — the shared helpers are in online-kit.mjs ----
+const { browser, stop } = await startServers(VITE_PORT, PARTY_PORT, 'npm run e2e:online e2e-shots <vitePort> <partyPort>')
+const player = (name, context, size) => makePlayer(name, context, size, { vitePort: VITE_PORT, out: OUT, fail })
 
 const ada = player('Ada', await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }), { mobile: true })
 const bo = player('Bo', await browser.newContext({ viewport: { width: 1440, height: 900 } }), { mobile: false })
 
 // Is it this player's turn, with nothing in the air and nothing on its way to the server?
 const myTurn = (p) => p.page && !p.page.isClosed() && p.store((s) => !!s.game && !!s.online && s.game.phase !== 'over'
-  && s.game.current === s.online.mySeat && !s.waiting && !s.flying && s.wordsStatus === 'ready')
+  && s.game.current === s.online.mySeat && !s.waiting && !s.flying && s.scoring === null && s.wordsStatus === 'ready') // (a score sequence holds play)
 
 // One turn through the screen: a draft placement, Keep all on a refresh (Refresh 1 the first time), or move + cast (Magic if it can) + Cast
 let refreshSeen = false
@@ -130,10 +55,12 @@ async function playTurn(p) {
   } else if (phase === 'refresh' && !refreshSeen) {
     // B011, once: Refresh 1 plays out on MY tray (shrink, then the server's new seed grows in), then play passes on
     refreshSeen = true
-    await p.tap(page.locator('[data-tray-pos="1"]'))
+    // (the cast seed's place stays empty — the tray never re-sorts — so pick the second seed actually there)
+    const place = await p.store((s) => s.trayOrder[s.online.mySeat].flatMap((i, pos) => (i >= 0 ? [pos] : []))[1])
+    await p.tap(page.locator(`[data-tray-pos="${place}"]`))
     await p.tap(page.getByRole('button', { name: 'Refresh 1' }))
     const fx = await p.store((s) => s.refreshFx)
-    check(`${p.name}: B011 my refresh shrinks tray place 1 (${JSON.stringify(fx)})`, fx?.stage === 'out' && fx.slots.join() === '1')
+    check(`${p.name}: B011 my refresh shrinks tray place ${place} (${JSON.stringify(fx)})`, fx?.stage === 'out' && fx.slots.join() === String(place))
     await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx?.stage === 'in', null, { timeout: 5000 })
       .catch(() => fail(`${p.name}: B011 the new seeds never grew in`))
     await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx === null, null, { timeout: 5000 })
@@ -176,8 +103,47 @@ async function playUntil(players, done, { seconds = 120, watch = null } = {}) {
         console.log(`${mine > 0 && theirs === 0 ? 'ok  ' : 'FAIL'} turn pulse: ${p.name} ${mine} · ${watcher.name} ${theirs}`)
         feel.pulseChecked = true
       }
+      // Turn trails: the watcher sees the mover's trail in THEIR colour before the glide (slowed for this one turn, sent
+      // as the Dev Kit's Tuning tab would, so the picture can't miss it) — no cast arc — and after the landing it's gone
+      const trailWatch = watch && watcher && !watch.trail.has(watcher.name) && (await p.store((s) => s.game.phase === 'play'))
+      const tuneAnim = (who, data) => who.page.evaluate((data) => window.dispatchEvent(new CustomEvent('devkit:tuning', { detail: { file: 'anim', data } })), data)
+      let landedCheck = null // after the glide shot below
+      if (trailWatch) await tuneAnim(watcher, { ...anim, trailLead: 1.5, trailHold: 1.5 })
       await playTurn(p)
       played = true
+      if (trailWatch) {
+        watch.trail.add(watcher.name)
+        const seat = await p.store((s) => s.online.mySeat)
+        const colour = garden[['yellow', 'blue', 'purple', 'pink'][seat]]
+        const trailOn = (mode) => watcher.page.evaluate(([mode, seat]) => {
+          const t = document.querySelector(`[data-trail="${mode}"][data-trail-seat="${seat}"]`)
+          return t ? [...new Set([...t.querySelectorAll('[data-trail-part] > :last-child')].map((el) => el.getAttribute('stroke')))] : null
+        }, [mode, seat])
+        const live = await watcher.page.waitForFunction((seat) => window.__glyphtender.store.getState().trail?.seat === seat, seat, { timeout: 5000 }).then(() => true, () => false)
+        const tag = `online-${watcher.page.viewportSize().width}x${watcher.page.viewportSize().height}`
+        if (live) {
+          await watcher.page.waitForTimeout(900)
+          const strokes = await trailOn('live')
+          check(`${watcher.name} sees ${p.name}'s trail live, in ${p.name}'s colour ${colour} (${strokes})`, strokes?.join() === colour)
+          check(`${watcher.name}: ${p.name}'s replayed trail has no cast arc`, await watcher.page.evaluate(() => !document.querySelector('[data-trail-part="arc"]')))
+          check(`${watcher.name}: nothing moves while ${p.name}'s trail draws on`, await watcher.store((s) => s.move === null))
+          await watcher.page.screenshot({ path: `${OUT}/${tag}-4a-incoming-trail.png` })
+          console.log(`ok   ${watcher.name} 4a-incoming-trail · ${p.name}'s trail in ${colour}, before the glide`)
+        } else fail(`${watcher.name} never saw ${p.name}'s trail`)
+        await tuneAnim(watcher, anim)
+        landedCheck = async () => {
+          const landed = await watcher.page.waitForFunction((seat) => {
+            const s = window.__glyphtender.store.getState()
+            return !s.trail && !s.move && !s.flying && s.game.lastTurn?.seat === seat
+          }, seat, { timeout: 10000 }).then(() => true, () => false)
+          const left = await watcher.page.evaluate(() => document.querySelectorAll('[data-trail]').length)
+          check(`${watcher.name}: no trail left after ${p.name}'s turn landed (${left})`, landed && left === 0)
+          if (landed && left === 0) {
+            await watcher.page.screenshot({ path: `${OUT}/${tag}-4c-landed-no-trail.png` })
+            console.log(`ok   ${watcher.name} 4c-landed · ${p.name}'s trail gone once the seed landed`)
+          }
+        }
+      }
       if (watch && watcher && (await p.store((s) => s.game.phase === 'play' || s.game.phase === 'refresh'))) {
         // The watcher's board replays the move: the glyphling glides first — picture it halfway
         const arrived = await watcher.page.waitForFunction(() => { const s = window.__glyphtender.store.getState(); return s.move && s.game.current !== s.online.mySeat }, null, { timeout: 5000 }).then(() => true, () => false)
@@ -188,6 +154,7 @@ async function playUntil(players, done, { seconds = 120, watch = null } = {}) {
           console.log(`ok   ${watcher.name} 4-incoming-turn (mid-glide)`)
         }
       }
+      if (landedCheck) await landedCheck()
       // A turn that grew words: its Magic pops on the watcher's screen too, once the replayed seed lands
       if (watcher && !feel.popsSeen && (await p.store((s) => s.game.lastTurn?.seat === s.online.mySeat && s.game.lastTurn.words.length > 0))) {
         const popped = await watcher.page.waitForFunction(() => document.querySelectorAll('[data-score-pop]').length > 0, null, { timeout: 8000 }).then(() => true, () => false)
@@ -250,7 +217,7 @@ try {
   check('word indicators on (the host’s lobby option) on both screens', (await ada.store((s) => s.options.wordIndicators)) && (await bo.store((s) => s.options.wordIndicators)))
   await ada.shot('2-draft')
   await playUntil([ada, bo], async () => (await ada.store((s) => s.game.phase)) !== 'draft')
-  const watch = { done: new Set() }
+  const watch = { done: new Set(), trail: new Set() }
   await playUntil([ada, bo], async () => (await turnCount(ada)) >= 4 && (await turnCount(bo)) >= 4 && feel.popsSeen, { watch, seconds: 240 })
   check('the other player’s turn popped its Magic on the watcher’s screen', feel.popsSeen)
   await ada.shot('3-mid-game')
@@ -334,6 +301,7 @@ try {
     await p.page.getByRole('dialog').getByRole('button', { name: 'New game' }).waitFor()
     await p.shot('6-end-table')
     check(`${p.name}'s end table has both names`, (await p.page.getByText('Ada', { exact: true }).count()) > 0 && (await p.page.getByText('Bo', { exact: true }).count()) > 0)
+    check(`${p.name}'s end screen marks their own card "You"`, (await p.page.getByRole('dialog').getByText('You', { exact: true }).count()) === 1)
     check(`${p.name}'s end table has no Play again`, (await p.page.getByRole('dialog').getByRole('button', { name: 'Play again' }).count()) === 0)
   }
   // New game: the guest waits for the host; the host's takes everyone back to the lobby
@@ -370,9 +338,7 @@ try {
 } catch (error) {
   fail(error.stack ?? String(error))
 } finally {
-  await browser.close()
-  await vite.close()
-  stopParty()
+  await stop()
 }
 console.log(failures ? `\n${failures} problem(s)` : '\nall good')
 process.exit(failures ? 1 : 0)
