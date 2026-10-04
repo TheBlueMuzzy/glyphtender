@@ -59,11 +59,22 @@ export function secretsIn(frame) {
   try { message = JSON.parse(frame) } catch { return [] }
   const out = []
   if (/persistent/i.test(frame)) out.push('a persistentId')
+  // the server's move record and its secret numbers (the bag's second shuffle, the rng start, the bot's rng): never, not even at the end
+  if (/"record"|"bagSeed"|"rngSeed"|"botRng"/.test(frame)) out.push('the move record / secret numbers')
   if (message.type !== 'view' || !message.view) return out
   const { game, mySeat, results } = message.view
   if (game.phase === 'over') return out // the reveal: the whole truth, on purpose
-  game.hands.forEach((hand, seat) => { if (seat !== mySeat && hand.some((s) => s !== HIDDEN)) out.push(`seat ${seat}'s seeds`) })
-  if (game.bag.some((s) => s !== HIDDEN)) out.push('the bag')
+  // the feed (what happened lately): another seat's drawn / set-aside seeds never come, not even as letters
+  for (const { events } of message.view.feed ?? []) {
+    for (const e of events) if ((e.type === 'drew' || e.type === 'setAside') && e.seat !== mySeat) out.push(`seat ${e.seat}'s ${e.type} seeds`)
+  }
+  // a hidden seed is { id: '?', letter: '?' }: you may know how many, never which (F33: no ids either)
+  const hiddenSeed = (s) => s.id === HIDDEN && s.letter === HIDDEN
+  game.hands.forEach((hand, seat) => { if (seat !== mySeat && !hand.every(hiddenSeed)) out.push(`seat ${seat}'s seeds`) })
+  if (!game.bag.every(hiddenSeed)) out.push('the bag')
+  // the only seed ids in a frame: your own hand's and the board's (planted seeds are public)
+  const mayKnow = new Set([...(game.hands[mySeat] ?? []), ...Object.values(game.seeds)].map((s) => s.id))
+  if ((frame.match(/seed-\d+/g) ?? []).some((id) => !mayKnow.has(id))) out.push('a hidden seed id')
   if (game.rng !== 0 || game.config.seed !== 0) out.push('the rng / seed')
   if ([...game.magic, ...game.tangleMagic].some((m) => m !== 0) || game.winners.length) out.push('Magic totals')
   if (game.lastTurn && (game.lastTurn.magic !== 0 || game.lastTurn.words.some((w) => w.magic !== 0))) out.push("last turn's Magic")

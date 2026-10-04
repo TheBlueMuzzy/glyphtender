@@ -20,12 +20,15 @@ import { labelSpot, type Box } from './spotlight'
 import { HEX } from './useThrow'
 import type { GardenTuning } from './useTuning'
 
-export type SpotWord = Pick<MadeWord, 'word' | 'hexes' | 'magic'>
+/** A word that grew (it scores in its turn: no Magic shown on it — the seeds pop theirs). */
+export type GrownWord = Pick<MadeWord, 'word' | 'hexes'>
+/** A planned word, with the Magic it would make ("QUA +4"). */
+export type SpotWord = GrownWord & Pick<MadeWord, 'magic'>
 export type SpotKind = 'planned' | 'grown'
 
 type Props = {
   planned: SpotWord[]
-  grown: SpotWord[]
+  grown: GrownWord[]
   /** Changes every landing, so the grown words are drawn fresh. */
   grownKey: number
   colours: GardenTuning
@@ -40,7 +43,7 @@ export function WordBorders({ planned, grown, grownKey, colours }: Props) {
         strokeWidth={colours.wordBorderWidth} strokeLinejoin="round" />
     )
   }
-  const words = (kind: SpotKind, list: SpotWord[], peak: number) =>
+  const words = (kind: SpotKind, list: GrownWord[], peak: number) =>
     list.map((w, i) => (
       <g key={`${kind}-${grownKey}-${i}-${w.word}`} data-spot-of={kind} data-spot-word={i} data-word={w.word}
         opacity={kind === 'grown' || list.length > 1 ? 0 : peak}>
@@ -68,9 +71,9 @@ type LabelProps = Props & {
 export function WordLabels({ planned, grown, grownKey, colours, taken, view, pxPerHex }: LabelProps) {
   const size = Math.max(colours.spotlightLabelSize, colours.spotlightLabelMinPx / pxPerHex)
   const takenId = taken.map(hexKey).join(';')
-  const place = useMemo(() => (list: SpotWord[], kind: SpotKind) => list.map((w) => {
+  const place = useMemo(() => (list: (SpotWord | GrownWord)[], kind: SpotKind) => list.map((w) => {
     // (as a word scores, its points pop on its seeds and fly to the glyphling — the bubble is just the word)
-    const words = kind === 'planned' ? fill(text.game.spotlightLabel, { word: w.word, n: w.magic }) : w.word
+    const words = kind === 'planned' && 'magic' in w ? fill(text.game.spotlightLabel, { word: w.word, n: w.magic }) : w.word
     const width = words.length * size * 0.62 + size * 1.1, height = size * 1.6 // a pill round the words
     return { words, width, height, ...labelSpot(w.hexes, taken, view, width, height) }
     // (taken is compared by its hexes, not by the array)
@@ -80,7 +83,7 @@ export function WordLabels({ planned, grown, grownKey, colours, taken, view, pxP
   const grownSpots = useMemo(() => place(grown, 'grown'), [place, grown])
   if (!colours.spotlightLabel) return null
 
-  const labels = (kind: SpotKind, list: SpotWord[], spots: ReturnType<typeof place>, peak: number) =>
+  const labels = (kind: SpotKind, list: GrownWord[], spots: ReturnType<typeof place>, peak: number) =>
     spots.map((s, i) => (
       <g key={`${kind}-${grownKey}-${i}-${list[i].word}`} data-spot-of={kind} data-spot-word={i} data-spot-label={s.words}
         opacity={kind === 'grown' || list.length > 1 ? 0 : peak}>

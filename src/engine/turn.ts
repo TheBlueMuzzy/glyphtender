@@ -4,9 +4,10 @@ import { withoutSeed } from './insight'
 import { findGlyphling, includesHex, legalCasts, legalMoves } from './moves'
 import { endTurn } from './tangle'
 import { findWords, type FoundWord } from './wordFinder'
-import type { GameState, LogBlock, MadeWord, TurnSummary, WordList } from './types'
+import { indexOfPiece, takePiece } from '../table/zones'
+import type { GameState, LogBlock, MadeWord, SeedPiece, TurnSummary, WordList } from './types'
 
-export type TurnAction = { type: 'turn'; glyphling: number; to: Hex; seed: number | null; target: Hex | null }
+export type TurnAction = { type: 'turn'; glyphling: number; to: Hex; seed: string | null; target: Hex | null }
 
 /** Why this turn isn't allowed, or null if it is. */
 export function checkTurn(state: GameState, action: TurnAction): string | null {
@@ -15,18 +16,28 @@ export function checkTurn(state: GameState, action: TurnAction): string | null {
   if (!g) return `There is no glyphling ${action.glyphling}`
   if (g.seat !== state.current) return 'That glyphling belongs to another player'
   if (!includesHex(legalMoves(state, g.id), action.to)) return 'A glyphling moves in a straight line and cannot pass through or land on anything'
-  const hand = state.hands[state.current]
-  const casts = legalCasts(state, g.id, action.to)
   if (action.seed === null) {
     if (action.target !== null) return 'Pick a seed to cast'
     // You must cast if you can: moving only is allowed with an empty hand or nowhere to cast.
-    if (hand.length > 0 && casts.length > 0) return 'You must cast a seed when you can'
+    if (!mayMoveOnly(state, g.id, action.to)) return 'You must cast a seed when you can'
     return null
   }
-  if (!Number.isInteger(action.seed) || action.seed < 0 || action.seed >= hand.length) return 'That seed is not in your hand'
+  const hand = state.hands[state.current]
+  if (typeof action.seed !== 'string' || indexOfPiece(hand, action.seed) < 0) return 'That seed is not in your hand'
   if (!action.target) return 'Pick where to cast the seed'
-  if (!includesHex(casts, action.target)) return "A seed flies in a straight line onto an empty hex, over your own pieces but not other players'"
+  if (!includesHex(legalCasts(state, g.id, action.to), action.target)) return "A seed flies in a straight line onto an empty hex, over your own pieces but not other players'"
   return null
+}
+
+/** May the player whose turn it is move this glyphling to `to` and NOT cast? Only with an empty hand, or when there's
+ *  nowhere to cast from `to` — otherwise they must cast (the "End turn" button and its prompt ask this too). */
+export function mayMoveOnly(state: GameState, glyphling: number, to: Hex): boolean {
+  return state.hands[state.current].length === 0 || legalCasts(state, glyphling, to).length === 0
+}
+
+/** The letter of the seed with this id in a hand (throws if it isn't there). */
+export function seedLetter(hand: readonly SeedPiece[], id: string): string {
+  return takePiece(hand, id).piece.letter
 }
 
 /** Moves the glyphling and plants the seed (no scoring) — the board as it is right after the cast. */
@@ -35,10 +46,9 @@ export function moveAndCast(state: GameState, action: TurnAction): GameState {
   if (problem) throw new Error(problem)
   const glyphlings = state.glyphlings.map((g) => (g.id === action.glyphling ? { ...g, hex: { ...action.to } } : g))
   if (action.seed === null || !action.target) return { ...state, glyphlings }
-  const hand = [...state.hands[state.current]]
-  const [letter] = hand.splice(action.seed, 1)
-  const hands = state.hands.map((h, seat) => (seat === state.current ? hand : h))
-  const seeds = { ...state.seeds, [hexKey(action.target)]: { letter, seat: state.current } }
+  const { piece, rest } = takePiece(state.hands[state.current], action.seed)
+  const hands = state.hands.map((h, seat) => (seat === state.current ? rest : h))
+  const seeds = { ...state.seeds, [hexKey(action.target)]: { ...piece, seat: state.current } } // a planted seed keeps its id
   return { ...state, glyphlings, hands, seeds }
 }
 
@@ -47,9 +57,16 @@ export function seedMagic(state: GameState, hex: Hex, seat: number): number {
   return 1 + (state.seeds[hexKey(hex)]?.seat === seat ? state.config.rules.ownershipBonus : 0)
 }
 
+/** Each seed's Magic in each word a cast by `seat` grew, word by word (seedMagic) — e.g. [[1, 2], [2, 1, 1]].
+ *  Reads only the board (which seeds are whose), so it works on anyone's view: the score pops use it. */
+export function seedMagicOfTurn(state: GameState, words: readonly { hexes: readonly Hex[] }[], seat: number): number[][] {
+  return words.map((w) => w.hexes.map((h) => seedMagic(state, h, seat)))
+}
+
 /** The Magic each word makes: its seeds + ownershipBonus for each of the caster's own seeds in it. */
 export function magicFor(state: GameState, found: FoundWord[], seat: number): MadeWord[] {
-  return found.map((w) => ({ word: w.word, hexes: w.hexes, magic: w.hexes.reduce((sum, h) => sum + seedMagic(state, h, seat), 0) }))
+  const perSeed = seedMagicOfTurn(state, found, seat)
+  return found.map((w, i) => ({ word: w.word, hexes: w.hexes, magic: perSeed[i].reduce((sum, m) => sum + m, 0) }))
 }
 
 /** What a turn would make, without playing it — for the "Cast · +N" button. Throws if the turn is illegal. */
@@ -60,8 +77,9 @@ export function previewTurn(state: GameState, action: TurnAction, words: WordLis
   return { words: made, magic: made.reduce((sum, w) => sum + w.magic, 0) }
 }
 
-/** Plays a whole turn: move, cast, grow words into Magic, draw, and pass play on. */
-export function applyTurn(state: GameState, action: TurnAction, words: WordList): GameState {
+/** Plays a whole turn: move, cast, grow words into Magic, draw, and pass play on.
+ *  `fast` = skip the game log and its facts (engine.ts applyAction). */
+export function applyTurn(state: GameState, action: TurnAction, words: WordList, fast = false): GameState {
   const after = moveAndCast(state, action) // throws if the turn is illegal
   const seat = state.current
   const preview = previewTurn(state, action, words)
@@ -70,7 +88,7 @@ export function applyTurn(state: GameState, action: TurnAction, words: WordList)
     glyphlingId: action.glyphling,
     from: { ...findGlyphling(state, action.glyphling).hex },
     to: { ...action.to },
-    letter: action.seed === null ? null : state.hands[seat][action.seed],
+    letter: action.seed === null ? null : seedLetter(state.hands[seat], action.seed),
     target: action.target ? { ...action.target } : null,
     words: preview.words,
     magic: preview.magic,
@@ -79,16 +97,17 @@ export function applyTurn(state: GameState, action: TurnAction, words: WordList)
   const magic = after.magic.map((m, s) => (s === seat ? m + preview.magic : m))
   // For the game log (the Weed toss award): the best word a rival could have grown on this cast's hex. It reads
   // rivals' hands, so it waits in pendingLog — hidden online like the log (party/views.ts) — until endTurn logs it.
-  const pendingLog = { blocked: blockedSpot(after, seat, action.target, words) }
+  // (Fast mode skips it: it's the slowest part of a turn, and only the log reads it.)
+  const pendingLog = fast ? null : { blocked: blockedSpot(after, seat, action.target, words) }
   if (preview.words.length > 0) {
     // Made Magic → draw 1 seed (if the bag isn't empty).
     const drawn = after.bag.slice(0, 1)
     const hands = after.hands.map((h, s) => (s === seat ? [...h, ...drawn] : h))
-    return endTurn({ ...after, magic, hands, bag: after.bag.slice(drawn.length), lastTurn: { ...lastTurn, drew: drawn.length }, pendingLog })
+    return endTurn({ ...after, magic, hands, bag: after.bag.slice(drawn.length), lastTurn: { ...lastTurn, drew: drawn.length }, pendingLog }, null, fast)
   }
   // No Magic → the same player may refresh their hand (skipped when the bag is empty: nothing to refill from).
   if (after.bag.length > 0) return { ...after, magic, lastTurn, phase: 'refresh', pendingLog }
-  return endTurn({ ...after, magic, lastTurn, pendingLog })
+  return endTurn({ ...after, magic, lastTurn, pendingLog }, null, fast)
 }
 
 /**
@@ -103,10 +122,10 @@ export function blockedSpot(after: GameState, seat: number, target: Hex | null, 
   let best: LogBlock | null = null
   for (let rival = 0; rival < after.config.players; rival++) {
     if (rival === seat) continue
-    const letters = [...new Set(open.hands[rival] ?? [])].filter((l) => /^[A-Z]$/.test(l))
+    const letters = [...new Set((open.hands[rival] ?? []).map((p) => p.letter))].filter((l) => /^[A-Z]$/.test(l))
     let top: { magic: number; word: string } | null = null
     for (const letter of letters) {
-      const planted = { ...open, seeds: { ...open.seeds, [hexKey(target)]: { letter, seat: rival } } }
+      const planted = { ...open, seeds: { ...open.seeds, [hexKey(target)]: { id: 'what-if', letter, seat: rival } } }
       const made = magicFor(planted, findWords(planted, target, words), rival)
       const total = made.reduce((sum, w) => sum + w.magic, 0)
       if (total > (top?.magic ?? 0)) top = { magic: total, word: made.map((w) => w.word).join(' + ') }

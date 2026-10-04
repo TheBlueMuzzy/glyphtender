@@ -4,19 +4,21 @@
 // While dragging, the legal hex under the floating piece lights up ("drop here", dropTarget.ts); an illegal one doesn't.
 // A tap or drag on something that can't be touched makes it shake "no" (store.refuseTap → nope.ts).
 // What was pressed is read from data attributes:
-//   data-glyph (board glyphling id) · data-hand (tray seed: hand index) + data-tray-pos (its place in the tray)
+//   data-glyph (board glyphling id) · data-hand (tray seed: its id) + data-tray-pos (its place in the tray)
 //   data-draft (a glyphling waiting to be placed) · data-hex (a board hex, "q,r")
 import { useRef, type PointerEvent, type RefObject } from 'react'
 import type { Hex } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
-import { dropKind } from '../store/turnPlan'
+import { playReferee, targetsOf, type Piece } from '../store/referee'
+import { dropKind, letterIn } from '../store/turnPlan'
 import { glyphlingArt, seedArt } from './art'
 import { showDropTarget } from './dropTarget'
 import type { LayoutTuning } from './useTuning'
 
 interface Press {
   glyph?: number
-  hand?: number
+  /** A tray seed's id. */
+  hand?: string
   trayPos?: number
   draft?: boolean
   hex?: Hex
@@ -34,6 +36,7 @@ const numberAttr = (el: Element, name: string) => {
   const found = el.closest(`[${name}]`)
   return found ? Number(found.getAttribute(name)) : undefined
 }
+const textAttr = (el: Element, name: string) => el.closest(`[${name}]`)?.getAttribute(name) ?? undefined
 const hexAttr = (el: Element | null): Hex | undefined => {
   const key = el?.closest('[data-hex]')?.getAttribute('data-hex')
   if (!key) return undefined
@@ -67,13 +70,15 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
     const { game } = store()
     const img = drag.image.current
     if (!game || !img) return
+    // May it be lifted at all? The drag referee (the same answer as the shake, the glow and the drop) — a quiet moment
+    // (a seed landing, the device being passed on…) lifts nothing, and shakes nothing either
+    const liftable = (piece: Piece) => playReferee(store()).mayPickUp(game.current, piece, targetsOf(game, piece)).ok
     let art: string | null = null
     if (p.glyph !== undefined) {
       const refused = store().refuseTap({ glyph: p.glyph })
       store().grabGlyphling(p.glyph) // (a refused one still says why in the prompt)
       if (refused) return void (p.refused = true)
-      const g = game.glyphlings.find((x) => x.id === p.glyph)
-      if (g && g.seat === game.current && game.phase === 'play' && !game.tangled.includes(g.id)) art = glyphlingArt(g.seat)
+      if (liftable({ kind: 'glyphling', id: p.glyph })) art = glyphlingArt(game.current)
     } else if (p.hand !== undefined) {
       // Before the move (or not my turn) a seed can't be dragged at all, not even to reorder the tray (B008)
       if (store().refuseTap({ hand: p.hand })) {
@@ -81,7 +86,7 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
         return void (p.refused = true)
       }
       store().grabSeed(p.hand)
-      art = seedArt(game.hands[game.current][p.hand], game.current)
+      if (liftable({ kind: 'seed', id: p.hand })) art = seedArt(letterIn(game.hands[game.current], p.hand) ?? '', game.current)
     } else if (p.draft) {
       art = glyphlingArt(game.current)
     }
@@ -99,7 +104,7 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
     const t = e.target as Element
     press.current = {
       glyph: numberAttr(t, 'data-glyph'),
-      hand: numberAttr(t, 'data-hand'),
+      hand: textAttr(t, 'data-hand'),
       trayPos: numberAttr(t, 'data-tray-pos'),
       draft: !!t.closest('[data-draft]'),
       hex: hexAttr(t),

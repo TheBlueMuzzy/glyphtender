@@ -1,0 +1,12 @@
+- 2026-09-30 — Alpha release prep: live online host set, returning-player update check, credits; all checks green. Delivering v0.1.0.
+- 2026-09-30 — Sprint 06 Feel pass (autonomous): Muzzy's 11 playtest notes built + 7 bugs fixed by e2e and review; 197 tests.
+- 2026-09-30 — Bug sweep (autonomous): word-list failure now shows Retry (and End turn no longer waits for words), draft ignores illegal taps quietly, right-click no longer taps, snapshots keep end-table stats. 168 tests, all e2e green.
+- 2026-09-30 — Sprint 05 done (autonomous): move glide, rooms framework module (harvested from Roll Better), online server with per-player views, online seats, lobby, e2e:online (0 leaks); security review fixed 5 issues; layout fix for the reveal.
+- 2026-09-30 — Sprint 04 done (autonomous): seats + handoff, new game screen, pause/rules, danger cues, staged Magic reveal, end table; Dev Kit 0.3.0 Snapshots + Bug capture (framework branch). Review fixed 2 bugs.
+- 2026-09-30 — Sprint 03 done (autonomous): playable 2-player game — board, real-size tray, draft, turn flow + throw, basic results; review fixed 2 bugs.
+- 2026-09-30 — Sprint 02 done (autonomous): rules engine (84 tests, 6,000 sim games), official word list byte-for-byte, Magic + refresh, UI kit Cozy night. Word Play researched.
+- 2026-09-30 — Sprint 01 done: skeleton (Vite/React/TS, Dev Kit, PWA, Pages workflow), art, F01 prototype approved + throw story.
+- 2026-09-30 — /define done: theme (Grand Glyphtender, Magic), cozy not hunting, alpha = pass-and-play + online, beta = AI. Official word list traced + kept. TDD + roadmap.
+- 2026-09-30 — Project created (remake). Old repo/folder renamed to glyphtender-original. /discover done: digest, references, directions.
+- 2026-09-30 — F23: online server moved to Muzzy's own Cloudflare (PartyServer); deployed + e2e green against live.
+- 2026-10-01 — Released v0.2.0: online play live (own Cloudflare), phone portrait layout fixes B012–B014, bot badge B015, room code label; review caught a reconnect seat bug (fixed, live-tested).

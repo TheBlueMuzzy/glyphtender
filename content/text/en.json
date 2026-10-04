@@ -95,7 +95,8 @@
         },
         "pincer": {
           "title": "Pincer",
-          "reason": "Your move and cast in one turn cut {other}'s glyphling from {from} moves to {to}"
+          "reason": "Over {turns} turns you squeezed {other}'s glyphling from {from} moves to {to} ({pct}%)",
+          "reasonOne": "In one turn you squeezed {other}'s glyphling from {from} moves to {to} ({pct}%)"
         },
         "weedToss": {
           "title": "Weed toss",

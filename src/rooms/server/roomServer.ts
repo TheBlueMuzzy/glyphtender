@@ -76,6 +76,13 @@ export class RoomServer<State, Options, Action, View, Event = never> {
           if (seatId !== exceptSeatId) this.sendToSeat(seatId, { type: 'event', event })
         }
       },
+      sendEventPerSeat: (eventFor) => {
+        this.data.seats.forEach((seat, index) => {
+          if (!this.sockets.has(seat.id)) return
+          const event = eventFor(publicSeat(seat), index)
+          if (event !== null) this.sendToSeat(seat.id, { type: 'event', event })
+        })
+      },
       missedTurn: (seatId) => this.missedTurn(seatId),
       log: (message) => this.log(message),
     }

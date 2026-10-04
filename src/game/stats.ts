@@ -173,6 +173,58 @@ export function walledCells(game: GameState, maxSize: number): { glyphling: numb
   return [...found.values()]
 }
 
+export interface PincerHunt {
+  /** Who did the squeezing. */
+  holder: number
+  /** The rival glyphling squeezed, and its owner. */
+  glyphling: number
+  seat: number
+  /** Its moves at the start of the hunt's first turn, and after the hunt's last cast. */
+  from: number
+  to: number
+  /** How many of the holder's turns the hunt lasted. */
+  turns: number
+  /** (from − to) / from: the share of its room taken (0 when it had none). */
+  share: number
+  /** Where the hunt's last turn is in the log (the Story chart's star goes there). */
+  lastIndex: number
+}
+
+/**
+ * Pincer hunts (D68), from the log's per-turn `mobility`: a hunt is a run of one player's own turns, in order, where
+ * EVERY turn cut the same rival glyphling's moves (its moves at the start of that turn → after that turn's cast; by
+ * the move, the cast or both). A turn of theirs that doesn't cut it ends the run. What its owner did between those
+ * turns counts honestly: `to` is simply where it ended up. Every hunt is returned, however small (stats decides).
+ */
+export function pincerHunts(game: GameState): PincerHunt[] {
+  const turns = logOf(game).turns
+  const hunts: PincerHunt[] = []
+  for (const holder of new Set(turns.map((x) => x.seat))) {
+    for (const g of game.glyphlings.filter((x) => x.seat !== holder)) {
+      let run: PincerHunt | null = null
+      turns.forEach((turn, i) => {
+        if (turn.seat !== holder) return
+        const before = turn.mobility?.before[g.id]
+        const after = turn.mobility?.afterCast[g.id]
+        const cut = before !== undefined && after !== undefined && after < before
+        if (!cut) {
+          run = null // the run is over (it's already in the list)
+          return
+        }
+        if (!run) {
+          run = { holder, glyphling: g.id, seat: g.seat, from: before, to: after, turns: 0, share: 0, lastIndex: i }
+          hunts.push(run)
+        }
+        run.to = after
+        run.turns += 1
+        run.lastIndex = i
+        run.share = run.from > 0 ? (run.from - run.to) / run.from : 0
+      })
+    }
+  }
+  return hunts
+}
+
 /** Every award earned this game, best moment per player per award, in the carousel's order (awardOrder, then size). */
 export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile): Award[] {
   const log = logOf(game)
@@ -193,16 +245,11 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
     // ── Positioning & blocking ──
     if (m) {
       for (const g of rivalsOf(seat)) {
-        const [from, mid, to] = [m.before[g.id], m.afterMove[g.id], m.afterCast[g.id]]
-        if (from === undefined || mid === undefined || to === undefined) continue
+        const [from, to] = [m.before[g.id], m.afterCast[g.id]]
+        if (from === undefined || to === undefined) continue
         // Lockdown: this turn took a rival glyphling from many moves to almost none
         if (from - to >= t.lockdownMinDrop && to <= t.lockdownMaxAfter) {
           add('lockdown', seat, turn, from - to, { other: g.seat, from, to }, [g.seat])
-        }
-        // Pincer: the move AND the cast each took moves from the same rival glyphling, and together they cut it to
-        // half or less (Muzzy, 2026-10-03: "reduced an opponent's movement options by half") — from real room only
-        if (from >= t.pincerMinFrom && from - mid >= t.pincerMinEach && mid - to >= t.pincerMinEach && to <= from * t.pincerMaxLeft) {
-          add('pincer', seat, turn, from - to, { other: g.seat, from, to }, [g.seat])
         }
       }
       // Close call: one of the mover's glyphlings had 1 move left (the danger cue) at the start of their turn, had
@@ -251,6 +298,16 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
       }
     }
   })
+
+  // Pincer (D68): the biggest SHARE of one rival glyphling's room taken over a hunt — a run of your turns that each cut
+  // it (Muzzy, 2026-10-04: "this proves aggressive play"). Only the share counts, so an early squeeze (lots of room)
+  // no longer beats a late one. Best hunt wins: the bigger share, then the bigger starting room, then the later turn.
+  for (const hunt of pincerHunts(game)) {
+    if (hunt.from < t.pincerMinFrom || hunt.share < t.pincerMinShare) continue
+    const last = turns[hunt.lastIndex]
+    const values = { other: hunt.seat, from: hunt.from, to: hunt.to, turns: hunt.turns, pct: Math.round(hunt.share * 100) }
+    add('pincer', hunt.holder, last, hunt.share * 1e9 + hunt.from * 1000 + last.turnNo, values, [hunt.seat])
+  }
 
   // Walled garden: a glyphling walled into a small garden no rival glyphling can reach (whoever built the wall) —
   // then the Magic its owner made in there, from the turn the garden was walledMaxSize hexes or fewer (Muzzy: "it got

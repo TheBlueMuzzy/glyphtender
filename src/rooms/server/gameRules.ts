@@ -32,8 +32,15 @@ export interface RoomTools<State, Event> {
   update(change: (state: State) => State): void
   /** Tell one seat something (e.g. an animation cue). Sent before the views of the same change. */
   sendEvent(seatId: string, event: Event): void
-  /** Tell every connected player something (except one seat, if given). */
+  /** Tell every connected player something (except one seat, if given). Only for things EVERY player may know —
+   *  for anything secret from some seats use sendEventPerSeat. */
   broadcastEvent(event: Event, exceptSeatId?: string): void
+  /**
+   * Per-seat events: for each connected seat, `eventFor(seat, seatIndex)` returns that seat's event — or null to send
+   * it nothing. Use it whenever an event is secret from some players (e.g. "you drew E" to one seat, "Ada drew 1" to
+   * the others) — the secret never reaches a seat that may not see it. Sent before the views of the same change.
+   */
+  sendEventPerSeat(eventFor: (seat: Seat, seatIndex: number) => Event | null): void
   /** The server just played a turn for an idle player. After settings.missedTurnsBeforeBot in a row, a bot takes the seat. */
   missedTurn(seatId: string): void
   /** A line in the server log (npm run party:dev shows it), marked with the room code. */

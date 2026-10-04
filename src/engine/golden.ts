@@ -1,0 +1,157 @@
+// GOLDEN GAMES — the proof that a rebuild "plays the same" (F29).
+// A golden game is a seeded sim game written down: its seed, every action, and a fingerprint of the game after each
+// action. Replaying the actions through today's engine must give the same fingerprints, move for move.
+//
+// The fingerprint is taken from goldenView(), a hand-picked list of everything about the game that a player could
+// ever notice (positions, hands, bag order, Magic, whose turn, the log the end screen reads…) — not from however the
+// code happens to store it. When a rebuild reshapes GameState, update goldenView() to build the SAME view from the
+// new shape; if the fingerprints still match, nothing a player can see has changed.
+// Recorded and checked by scripts/golden.mjs (npm run golden:record / npm run check:golden); a sample runs in npm test.
+import { hexKey } from './hex'
+import { glyphtenderRules } from './rules'
+import { greedyAction, randomAction, type PlayerStyle } from './sim'
+import { indexOfPiece } from '../table/zones'
+import type { Action, GameState, WordList } from './types'
+
+/**
+ * How a golden file writes an action: a seed by its POSITION in the hand (0 = first), not its id — the games were
+ * recorded before seeds had ids (F33), and the files never need re-recording: replay turns each position back into
+ * the id of the seed at that position (fromRecorded), and recording writes positions too (toRecorded).
+ */
+export type RecordedAction =
+  | Extract<Action, { type: 'draft' }>
+  | (Omit<Extract<Action, { type: 'turn' }>, 'seed'> & { seed: number | null })
+  | { type: 'refresh'; setAside: number[] }
+
+/** A real action → how a golden file writes it (seed ids → hand positions), read from the game before the action. */
+export function toRecorded(before: GameState, action: Action): RecordedAction {
+  const hand = before.hands[before.current]
+  if (action.type === 'turn') return { ...action, seed: action.seed === null ? null : indexOfPiece(hand, action.seed) }
+  if (action.type === 'refresh') return { type: 'refresh', setAside: action.setAside.map((id) => indexOfPiece(hand, id)) }
+  return action
+}
+
+/** A golden file's action → a real action: each hand position becomes the id of the seed at that position now. */
+export function fromRecorded(before: GameState, recorded: RecordedAction): Action {
+  const hand = before.hands[before.current]
+  const idAt = (i: number) => hand[i]?.id ?? `no seed at position ${i}` // a missing seed is refused by the rules
+  if (recorded.type === 'turn') return { ...recorded, seed: recorded.seed === null ? null : idAt(recorded.seed) }
+  if (recorded.type === 'refresh') return { type: 'refresh', setAside: recorded.setAside.map(idAt) }
+  return recorded
+}
+
+/** One action and the fingerprint of the game straight after it. */
+export interface GoldenStep {
+  action: RecordedAction
+  /** For a turn that casts: the letter cast. For a refresh: the letters set aside. (So a later rebuild that names
+   *  seeds by id instead of hand position can still translate the action.) */
+  letters?: string[]
+  print: string
+}
+
+export interface GoldenGame {
+  players: number
+  boardName: string
+  seed: number
+  player: PlayerStyle
+  /** Fingerprint of the game before any action (the shuffled bag, the empty board). */
+  start: string
+  steps: GoldenStep[]
+}
+
+/** Everything a player could notice about the game, in a fixed order. Sorted where the engine's order means nothing.
+ *  Seeds are fingerprinted by LETTER only: a seed's id is how the code names it, not something a player sees. */
+export function goldenView(s: GameState) {
+  return {
+    players: s.config.players,
+    board: s.config.boardName,
+    rules: s.config.rules,
+    phase: s.phase,
+    current: s.current,
+    draft: [s.draftOrder, s.draftIndex],
+    glyphlings: s.glyphlings.map((g) => [g.id, g.seat, hexKey(g.hex)]),
+    seeds: Object.keys(s.seeds)
+      .sort()
+      .map((k) => [k, s.seeds[k].letter, s.seeds[k].seat]),
+    hands: s.hands.map((hand) => hand.map((seed) => seed.letter)),
+    bag: s.bag.map((seed) => seed.letter),
+    magic: s.magic,
+    tangled: [...s.tangled].sort((a, b) => a - b),
+    lastTurn: s.lastTurn,
+    tangleMagic: s.tangleMagic,
+    winners: s.winners,
+    turnCount: s.turnCount,
+    rng: s.rng,
+    log: s.log ?? null,
+  }
+}
+
+/** A short fingerprint (16 hex characters) of goldenView — two 32-bit FNV-1a hashes of its JSON. */
+export function fingerprint(s: GameState): string {
+  return hashText(JSON.stringify(goldenView(s)))
+}
+
+export function hashText(text: string): string {
+  let a = 0x811c9dc5
+  let b = 0x01000193 ^ 0x5bd1e995
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i)
+    a = Math.imul(a ^ c, 0x01000193)
+    b = Math.imul(b ^ c, 0x5bd1e995) ^ (b >>> 15)
+  }
+  return (a >>> 0).toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0')
+}
+
+/** The letters an action uses (see GoldenStep.letters), read from the game before the action. */
+function lettersOf(before: GameState, action: Action): string[] | undefined {
+  const hand = before.hands[before.current]
+  const letterOf = (id: string) => hand[indexOfPiece(hand, id)].letter
+  if (action.type === 'turn' && action.seed !== null) return [letterOf(action.seed)]
+  if (action.type === 'refresh') return action.setAside.map(letterOf)
+  return undefined
+}
+
+/** Plays one seeded sim game (the same players as npm run sim) and writes it down. */
+export function recordGame(players: number, boardName: string, seed: number, player: PlayerStyle, words: WordList): GoldenGame {
+  const rules = glyphtenderRules(words)
+  let state = rules.setup({ players, boardName, seed })
+  let rng = seed ^ 0x5eed
+  const game: GoldenGame = { players, boardName, seed, player, start: fingerprint(state), steps: [] }
+  while (state.phase !== 'over') {
+    if (game.steps.length > 2000) throw new Error(`Golden game never ended (${players}p ${boardName} seed ${seed})`)
+    const picked = player === 'greedy' ? greedyAction(state, rng, words) : randomAction(state, rng)
+    rng = picked.rng
+    const letters = lettersOf(state, picked.action)
+    const recorded = toRecorded(state, picked.action)
+    state = rules.apply(state, state.current, picked.action).state // normal mode: the log is part of the fingerprint
+    game.steps.push({ action: recorded, ...(letters ? { letters } : {}), print: fingerprint(state) })
+  }
+  return game
+}
+
+/** What went wrong replaying a golden game, in plain English — or null if it matched move for move. */
+export function replayGame(game: GoldenGame, words: WordList): string | null {
+  const name = `${game.players}p ${game.boardName} ${game.player} seed ${game.seed}`
+  const rules = glyphtenderRules(words)
+  let state = rules.setup({ players: game.players, boardName: game.boardName, seed: game.seed })
+  if (fingerprint(state) !== game.start) return `${name}: the game is different before the first move (setup / bag shuffle changed)`
+  for (let i = 0; i < game.steps.length; i++) {
+    const step = game.steps[i]
+    try {
+      state = rules.apply(state, state.current, fromRecorded(state, step.action)).state
+    } catch (e) {
+      return `${name}: move ${i + 1} (${describe(step)}) is no longer allowed — ${(e as Error).message}`
+    }
+    if (fingerprint(state) !== step.print) return `${name}: move ${i + 1} (${describe(step)}) leaves the game different`
+  }
+  if (state.phase !== 'over') return `${name}: the game no longer ends after its last move`
+  return null
+}
+
+function describe(step: GoldenStep): string {
+  const a = step.action
+  if (a.type === 'draft') return `draft at ${hexKey(a.hex)}`
+  if (a.type === 'refresh') return `refresh, setting aside ${step.letters?.join('') || 'nothing'}`
+  const cast = a.target ? `, cast ${step.letters?.[0]} at ${hexKey(a.target)}` : ', no cast'
+  return `glyphling ${a.glyphling} to ${hexKey(a.to)}${cast}`
+}

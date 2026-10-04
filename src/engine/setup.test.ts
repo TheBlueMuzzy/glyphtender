@@ -4,7 +4,7 @@ import { legalDraftHexes } from './draft'
 import { getBoard } from './boards'
 import { isEdge, neighbours, sameHex } from './hex'
 import { nextRandom, shuffle } from './rng'
-import { fullBag, newGame, snakeOrder } from './setup'
+import { fullBag, newGame, seedIdGiver } from './setup'
 import { hexAt, wordsOf } from './testkit'
 import type { GameState } from './types'
 
@@ -49,6 +49,36 @@ describe('the bag (GDD §4.3)', () => {
     expect(newGame({ players: 2, seed: 5 }).bag).toEqual(a.bag)
     expect(newGame({ players: 2, seed: 6 }).bag).not.toEqual(a.bag)
   })
+
+  it('every seed has a stable id from the UNSHUFFLED list — and the shuffle is the same as before ids (F33)', () => {
+    const box = fullBag()
+    const game = newGame({ players: 3, seed: 77 })
+    // seed-N is the Nth seed of the box list, whatever its place in the shuffled bag
+    for (const seed of game.bag) expect(seed.letter).toBe(box[Number(seed.id.replace('seed-', ''))])
+    expect(new Set(game.bag.map((s) => s.id)).size).toBe(120)
+    // the same letters in the same order, and the same rng position, as shuffling plain letters
+    const plain = shuffle(77, box)
+    expect(game.bag.map((s) => s.letter)).toEqual(plain.items)
+    expect(game.rng).toBe(plain.rng)
+  })
+})
+
+describe('seedIdGiver (letters from a test or an old save → ids)', () => {
+  it('gives each letter the first unused box id of that letter, and never the same id twice', () => {
+    const giveId = seedIdGiver(['seed-0'])
+    const first = giveId('A')
+    const second = giveId('A')
+    expect(first.letter).toBe('A')
+    expect(first.id).not.toBe('seed-0') // already taken
+    expect(second.id).not.toBe(first.id)
+    expect(fullBag()[Number(first.id.replace('seed-', ''))]).toBe('A')
+  })
+
+  it('a made-up position with more of a letter than the box holds still gets unique ids', () => {
+    const giveId = seedIdGiver()
+    const ids = Array.from({ length: 20 }, () => giveId('Z').id) // the box has far fewer Z's
+    expect(new Set(ids).size).toBe(20)
+  })
 })
 
 describe('new game', () => {
@@ -70,9 +100,10 @@ describe('new game', () => {
 
 describe('snake draft (GDD §4.2)', () => {
   it('uses 1-2-2-1, 1-2-3-3-2-1 and 1-2-3-4-4-3-2-1', () => {
-    expect(snakeOrder(2)).toEqual([0, 1, 1, 0])
-    expect(snakeOrder(3)).toEqual([0, 1, 2, 2, 1, 0])
-    expect(snakeOrder(4)).toEqual([0, 1, 2, 3, 3, 2, 1, 0])
+    const draftOrder = (players: number) => newGame({ players, seed: 1 }).draftOrder
+    expect(draftOrder(2)).toEqual([0, 1, 1, 0])
+    expect(draftOrder(3)).toEqual([0, 1, 2, 2, 1, 0])
+    expect(draftOrder(4)).toEqual([0, 1, 2, 3, 3, 2, 1, 0])
   })
 
   it('follows the snake order, placing 2 glyphlings per seat', () => {

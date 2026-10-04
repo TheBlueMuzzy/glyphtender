@@ -8,11 +8,10 @@
 // Settings / Credits — not gated (the main menu opens them).
 import type { DevKitPreview, PreviewSandbox } from '../devkit/previews/previewTypes'
 import type { WordList } from '../engine/types'
-import { SEAT_COLOURS } from '../engine/types'
 import { wordListUrl } from '../game/art'
 import type { Seat as RoomSeat } from '../rooms/protocol'
 import { useGameStore, type OnlineLink } from '../store/gameStore'
-import type { Seat } from '../store/seats'
+import { onlineSeats } from '../store/seats'
 import text from '../../content/text/en.json'
 import { fill, screens, toast } from '../ui/kit'
 import { closedMessage, useOnline, type Room } from '../ui/online/session'
@@ -75,7 +74,7 @@ function fakeRoom(seats: RoomSeat[], phase: 'lobby' | 'playing', mySeat: number)
 /** An online game on this device (seat 0), with the room beside it; `seats` = the room's seats. */
 function onlineGame(sample: SampleGame, seats: RoomSeat[]) {
   const link: OnlineLink = { mySeat: 0, gameId: 1, version: 1, post: nothing, landed: nothing, resume: nothing }
-  const storeSeats: Seat[] = seats.map((s, i) => ({ kind: i === 0 ? 'local' : 'online', name: s.name, colour: SEAT_COLOURS[i] }))
+  const storeSeats = onlineSeats(seats.map((s) => s.name), 0, seats)
   loadGame(sample)
   useGameStore.setState({ online: link, seats: storeSeats, options: { ...useGameStore.getState().options!, hideSeeds: false } })
   useOnline.setState({ code: 'BAKU', name: ONLINE_NAMES[0], room: fakeRoom(seats, 'playing', 0) })

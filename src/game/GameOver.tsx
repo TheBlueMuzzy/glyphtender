@@ -22,12 +22,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
+import { youOf } from '../store/viewer'
 import { Row, Screen, ScrollArea, Stack, Tabs, Text, fill } from '../ui/kit'
 import { colourOf } from './art'
 import { EndBar } from './EndBar'
 import { AwardRow, EndHighlights } from './EndHighlights'
 import { EndResults } from './EndResults'
 import { EndScorecard } from './EndScorecard'
+import { frozen } from './freeze'
 import { markerCaption, tangleBonusCaption } from './endText'
 import { playerName, winnerTitle } from './prompt'
 import { awardPoint, earnedAwards, scorecards, standings, storyChart, type ChartMarker } from './stats'
@@ -63,7 +65,7 @@ function useMedia(query: string): boolean {
 
 export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const game = useGameStore((s) => s.game)
-  const me = useGameStore((s) => s.online?.mySeat ?? null)
+  const me = useGameStore(youOf) // the "You" badge: online, my seat
   const colours = useGardenTuning()
   const tuning = useEndTuning()
   const wide = useMedia('(min-aspect-ratio: 1/1)') // a phone on its side or a desktop: everyone in one row (a podium)
@@ -196,7 +198,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
             <div role="tabpanel" aria-label={w.tabs[page]} className="game-end-tabpanel" data-page={page}>
               {page === 'results' && (
                 <EndResults title={game.winners.length > 1 ? w.sharedWin : winnerTitle(game)} game={game} ranked={end.ranked} cards={end.cards} highlights={<EndHighlights awards={end.awards} index={awardAt} onIndex={setAwardAt} name={name} big={wide && !short}
-                  autoSeconds={tuning.carouselSeconds} pauseSeconds={tuning.carouselPauseSeconds} />} colours={colours} tuning={tuning} wide={wide} compact={short}
+                  autoSeconds={frozen ? 0 : tuning.carouselSeconds /* ?freeze (dev): held still for screenshots */} pauseSeconds={tuning.carouselPauseSeconds} />} colours={colours} tuning={tuning} wide={wide} compact={short}
                   me={me} name={name} />
               )}
               {page === 'story' && (

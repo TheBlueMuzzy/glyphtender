@@ -140,7 +140,7 @@ try {
             for (const to of legalMoves(game, g.id)) {
               for (const target of legalCasts(game, g.id, to)) {
                 const far = steps(g.hex, to) + steps(to, target)
-                if (far > best) { best = far; pick = { glyphling: g.id, to: key(to), seed: 0, target: key(target) } }
+                if (far > best) { best = far; pick = { glyphling: g.id, to: key(to), seed: game.hands[game.current][0].id, target: key(target) } }
               }
             }
           }
@@ -169,7 +169,7 @@ try {
       await tap(page.locator(`[data-glyph="${turn.glyphling}"]`)) // let go: the cast rings show
 
       // plan-cast: aim the seed (the lighter cast template + the dotted path — no arc)
-      const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf(${turn.seed})`)
+      const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf('${turn.seed}')`)
       await tap(page.locator(`[data-tray-pos="${pos}"]`))
       await tap(page.locator(`[data-option="cast"] circle[data-hex="${turn.target}"]`))
       await shot(`${who}-plan-cast`)

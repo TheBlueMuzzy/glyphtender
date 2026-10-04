@@ -5,7 +5,7 @@
 //   happens somewhere, and it's the same intention somewhere else, we also have it happen there"). Nothing stays on
 //   the board: the chips' "Tangles +N" says where the Magic came from. Colours/sizes: garden.json · timings: anim.json
 //   (revealPopTime, scoreFlyTime) · swell: feel.json seedPop. Reduce motion: no "+3" flies — the totals just step up.
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import text from '../../content/text/en.json'
 import { hexCorners, hexToPixel } from '../engine/hex'
@@ -51,7 +51,9 @@ export function RevealMarks({ game, steps, at, colours, timing }: Props) {
  * One "+3": pops in over its piece (swelling past full size, like a seed's "+2"), waits, then flies on the seed's arc into its owner's
  * total on the reveal chips and vanishes as it lands — exactly as the step ends, when the total takes the +3 and pops.
  * It flies on a layer over the whole game screen (not the board's SVG), because the chips are outside the board — inside
- * the game screen, so a menu opened over the game still covers it.
+ * the game screen, so a menu opened over the game still covers it. The layer is the kit's overlay (the whole window, the
+ * only place besides Screen slots that may float over everything), kept low (z 5) so menus stay on top; the "+3" is
+ * placed on it by its transform, and its colour, outline and size come in as style names (the kit's rules: B022).
  */
 function BonusFlight({ at, seat, label, colours, timing, seconds }: {
   at: { x: number; y: number }; seat: number; label: string; colours: GardenTuning; timing: AnimTuning; seconds: number
@@ -75,7 +77,10 @@ function BonusFlight({ at, seat, label, colours, timing, seconds }: {
     const swell = 1 + juiceFor('seedPop').grow
     const at = (s: number) => Math.min(1, Math.max(0, s / seconds))
     const fly = seconds - timing.scoreFlyTime
-    const move = (x: number, y: number, scale: number) => `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`
+    // (it starts at the window's top-left corner: first to its piece — on the browser's 1/64-pixel layout grid, exactly
+    // where a positioned "+3" used to land — then centred on it, then on its way)
+    const grid = (v: number) => Math.floor(v * 64) / 64
+    const move = (x: number, y: number, scale: number) => `translate(${grid(spot.x)}px, ${grid(spot.y)}px) translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale})`
     const a = el.animate([
       { transform: move(0, 0, 0.2), opacity: 0, offset: 0, easing: 'ease-out' },
       { transform: move(0, 0, swell), opacity: 1, offset: at(timing.revealPopTime * 0.6) },
@@ -89,10 +94,12 @@ function BonusFlight({ at, seat, label, colours, timing, seconds }: {
     <>
       <circle ref={anchor} cx={at.x} cy={at.y} r={0} />
       {spot && createPortal(
-        <span ref={pop} data-reveal-pop className="game-reveal-flight" aria-hidden="true"
-          style={{ left: spot.x, top: spot.y, fontSize: spot.size, color: colours.revealPop, ['--pop-outline' as string]: colours.background }}>
-          {label}
-        </span>,
+        <div className="kit-overlay" aria-hidden="true" style={{ '--kit-overlay-z': 5 } as CSSProperties}>
+          <span ref={pop} data-reveal-pop className="game-reveal-flight"
+            style={{ '--primary': colours.revealPop, '--on-primary': colours.background, '--text-display': `${spot.size}px` } as CSSProperties}>
+            {label}
+          </span>
+        </div>,
         spot.layer,
       )}
     </>

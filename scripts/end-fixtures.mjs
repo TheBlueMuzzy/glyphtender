@@ -37,7 +37,7 @@ try {
       game: 'Glyphtender',
       version: `${version.version}.${version.build}`,
       summary: `turn ${game.turnCount} · over · winner ${winners} · ${game.magic.join(' / ')} Magic`,
-      state: { game, trayOrder: game.hands.map((h) => h.map((_, i) => i)) },
+      state: { game, trayOrder: game.hands.map((h) => h.map((seed) => seed.id)) },
     }
     writeFileSync(`e2e/fixtures/${file}.json`, JSON.stringify(snapshot, null, 2) + '\n')
     console.log(`${file}: seed ${game.config.seed}, ${game.turnCount} turns, Magic ${game.magic.join('/')}, awards ${earnedAwards(game).map((a) => a.id).join(', ')}`)

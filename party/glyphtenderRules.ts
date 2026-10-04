@@ -1,16 +1,17 @@
 // GLYPHTENDER'S RULES ON THE SERVER — the plug-in the rooms module runs (src/rooms/server/gameRules.ts).
 // It never re-writes a rule: it runs the SAME engine as the phones (src/engine — golden rule).
 // The server makes the game with its own random seed and keeps the bag, the rng and every hand;
-// players only send intentions ("move glyphling 2 there, cast seed 4 here"), which are checked here:
-// the right shape → the right player → planned on the latest version → legal (checkAction) → applyAction.
+// players only send intentions ("move glyphling 2 there, cast seed-31 here"), which are checked here:
+// the right shape → the right player → planned on the latest version → legal (the rules' check) → the rules' apply
+// (src/engine/rules.ts — the one door; serverGame.ts play also writes each move into the game's move record).
 // Design: .planning/design/online.md.
 import roomsJson from '../content/rooms.json'
 import { boardNames, defaultBoardFor } from '../src/engine/boards'
-import { checkAction, newGame } from '../src/engine/engine'
-import { shuffle } from '../src/engine/rng'
+import { flowOf, glyphtenderRules, type GameSetup } from '../src/engine/rules'
+import { mayAct } from '../src/table/flow'
 import type { Action, WordList } from '../src/engine/types'
 import { emptyStats } from '../src/store/stats'
-import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
+import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
 import type { GameRules } from '../src/rooms/server/gameRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
 import { afterSeatChange, planNextTurn } from './turnClock'
@@ -25,8 +26,15 @@ export interface RulesSetup {
   randomSeed?: () => number
 }
 
-// Hexes, glyphling ids and hand slots are small whole numbers; anything bigger is junk.
+// Hexes and glyphling ids are small whole numbers; anything bigger is junk.
 const BIG = 64
+/** A seed is named by its id (F33): "seed-0" … "seed-119" — text, never a hand position. Anything else is junk;
+ *  a well-formed id that isn't in your hand is refused by the rules ("That seed is not in your hand"). */
+const seedIdOf = (raw: unknown) => {
+  const id = mustBeText(raw, 16, 'seed')
+  if (!/^seed-\d{1,4}$/.test(id)) throw new Error('seed must be a seed id like "seed-12"')
+  return id
+}
 const hexOf = (raw: unknown, what: string) => {
   const hex = mustBeObject(raw, what)
   return { q: mustBeWholeNumber(hex.q, -BIG, BIG, `${what}.q`), r: mustBeWholeNumber(hex.r, -BIG, BIG, `${what}.r`) }
@@ -38,14 +46,13 @@ function engineActionOf(raw: unknown): Action {
   const type = mustBeOneOf(action.type, ['draft', 'turn', 'refresh'], 'action type')
   if (type === 'draft') return { type, hex: hexOf(action.hex, 'hex') }
   if (type === 'refresh') {
-    const slot = (item: unknown) => mustBeWholeNumber(item, 0, BIG, 'seed')
-    return { type, setAside: mustBeListWithoutRepeats(action.setAside, BIG, slot, 'setAside') }
+    return { type, setAside: mustBeListWithoutRepeats(action.setAside, BIG, seedIdOf, 'setAside') }
   }
   return {
     type,
     glyphling: mustBeWholeNumber(action.glyphling, 0, BIG, 'glyphling'),
     to: hexOf(action.to, 'to'),
-    seed: nullOr(action.seed, (seed) => mustBeWholeNumber(seed, 0, BIG, 'seed')),
+    seed: nullOr(action.seed, seedIdOf),
     target: nullOr(action.target, (target) => hexOf(target, 'target')),
   }
 }
@@ -79,17 +86,20 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
     onStart(options, seats, room) {
       const players = seats.length
       const seed = seedMaker()
-      const made = newGame({
-        players, seed,
-        boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
-        rules: { minWordLength: options.minWordLength },
-      })
       // The engine's bag comes from ONE seed (2^31 choices): a PC can try them all against its own dealt hand
       // (~30 min on one core) and rebuild every hand and the whole bag. So online the bag is shuffled again with
       // a second secret number, and the rng (where set-aside seeds go back) gets a third — nothing to rebuild.
-      const game = { ...made, bag: shuffle(seedMaker(), made.bag).items, rng: seedMaker() }
+      // All three are part of the setup, so the move record replays the game exactly (they never leave the server).
+      const setup: GameSetup = {
+        players, seed,
+        boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
+        rules: { minWordLength: options.minWordLength },
+        bagSeed: seedMaker(),
+        rngSeed: seedMaker(),
+      }
+      const game = glyphtenderRules(words()).setup(setup)
       const state: ServerGame = {
-        game, gameId: seedMaker(), version: 0,
+        game, gameId: seedMaker(), version: 0, record: { setup, moves: [] }, feed: [], lastOwnAction: seats.map(() => 0),
         seatIds: seats.map((s) => s.id), names: seats.map((s) => s.name),
         options, change: 'start', by: null,
         stats: emptyStats(players), turnEndsAt: null, botRng: seed ^ 0x5eed,
@@ -103,11 +113,15 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       const mine = state.seatIds.indexOf(seat.id)
       if (mine < 0) throw new Error('You aren’t playing in this game.')
       if (state.game.phase === 'over') throw new Error('The game is over.')
-      if (state.game.current !== mine) throw new Error('It’s not your turn.')
+      if (!mayAct(flowOf(state.game), mine)) throw new Error('It’s not your turn.') // (the rules' turn flow)
       if (message.version !== state.version) throw new Error('The game moved on — try again.')
-      const problem = checkAction(state.game, message.action)
+      const problem = glyphtenderRules(words()).check(state.game, mine, message.action)
       if (problem) throw new Error(problem)
-      return planNextTurn(play(state, mine, message.action, words()), room, words)
+      const next = play(state, mine, message.action, words())
+      // (remember which change this seat's own action made — its view tells its screen the move got through, B021)
+      // (a room started before B021 has no lastOwnAction yet: everyone starts at 0)
+      const lastOwnAction = (next.lastOwnAction ?? next.game.hands.map(() => 0)).map((change, seat) => (seat === mine ? next.version : change))
+      return planNextTurn({ ...next, lastOwnAction }, room, words)
     },
 
     viewFor: (state, seat) => viewOf(state, seat.id),

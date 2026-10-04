@@ -3,6 +3,8 @@
 //   player → server: an OnlineAction      server → player: a GameView (only what that player may see)
 // No React, no browser code here — the server imports it.
 import type { Action, GameState } from '../src/engine/types'
+import type { GameEvent } from '../src/engine/rules'
+import type { Feed } from '../src/table/events'
 import type { PlayerStats } from '../src/store/stats'
 
 /** The host's new-game options (the same as the new-game screen, minus "hide seeds" — each player has their own device). */
@@ -45,6 +47,13 @@ export interface GameView {
   by: number | null
   /** The game: your own hand; other hands and the bag as '?' × count; rng, seed and Magic zeroed — until game over. */
   game: GameState
+  /** What happened lately: the last few changes (numbered by the version each one made), with only the events this
+   *  player may see. The screen plays the ones it hasn't played yet (onlinePlay.ts) — so a view that was skipped
+   *  (several came at once) or a reconnect loses nothing. */
+  feed: Feed<GameEvent>
+  /** The change number my OWN last action made (0 = none yet) — a turn the server played for me doesn't count. If it's
+   *  newer than the version I sent my move on, the server applied my move (B021). Only my own number, never anyone else's. */
+  myLastAction: number
   /** The host's table options for this game (nothing secret — every player's screen follows them, e.g. word indicators). */
   options: OnlineOptions
   /** When the current turn's timer runs out (server time, ms), or null when there's no timer. */
@@ -53,5 +62,5 @@ export interface GameView {
   results: Results | null
 }
 
-/** What stands in for a seed nobody may see (another player's hand, the bag). */
-export const HIDDEN = '?'
+/** What stands in for a seed nobody may see (another player's hand, the bag) — decided by the rules (rules.ts). */
+export { HIDDEN } from '../src/engine/rules'

@@ -4,14 +4,16 @@
 // one after another, into the casting glyphling's running total — which ticks up (+2, +4 …) and grows a little with
 // every point (a big turn ends big). After the last word the final total holds, then the total, outline and bubble
 // fade away together — all before the next turn starts (the store's `scoring` waits for it; so do the handoff box and
-// the reveal). Everyone sees it: my cast, pass-and-play, and other players' replays online.
+// the reveal). Everyone sees it: my cast, pass-and-play, and other players' replays online. The turn (who, where, which
+// words in which order) is the rules' events (happened.ts turnOf); each seed's Magic is worked out from the board.
 // Times: wordMarks.scoreSequence (anim.json score…) · keyframes: scoreFrames.ts · sizes/colour: garden.json
 // (scorePop…) · swell: feel.json (seedPop, totalPop). Reduce motion → no pops flying, no bounce: the words step, the
 // total steps up, everything fades. Every frame is the browser's (Web Animations) — no React state per frame.
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import text from '../../content/text/en.json'
 import { hexToPixel } from '../engine/hex'
-import type { TurnSummary, GameState } from '../engine/types'
+import type { GameState } from '../engine/types'
+import type { TurnPlay } from '../store/happened'
 import { scorePops, scoreSequence } from '../store/wordMarks'
 import { fill, reduceMotion } from '../ui/kit'
 import { juiceFor } from './feel'
@@ -22,7 +24,7 @@ import type { AnimTuning, GardenTuning } from './useTuning'
 
 /** pxPerHex: how many screen pixels one hex size is — so the pops never get smaller than scorePopMinPx.
  *  view: the board's SVG box — the total stays inside it, even at its biggest. */
-type Props = { game: GameState; turn: TurnSummary; colours: GardenTuning; timing: AnimTuning; pxPerHex: number; view: Box }
+type Props = { game: GameState; turn: TurnPlay; colours: GardenTuning; timing: AnimTuning; pxPerHex: number; view: Box }
 
 const POP_ABOVE = HEX * 0.75 // a seed's pop sits this far above its hex centre (over the top of its letter)
 const STACK_STEP = HEX * 0.5 // a second pop on the same hex (a seed in two words) sits this much higher

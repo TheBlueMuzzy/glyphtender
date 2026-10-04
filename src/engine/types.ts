@@ -1,6 +1,7 @@
 // The shapes of everything the rules engine works with.
 // A GameState is plain data (no functions, no Maps) so it can be copied, saved, and sent online as JSON.
 import type { Hex } from './hex'
+import type { Piece } from '../table/zones'
 
 /** Seat colours, in turn order. Seat 0 is Yellow, seat 1 Blue, and so on. */
 export const SEAT_COLOURS = ['yellow', 'blue', 'purple', 'pink'] as const
@@ -32,9 +33,15 @@ export interface Glyphling {
   hex: Hex
 }
 
-/** A planted runeblossom seed. `letter` is "A".."Z". */
-export interface PlantedSeed {
+/** One seed (a framework piece, src/table/zones.ts): a stable id from setup to the end, and its letter "A".."Z".
+ *  Ids follow the UNSHUFFLED bag list (setup.ts fullBag → "seed-0".."seed-119"), so an id never hints at the draw order.
+ *  The screen, the server and replays name a seed by its id — never by "the 3rd one in the hand". */
+export interface SeedPiece extends Piece {
   letter: string
+}
+
+/** A planted runeblossom seed: it keeps its id, and now has an owner. */
+export interface PlantedSeed extends SeedPiece {
   seat: number
 }
 
@@ -176,10 +183,10 @@ export interface GameState {
   glyphlings: Glyphling[]
   /** Planted seeds by hexKey ("q,r"). */
   seeds: Record<string, PlantedSeed>
-  /** Each seat's seeds in hand. */
-  hands: string[][]
+  /** Each seat's seeds in hand, in the order they arrived (the tray's own order is the store's trayOrder). */
+  hands: SeedPiece[][]
   /** The bag, in draw order: seeds are drawn from the front. */
-  bag: string[]
+  bag: SeedPiece[]
   /** Magic per seat (secret from other players in the UI). */
   magic: number[]
   /** Ids of glyphlings with no legal move, checked when the draft ends and after every turn. */
@@ -207,14 +214,14 @@ export type Action =
       type: 'turn'
       glyphling: number
       to: Hex
-      /** Which seed in hand to cast (index), or null to only move. */
-      seed: number | null
+      /** Which seed in hand to cast (its id), or null to only move. */
+      seed: string | null
       target: Hex | null
     }
   | {
       type: 'refresh'
-      /** Hand indexes of the seeds to set aside (they go back into the bag after refilling). */
-      setAside: number[]
+      /** Ids of the seeds to set aside (they go back into the bag after refilling). */
+      setAside: string[]
     }
 
 /** The official word list: word (upper case) → Zipf score (how common it is). */

@@ -41,7 +41,7 @@ flowchart LR
 
 ## 2b. Game-specific systems
 **Coordinates** — engine uses **axial hex coordinates** (q, r) — the standard (Red Blob Games) — so leylines are simple steps. Boards are defined in `content/data/boards.json` as column heights (`[4,7,8,9,10,9,10,9,8,7,4]`) like Muzzy's paper notation, converted at load. Designer notation `C4-3` shown in Dev Kit / bug reports.
-**Rules engine files** (`src/engine/`, built in sprint 02) — `types.ts` (GameState is plain JSON-able data: phase draft/play/refresh/over, current seat, snake order, glyphlings `{id, seat, hex}` with id = seat×2+0/1, seeds by hexKey, hands, bag (draw from the front), Magic, tangled ids, lastTurn, tangle bonus, winners, rng) · `setup.ts` (bag + snake order) · `draft.ts` · `moves.ts` · `turn.ts` (move + cast + Magic + draw) · `refresh.ts` · `wordFinder.ts` · `words.ts` (list loader) · `tangle.ts` (tangles, end, bonus, winners) · `engine.ts` (the one door: `applyAction`) · `sim.ts` (random/greedy players + invariants; `npm run sim`) · `testkit.ts` (hand-made positions by designer label). Actions: `{type:'draft', hex}` · `{type:'turn', glyphling, to, seed: hand index | null, target}` · `{type:'refresh', setAside: hand indexes}`. Illegal actions **throw** an Error with a plain-English reason. Rule numbers are copied from `content/tuning/rules.json` into `state.config.rules` at new game, so replays and online games keep the numbers they started with.
+**Rules engine files** (`src/engine/`, built in sprint 02) — `types.ts` (GameState is plain JSON-able data: phase draft/play/refresh/over, current seat, snake order, glyphlings `{id, seat, hex}` with id = seat×2+0/1, seeds by hexKey, hands, bag (draw from the front), Magic, tangled ids, lastTurn, tangle bonus, winners, rng) · `setup.ts` (bag + snake order) · `draft.ts` · `moves.ts` · `turn.ts` (move + cast + Magic + draw) · `refresh.ts` · `wordFinder.ts` · `words.ts` (list loader) · `tangle.ts` (tangles, end, bonus, winners) · `engine.ts` (`applyAction`) · `rules.ts` (THE one door since F30/D61: the framework Table contract — setup, legalActions, check, apply → state + events, fast mode, viewFor; every caller goes through it) · `sim.ts` (random/greedy players + invariants; `npm run sim`) · `testkit.ts` (hand-made positions by designer label). Actions: `{type:'draft', hex}` · `{type:'turn', glyphling, to, seed: hand index | null, target}` · `{type:'refresh', setAside: hand indexes}`. Illegal actions **throw** an Error with a plain-English reason. Rule numbers are copied from `content/tuning/rules.json` into `state.config.rules` at new game, so replays and online games keep the numbers they started with.
 **Words** — per leyline, collect the run of letters through the new seed; check every sub-run of ≥ min length containing the new seed; keep valid words; drop any word covered by the union of the other kept words on that line (GARDENING/DEN, SEAL+LEAP/ALE). Tested against every example in the digest.
 **Piece states + the throw** (from the F01 prototype) — every piece shows one of: options (the current player's colour — move = filled hex + dot, cast = dashed ring + hollow dot; D51) · held (solid ring, player colour) · planned (pulsing halo at the hex edge, player colour; targeted seed faded) · done. The halo sits *outside* the art's own coloured frame. Cast plays: glyphling hop → seed flies a bezier arc (time = `flightBase` + `flightPerHex` × distance) → runeblossom sprouts with overshoot; the game state commits on landing; input is locked in flight. Frames mutate SVG attributes directly (no React state per frame): the flight is a requestAnimationFrame loop on a ref, the hop / sprout / grown-word glow use the Web Animations API, the planned halo pulses with an SVG `<animate>`. After landing the words that grew score one at a time and fade (the score sequence, D52). Reduce motion → no flight, the turn commits at once. **Move glide** (F15, `glide.ts` + `useGlide.ts`): whenever a glyphling is drawn on a different hex than last render it slides there (Web Animations on its `[data-glide]` group, ease-in-out + a tiny `moveSettle` bounce; time = `moveBase` + `movePerHex` × hexes) — it only knows "was on A, now on B", so a planned move, Undo / the ghost, the dev hook and (online) other players' committed moves all glide the same way; a new change mid-glide starts from where it is on screen; it never locks input; reduce motion = instant. Numbers: `content/tuning/anim.json`, colours: `garden.json`.
 **Feel pass** (sprint 06, GDD §4 "Muzzy's feel notes") —
@@ -92,7 +92,7 @@ flowchart LR
 |---|---|---|
 | `content/data/boards.json` | board shapes (column heights), default board per player count | Obsidian |
 | `content/data/bag.json` | seed counts per letter (a plain `Q` since D47) | Obsidian / Dev Kit → Tuning |
-| `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer from ≥ 8, ≥ 3 each, ≤ half left, weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
+| `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer: a hunt over your turns took ≥ 75% of a ≥ 8-move glyphling's room (D68), weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
 | `content/tuning/rules.json` | hand size 8, min word 2, tangle bonus 3, tangles to end 2, ownership bonus 1 | Dev Kit → Tuning |
 | `content/tuning/layout.json` | stacked/side threshold, tray seed minimum (44) + gap, side panel share, board margin, drag lift + drag start distance | Dev Kit → Tuning |
 | `content/tuning/anim.json` | move glide (moveBase, movePerHex, moveSettle), turn trails (trailLead 0.5, trailHold 0.35), throw (flight, arc, hop), sprout, halo pulse (pulseTime — planned pieces only), handoff/reveal wait after a landing (wordGlowTime 1.4); word spotlight (spotlightHold 0.8, spotlightFade 0.12); reveal timings (revealTangles, tangleBlinkTime — split from pulseTime 2026-10-03, revealBonus, revealCount, revealWinner, revealPopTime); sprint 06: score sequence (scorePopDelay, scoreWordTime, scorePopGap, scorePopTime, scorePopHold, scoreFlyTime, scoreTotalHold, scoreTotalFade, scoreTotalGrow, scoreTotalMaxGrow — D52), turnPulseTime, noShakeTime | Dev Kit → Tuning |
@@ -109,6 +109,7 @@ flowchart LR
 - **Naming:** game words in code match the GDD: `glyphling`, `seed`, `cast`, `magic`, `tangled`, `leyline`. Files `PascalCase.tsx` for components, `camelCase.ts` for logic; JSON keys camelCase.
 - **Readable code:** plain names, small files (< ~300 lines), a one-line comment on anything non-obvious. No clever tricks.
 - **Tests:** vitest for the engine (every rule, every original bug as a guard) and store; e2e (Playwright, bundled Chromium only) for a scripted full game at 390×844, 844×390, 1440×900. Feel is judged by Muzzy, not tests.
+- **Safety net (F29, v0.6):** `npm run check:golden` (300 golden games replay move for move, ~6 s; a 24-game sample runs in `npm test`) and `npm run check:shots` (24 screens × 8 sizes vs `e2e/shots-before/`, ~3.5 min, port 5250, diffs in `e2e-shots/shots-diff/`) must both say SAME — each writes a results page Claude links for Muzzy (dev server: `/e2e-shots/report.html`, `/e2e-shots/golden.html`) after every rebuild slice. Re-record (`npm run golden:record` / `npm run shots:record`) only when a change is MEANT to play / look different (D60).
 - **Same build everywhere:** CI runs `npm test` + `npm run build` (type check included) before deploying.
 - **Branches:** one work branch per delivery (`dev/<milestone>`), merged by /deliver. Tiny fixes on main.
 - **Prototypes** live in `sketches/`, reachable at `/glyphtender/sketches/<name>`; their code is not reused unless it's clean — the learnings go into the GDD/TDD.
@@ -140,6 +141,122 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D68 · 2026-10-04 · Pincer = the biggest share of one rival glyphling's room taken over a run of your turns (Muzzy)
+  Why: D57 ranked by the biggest raw cut in moves, so early pincers (glyphlings with lots of room) always won. Muzzy:
+  "% accumulated on one glyphling — 'Over 3 turns you squeezed Blue's glyphling from 14 moves to 2 (86%)' — this proves
+  aggressive play". How many pincers doesn't matter, only the share taken; there's no tangle link, so self-tangles can't
+  game it. Rule (stats.ts pincerHunts): a HUNT = a run of the holder's own turns in order, each cutting the same rival
+  glyphling (its moves at the start of the holder's turn → after their cast; move, cast or both); a holder turn that
+  doesn't cut it ends the run. from = its moves at the run's start, to = after the run's last cast (the owner's escapes
+  in between count honestly). Earned when from ≥ pincerMinFrom (8) and (from − to) / from ≥ pincerMinShare (new, 0.75);
+  pincerMinEach / pincerMaxLeft removed. Best = the bigger share, then the bigger from, then the later turn; the Story
+  star marks the run's LAST turn. Captions (en.json reason / reasonOne): "Over {turns} turns you squeezed {other}'s
+  glyphling from {from} moves to {to} ({pct}%)" / "In one turn you squeezed…". Mindless sims (npm run sim:awards,
+  2,400 games): 0.75 → random 30.3% / greedy 30.1% (2p 13–16%, 3p 25–36%, 4p 45–51%); 0.8 → 18% / 21%; 0.5 → ~82%.
+  0.75 keeps Muzzy's real game's Pincer (a 2-turn hunt 12 → 3 = 75%).
+D67 · 2026-10-04 · One seat model; every seat sees only what it may; bots see only their view (F36, built overnight)
+  Table 0.6.0 seats.ts + rooms 0.2.0 (sendEventPerSeat — unused by Glyphtender: events ride in views, D64). The game's
+  Seat = TableSeat (kind human | bot · where local | online · connected) + name + colour; localSeats (all people here),
+  onlineSeats (mine = person here; others person / bot online, connected from the room message — B015 badges still read
+  the room message). One viewer seat: src/store/viewer.ts viewerOf = Table viewerSeat (online: mine; pass-and-play: the
+  person whose turn it is, switching only when "Show my seeds" is tapped; during a bot's turn the last person) — SeedTray
+  and the end table's "You" use it; the prompt / Handoff box keep handoff.seat (the person the device goes TO).
+  Bots: src/engine/bot.ts greedyBot(words) = a Table Bot fed ONLY viewFor(game, seat); party/turnClock autoPlay uses it.
+  Proven: on all 300 golden games (23,407 positions) the bot picks the same action + rng from the view as from the full
+  state (a sample runs in npm test). Local bot seats exist for tests / Dev Kit only (startGame({ bots }), botPlays,
+  src/store/localBot.ts driveLocalBots; NO menu, NO AI). Leak tests: hidden ORDER (two games differing only in a rival's
+  hand order → byte-identical messages to every other seat), views unchanged when bag / rival hands are shuffled, no
+  room `event` messages, nothing early from a bot-finished game, record / bagSeed / rngSeed / botRng never sent, an undone
+  plan never leaves the device; e2e frame checks extended.
+D66 · 2026-10-04 · The tray IS the framework Hand view, "rack" preset (F35, built overnight)
+  ui-kit 0.3.0 HandView (kit/views: rackLayout = the old trayLayout maths; places with attrs / held / aimed / waiting /
+  staged; renderEmpty + renderPiece = the game's look; hidden; shrink → grow stages + reduce motion) and Table 0.5.0
+  rack.ts (GAP, rackOf, moveInRack, refillRack, placesOf, shuffleRack) replace SeedTray's own drawing maths,
+  trayLayout.ts, turnPlan's moveInOrder / shuffled / inHandOrder and refreshFx's refillInPlace / newSeedSlots /
+  refreshSlots (TRAY_GAP stays as a re-export of GAP). SeedTray 139 → 115 lines: it only decides what each place holds
+  and draws the hex slot, the art and the rings. Pixel-identical on the first try (check:shots 192/192, 0 px).
+D65 · 2026-10-04 · One drag referee; the screen stops re-working the rules (F34, built overnight)
+  Table 0.5.0 referee.ts. src/store/referee.ts = the game's referee (pieces: glyphling / newGlyphling (draft) / seed;
+  targets: hex / tray place): mayAct = isMyTurn && !isBusy (the glow and drop light keep their own gates, D63, passed in)
+  → accepts by kind → live rules. The shake (nope.nopeFor → mayPickUp), the lift (usePieceInput.startDrag), the glow
+  (boardHighlight → targetsFor over every hex), the drop light (dropKind → judge) and the drop (tapHex, moveTraySeed →
+  judge) all ask it — moveTraySeed itself now refuses a reorder before the move (B008, not just the pointer). The 7
+  rule copies are gone: the engine answers mayMoveOnly, movesLeft (danger), movableGlyphlings (pulse), seedMagicOfTurn
+  (score pops, still from the public board online), tanglePieces (reveal) — screenAnswers.test proves each equals the
+  old screen code over sim games. Behaviour edge: while the screen is busy a dragged piece no longer lifts (it used to
+  float and then do nothing) — Ask Muzzy.
+D64 · 2026-10-04 · The screen plays what happened: a numbered event feed (F31, built overnight)
+  Framework Table 0.4.0 events.ts. The server keeps the last 12 changes (ServerGame.feed, addChange per play(), the
+  change number = the view's version — bot / turn-clock moves included); each seat's view carries
+  rules.feedViewFor(feed, game, seat) = feedFor (events by `seen`) + any seed no longer in that seat's hand or on the
+  board blanked to '?' (a set-aside seed back in the bag can't be followed — e2e:online caught it). Online events ride
+  INSIDE views (not room sendEvent): React can batch views and skip some; the feed means nothing is lost — onlinePlay
+  keeps lastPlayed and plays newChanges(view.feed, lastPlayed) one change at a time; rivals' turns replay from
+  moved / cast / scored, my own change is recognised by actor, `missed` (or a new gameId) jumps to the view. Local: the
+  store keeps `happened` {change, events} (src/store/happened.ts: turnOf, actorOf, drawnIds…); finishCast,
+  startScoring, refresh's new places, Board pops, Handoff, Reveal, ScorePops, trails and the Dev Kit adapter read it.
+  Gone: isNewTurn, isOthersTurn, lastTurn diffing, `sent`. Still reads lastTurn: the end-table stats (they need the
+  turn's Magic, which events never carry before gameOver). anim.json timings untouched. The Listeners hub is unused
+  so far (the store reads `happened`).
+D63 · 2026-10-04 · Turns & flow: whose turn is decided once (F32, built overnight)
+  Framework Table 0.3.0 flow.ts (Flow = level + acting seats; snakeOrder; nextClockwise; TurnSteps/undoStep).
+  Engine: draftOrder = snakeOrder(players, 2); endTurn's next seat = nextClockwise(current, players, canMove) (null =
+  nobody can move = game over); rules.flowOf(state) (level from phase, acting [current] or [] when over) drives toAct,
+  check and legalActions; GameState fields unchanged (golden reads them). Screen: ONE answer in src/store/myTurn.ts —
+  isMyTurn (a seat on this device that the flow lets act: pass-and-play every local seat, online only mySeat, bots
+  never), isBusy (flying / waiting / handoff / refreshFx / scoring), canPlayNow; the store's canPlayAt(level) replaced
+  the "canPlay && phase === X" pairs; ActionBar, SeedTray, nope, turnPlan, turnPulse, prompt, onlinePlay.isOthersTurn
+  and the server's "not your turn" ask it. Kept different ON PURPOSE (same screen as before): ActionBar's busy ignores
+  scoring; turnPulse keeps its smaller quiet set; nope returns no shake at 'over' first. Undo: TURN_STEPS = move → cast,
+  undoNow = undoStep(stepsDone) — cast, then move, never past the turn's start (gameStore.undo + both Undo buttons).
+D62 · 2026-10-04 · Seeds have stable ids; nobody names a seed by its place in a hand (F33, built overnight)
+  Framework Table 0.2.0 zones.ts. Ids "seed-0".."seed-119" = stableIds over the UNSHUFFLED fullBag (an id never hints at
+  the draw order); the same shuffle with the same RNG calls now shuffles the pieces (setup test proves the order is
+  identical); planted seeds keep their id. Actions name ids (turn.seed, refresh.setAside); legalActions still offers
+  one seed per letter. Golden files keep hand positions: golden.ts toRecorded / fromRecorded translate (no re-record).
+  Secrecy: the bag and rivals' hands are sent as {id:"?", letter:"?"} per seed (kept the array shape — the framework's
+  hidden() count would make hands a union type all through the client); drew / setAside carry ids only to that seat;
+  e2e:online's frame check flags any hidden id. Tray: trayOrder = seed ids, TRAY_GAP = "gap"; refillInPlace keeps kept
+  seeds by id (fixes B018). Online replay of a rival's cast uses a stand-in piece {id:"replay"}. Server refuses anything
+  but "seed-<n>" (bad_action) and ids not in the sender's hand. migrate.ts gives old saves/snapshots ids (first unused
+  box id per letter: planted → hands → bag; extras "seed-extra-N"); content/snapshots + e2e fixtures stay old-format
+  on purpose to prove it. DEPLOY: server + site together (an old phone's index actions are refused).
+D61 · 2026-10-04 · One rules door: Glyphtender on the framework Table contract (F30)
+  src/engine/rules.ts = glyphtenderRules(words): the Table module's Rules (src/table/core.ts, framework table/ 0.1.0)
+  wrapping the engine — no rule rewrites. Made by a function because apply needs the word list and the contract has no
+  context slot (cheap to make; setupGame / legalActions / checkFor / viewFor also exported on their own).
+  · Setup = NewGameOptions + optional bagSeed / rngSeed, so an ONLINE game's record replays exactly (onStart's secret
+    reshuffle + rng start; it still draws its numbers in the same order).
+  · check: "The game is over." → "It's not your turn." → the engine's checkAction. viewFor = party/views.ts hideSecrets,
+    moved over unchanged (views.ts now calls it).
+  · legalActions: same-letter seeds = one choice (first index); refresh choices deduped by letters. Sizes: draft 16–81,
+    play median 1,624 (max 11,304), refresh ≤ 128 — fine for the beta AI.
+  · Events (worked out from before/after, the engine untouched): everyone — placed, moved, cast, scored (words + hexes,
+    NO Magic), refreshed (count), tangled, turnStarted, gameOver (winners + all Magic); that seat only — drew, setAside
+    (letters); other seats — drewHidden (count). No Magic in any event before gameOver, not even the caster's (views
+    zero it too). Nothing on screen reads events yet (F31).
+  · Fast mode: one `fast` flag applyAction → applyTurn / applyRefresh → endTurn skips logTurn / logEnd (+ insight) and
+    blockedSpot; the game plays the same (self-test + whole-game tests). Only simulateGame uses it (npm run sim 36 s →
+    20 s, identical output); golden games, Dev Kit samples, devHook and the server stay normal (the end screen reads the log).
+  · One door: store send/startGame, devHook jumps, sim, golden, sampleGames, party serverGame.play (+ turnClock bots),
+    glyphtenderRules onStart/onAction. Outside on purpose: loadState / migrateGame / snapshots (jumps, not actions),
+    onlinePlay startReplay hand poke + view swap (F31/F36), read-only checkAction in sendOnline / usePreview,
+    scripts/award-rates.mjs + end-fixtures.mjs, engine unit tests.
+  · The server keeps a MoveRecord (setup incl. the secret numbers + every move) in its own state; server.test proves it
+    replays to the server's exact final game (2/3/4p, bot turns) and that no message to any player ever carries the
+    record, bagSeed or rngSeed.
+D60 · 2026-10-04 · The safety net: golden games fingerprint what players see; before-shots live in the repo (F29)
+  Golden games (golden/, src/engine/golden.ts, scripts/golden.mjs): 300 seeded sim games, 2/3/4p × small/large ×
+  random/greedy × 25 seeds; each step = action (+ the letters it used) + a 16-hex fingerprint of goldenView(state).
+  goldenView is a hand-picked list of what a player can notice (positions, hands, bag order, Magic, turn, lastTurn,
+  log…), not the raw GameState — so F30–F36 may reshape the state: update goldenView to build the same view, and the
+  fingerprints must still match. The letters let F33's stable seed ids translate the old hand-index actions.
+  golden/inputs.json fingerprints the word list, boards and rule VALUES (JSON by value; spacing and _labels ignored):
+  a change there reports "inputs changed — re-record", not a broken rebuild. Before-shots (e2e/shots-before/, 192 PNGs,
+  ~30 MB) are committed so both machines compare against one set; re-recording only adds the files that changed.
+  Exact match (pixelmatch 0.1, 0 pixels). Freezing is dev-only (?freeze, src/game/freeze.ts): a fixed Math.random
+  sequence, no CSS transitions, carousel + reveal held; the script waits for animations to end and pauses SVG <animate>
+  blinks (Playwright's freeze misses them — the one flake found).
 D59 · 2026-10-04 · Rebuild on the framework's Table before AI — plays and looks the same (Muzzy)
   Why: Muzzy: "AI can wait. this is more foundational" — prove the framework's lattice (Muzzy's BlokParty model: zones,
   pieces, states, tags, seats) by rebuilding Glyphtender underneath, since the target experience is already known and
@@ -172,6 +289,7 @@ D56 · 2026-10-03 · Same intention, same motion: the reveal's "+3"s fly into th
   is enough"); ALL points fly on the seed's arc (scoreFrames.flightFrames — in-game "+2"s too: "straight is boring and
   hard to read").
 D57 · 2026-10-03 · Pincer = halve a rival glyphling's moves with your move AND your cast in one turn (Muzzy)
+  REPLACED by D68 (2026-10-04): the biggest share of one glyphling's room over a run of your turns.
   Why: "9 → 5 → 1 moves" wasn't clear to a player. Muzzy: "reduced an opponent's movement options by half… rare-ish,
   ~10–25% of games". Chose: it had ≥ pincerMinFrom 8, the move and the cast each took ≥ 3, ≤ pincerMaxLeft 0.5 left.
   Mindless sim play: ~12% random / ~10% greedy (deliberate squeezes should land in 10–25%). Caption: "Your move and

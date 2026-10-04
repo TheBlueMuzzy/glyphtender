@@ -67,7 +67,7 @@ async function playTurn(p) {
     await p.tap(option('move').nth(Math.floor(Math.random() * count)))
     const pick = await page.evaluate(() => window.__glyphtender.findCast(true) ?? window.__glyphtender.findCast(false))
     if (pick) {
-      const pos = await p.store(`(s) => s.trayOrder[s.online.mySeat].indexOf(${pick.seed})`)
+      const pos = await p.store(`(s) => s.trayOrder[s.online.mySeat].indexOf('${pick.seed}')`)
       await p.tap(page.locator(`[data-tray-pos="${pos}"]`))
       await p.tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     }

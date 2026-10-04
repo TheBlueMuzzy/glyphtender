@@ -1,13 +1,43 @@
 // Tangles: a glyphling with no legal move is tangled. Enough tangles end the game.
 import { getBoard } from './boards'
-import { hexKey, neighbours } from './hex'
+import { hexKey, neighbours, type Hex } from './hex'
 import { emptyLog, logEnd, logOf, logTurn } from './log'
 import { legalMoves, occupancy } from './moves'
+import { nextClockwise } from '../table/flow'
 import type { GameState, LogTangle } from './types'
+
+/** How many legal moves this glyphling has right now (0 = tangled; the danger cues warn at 1). */
+export const movesLeft = (state: GameState, glyphlingId: number): number => legalMoves(state, glyphlingId).length
 
 /** Ids of every glyphling that can't move right now. */
 export function tangledIds(state: GameState): number[] {
-  return state.glyphlings.filter((g) => legalMoves(state, g.id).length === 0).map((g) => g.id)
+  return state.glyphlings.filter((g) => movesLeft(state, g.id) === 0).map((g) => g.id)
+}
+
+/** One rival piece next to a tangled glyphling: it earns its owner (`seat`) `amount` Magic (the tangle bonus). */
+export interface TanglePiece {
+  glyphling: number
+  /** Where the rival piece (a seed or a glyphling) stands. */
+  hex: Hex
+  seat: number
+  amount: number
+}
+
+/** Every rival piece next to each tangled glyphling, one by one (the owner's own pieces earn nothing) — the tangle
+ *  bonus piece by piece. The end's Magic reveal pops each one on its piece. */
+export function tanglePieces(state: GameState, tangled: number[]): TanglePiece[] {
+  const board = getBoard(state.config.boardName)
+  const taken = occupancy(state)
+  const found: TanglePiece[] = []
+  for (const id of tangled) {
+    const g = state.glyphlings.find((x) => x.id === id)
+    if (!g) continue
+    for (const n of neighbours(board, g.hex)) {
+      const who = taken.get(hexKey(n))
+      if (who && who.seat !== g.seat) found.push({ glyphling: id, hex: n, seat: who.seat, amount: state.config.rules.tangleBonus })
+    }
+  }
+  return found
 }
 
 /**
@@ -15,18 +45,14 @@ export function tangledIds(state: GameState): number[] {
  * The owner gets nothing from their own pieces.
  */
 export function tangleDetails(state: GameState, tangled: number[]): LogTangle[] {
-  const board = getBoard(state.config.boardName)
-  const taken = occupancy(state)
+  const pieces = tanglePieces(state, tangled)
   const details: LogTangle[] = []
   for (const id of tangled) {
     const g = state.glyphlings.find((x) => x.id === id)
     if (!g) continue
-    const pieces: number[] = Array(state.config.players).fill(0)
-    for (const n of neighbours(board, g.hex)) {
-      const who = taken.get(hexKey(n))
-      if (who && who.seat !== g.seat) pieces[who.seat] += 1
-    }
-    details.push({ glyphling: id, owner: g.seat, pieces, bonus: pieces.map((p) => p * state.config.rules.tangleBonus) })
+    const count: number[] = Array(state.config.players).fill(0)
+    for (const p of pieces) if (p.glyphling === id) count[p.seat] += 1
+    details.push({ glyphling: id, owner: g.seat, pieces: count, bonus: count.map((p) => p * state.config.rules.tangleBonus) })
   }
   return details
 }
@@ -47,25 +73,24 @@ export function winnersOf(magic: number[]): number[] {
 /**
  * Called when a turn is complete: re-checks every glyphling (one can come untangled), logs the turn (log.ts),
  * then either ends the game or passes play to the next seat. `refreshed` = seeds set aside on a refresh (null = none).
+ * `fast` (bots, sims): no log entry and no log end — the game itself plays exactly the same.
  */
-export function endTurn(state: GameState, refreshed: number | null = null): GameState {
+export function endTurn(state: GameState, refreshed: number | null = null, fast = false): GameState {
   const tangled = tangledIds(state)
   const turnCount = state.turnCount + 1
-  const entry = logTurn(state, tangled, refreshed)
+  const entry = fast ? null : logTurn(state, tangled, refreshed)
   const before = logOf(state)
   const log = entry ? { turns: [...before.turns, entry], end: null } : { ...emptyLog(), ...before }
-  // Also ends if no glyphling at all can move (only possible when tanglesToEnd is set above 2).
-  const nobodyCanMove = tangled.length === state.glyphlings.length
-  if (tangled.length >= state.config.rules.tanglesToEnd || nobodyCanMove) {
+  // Who plays next (the Table's flow): clockwise, skipping any seat whose glyphlings are all tangled — it has no move
+  // to make. Nobody left who can move (only possible when tanglesToEnd is set above 2) also ends the game.
+  const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
+  const next = nextClockwise(state.current, state.config.players, canMove)
+  if (tangled.length >= state.config.rules.tanglesToEnd || next === null) {
     const tangles = tangleDetails(state, tangled)
     const tangleMagic = tangleBonus(state, tangled)
     const magic = state.magic.map((m, seat) => m + tangleMagic[seat])
     const end = entry ? logEnd(state, entry, tangles, tangleMagic, magic) : null
     return { ...state, phase: 'over', tangled, tangleMagic, magic, winners: winnersOf(magic), turnCount, log: { ...log, end }, pendingLog: null }
   }
-  // Pass play on, skipping any seat whose glyphlings are all tangled — it has no move to make.
-  const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
-  let next = (state.current + 1) % state.config.players
-  while (!canMove(next)) next = (next + 1) % state.config.players
   return { ...state, phase: 'play', tangled, current: next, turnCount, log, pendingLog: null }
 }

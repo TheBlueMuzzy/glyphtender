@@ -3,11 +3,13 @@
 //     plays the turn after botTurnDelayMs, so the others can watch it happen
 //   · the host turned the timer on → the turn (incl. its refresh) must be played in time; if not, the server
 //     plays a legal turn for them and the rooms module counts a missed turn (2 in a row → a bot takes the seat)
-// Turns the server plays: the engine's greedy sim player (a real move + cast, never a pass) and "keep all"
-// on a refresh. Beta swaps in a real AI personality here (design/online.md §6).
+// Turns the server plays: the greedy bot (src/engine/bot.ts — a real move + cast, never a pass), deciding from that
+// seat's VIEW only, never the whole game (F36), and "keep all" on a refresh. Beta swaps in a real AI personality
+// there (design/online.md §6).
 import roomsJson from '../content/rooms.json'
 import type { RoomTools, SeatChange } from '../src/rooms/server/gameRules'
-import { greedyAction } from '../src/engine/sim'
+import { greedyBot } from '../src/engine/bot'
+import { viewFor } from '../src/engine/rules'
 import type { WordList } from '../src/engine/types'
 import { play, type ServerGame } from './serverGame'
 
@@ -57,7 +59,7 @@ export function autoPlay(state: ServerGame, room: RoomTools<ServerGame, never>, 
   const seat = state.game.current
   let next = state
   if (next.game.phase !== 'refresh') {
-    const picked = greedyAction(next.game, next.botRng, words())
+    const picked = greedyBot(words())(viewFor(next.game, seat), seat, next.botRng) // (it sees only what that seat may see)
     next = { ...play(next, seat, picked.action, words()), botRng: picked.rng }
   }
   if (next.game.phase === 'refresh' && next.game.current === seat) next = play(next, seat, { type: 'refresh', setAside: [] }, words())

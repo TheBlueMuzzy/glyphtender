@@ -15,7 +15,7 @@ const turn = (extra: Partial<LogTurn>): LogTurn => ({
 
 describe('award words', () => {
   it('never leaves one word alone on the last line: the last two words are held together (no-break space)', () => {
-    expect(awardText(award('pincer', { other: 0, from: 18, to: 7 }), name).reason).toMatch(new RegExp(`to${NB}7$`))
+    expect(awardText(award('pincer', { other: 0, from: 18, to: 7, turns: 2, pct: 61 }), name).reason).toMatch(new RegExp(`to 7${NB}\\(61%\\)$`))
   })
   it('fills in the proof: "Blue’s glyphling: 9 moves → 2"', () => {
     expect(awardText(award('lockdown', { other: 1, from: 9, to: 2 }), name)).toEqual({ title: 'Lockdown', reason: `Blue's glyphling: 9 moves →${NB}2` })

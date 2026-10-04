@@ -44,10 +44,11 @@ describe('the "no" shake', () => {
 
   it('a tray seed tapped or dragged before I’ve moved shakes (B008: no reordering before the move); after the move it’s fine', () => {
     yellowToPlay()
-    expect(nope({ hand: 1 })).toEqual({ kind: 'hand', key: '1' })
+    const e = store().game!.hands[0][1].id // (a seed really in my hand)
+    expect(nope({ hand: e })).toEqual({ kind: 'hand', key: e })
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    expect(nope({ hand: 1 })).toBeNull()
+    expect(nope({ hand: e })).toBeNull()
   })
 
   it('the store shakes the piece: a new "no" each time, even on the same piece', () => {
@@ -62,9 +63,9 @@ describe('the "no" shake', () => {
 
   it('online, not my turn: my own glyphling and tray seeds shake too', () => {
     yellowToPlay()
-    useGameStore.setState({ seats: [{ kind: 'online', name: 'Bo', colour: 'yellow' }, { kind: 'local', name: 'Me', colour: 'blue' }] })
+    useGameStore.setState({ seats: [{ kind: 'human', where: 'online', connected: true, name: 'Bo', colour: 'yellow' }, { kind: 'human', where: 'local', connected: true, name: 'Me', colour: 'blue' }] })
     expect(nope({ glyph: 2 })).toEqual({ kind: 'glyph', key: '2' })
-    expect(nope({ hand: 0 })).toEqual({ kind: 'hand', key: '0' })
+    expect(nope({ hand: 'seed-0' })).toEqual({ kind: 'hand', key: 'seed-0' })
   })
 
   it('quiet moments shake nothing: a seed in the air, the device being passed on, the game over', () => {
