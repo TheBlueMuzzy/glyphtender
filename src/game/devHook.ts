@@ -8,6 +8,7 @@ import { useGameStore } from '../store/gameStore'
 import { castOptions } from '../store/turnPlan'
 import { addTurn } from '../store/stats'
 import { dangers } from '../store/danger'
+import { revealSteps } from '../store/revealPlan'
 import { useOnline } from '../ui/online/session'
 import type { GameState } from '../engine/types'
 
@@ -59,6 +60,12 @@ export function installDevHook() {
         state = applyAction(state, pick.action, words)
       }
       return null
+    },
+    /** How many steps the finished game's Magic reveal has (with ?freeze the reveal waits for the screenshot script,
+     *  which then picks a step with store.setRevealAt — e2e/shots.mjs). */
+    revealStepCount() {
+      const { game } = useGameStore.getState()
+      return game?.phase === 'over' ? revealSteps(game).length : 0
     },
     /** Plays random legal actions until the game is over. */
     playRest(seed = 1) {

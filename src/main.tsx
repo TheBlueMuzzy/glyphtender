@@ -7,6 +7,10 @@ import { applyStyle, applyAccessibility, loadSettings } from './ui/kit'
 import style from '../content/ui/style.json'
 import { settings } from './ui/gameSettings'
 import { startFullscreen } from './ui/fullscreen'
+import { freezeScreen, frozen } from './game/freeze'
+
+// Dev only: ?freeze holds the screen still for the before / after screenshots (src/game/freeze.ts)
+if (frozen) freezeScreen()
 
 applyStyle(style) // content/ui/style.json → the UI kit's look (Cozy, night colours)
 applyAccessibility(loadSettings(settings)) // text size + reduce motion before any screen opens
