@@ -3,6 +3,7 @@ import { getBoard } from './boards'
 import { hexKey, neighbours } from './hex'
 import { emptyLog, logEnd, logOf, logTurn } from './log'
 import { legalMoves, occupancy } from './moves'
+import { nextClockwise } from '../table/flow'
 import type { GameState, LogTangle } from './types'
 
 /** Ids of every glyphling that can't move right now. */
@@ -55,18 +56,16 @@ export function endTurn(state: GameState, refreshed: number | null = null, fast 
   const entry = fast ? null : logTurn(state, tangled, refreshed)
   const before = logOf(state)
   const log = entry ? { turns: [...before.turns, entry], end: null } : { ...emptyLog(), ...before }
-  // Also ends if no glyphling at all can move (only possible when tanglesToEnd is set above 2).
-  const nobodyCanMove = tangled.length === state.glyphlings.length
-  if (tangled.length >= state.config.rules.tanglesToEnd || nobodyCanMove) {
+  // Who plays next (the Table's flow): clockwise, skipping any seat whose glyphlings are all tangled — it has no move
+  // to make. Nobody left who can move (only possible when tanglesToEnd is set above 2) also ends the game.
+  const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
+  const next = nextClockwise(state.current, state.config.players, canMove)
+  if (tangled.length >= state.config.rules.tanglesToEnd || next === null) {
     const tangles = tangleDetails(state, tangled)
     const tangleMagic = tangleBonus(state, tangled)
     const magic = state.magic.map((m, seat) => m + tangleMagic[seat])
     const end = entry ? logEnd(state, entry, tangles, tangleMagic, magic) : null
     return { ...state, phase: 'over', tangled, tangleMagic, magic, winners: winnersOf(magic), turnCount, log: { ...log, end }, pendingLog: null }
   }
-  // Pass play on, skipping any seat whose glyphlings are all tangled — it has no move to make.
-  const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
-  let next = (state.current + 1) % state.config.players
-  while (!canMove(next)) next = (next + 1) % state.config.players
   return { ...state, phase: 'play', tangled, current: next, turnCount, log, pendingLog: null }
 }

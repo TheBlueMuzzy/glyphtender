@@ -5,11 +5,12 @@
 //   setup → a new game (online too: the server's extra secret numbers are part of the setup, so a game replays exactly)
 //   legalActions → every choice a seat has right now (same-letter seeds count once)
 //   check → may this seat do this? (plain English)  ·  apply → the new game + its events
-//   isOver · toAct → who may act now · viewFor → the game with everything secret from that seat taken out
+//   isOver · toAct → who may act now (flowOf: the turn flow) · viewFor → the game with everything secret from that seat taken out
 import { emptyLog } from './log'
 import { applyAction, checkAction, legalCasts, legalDraftHexes, legalMoves, newGame } from './engine'
 import { shuffle } from './rng'
 import type { NewGameOptions } from './setup'
+import { mayAct, type Flow } from '../table/flow'
 import { canSeeInside, indexOfPiece, type ZoneRule } from '../table/zones'
 import type { Action, GameState, SeedPiece, WordList } from './types'
 import type { ApplyOptions, Applied, Audience, Rules, Seat } from '../table/core'
@@ -77,10 +78,22 @@ export function setupGame(setup: GameSetup): GameState {
   }
 }
 
+/** The levels a game moves through (the Table's turn flow): the snake draft → play (each turn may end in its refresh
+ *  step) → over. The engine already keeps this in GameState (phase, current, draftOrder/draftIndex) — the flow is read
+ *  from those, never stored twice. */
+export type GlyphtenderLevel = 'draft' | 'play' | 'refresh' | 'over'
+
+/** Where the game is in its flow, and who may act: the one seat whose turn it is — nobody once it's over.
+ *  THE answer to "whose turn is it / may this seat act": the rules, the server, bots and the screen all ask this. */
+export function flowOf(state: GameState): Flow {
+  const level: GlyphtenderLevel = state.phase
+  return { level, acting: level === 'over' ? [] : [state.current] }
+}
+
 /** Why `seat` may not do `action` now, or null if it may. */
 export function checkFor(state: GameState, seat: Seat, action: Action): string | null {
   if (state.phase === 'over') return 'The game is over.'
-  if (seat !== state.current) return 'It’s not your turn.'
+  if (!mayAct(flowOf(state), seat)) return 'It’s not your turn.'
   return checkAction(state, action)
 }
 
@@ -93,7 +106,7 @@ export function checkFor(state: GameState, seat: Seat, action: Action): string |
  * Two E's in hand are one choice: the first E stands for both.
  */
 export function legalActions(state: GameState, seat: Seat): Action[] {
-  if (state.phase === 'over' || seat !== state.current) return []
+  if (!mayAct(flowOf(state), seat)) return [] // not this seat's turn, or the game is over
   if (state.phase === 'draft') return legalDraftHexes(state).map((hex) => ({ type: 'draft', hex }))
   const hand = state.hands[seat]
   if (state.phase === 'refresh') return setAsideChoices(hand).map((setAside) => ({ type: 'refresh', setAside }))
@@ -226,7 +239,7 @@ export function glyphtenderRules(words: WordList): Rules<GameState, Action, Game
       return { state: next, events: eventsOf(state, seat, action, next) }
     },
     isOver: (state) => state.phase === 'over',
-    toAct: (state) => (state.phase === 'over' ? [] : [state.current]),
+    toAct: (state) => flowOf(state).acting,
     viewFor,
   }
 }

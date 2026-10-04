@@ -6,7 +6,8 @@ import { selfTest } from '../table/selfTest'
 import { goldenView } from './golden'
 import { legalCasts, legalMoves } from './moves'
 import { addMove, eventsFor, replay, type MoveRecord } from '../table/core'
-import { glyphtenderRules, HIDDEN, legalActions, setupGame, viewFor, type GameEvent, type GameSetup } from './rules'
+import { mayAct, type Flow } from '../table/flow'
+import { flowOf, glyphtenderRules, HIDDEN, legalActions, setupGame, viewFor, type GameEvent, type GameSetup } from './rules'
 import { greedyAction, randomAction } from './sim'
 import { byPosition, hexAt, lettersOf, position } from './testkit'
 import { parseWordList } from './words'
@@ -91,6 +92,38 @@ describe('check — the right seat, then the engine', () => {
     expect(rules.isOver(over)).toBe(true)
     expect(rules.toAct(over)).toEqual([])
     expect(legalActions(over, over.current)).toEqual([])
+  })
+})
+
+describe('the turn flow (flowOf) — whose turn it is, read from the game', () => {
+  it('draft: the snake order’s seat acts (1-2-2-1)', () => {
+    let s = rules.setup({ players: 2, seed: 1 })
+    const seen: Flow[] = []
+    while (s.phase === 'draft') {
+      seen.push(flowOf(s))
+      s = rules.apply(s, s.current, legalActions(s, s.current)[0]).state
+    }
+    expect(seen).toEqual([0, 1, 1, 0].map((seat) => ({ level: 'draft', acting: [seat] })))
+  })
+
+  it('play: the current seat acts, and only it', () => {
+    const s = playUntil({ players: 3, seed: 4 }, (g) => g.phase === 'play')
+    expect(flowOf(s)).toEqual({ level: 'play', acting: [s.current] })
+    expect(rules.toAct(s)).toEqual([s.current])
+    expect(mayAct(flowOf(s), s.current)).toBe(true)
+    expect(mayAct(flowOf(s), (s.current + 1) % 3)).toBe(false)
+  })
+
+  it('refresh: the refresh step is the same seat’s, inside its turn', () => {
+    const s = playUntil({ players: 2, seed: 6 }, (g) => g.phase === 'refresh')
+    expect(s.phase).toBe('refresh')
+    expect(flowOf(s)).toEqual({ level: 'refresh', acting: [s.current] })
+  })
+
+  it('over: nobody acts', () => {
+    const over = playUntil({ players: 2, seed: 2 }, () => false)
+    expect(flowOf(over)).toEqual({ level: 'over', acting: [] })
+    expect(mayAct(flowOf(over), over.current)).toBe(false)
   })
 })
 

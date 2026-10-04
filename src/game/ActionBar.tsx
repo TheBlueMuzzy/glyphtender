@@ -8,7 +8,8 @@
 //            results · New game) sits at the bottom, in the very same spot as on the end screen.
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
-import { mayMoveOnly } from '../store/turnPlan'
+import { isMyTurn } from '../store/myTurn'
+import { mayMoveOnly, undoNow } from '../store/turnPlan'
 import { revealSteps } from '../store/revealPlan'
 import { Button, Row, fill } from '../ui/kit'
 import { wordListUrl } from './art'
@@ -57,8 +58,8 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const preview = usePreview()
   const game = s.game!
   if (game.phase === 'draft') return null
-  // Online: another device's turn, or my move is on its way to the server — the buttons wait
-  const notNow = s.waiting || (s.online !== null && s.online.mySeat !== game.current)
+  // Not a turn this device plays (online, another device's turn), or my move is on its way to the server — the buttons wait
+  const notNow = s.waiting || !isMyTurn(s)
 
   if (game.phase === 'refresh') {
     const refreshing = notNow || s.refreshFx !== null // (the refresh playing out on the tray)
@@ -82,12 +83,13 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const moveOnly = !notNow && !s.cast && mayMoveOnly(game, s.move)
   // a seed in the air, the device being passed on, my refresh's new seeds still growing (online), or not my turn online
   const busy = s.flying || s.handoff !== null || s.refreshFx !== null || notNow
+  const nothingToUndo = undoNow(s.move, s.cast) === null // the turn's start: Undo never reaches the turn before
   // The word list couldn't be loaded: a cast can't be scored, so the main button fetches it again
   if (!moveOnly && s.wordsStatus === 'failed') {
     return (
       <Row gap="s" justify="center" className="game-actions">
         <Button size={size} compact={fixed} variant="ghost" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-        <Button size={size} compact={fixed} variant="secondary" disabled={busy || (!s.move && !s.cast)} onClick={s.undo}>{w.undo}</Button>
+        <Button size={size} compact={fixed} variant="secondary" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
         <Button size={size} compact={fixed} onClick={() => s.loadWords(wordListUrl())}>{w.retryWords}</Button>
       </Row>
     )
@@ -97,7 +99,7 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   return (
     <Row gap="s" justify="center" className="game-actions">
       <Button size={size} compact={fixed} variant="ghost" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-      <Button size={size} compact={fixed} variant="secondary" disabled={busy || (!s.move && !s.cast)} onClick={s.undo}>{w.undo}</Button>
+      <Button size={size} compact={fixed} variant="secondary" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
       <Button size={size} compact={fixed} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
     </Row>
   )

@@ -14,6 +14,7 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { hexCorners } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
+import { isMyTurn } from '../store/myTurn'
 import { letterIn, TRAY_GAP } from '../store/turnPlan'
 import { reduceMotion } from '../ui/kit'
 import { colourOf, glyphlingArt, seedArt } from './art'
@@ -57,7 +58,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
       }
     })
   }, [stage, timing])
-  const myTurn = seat === game.current // online, the plan on the board may be another player's replay
+  const myTurn = useGameStore(isMyTurn) // online, the plan on the board may be another player's replay
   const player = colours[colourOf(seat)]
   const { tile, columns, width, height } = layout
   const gap = columns > 1 ? (width - columns * tile) / (columns - 1) : 0

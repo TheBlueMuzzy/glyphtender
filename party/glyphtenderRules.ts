@@ -7,7 +7,8 @@
 // Design: .planning/design/online.md.
 import roomsJson from '../content/rooms.json'
 import { boardNames, defaultBoardFor } from '../src/engine/boards'
-import { glyphtenderRules, type GameSetup } from '../src/engine/rules'
+import { flowOf, glyphtenderRules, type GameSetup } from '../src/engine/rules'
+import { mayAct } from '../src/table/flow'
 import type { Action, WordList } from '../src/engine/types'
 import { emptyStats } from '../src/store/stats'
 import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
@@ -112,7 +113,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       const mine = state.seatIds.indexOf(seat.id)
       if (mine < 0) throw new Error('You aren’t playing in this game.')
       if (state.game.phase === 'over') throw new Error('The game is over.')
-      if (state.game.current !== mine) throw new Error('It’s not your turn.')
+      if (!mayAct(flowOf(state.game), mine)) throw new Error('It’s not your turn.') // (the rules' turn flow)
       if (message.version !== state.version) throw new Error('The game moved on — try again.')
       const problem = glyphtenderRules(words()).check(state.game, mine, message.action)
       if (problem) throw new Error(problem)

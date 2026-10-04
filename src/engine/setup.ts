@@ -3,6 +3,7 @@ import bagJson from '../../content/data/bag.json'
 import { defaultBoardFor, defaultRules, getBoard } from './boards'
 import { emptyLog } from './log'
 import { shuffle } from './rng'
+import { snakeOrder } from '../table/flow'
 import { stableIds } from '../table/zones'
 import type { GameConfig, GameState, RuleNumbers, SeedPiece } from './types'
 
@@ -37,12 +38,6 @@ export function seedIdGiver(alreadyUsed: readonly string[] = []): (letter: strin
   }
 }
 
-/** Snake draft: 1-2-2-1 for 2 players, 1-2-3-3-2-1 for 3, 1-2-3-4-4-3-2-1 for 4 (as seat numbers from 0). */
-export function snakeOrder(players: number): number[] {
-  const forward = Array.from({ length: players }, (_, seat) => seat)
-  return [...forward, ...forward.slice().reverse()]
-}
-
 export interface NewGameOptions {
   players: number
   seed: number
@@ -65,7 +60,7 @@ export function newGame(options: NewGameOptions): GameState {
     config,
     phase: 'draft',
     current: 0,
-    draftOrder: snakeOrder(players),
+    draftOrder: snakeOrder(players, 2), // the Table flow's snake draft: 1-2-2-1, 1-2-3-3-2-1, 1-2-3-4-4-3-2-1
     draftIndex: 0,
     glyphlings: [],
     seeds: {},

@@ -4,7 +4,7 @@ import { legalDraftHexes } from './draft'
 import { getBoard } from './boards'
 import { isEdge, neighbours, sameHex } from './hex'
 import { nextRandom, shuffle } from './rng'
-import { fullBag, newGame, seedIdGiver, snakeOrder } from './setup'
+import { fullBag, newGame, seedIdGiver } from './setup'
 import { hexAt, wordsOf } from './testkit'
 import type { GameState } from './types'
 
@@ -100,9 +100,10 @@ describe('new game', () => {
 
 describe('snake draft (GDD §4.2)', () => {
   it('uses 1-2-2-1, 1-2-3-3-2-1 and 1-2-3-4-4-3-2-1', () => {
-    expect(snakeOrder(2)).toEqual([0, 1, 1, 0])
-    expect(snakeOrder(3)).toEqual([0, 1, 2, 2, 1, 0])
-    expect(snakeOrder(4)).toEqual([0, 1, 2, 3, 3, 2, 1, 0])
+    const draftOrder = (players: number) => newGame({ players, seed: 1 }).draftOrder
+    expect(draftOrder(2)).toEqual([0, 1, 1, 0])
+    expect(draftOrder(3)).toEqual([0, 1, 2, 2, 1, 0])
+    expect(draftOrder(4)).toEqual([0, 1, 2, 3, 3, 2, 1, 0])
   })
 
   it('follows the snake order, placing 2 glyphlings per seat', () => {

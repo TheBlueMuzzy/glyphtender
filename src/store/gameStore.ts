@@ -11,16 +11,17 @@ import animFile from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
 import { reduceMotion } from '../ui/kit/blocks/motion'
 import { checkAction, legalDraftHexes } from '../engine/engine'
-import { glyphtenderRules, setupGame } from '../engine/rules'
+import { flowOf, glyphtenderRules, setupGame, type GlyphtenderLevel } from '../engine/rules'
 import { hexKey, sameHex, type Hex } from '../engine/hex'
 import { migrateGame } from '../engine/migrate'
 import { parseWordList } from '../engine/words'
 import type { Action, GameState, WordList } from '../engine/types'
 import {
   castOptions, hexIn, highlightFor, inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
-  shuffled, turnAction, type PlannedCast, type PlannedMove, type Selection,
+  shuffled, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
-import { isLocalHuman, localSeats, needsHandoff, type Seat } from './seats'
+import { localSeats, needsHandoff, type Seat } from './seats'
+import { canPlayNow } from './myTurn'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
@@ -179,12 +180,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
     return true
   }
 
-  // May the screen touch the game right now? Not while a seed flies, not while the device is being
-  // passed on, not while waiting for the server, not while a refresh plays out, and only when the seat
-  // whose turn it is belongs to a human on this device.
-  const canPlay = () => {
-    const { game, flying, handoff, seats, waiting, refreshFx, scoring } = get()
-    return game !== null && !flying && !waiting && handoff === null && refreshFx === null && scoring === null && isLocalHuman(seats, game.current)
+  // May the screen touch the game right now? Only on a turn this device plays (the rules' turn flow + who's here),
+  // and not in a quiet moment (a seed flying, the device being passed on, waiting for the server, a refresh or a
+  // score playing out) — myTurn.ts, the one answer the whole screen asks.
+  const canPlay = () => canPlayNow(get())
+  // …and is the turn at this step (the flow's level: the draft, the move + cast, or the refresh after it)?
+  const canPlayAt = (level: GlyphtenderLevel) => {
+    const game = get().game
+    return game !== null && canPlay() && flowOf(game).level === level
   }
 
   // The score sequence's own timer: one at a time; leaving or jumping the game stops it
@@ -282,14 +285,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
 
     // Tap a glyphling: hold it (tap again to let go). Tapping the moved one lets you pick a new spot.
     tapGlyphling: (id) => {
-      const { game, selected } = get()
-      if (!canPlay() || game?.phase !== 'play') return
+      const { selected } = get()
+      if (!canPlayAt('play')) return
       if (selected?.kind === 'glyphling' && selected.id === id) return set({ selected: null })
       get().grabGlyphling(id)
     },
     grabGlyphling: (id) => {
       const { game, move } = get()
-      if (!game || !canPlay() || game.phase !== 'play') return
+      if (!game || !canPlayAt('play')) return
       if (!isCurrents(game, id)) return set({ note: 'notYours' })
       if (game.tangled.includes(id)) return set({ selected: null, note: 'tangled' })
       if (move?.glyphling === id) return set({ selected: { kind: 'glyphling', id }, note: null })
@@ -308,7 +311,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
     grabSeed: (id) => {
       const { game, cast, move } = get()
-      if (!game || !canPlay() || game.phase !== 'play' || !move) return
+      if (!game || !canPlayAt('play') || !move) return
       // Picking up the targeted seed takes it back off the board
       set({ selected: { kind: 'seed', id }, cast: cast?.seed === id ? null : cast, note: null })
     },
@@ -343,12 +346,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ selected: null })
     },
 
-    // Undo takes back the last step: the cast, then the move.
+    // Undo takes back the last step: the cast, then the move — never past the turn's start (turnPlan.undoNow).
     undo: () => {
       const { cast, move } = get()
       if (!canPlay()) return
-      if (cast) return set({ cast: null, selected: null, note: null })
-      if (move) set({ ...noPlan() })
+      const step = undoNow(move, cast)
+      if (step === 'cast') return set({ cast: null, selected: null, note: null })
+      if (step === 'move') set({ ...noPlan() })
     },
 
     // Cast: the seed flies (the board animates it) and finishCast runs when it lands.
@@ -402,8 +406,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     toggleSetAside: (id) => {
-      const { setAside, game } = get()
-      if (!canPlay() || game?.phase !== 'refresh') return
+      const { setAside } = get()
+      if (!canPlayAt('refresh')) return
       set({ setAside: setAside.includes(id) ? setAside.filter((x) => x !== id) : [...setAside, id] })
     },
     // Refresh N (or Keep all = set nothing aside): refill to a full hand; set-aside seeds go back in the bag.
@@ -411,7 +415,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     // (B011, refreshFx.ts): the set-aside seeds shrink away, the new ones grow into their slots, THEN play passes on.
     refresh: (keepAll = false) => {
       const { game, setAside, trayOrder, online } = get()
-      if (!game || !canPlay() || game.phase !== 'refresh') return
+      if (!game || !canPlayAt('refresh')) return
       const seat = game.current
       // (in hand order, whatever order they were tapped in — the order they go back into the bag in)
       const chosen = keepAll ? [] : game.hands[seat].filter((seed) => setAside.includes(seed.id)).map((seed) => seed.id)
