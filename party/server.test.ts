@@ -68,8 +68,8 @@ const send = (server: Server, conn: FakeConnection, action: unknown) =>
 function expectNoSecrets(view: GameView) {
   const { game, mySeat } = view
   if (game.phase === 'over') return
-  game.hands.forEach((hand, seat) => { if (seat !== mySeat) expect(hand.every((s) => s === HIDDEN)).toBe(true) })
-  expect(game.bag.every((s) => s === HIDDEN)).toBe(true)
+  game.hands.forEach((hand, seat) => { if (seat !== mySeat) expect(hand.every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true) })
+  expect(game.bag.every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true)
   expect(game.rng).toBe(0)
   expect(game.config.seed).toBe(0)
   expect([...game.magic, ...game.tangleMagic].every((m) => m === 0)).toBe(true)
@@ -127,10 +127,36 @@ describe('online server — secrets stay secret', () => {
     playOut(server, conns.slice(), 1) // (plays to the end) — look at the first view after the deal
     const dealt = conns[1].views().find((v) => v.game.phase === 'play')!
     expect(dealt.mySeat).toBe(1)
-    expect(dealt.game.hands[1].some((s) => s !== HIDDEN)).toBe(true)
-    expect(dealt.game.hands[0]).toEqual(Array(8).fill(HIDDEN))
+    expect(dealt.game.hands[1].every((s) => s.id.startsWith('seed-'))).toBe(true) // your own seeds, with their ids
+    expect(dealt.game.hands[0]).toEqual(Array(8).fill({ id: HIDDEN, letter: HIDDEN }))
     expect(dealt.names).toEqual(['P0', 'P1'])
   })
+
+  for (const [players, seed] of [[2, 3], [3, 5], [4, 9]]) {
+    it(`${players} players, game ${seed}: no message ever names a seed in the bag or a rival's hand (seed ids, F33)`, () => {
+      const { server, conns } = startRoom(players, {}, seed)
+      playOut(server, conns, seed)
+      for (const conn of conns) {
+        // Ids a seat may know: seeds it has held, and seeds planted on the board (public). Any other id = a leak.
+        const known = new Set<string>()
+        let over = false
+        for (const message of conn.received) {
+          const view = message.type === 'view' ? (message as { view?: GameView }).view : undefined
+          if (view?.game.phase === 'over') over = true // the reveal: the whole truth is fine
+          if (over) continue
+          if (view) {
+            for (const s of view.game.hands[view.mySeat] ?? []) known.add(s.id)
+            for (const s of Object.values(view.game.seeds)) known.add(s.id)
+          }
+          const named = JSON.stringify(message).match(/seed-\d+/g) ?? []
+          expect(named.filter((id) => !known.has(id))).toEqual([])
+        }
+        expect(over).toBe(true)
+        expect(known.size).toBeGreaterThan(8) // it really saw ids (its own hand, the board)
+      }
+      expect(server.game!.game.phase).toBe('over')
+    })
+  }
 })
 
 /** Does this text hold the number n on its own (not as part of a longer number)? */
@@ -235,6 +261,19 @@ describe('online server — says no, and changes nothing', () => {
     expect(refused(conns[0])?.message).toMatch(/another player/)
     send(server, conns[0], { kind: 'play', action: { type: 'refresh', setAside: [1, 1] }, version: view.version })
     expect(refused(conns[0])?.code).toBe('bad_action')
+    // Seeds are named by id (F33): an old-style hand position, junk text or a repeat is a bad shape…
+    for (const seed of [0, 3, '?', 'seed-', 'E']) {
+      send(server, conns[0], { kind: 'play', action: { ...legal, seed }, version: view.version })
+      expect(refused(conns[0])?.code).toBe('bad_action')
+    }
+    send(server, conns[0], { kind: 'play', action: { type: 'refresh', setAside: ['seed-1', 'seed-1'] }, version: view.version })
+    expect(refused(conns[0])?.code).toBe('bad_action')
+    // …and a real-looking id that isn't in your hand (a rival's, the bag's, made up) is refused by the rules
+    const rivalSeed = server.game!.game.hands[1][0].id
+    for (const seed of [rivalSeed, server.game!.game.bag[0].id, 'seed-999']) {
+      send(server, conns[0], { kind: 'play', action: { ...legal, seed }, version: view.version })
+      expect(refused(conns[0])?.message).toMatch(/not in your hand/)
+    }
     expect(JSON.stringify(server.game)).toBe(before)
   })
 

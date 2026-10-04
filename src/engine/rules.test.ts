@@ -6,7 +6,7 @@ import { selfTest } from '../table/selfTest'
 import { goldenView } from './golden'
 import { legalCasts, legalMoves } from './moves'
 import { addMove, eventsFor, replay, type MoveRecord } from '../table/core'
-import { glyphtenderRules, legalActions, setupGame, type GameEvent, type GameSetup } from './rules'
+import { glyphtenderRules, HIDDEN, legalActions, setupGame, viewFor, type GameEvent, type GameSetup } from './rules'
 import { greedyAction, randomAction } from './sim'
 import { byPosition, hexAt, lettersOf, position } from './testkit'
 import { parseWordList } from './words'
@@ -248,6 +248,26 @@ describe('events — what happened, and who may see it', () => {
       }
     }
   })
+
+  for (const players of [2, 3, 4]) {
+    it(`${players} players: no view or event a seat may see ever names a seed in the bag or a rival's hand (F33)`, () => {
+      const { steps } = playedGame(players, 30 + players)
+      for (let seat = 0; seat < players; seat++) {
+        // Seeds this seat may know by id: ones it has held (even after setting them aside) and planted ones (public)
+        const known = new Set<string>()
+        for (const { before, events, after } of steps) {
+          if (after.phase === 'over') break // the reveal: the whole truth
+          for (const s of [...before.hands[seat], ...after.hands[seat], ...Object.values(after.seeds)]) known.add(s.id)
+          const view = viewFor(after, seat)
+          const secret = [...after.bag, ...after.hands.filter((_, s) => s !== seat).flat()].map((s) => s.id)
+          const sent = JSON.stringify([view, eventsFor(events, seat)])
+          for (const id of secret) if (!known.has(id)) expect(sent).not.toContain(`"${id}"`)
+          // the view itself: every hidden seed is '?' (no id, no letter) — you may know how many, never which
+          expect([...view.bag, ...view.hands.filter((_, s) => s !== seat).flat()].every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true)
+        }
+      }
+    })
+  }
 
   it('every action ends with who acts next — or the game over, with the winners', () => {
     const { steps, final } = playedGame(2, 8)
