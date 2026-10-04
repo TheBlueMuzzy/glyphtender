@@ -9,3 +9,4 @@
 - 2026-09-30 — /define done: theme (Grand Glyphtender, Magic), cozy not hunting, alpha = pass-and-play + online, beta = AI. Official word list traced + kept. TDD + roadmap.
 - 2026-09-30 — Project created (remake). Old repo/folder renamed to glyphtender-original. /discover done: digest, references, directions.
 - 2026-09-30 — F23: online server moved to Muzzy's own Cloudflare (PartyServer); deployed + e2e green against live.
+- 2026-10-01 — Released v0.2.0: online play live (own Cloudflare), phone portrait layout fixes B012–B014, bot badge B015, room code label; review caught a reconnect seat bug (fixed, live-tested).
