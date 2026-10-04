@@ -2,12 +2,12 @@
 // It never re-writes a rule: it runs the SAME engine as the phones (src/engine — golden rule).
 // The server makes the game with its own random seed and keeps the bag, the rng and every hand;
 // players only send intentions ("move glyphling 2 there, cast seed 4 here"), which are checked here:
-// the right shape → the right player → planned on the latest version → legal (checkAction) → applyAction.
+// the right shape → the right player → planned on the latest version → legal (the rules' check) → the rules' apply
+// (src/engine/rules.ts — the one door; serverGame.ts play also writes each move into the game's move record).
 // Design: .planning/design/online.md.
 import roomsJson from '../content/rooms.json'
 import { boardNames, defaultBoardFor } from '../src/engine/boards'
-import { checkAction, newGame } from '../src/engine/engine'
-import { shuffle } from '../src/engine/rng'
+import { glyphtenderRules, type GameSetup } from '../src/engine/rules'
 import type { Action, WordList } from '../src/engine/types'
 import { emptyStats } from '../src/store/stats'
 import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
@@ -79,17 +79,20 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
     onStart(options, seats, room) {
       const players = seats.length
       const seed = seedMaker()
-      const made = newGame({
-        players, seed,
-        boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
-        rules: { minWordLength: options.minWordLength },
-      })
       // The engine's bag comes from ONE seed (2^31 choices): a PC can try them all against its own dealt hand
       // (~30 min on one core) and rebuild every hand and the whole bag. So online the bag is shuffled again with
       // a second secret number, and the rng (where set-aside seeds go back) gets a third — nothing to rebuild.
-      const game = { ...made, bag: shuffle(seedMaker(), made.bag).items, rng: seedMaker() }
+      // All three are part of the setup, so the move record replays the game exactly (they never leave the server).
+      const setup: GameSetup = {
+        players, seed,
+        boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
+        rules: { minWordLength: options.minWordLength },
+        bagSeed: seedMaker(),
+        rngSeed: seedMaker(),
+      }
+      const game = glyphtenderRules(words()).setup(setup)
       const state: ServerGame = {
-        game, gameId: seedMaker(), version: 0,
+        game, gameId: seedMaker(), version: 0, record: { setup, moves: [] },
         seatIds: seats.map((s) => s.id), names: seats.map((s) => s.name),
         options, change: 'start', by: null,
         stats: emptyStats(players), turnEndsAt: null, botRng: seed ^ 0x5eed,
@@ -105,7 +108,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       if (state.game.phase === 'over') throw new Error('The game is over.')
       if (state.game.current !== mine) throw new Error('It’s not your turn.')
       if (message.version !== state.version) throw new Error('The game moved on — try again.')
-      const problem = checkAction(state.game, message.action)
+      const problem = glyphtenderRules(words()).check(state.game, mine, message.action)
       if (problem) throw new Error(problem)
       return planNextTurn(play(state, mine, message.action, words()), room, words)
     },

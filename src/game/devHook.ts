@@ -1,7 +1,8 @@
 // DEV ONLY (never in a release build): window.__glyphtender, so the e2e check and the console can
 // peek at the game and fast-forward it. playRest() plays random legal moves (the engine's sim player)
 // until the garden tangles, to reach the end screen quickly. The jumps do nothing in an online game (the server owns it).
-import { applyAction, legalCasts, legalMoves, previewTurn } from '../engine/engine'
+import { legalCasts, legalMoves, previewTurn } from '../engine/engine'
+import { glyphtenderRules } from '../engine/rules'
 import { hexKey } from '../engine/hex'
 import { randomAction } from '../engine/sim'
 import { useGameStore } from '../store/gameStore'
@@ -57,7 +58,7 @@ export function installDevHook() {
         }
         const pick = randomAction(state, rng)
         rng = pick.rng
-        state = applyAction(state, pick.action, words)
+        state = glyphtenderRules(words).apply(state, state.current, pick.action).state
       }
       return null
     },
@@ -88,10 +89,11 @@ function playUntil(seed: number, done: (state: GameState) => boolean, onlyIfDone
   let state = game
   let stats = before
   let rng = seed
+  const rules = glyphtenderRules(words)
   for (let i = 0; i < 5000 && state.phase !== 'over' && !done(state); i++) {
     const pick = randomAction(state, rng)
     rng = pick.rng
-    state = applyAction(state, pick.action, words)
+    state = rules.apply(state, state.current, pick.action).state // normal mode: the end screen reads the log
     if (pick.action.type === 'turn' && state.lastTurn) stats = addTurn(stats, state.lastTurn) // for the end table
   }
   if (onlyIfDone && !done(state)) return false

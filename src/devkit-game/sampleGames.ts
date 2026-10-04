@@ -5,7 +5,7 @@
 //   tiedGame:     the first seed whose 2-player game ends in a tie
 //   midGame:      a game a few turns into play
 import { defaultBoardFor } from '../engine/boards'
-import { applyAction, newGame } from '../engine/engine'
+import { glyphtenderRules, setupGame } from '../engine/rules'
 import { greedyAction, randomAction } from '../engine/sim'
 import type { GameState, WordList } from '../engine/types'
 import { addTurn, emptyStats, type PlayerStats } from '../store/stats'
@@ -21,17 +21,18 @@ const MAX_ACTIONS = 5000 // a game is 42–67 turns (research/sims.md); this onl
 /** Plays from `start` until `done` (or the game ends), greedy or random. */
 function playOn(start: SampleGame, words: WordList, rng: number, greedy: boolean, done: (g: GameState) => boolean): SampleGame {
   let { game, stats } = start
+  const rules = glyphtenderRules(words)
   for (let i = 0; i < MAX_ACTIONS && game.phase !== 'over' && !done(game); i++) {
     const pick = greedy ? greedyAction(game, rng, words) : randomAction(game, rng)
     rng = pick.rng
-    game = applyAction(game, pick.action, words)
+    game = rules.apply(game, game.current, pick.action).state // normal mode: the end screen reads the log
     if (pick.action.type === 'turn' && game.lastTurn) stats = addTurn(stats, game.lastTurn)
   }
   return { game, stats }
 }
 
 const fresh = (players: number, seed: number): SampleGame =>
-  ({ game: newGame({ players, seed, boardName: defaultBoardFor(players) }), stats: emptyStats(players) })
+  ({ game: setupGame({ players, seed, boardName: defaultBoardFor(players) }), stats: emptyStats(players) })
 
 /** A finished game for `players` (2–4), the same every time for the same seed and word list. */
 export function finishedGame(players: number, words: WordList, seed = players * 101): SampleGame {

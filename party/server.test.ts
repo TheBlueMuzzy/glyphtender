@@ -5,6 +5,8 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { newGame } from '../src/engine/engine'
+import { glyphtenderRules } from '../src/engine/rules'
+import { replay } from '../src/table/core'
 import { randomAction } from '../src/engine/sim'
 import { parseWordList } from '../src/engine/words'
 import type { WordList } from '../src/engine/types'
@@ -129,6 +131,63 @@ describe('online server — secrets stay secret', () => {
     expect(dealt.game.hands[0]).toEqual(Array(8).fill(HIDDEN))
     expect(dealt.names).toEqual(['P0', 'P1'])
   })
+})
+
+/** Does this text hold the number n on its own (not as part of a longer number)? */
+const holdsNumber = (text: string, n: number) => new RegExp(`(^|[^0-9])${n}([^0-9]|$)`).test(text)
+
+describe('online server — the move record (setup with its secret numbers + every move)', () => {
+  for (const [players, seed] of [[2, 3], [3, 5], [4, 9]]) {
+    it(`${players} players, game ${seed}: replaying the server’s record gives exactly the server’s game`, () => {
+      const { server, conns } = startRoom(players, {}, seed)
+      playOut(server, conns, seed)
+      const { game, record } = server.game!
+      expect(game.phase).toBe('over')
+      expect(record.moves.length).toBe(server.game!.version)
+      expect(record.setup.bagSeed).toEqual(expect.any(Number))
+      expect(record.setup.rngSeed).toEqual(expect.any(Number))
+      expect(replay(glyphtenderRules(words), record).state).toEqual(game)
+    })
+  }
+
+  it('a game the server played turns of (a bot took a seat) replays too', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoom(2)
+    server.onMessage(JSON.stringify({ type: 'leave' }), conns[1])
+    let rng = 3
+    for (let i = 0; i < 2000 && server.game!.game.phase !== 'over'; i++) {
+      const view = conns[0].lastView()!
+      if (view.game.current === 0) {
+        const pick = randomAction(view.game, rng)
+        rng = pick.rng
+        send(server, conns[0], { kind: 'play', action: pick.action, version: view.version })
+      } else vi.advanceTimersByTime(settings.botTurnDelayMs)
+    }
+    expect(server.game!.game.phase).toBe('over')
+    expect(server.game!.record.moves.some((m) => m.seat === 1)).toBe(true)
+    expect(replay(glyphtenderRules(words), server.game!.record).state).toEqual(server.game!.game)
+  })
+
+  for (const [players, seed] of [[2, 11], [4, 9]]) {
+    it(`${players} players, game ${seed}: the record and its secret numbers never reach a player — in any message`, () => {
+      const { server, conns } = startRoom(players, {}, seed)
+      playOut(server, conns, seed)
+      const { setup } = server.game!.record
+      expect(holdsNumber(JSON.stringify(server.game), setup.bagSeed!)).toBe(true) // (the search does find it where it is)
+      for (const conn of conns) {
+        expect(conn.received.length).toBeGreaterThan(10)
+        for (const message of conn.received) {
+          const text = JSON.stringify(message)
+          expect(text).not.toMatch(/"record"|"moves"|"bagSeed"|"rngSeed"/)
+          expect(holdsNumber(text, setup.bagSeed!)).toBe(false) // the bag's second shuffle: never, not even at the end
+          const over = message.type === 'view' && (message as { view?: GameView }).view?.game.phase === 'over'
+          if (over) continue // the end reveals the game's seed and rng position (D47) — never the bag's second number
+          expect(holdsNumber(text, setup.seed)).toBe(false)
+          expect(holdsNumber(text, setup.rngSeed!)).toBe(false)
+        }
+      }
+    })
+  }
 })
 
 describe('online server — the bag can’t be worked out', () => {

@@ -8,9 +8,8 @@
 // new shape; if the fingerprints still match, nothing a player can see has changed.
 // Recorded and checked by scripts/golden.mjs (npm run golden:record / npm run check:golden); a sample runs in npm test.
 import { hexKey } from './hex'
-import { applyAction } from './engine'
+import { glyphtenderRules } from './rules'
 import { greedyAction, randomAction, type PlayerStyle } from './sim'
-import { newGame } from './setup'
 import type { Action, GameState, WordList } from './types'
 
 /** One action and the fingerprint of the game straight after it. */
@@ -84,7 +83,8 @@ function lettersOf(before: GameState, action: Action): string[] | undefined {
 
 /** Plays one seeded sim game (the same players as npm run sim) and writes it down. */
 export function recordGame(players: number, boardName: string, seed: number, player: PlayerStyle, words: WordList): GoldenGame {
-  let state = newGame({ players, boardName, seed })
+  const rules = glyphtenderRules(words)
+  let state = rules.setup({ players, boardName, seed })
   let rng = seed ^ 0x5eed
   const game: GoldenGame = { players, boardName, seed, player, start: fingerprint(state), steps: [] }
   while (state.phase !== 'over') {
@@ -92,7 +92,7 @@ export function recordGame(players: number, boardName: string, seed: number, pla
     const picked = player === 'greedy' ? greedyAction(state, rng, words) : randomAction(state, rng)
     rng = picked.rng
     const letters = lettersOf(state, picked.action)
-    state = applyAction(state, picked.action, words)
+    state = rules.apply(state, state.current, picked.action).state // normal mode: the log is part of the fingerprint
     game.steps.push({ action: picked.action, ...(letters ? { letters } : {}), print: fingerprint(state) })
   }
   return game
@@ -101,12 +101,13 @@ export function recordGame(players: number, boardName: string, seed: number, pla
 /** What went wrong replaying a golden game, in plain English — or null if it matched move for move. */
 export function replayGame(game: GoldenGame, words: WordList): string | null {
   const name = `${game.players}p ${game.boardName} ${game.player} seed ${game.seed}`
-  let state = newGame({ players: game.players, boardName: game.boardName, seed: game.seed })
+  const rules = glyphtenderRules(words)
+  let state = rules.setup({ players: game.players, boardName: game.boardName, seed: game.seed })
   if (fingerprint(state) !== game.start) return `${name}: the game is different before the first move (setup / bag shuffle changed)`
   for (let i = 0; i < game.steps.length; i++) {
     const step = game.steps[i]
     try {
-      state = applyAction(state, step.action, words)
+      state = rules.apply(state, state.current, step.action).state
     } catch (e) {
       return `${name}: move ${i + 1} (${describe(step)}) is no longer allowed — ${(e as Error).message}`
     }

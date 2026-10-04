@@ -2,10 +2,11 @@
 // checking the rules' promises after every action. Used by tests and `npm run sim`.
 import { hexKey, type Hex } from './hex'
 import { legalDraftHexes } from './draft'
-import { applyAction, previewTurn } from './engine'
+import { previewTurn } from './engine'
 import { legalCasts, legalMoves } from './moves'
 import { randomInt } from './rng'
-import { fullBag, newGame } from './setup'
+import { glyphtenderRules } from './rules'
+import { fullBag } from './setup'
 import type { Action, GameState, WordList } from './types'
 
 export interface SimOptions {
@@ -103,7 +104,8 @@ export function checkInvariants(before: GameState, action: Action, after: GameSt
 /** Plays one whole game with random legal actions. Throws if a rule promise breaks or the game never ends. */
 export function simulateGame(options: SimOptions): SimResult {
   const maxTurns = options.maxTurns ?? 1000
-  let state = newGame({ players: options.players, boardName: options.boardName, seed: options.seed })
+  const rules = glyphtenderRules(options.words)
+  let state = rules.setup({ players: options.players, boardName: options.boardName, seed: options.seed })
   let rng = options.seed ^ 0x5eed
   let bagRanOut = false
   let selfTangle = false
@@ -114,7 +116,7 @@ export function simulateGame(options: SimOptions): SimResult {
     const picked = options.player === 'greedy' ? greedyAction(state, rng, options.words) : randomAction(state, rng)
     rng = picked.rng
     const before = state
-    state = applyAction(state, picked.action, options.words)
+    state = rules.apply(state, state.current, picked.action, { fast: true }).state // fast: a sim never reads the game log
     checkInvariants(before, picked.action, state)
     if (state.phase !== 'draft' && state.bag.length === 0) bagRanOut = true
     if (picked.action.type === 'turn' && (state.lastTurn?.words.length ?? 0) > 0) scoringTurns++

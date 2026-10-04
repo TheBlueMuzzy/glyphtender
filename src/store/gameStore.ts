@@ -1,6 +1,6 @@
 // THE GAME STORE — what the screen shows: the engine's game state, the word list, and the turn being
 // planned (move, cast, what's held) before Cast makes it real. Taps call these actions; the actions only
-// ever change the game by sending an engine action (checkAction first, then applyAction). Golden rule.
+// ever change the game by sending an engine action through the rules' one door (rules.ts: check, then apply). Golden rule.
 // It also knows who sits in each seat (seats.ts), when the device is being passed on (handoff),
 // the end table's numbers (stats.ts) and how far the end-of-game Magic reveal has got.
 // ONLINE (onlinePlay.ts): this device plans its own seat exactly the same way, but the action goes to the
@@ -10,7 +10,8 @@ import text from '../../content/text/en.json'
 import animFile from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
 import { reduceMotion } from '../ui/kit/blocks/motion'
-import { applyAction, checkAction, legalDraftHexes, newGame } from '../engine/engine'
+import { checkAction, legalDraftHexes } from '../engine/engine'
+import { glyphtenderRules, setupGame } from '../engine/rules'
 import { hexKey, sameHex, type Hex } from '../engine/hex'
 import { migrateGame } from '../engine/migrate'
 import { parseWordList } from '../engine/words'
@@ -143,20 +144,21 @@ const SCORE_BEAT_MS = 120 // the score sequence's timer waits this much past the
 
 export const useGameStore = create<GameStore>()((set, get) => {
   // Sends an engine action; says "problem" instead of crashing if it was somehow illegal.
-  const send = (action: Parameters<typeof applyAction>[1]) => {
+  const send = (action: Action) => {
     const { game, words } = get()
     if (!game) return null
     if (action.type === 'turn' && action.seed !== null && !words) { // only a cast grows words; a move-only turn never reads them
       set({ note: wordsNote() })
       return null
     }
-    const problem = checkAction(game, action)
+    const rules = glyphtenderRules(words ?? NO_WORDS)
+    const problem = rules.check(game, game.current, action) // pass-and-play: the device plays for whoever's turn it is
     if (problem) {
       console.warn('Illegal action from the screen:', problem)
       set({ ...noPlan(), note: 'problem' })
       return null
     }
-    return applyAction(game, action, words ?? NO_WORDS)
+    return rules.apply(game, game.current, action).state
   }
 
   // Why a cast can't go yet: the words are still coming, or they couldn't be loaded (the screen offers Retry)
@@ -238,7 +240,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     scoring: null,
 
     startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators }) => {
-      const game = newGame({ players, seed, boardName, rules: minWordLength ? { minWordLength } : undefined })
+      const game = setupGame({ players, seed, boardName, rules: minWordLength ? { minWordLength } : undefined })
       const options: GameOptions = {
         players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: hideSeeds ?? true,
         wordIndicators: wordIndicators ?? true,
