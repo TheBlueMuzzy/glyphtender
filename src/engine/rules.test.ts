@@ -5,7 +5,8 @@ import { describe, expect, it } from 'vitest'
 import { selfTest } from '../table/selfTest'
 import { goldenView } from './golden'
 import { legalCasts, legalMoves } from './moves'
-import { glyphtenderRules, legalActions, setupGame, type GameSetup } from './rules'
+import { eventsFor } from '../table/core'
+import { glyphtenderRules, legalActions, setupGame, type GameEvent, type GameSetup } from './rules'
 import { greedyAction, randomAction } from './sim'
 import { hexAt, position } from './testkit'
 import { parseWordList } from './words'
@@ -152,4 +153,78 @@ describe('legalActions', () => {
       }
     }
   }, 60_000)
+})
+
+describe('events — what happened, and who may see it', () => {
+  /** A whole game by the greedy sim player (it makes words), with every action's events. */
+  function playedGame(players: number, seed: number) {
+    let state = rules.setup({ players, seed })
+    let rng = seed
+    const steps: { before: GameState; events: GameEvent[]; after: GameState }[] = []
+    while (!rules.isOver(state)) {
+      const pick = greedyAction(state, rng, words)
+      rng = pick.rng
+      const applied = rules.apply(state, state.current, pick.action)
+      steps.push({ before: state, events: applied.events, after: applied.state })
+      state = applied.state
+    }
+    return { steps, final: state }
+  }
+  const sorted = (letters: string[]) => [...letters].sort().join('')
+
+  for (const players of [2, 3, 4]) {
+    it(`${players} players: each seat's events rebuild its own hand exactly, and never show another hand`, () => {
+      const { steps, final } = playedGame(players, 5 + players)
+      for (let seat = 0; seat < players; seat++) {
+        const hand: string[] = [] // this seat's hand, from ONLY the events it may see
+        for (const { events } of steps) {
+          for (const e of eventsFor(events, seat)) {
+            if (e.type === 'drew' || e.type === 'setAside') expect(e.seat).toBe(seat) // letters: only ever your own
+            if (e.type === 'drew') hand.push(...e.letters)
+            if (e.type === 'cast' && e.seat === seat) hand.splice(hand.indexOf(e.letter), 1)
+            if (e.type === 'setAside') for (const l of e.letters) hand.splice(hand.indexOf(l), 1)
+          }
+        }
+        expect(sorted(hand)).toBe(sorted(final.hands[seat]))
+      }
+    })
+  }
+
+  it('an event for everyone holds no hand letters, nothing from the bag and no Magic before the end', () => {
+    const { steps } = playedGame(3, 21)
+    const kinds = new Set<string>()
+    for (const { events, after } of steps) {
+      for (const e of events) {
+        kinds.add(e.type)
+        expect(e.seen === 'all' || e.seen.seats.length > 0).toBe(true)
+        if (e.seen !== 'all' || e.type === 'gameOver') continue // gameOver: the end, the whole truth
+        expect(json(e)).not.toMatch(/"letters"|"magic"|"tangleMagic"|"bag"|"hands?"/)
+        if (e.type === 'cast') expect(after.seeds[`${e.target.q},${e.target.r}`]?.letter).toBe(e.letter) // on the board now
+      }
+    }
+    expect([...kinds].sort()).toEqual(['cast', 'drew', 'drewHidden', 'gameOver', 'moved', 'placed', 'refreshed', 'scored', 'setAside', 'tangled', 'turnStarted'])
+  })
+
+  it('draws: the letters to that seat only, a count to everyone else', () => {
+    const { steps } = playedGame(3, 4)
+    for (const { events } of steps) {
+      for (const e of events) {
+        if (e.type === 'drew' || e.type === 'setAside') expect(e.seen).toEqual({ seats: [e.seat] })
+        if (e.type === 'drewHidden') {
+          expect(e.seen).toEqual({ seats: [0, 1, 2].filter((s) => s !== e.seat) })
+          expect(json(e)).not.toMatch(/letters/)
+        }
+      }
+    }
+  })
+
+  it('every action ends with who acts next — or the game over, with the winners', () => {
+    const { steps, final } = playedGame(2, 8)
+    for (const { events, after } of steps) {
+      const last = events.at(-1)!
+      if (after.phase === 'over') expect(last).toMatchObject({ type: 'gameOver', winners: after.winners })
+      else expect(last).toEqual({ type: 'turnStarted', seen: 'all', seat: after.current, phase: after.phase })
+    }
+    expect(final.winners.length).toBeGreaterThan(0)
+  })
 })

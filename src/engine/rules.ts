@@ -11,7 +11,8 @@ import { applyAction, checkAction, legalCasts, legalDraftHexes, legalMoves, newG
 import { shuffle } from './rng'
 import type { NewGameOptions } from './setup'
 import type { Action, GameState, WordList } from './types'
-import type { Applied, Rules, Seat } from '../table/core'
+import type { Applied, Audience, Rules, Seat } from '../table/core'
+import type { Hex } from './hex'
 
 /** What a new game needs. The same as newGame's options, plus two numbers only the online server uses. */
 export interface GameSetup extends NewGameOptions {
@@ -24,8 +25,34 @@ export interface GameSetup extends NewGameOptions {
 /** What one seat may see: the game itself, with the secrets taken out (other hands, the bag, Magic…). */
 export type SeatView = GameState
 
-/** Something that happened — for animations, sound and online replays (F31). Nothing on screen reads them yet. */
-export type GameEvent = { type: 'none'; seen: 'all' } // (filled in by the events step)
+/**
+ * Something that happened — for animations, sound and online replays (F31; nothing on screen reads them yet).
+ * Each says who may see it (`seen`). The rule: an event for everyone holds only what everyone's view shows anyway —
+ * no seed in anyone's hand, nothing from the bag, and no Magic until the game is over (views zero all Magic, even
+ * your own; with word indicators off you spot your own words). So 'scored' names the words, not their Magic.
+ */
+export type GameEvent =
+  /** A glyphling was placed in the draft. */
+  | { type: 'placed'; seen: 'all'; seat: Seat; glyphling: number; hex: Hex }
+  | { type: 'moved'; seen: 'all'; seat: Seat; glyphling: number; from: Hex; to: Hex }
+  /** A seed was cast onto the board (its letter is on the board for all to see now). */
+  | { type: 'cast'; seen: 'all'; seat: Seat; letter: string; target: Hex }
+  /** The cast grew these words (their Magic stays secret until the end: gameOver). */
+  | { type: 'scored'; seen: 'all'; seat: Seat; words: { word: string; hexes: Hex[] }[] }
+  /** Seeds drawn into a hand (the deal, a draw after Magic, a refresh's refill) — the letters, for that seat only. */
+  | { type: 'drew'; seen: Audience; seat: Seat; letters: string[] }
+  /** …and for everyone else: only how many. */
+  | { type: 'drewHidden'; seen: Audience; seat: Seat; count: number }
+  /** A refresh: how many seeds went back into the bag (everyone)… */
+  | { type: 'refreshed'; seen: 'all'; seat: Seat; count: number }
+  /** …and which letters (that seat only). */
+  | { type: 'setAside'; seen: Audience; seat: Seat; letters: string[] }
+  /** Glyphlings that just got tangled, and ones that came free. */
+  | { type: 'tangled'; seen: 'all'; tangled: number[]; freed: number[] }
+  /** Who acts now, and what kind of step it is (a draft placement, a turn, or the refresh after a turn). */
+  | { type: 'turnStarted'; seen: 'all'; seat: Seat; phase: 'draft' | 'play' | 'refresh' }
+  /** The end: the whole truth (every Magic number, the tangle bonus, who won). */
+  | { type: 'gameOver'; seen: 'all'; winners: Seat[]; magic: number[]; tangleMagic: number[] }
 
 /** What stands in for a seed nobody may see (another player's hand, the bag). */
 export const HIDDEN = '?'
@@ -124,6 +151,55 @@ export function viewFor(game: GameState, seat: Seat): SeatView {
   }
 }
 
+/** What `action` (played by `seat`) did, as events — read from the game before and after it. */
+export function eventsOf(before: GameState, seat: Seat, action: Action, after: GameState): GameEvent[] {
+  const events: GameEvent[] = []
+  const everyoneBut = (who: Seat) => ({ seats: before.hands.map((_, s) => s).filter((s) => s !== who) })
+  const drew = (who: Seat, letters: string[]) => {
+    if (letters.length === 0) return
+    events.push({ type: 'drew', seen: { seats: [who] }, seat: who, letters })
+    events.push({ type: 'drewHidden', seen: everyoneBut(who), seat: who, count: letters.length })
+  }
+
+  if (action.type === 'draft') {
+    const placed = after.glyphlings[after.glyphlings.length - 1]
+    events.push({ type: 'placed', seen: 'all', seat, glyphling: placed.id, hex: { ...placed.hex } })
+    if (after.phase !== 'draft') after.hands.forEach((hand, s) => drew(s, [...hand])) // the draft is over: the deal
+  }
+
+  if (action.type === 'turn') {
+    const turn = after.lastTurn!
+    events.push({ type: 'moved', seen: 'all', seat, glyphling: turn.glyphlingId, from: { ...turn.from }, to: { ...turn.to } })
+    if (turn.letter !== null && turn.target) events.push({ type: 'cast', seen: 'all', seat, letter: turn.letter, target: { ...turn.target } })
+    if (turn.words.length > 0) {
+      events.push({ type: 'scored', seen: 'all', seat, words: turn.words.map((w) => ({ word: w.word, hexes: w.hexes.map((h) => ({ ...h })) })) })
+    }
+    // A draw lands on the end of the hand: whatever is past the seeds that were left after the cast
+    const left = before.hands[seat].length - (action.seed === null ? 0 : 1)
+    drew(seat, after.hands[seat].slice(left))
+  }
+
+  if (action.type === 'refresh') {
+    const hand = before.hands[seat]
+    events.push({ type: 'refreshed', seen: 'all', seat, count: action.setAside.length })
+    if (action.setAside.length > 0) {
+      events.push({ type: 'setAside', seen: { seats: [seat] }, seat, letters: action.setAside.map((i) => hand[i]) })
+    }
+    drew(seat, after.hands[seat].slice(hand.length - action.setAside.length)) // the refill comes after the kept seeds
+  }
+
+  const tangled = after.tangled.filter((id) => !before.tangled.includes(id))
+  const freed = before.tangled.filter((id) => !after.tangled.includes(id))
+  if (tangled.length > 0 || freed.length > 0) events.push({ type: 'tangled', seen: 'all', tangled, freed })
+
+  if (after.phase === 'over') {
+    events.push({ type: 'gameOver', seen: 'all', winners: [...after.winners], magic: [...after.magic], tangleMagic: [...after.tangleMagic] })
+  } else {
+    events.push({ type: 'turnStarted', seen: 'all', seat: after.current, phase: after.phase })
+  }
+  return events
+}
+
 /** Glyphtender's rules for the Table. The word list is the one thing the rules need from outside (a cast grows words). */
 export function glyphtenderRules(words: WordList): Rules<GameState, Action, GameEvent, GameSetup, SeatView> {
   return {
@@ -133,7 +209,8 @@ export function glyphtenderRules(words: WordList): Rules<GameState, Action, Game
     apply(state, seat, action): Applied<GameState, GameEvent> {
       const problem = checkFor(state, seat, action)
       if (problem) throw new Error(problem)
-      return { state: applyAction(state, action, words), events: [] }
+      const next = applyAction(state, action, words)
+      return { state: next, events: eventsOf(state, seat, action, next) }
     },
     isOver: (state) => state.phase === 'over',
     toAct: (state) => (state.phase === 'over' ? [] : [state.current]),
