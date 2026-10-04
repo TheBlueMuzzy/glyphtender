@@ -26,8 +26,9 @@ export const meterNames = {
   gotTangled: 'Its own glyphling got tangled this game (0/1)',
   roomToMove: 'Room to move: its glyphlings’ average moves at the start of its turns',
   refreshes: 'Refreshes',
-  calledIt: 'Ended the game itself (0/1)',
-  calledItRight: 'Ended the game itself AND won (0/1)',
+  endedGame: 'Its turn ended the game (0/1)',
+  calledIt: 'Called it: ended the game by tangling its OWN glyphling — the self-tangle gamble (0/1)',
+  calledItRight: 'Called it AND won (0/1)',
   won: 'Won (0/1; a shared win counts)',
   awards: 'Awards earned',
 } as const
@@ -102,6 +103,8 @@ export function meters(game: GameState, seat: number): Meters {
   const secondHalf = mine.filter(({ turn }) => turn.turnNo > half).reduce((n, { turn }) => n + turn.magic, 0)
 
   const endedIt = log.end?.endedBy === seat
+  // The gamble players can see: it ended the game by tangling one of its own glyphlings (intent can't be read).
+  const calledIt = endedIt && !!log.end?.selfTangle
   const won = game.phase === 'over' && game.winners.includes(seat)
 
   return {
@@ -120,8 +123,9 @@ export function meters(game: GameState, seat: number): Meters {
     gotTangled: flag(everTangled),
     roomToMove: average(room),
     refreshes: mine.filter(({ turn }) => turn.refresh).length,
-    calledIt: flag(endedIt),
-    calledItRight: flag(endedIt && won),
+    endedGame: flag(endedIt),
+    calledIt: flag(calledIt),
+    calledItRight: flag(calledIt && won),
     won: flag(won),
     awards: earnedAwards(game).filter((a) => a.holder === seat).length,
   }

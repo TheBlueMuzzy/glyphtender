@@ -48,4 +48,6 @@ Notes:
   - ❌ Scholar / Strategist / Balanced blur together (told apart 23% / 46% / 32%) — all score-first. Scholar's word length isn't the longest (2.35 vs Vulture 2.53): vocabulary is aimed but the 2-letter words still dominate.
   - ❌ Survivor never calls it wrongly (it rarely calls it at all: 4%).
   - Report: e2e-shots/ai-check.html.
+- Review (sprint 14, fresh-eyes helper): no fairness leaks, no illegal or non-repeatable moves. Fixed: "call it" counted tangle bonuses already on the board twice (now only what the ending adds) and skipped endings worth > 10 (shortcut removed); the calledIt meter now means the self-tangle gamble (ended the game by tangling its OWN glyphling) — `endedGame` keeps "its turn ended the game"; framework neverExtreme no longer passes a personality that didn't play. Left: look.ts board cache could hand BUILD an old hand if the same seat plays twice on an unchanged board (all others skipped) — rare, scoring only → BUGS? logged here, fix with F45.
+- Full check after merges: 688e869 — all green, 19/19 (10.2 min).
 

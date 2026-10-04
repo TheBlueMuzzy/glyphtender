@@ -100,11 +100,13 @@ export function callItDecision(ctx: GlyphContext, words: WordList): { special: S
   const nerve = ctx.personality.extras?.nerve ?? DEFAULT_NERVE
   const beliefs = beliefsOf(ctx.view, ctx.seat, words, ctx.skill.beliefNoise)
   const needed = nerve / leastConfidence(beliefs.rivals) // less sure → it waits for a bigger lead
-  if (beliefs.lead < needed - 10) return null // (no ending could make up the gap: skip the search)
   const endings = endingMoves(ctx.world, ctx.seat, words)
   if (!endings.length) return null
-  const rivalsGet = (bonus: number[]) => Math.max(0, ...bonus.filter((_, s) => s !== ctx.seat))
-  const net = (e: (typeof endings)[number]) => e.bonus[ctx.seat] + e.magic - rivalsGet(e.bonus)
+  // The lead already counts the tangle bonus of glyphlings tangled NOW; an ending only adds what's new on top.
+  const now = ctx.world.phase === 'draft' ? [] : tangleBonus(ctx.world, ctx.world.tangled)
+  const gain = (bonus: number[], s: number) => bonus[s] - (now[s] ?? 0)
+  const rivalsGet = (bonus: number[]) => Math.max(0, ...bonus.map((_, s) => s).filter((s) => s !== ctx.seat).map((s) => gain(bonus, s)))
+  const net = (e: (typeof endings)[number]) => gain(e.bonus, ctx.seat) + e.magic - rivalsGet(e.bonus)
   const best = endings.reduce((a, b) => (net(b) > net(a) || (net(b) === net(a) && rivalsGet(b.bonus) < rivalsGet(a.bonus)) ? b : a))
   const finalLead = beliefs.lead + net(best)
   if (finalLead < needed) return null

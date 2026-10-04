@@ -87,9 +87,14 @@ describe('meters: a hand-checked game', () => {
     expect(y.secondHalfRatio).toBe(15) // no Magic in turns 1–2, 15 in turns 3–5
     expect(y.refreshes).toBe(1)
   })
-  it('ending: Yellow called it, right, and won; Blue none of those', () => {
-    expect([y.calledIt, y.calledItRight, y.won]).toEqual([1, 1, 1])
-    expect([b.calledIt, b.calledItRight, b.won]).toEqual([0, 0, 0])
+  it('ending: Yellow ended it by tangling a rival — not a "call it"; Blue none of those', () => {
+    expect([y.endedGame, y.calledIt, y.calledItRight, y.won]).toEqual([1, 0, 0, 1])
+    expect([b.endedGame, b.calledIt, b.calledItRight, b.won]).toEqual([0, 0, 0, 0])
+  })
+  it('call it = ending the game by tangling your OWN glyphling (the gamble)', () => {
+    const gamble = { ...game, log: { ...game.log!, end: { ...game.log!.end!, selfTangle: true } } }
+    expect([meters(gamble, 0).calledIt, meters(gamble, 0).calledItRight]).toEqual([1, 1])
+    expect(meters(gamble, 1).calledIt).toBe(0)
   })
   it('awards = the end screen’s awards for that seat (Hijack among them)', () => {
     const awards = earnedAwards(game)
@@ -119,7 +124,8 @@ describe('meters: real games played to the end', () => {
         const game = play(players, seed, seed !== 1)
         const all = allMeters(game)
         expect(all).toHaveLength(players)
-        expect(all.reduce((n, m) => n + m.calledIt, 0)).toBe(1)
+        expect(all.reduce((n, m) => n + m.endedGame, 0)).toBe(1)
+        expect(all.reduce((n, m) => n + m.calledIt, 0)).toBe(game.log?.end?.selfTangle ? 1 : 0)
         expect(all.reduce((n, m) => n + m.steals, 0)).toBe(hijacks(game).length)
         expect(all.reduce((n, m) => n + m.awards, 0)).toBe(earnedAwards(game).length)
         expect(all.reduce((n, m) => n + m.timesTangled, 0)).toBeGreaterThan(0) // a game only ends with a tangle (maybe its own)
