@@ -26,7 +26,7 @@ export function reportHtml(r: CheckReport): string {
     .map(([p, list]) => {
       const passed = list.filter((t) => t.pass).length
       const items = list
-        .map((t) => `<li>${mark(t.pass)} ${esc(t.label)} <span class="dim">— ${t.meter} ${t.measured}${t.rival ? ` (next best: ${esc(t.rival.personality)} ${t.rival.measured})` : t.value !== undefined ? ` (target ${t.op} ${t.value})` : ''}</span></li>`)
+        .map((t) => `<li>${mark(t.pass)} ${esc(t.label)} <span class="dim">— ${t.meter} ${t.measured}${t.extremes ? (t.extremes.length ? ` (extreme on: ${t.extremes.map(esc).join(', ')})` : '') : t.op === 'nearAverage' && t.rival ? ` (table average ${t.rival.measured}, within ${t.value})` : t.rival ? ` (next best: ${esc(t.rival.personality)} ${t.rival.measured})` : t.value !== undefined ? ` (target ${t.op} ${t.value})` : ''}</span></li>`)
         .join('')
       return `<section class="card"><h3>${esc(p)} <span class="${passed === list.length ? 'ok' : 'no'}">${passed}/${list.length}</span></h3><ul>${items}</ul></section>`
     })

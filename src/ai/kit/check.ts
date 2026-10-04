@@ -23,10 +23,12 @@ export interface GameResult {
 }
 
 /** A feel target as watchable behaviour. '>=' / '<=' compare the personality's average with `value`;
- *  'tableBest' / 'tableWorst' = its average beats every other personality's average. */
+ *  'tableBest' / 'tableWorst' = its average beats every other personality's average; 'nearAverage' = within `value`
+ *  of the average of all personalities' averages; 'neverExtreme' (meter "*") = not the highest or lowest personality
+ *  on any meter (measured = how many meters it IS extreme on). */
 export interface FeelTarget {
   meter: string
-  op: '>=' | '<=' | 'tableBest' | 'tableWorst'
+  op: '>=' | '<=' | 'tableBest' | 'tableWorst' | 'nearAverage' | 'neverExtreme'
   value?: number
   label: string
 }
@@ -34,8 +36,10 @@ export interface FeelTarget {
 export interface TargetResult extends FeelTarget {
   measured: number
   pass: boolean
-  /** For table targets: the best other personality and its average. */
+  /** For table targets: the best other personality and its average (nearAverage: the table average). */
   rival?: { personality: string; measured: number }
+  /** neverExtreme: the meters it was the highest or lowest on. */
+  extremes?: string[]
 }
 
 const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0)
@@ -63,8 +67,22 @@ export function checkFeelTargets(results: GameResult[], targets: Record<string, 
   const out: Record<string, TargetResult[]> = {}
   for (const [personality, list] of Object.entries(targets)) {
     out[personality] = list.map((t) => {
-      const avg = averages(results, t.meter, skill)
+      const avg = t.meter === '*' ? new Map<string, number>() : averages(results, t.meter, skill)
       const measured = round(avg.get(personality) ?? NaN)
+      if (t.op === 'neverExtreme') {
+        const meters = [...new Set(results.flatMap((g) => g.seats.flatMap((s) => Object.keys(s.meters))))]
+        const extremes = meters.filter((m) => {
+          const avgs = averages(results, m, skill)
+          const mine = avgs.get(personality)
+          const rest = [...avgs].filter(([p]) => p !== personality).map(([, v]) => v)
+          return mine !== undefined && rest.length > 0 && (mine > Math.max(...rest) || mine < Math.min(...rest))
+        })
+        return { ...t, measured: extremes.length, pass: extremes.length === 0, extremes }
+      }
+      if (t.op === 'nearAverage') {
+        const tableAverage = mean([...avg.values()])
+        return { ...t, measured, pass: Number.isFinite(measured) && Math.abs(measured - tableAverage) <= (t.value ?? 0), rival: { personality: 'table average', measured: round(tableAverage) } }
+      }
       if (t.op === '>=' || t.op === '<=') {
         const pass = Number.isFinite(measured) && (t.op === '>=' ? measured >= (t.value ?? 0) : measured <= (t.value ?? 0))
         return { ...t, measured, pass }
