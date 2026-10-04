@@ -10,9 +10,10 @@ import { emptyLog } from './log'
 import { applyAction, checkAction, legalCasts, legalDraftHexes, legalMoves, newGame } from './engine'
 import { shuffle } from './rng'
 import type { NewGameOptions } from './setup'
-import type { Action, GameState, WordList } from './types'
+import { canSeeInside, indexOfPiece, type ZoneRule } from '../table/zones'
+import type { Action, GameState, SeedPiece, WordList } from './types'
 import type { ApplyOptions, Applied, Audience, Rules, Seat } from '../table/core'
-import type { Hex } from './hex'
+import { hexKey, type Hex } from './hex'
 
 /** What a new game needs. The same as newGame's options, plus two numbers only the online server uses. */
 export interface GameSetup extends NewGameOptions {
@@ -35,18 +36,18 @@ export type GameEvent =
   /** A glyphling was placed in the draft. */
   | { type: 'placed'; seen: 'all'; seat: Seat; glyphling: number; hex: Hex }
   | { type: 'moved'; seen: 'all'; seat: Seat; glyphling: number; from: Hex; to: Hex }
-  /** A seed was cast onto the board (its letter is on the board for all to see now). */
-  | { type: 'cast'; seen: 'all'; seat: Seat; letter: string; target: Hex }
+  /** A seed was cast onto the board (it's on the board for all to see now: its id and letter are public). */
+  | { type: 'cast'; seen: 'all'; seat: Seat; seed: SeedPiece; target: Hex }
   /** The cast grew these words (their Magic stays secret until the end: gameOver). */
   | { type: 'scored'; seen: 'all'; seat: Seat; words: { word: string; hexes: Hex[] }[] }
-  /** Seeds drawn into a hand (the deal, a draw after Magic, a refresh's refill) — the letters, for that seat only. */
-  | { type: 'drew'; seen: Audience; seat: Seat; letters: string[] }
-  /** …and for everyone else: only how many. */
+  /** Seeds drawn into a hand (the deal, a draw after Magic, a refresh's refill) — ids + letters, for that seat only. */
+  | { type: 'drew'; seen: Audience; seat: Seat; seeds: SeedPiece[] }
+  /** …and for everyone else: only how many (no ids). */
   | { type: 'drewHidden'; seen: Audience; seat: Seat; count: number }
   /** A refresh: how many seeds went back into the bag (everyone)… */
   | { type: 'refreshed'; seen: 'all'; seat: Seat; count: number }
-  /** …and which letters (that seat only). */
-  | { type: 'setAside'; seen: Audience; seat: Seat; letters: string[] }
+  /** …and which seeds (ids + letters, that seat only). */
+  | { type: 'setAside'; seen: Audience; seat: Seat; seeds: SeedPiece[] }
   /** Glyphlings that just got tangled, and ones that came free. */
   | { type: 'tangled'; seen: 'all'; tangled: number[]; freed: number[] }
   /** Who acts now, and what kind of step it is (a draft placement, a turn, or the refresh after a turn). */
@@ -54,8 +55,17 @@ export type GameEvent =
   /** The end: the whole truth (every Magic number, the tangle bonus, who won). */
   | { type: 'gameOver'; seen: 'all'; winners: Seat[]; magic: number[]; tangleMagic: number[] }
 
-/** What stands in for a seed nobody may see (another player's hand, the bag). */
+/** What stands in for a seed a seat may not see (another player's hand, the bag): '?' for its id AND its letter.
+ *  So a hidden hand is still a list (the screen shows how many) but holds no ids: a stable id would let a player
+ *  follow that seed around (src/table/zones.ts — the secrecy promise). '?' is never a real seed id. */
 export const HIDDEN = '?'
+export const HIDDEN_SEED: SeedPiece = { id: HIDDEN, letter: HIDDEN }
+
+/** Who may see inside each zone of seeds (the framework's zone rules, src/table/zones.ts). Planted seeds are public. */
+export const SEED_ZONES = {
+  hand: { name: 'hand', inside: 'owner', ordered: true },
+  bag: { name: 'bag', inside: 'nobody', ordered: true },
+} as const satisfies Record<string, ZoneRule>
 
 /** A new game. Online, the bag is shuffled again and the rng re-seeded with the server's secret numbers. */
 export function setupGame(setup: GameSetup): GameState {
@@ -89,7 +99,7 @@ export function legalActions(state: GameState, seat: Seat): Action[] {
   if (state.phase === 'refresh') return setAsideChoices(hand).map((setAside) => ({ type: 'refresh', setAside }))
 
   const actions: Action[] = []
-  const seeds = firstOfEachLetter(hand)
+  const seeds = firstOfEachLetter(hand).map((i) => hand[i].id)
   for (const g of state.glyphlings.filter((x) => x.seat === seat)) {
     for (const to of legalMoves(state, g.id)) {
       const casts = legalCasts(state, g.id, to)
@@ -104,25 +114,25 @@ export function legalActions(state: GameState, seat: Seat): Action[] {
 }
 
 /** The hand index of the first seed of each letter, e.g. [E, A, E] → [0, 1]. */
-function firstOfEachLetter(hand: string[]): number[] {
-  return hand.flatMap((letter, i) => (hand.indexOf(letter) === i ? [i] : []))
+function firstOfEachLetter(hand: SeedPiece[]): number[] {
+  return hand.flatMap((seed, i) => (hand.findIndex((s) => s.letter === seed.letter) === i ? [i] : []))
 }
 
 /**
- * Every different set of letters that could be set aside, as hand indexes (smallest first).
+ * Every different set of letters that could be set aside, as seed ids (in hand order).
  * For each letter, set aside none of it, its first one, its first two… e.g. [E, A, E] → 3 × 2 = 6 choices.
  */
-function setAsideChoices(hand: string[]): number[][] {
+function setAsideChoices(hand: SeedPiece[]): string[][] {
   let choices: number[][] = [[]]
   for (const first of firstOfEachLetter(hand)) {
-    const sameLetter = hand.flatMap((letter, i) => (letter === hand[first] ? [i] : []))
+    const sameLetter = hand.flatMap((seed, i) => (seed.letter === hand[first].letter ? [i] : []))
     const next: number[][] = []
     for (const choice of choices) {
       for (let count = 0; count <= sameLetter.length; count++) next.push([...choice, ...sameLetter.slice(0, count)])
     }
     choices = next
   }
-  return choices.map((choice) => [...choice].sort((a, b) => a - b))
+  return choices.map((choice) => [...choice].sort((a, b) => a - b).map((i) => hand[i].id))
 }
 
 /** The game as `seat` may see it (seat -1 = someone not playing: sees no hand at all).
@@ -135,8 +145,8 @@ export function viewFor(game: GameState, seat: Seat): SeatView {
   return {
     ...game,
     config: { ...game.config, seed: 0 }, // the seed + the moves would rebuild the bag
-    hands: game.hands.map((hand, s) => (s === seat ? [...hand] : hand.map(() => HIDDEN))),
-    bag: game.bag.map(() => HIDDEN),
+    hands: game.hands.map((hand, s) => (canSeeInside(SEED_ZONES.hand, s, seat) ? [...hand] : hand.map(() => HIDDEN_SEED))),
+    bag: game.bag.map(() => HIDDEN_SEED), // nobody sees inside the bag
     rng: 0,
     magic: zeros,
     tangleMagic: zeros,
@@ -155,10 +165,10 @@ export function viewFor(game: GameState, seat: Seat): SeatView {
 export function eventsOf(before: GameState, seat: Seat, action: Action, after: GameState): GameEvent[] {
   const events: GameEvent[] = []
   const everyoneBut = (who: Seat) => ({ seats: before.hands.map((_, s) => s).filter((s) => s !== who) })
-  const drew = (who: Seat, letters: string[]) => {
-    if (letters.length === 0) return
-    events.push({ type: 'drew', seen: { seats: [who] }, seat: who, letters })
-    events.push({ type: 'drewHidden', seen: everyoneBut(who), seat: who, count: letters.length })
+  const drew = (who: Seat, seeds: SeedPiece[]) => {
+    if (seeds.length === 0) return
+    events.push({ type: 'drew', seen: { seats: [who] }, seat: who, seeds: seeds.map((s) => ({ ...s })) })
+    events.push({ type: 'drewHidden', seen: everyoneBut(who), seat: who, count: seeds.length })
   }
 
   if (action.type === 'draft') {
@@ -170,7 +180,10 @@ export function eventsOf(before: GameState, seat: Seat, action: Action, after: G
   if (action.type === 'turn') {
     const turn = after.lastTurn!
     events.push({ type: 'moved', seen: 'all', seat, glyphling: turn.glyphlingId, from: { ...turn.from }, to: { ...turn.to } })
-    if (turn.letter !== null && turn.target) events.push({ type: 'cast', seen: 'all', seat, letter: turn.letter, target: { ...turn.target } })
+    if (action.seed !== null && turn.target) {
+      const planted = after.seeds[hexKey(turn.target)]
+      events.push({ type: 'cast', seen: 'all', seat, seed: { id: planted.id, letter: planted.letter }, target: { ...turn.target } })
+    }
     if (turn.words.length > 0) {
       events.push({ type: 'scored', seen: 'all', seat, words: turn.words.map((w) => ({ word: w.word, hexes: w.hexes.map((h) => ({ ...h })) })) })
     }
@@ -183,7 +196,7 @@ export function eventsOf(before: GameState, seat: Seat, action: Action, after: G
     const hand = before.hands[seat]
     events.push({ type: 'refreshed', seen: 'all', seat, count: action.setAside.length })
     if (action.setAside.length > 0) {
-      events.push({ type: 'setAside', seen: { seats: [seat] }, seat, letters: action.setAside.map((i) => hand[i]) })
+      events.push({ type: 'setAside', seen: { seats: [seat] }, seat, seeds: action.setAside.map((id) => ({ ...hand[indexOfPiece(hand, id)] })) })
     }
     drew(seat, after.hands[seat].slice(hand.length - action.setAside.length)) // the refill comes after the kept seeds
   }
