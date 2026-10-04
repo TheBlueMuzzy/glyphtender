@@ -241,7 +241,7 @@ describe('awards (skill, earned only)', () => {
   it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its awards: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (a 2-turn hunt 12 → 3 = 75%, D68)', () => {
     const real = JSON.parse(readFileSync('e2e/fixtures/muzzy-zero-awards.json', 'utf8')).state.game as GameState
     const got = earnedAwards(real)
-    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['comeback:0', 'pincer:0', 'pincer:1', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0'])
+    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['comeback:0', 'pincer:0', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0'])
     expect(got.find((a) => a.id === 'walledGarden')?.values.n).toBe(43)
     expect(got.find((a) => a.id === 'pincer' && a.holder === 0)?.values).toMatchObject({ from: 12, to: 3, turns: 2, pct: 75 })
   })

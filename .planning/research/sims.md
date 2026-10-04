@@ -111,3 +111,17 @@ Awards per game at these thresholds: random 1.0 · greedy 1.8 (2,400 games). Per
 Awards per game: **random 2.31 · greedy 3.76** (was 1.0 · 1.8). Muzzy's game: 0 → 4 (Walled garden 43 Magic in a 4-hex garden, Through the hedge ×2, Biggest comeback from 9 behind).
 - Biggest comeback is now near-universal by design (Muzzy: always award the biggest comeback).
 - Walled garden is earned by bots more often now (any wall counts) — Muzzy's call; re-check with the beta AI.
+
+## 2026-10-04 — Pincer as a hunt (D68): picking pincerMinShare (`npm run sim:awards --tune`, 2,400 games each)
+> Pincer = the share of one rival glyphling's room taken over a run of your turns (from ≥ 8 moves). Aim: mindless play earns it in ~15–40% of games (Muzzy: deliberate play "rare-ish, ~10–25%", fine if most real games have one).
+
+| pincerMinShare | random | greedy | 2p | 3p | 4p |
+|---|---|---|---|---|---|
+| 0.5 | ~83% | ~81% | 50–67% | 83–93% | 93–100% (30-game check) |
+| 0.7 | 38.2% | 38.6% | 16–23% | 36–44% | 56–60% |
+| **0.75 (chosen)** | **30.3%** | **30.1%** | 13–16% | 25–36% | 45–51% |
+| 0.8 | 18.2% | 21.1% | 7–9% | 13–26% | 31–33% |
+| 0.85 | 11.6% | 14.2% | 4–8% | 9–17% | 18–21% |
+| 0.9 | 6.4% | 9.3% | 2–5% | 5–10% | 9–16% |
+
+- More players = more rival glyphlings to hunt and more crowding, so the rate climbs with player count. 0.75 sits in the middle of the band and keeps Muzzy's real game's Pincer (a 2-turn hunt, 12 → 3 = 75%). If 4-player games show it too often: 0.8.
