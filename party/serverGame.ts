@@ -29,7 +29,7 @@ export interface ServerGame {
    *  SECRET: never sent to anyone (views.ts builds each view field by field and leaves it out; server.test checks). */
   record: MoveRecord<GameSetup, Action>
   /** What happened lately: the last few changes, each numbered with the version it made, with ALL their events
-   *  (secret ones too). Never sent as is: each view carries feedFor(feed, seat) — only what that seat may see. */
+   *  (secret ones too). Never sent as is: each view carries rules.feedViewFor(feed, game, seat) — only what that seat may see. */
   feed: Feed<GameEvent>
 }
 

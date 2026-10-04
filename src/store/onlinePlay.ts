@@ -32,7 +32,7 @@ import { emptyStats } from './stats'
 import { inHandOrder } from './turnPlan'
 import { trailOf } from './trail'
 import { newSeedSlots, refillInPlace } from './refreshFx'
-import { actorOf, drawnIds, eventOf, setAsideIds, showChange, turnOf, type Happened, type TurnPlay } from './happened'
+import { actorOf, drawnIds, eventOf, showChange, turnOf, type Happened, type TurnPlay } from './happened'
 
 /** How long to wait for my own action's view before asking again (design §6 timers table; counted from Cast). */
 export const WAIT_FOR_VIEW_MS = 3000
@@ -155,9 +155,9 @@ function show(view: GameView, change: Happened, last: boolean) {
   const me = online.mySeat
   const { events } = change
   const mine = actorOf(events) === me
-  const game = last ? view.game : showChange(shown, events, me)
+  const game = last ? view.game : showChange(shown, events, me, view.game.hands[me] ?? [])
   const thrown = eventOf(events, 'cast')
-  const left = [...(thrown?.seat === me ? [thrown.seed.id] : []), ...setAsideIds(events, me)]
+  const left = thrown?.seat === me ? [thrown.seed.id] : [] // (set-aside seeds are simply gone from the hand)
   const order = game.hands.map((hand, seat) => {
     if (seat !== me) return inHandOrder(hand) // (other players' seeds come as '?': no ids — nothing to follow)
     return refillInPlace(trayOrder[seat] ?? [], left, hand) // a drawn seed takes the place of one that left

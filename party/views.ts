@@ -4,9 +4,9 @@
 // and the rng, the random seed and every Magic number are zeroed, and the game log (every turn's words, Magic and
 // running totals — src/engine/log.ts) is sent EMPTY. At game over everyone gets the whole truth, log and all.
 // What's hidden is decided by the rules themselves (src/engine/rules.ts viewFor); this file wraps it for the room.
-// What happened lately (the feed) comes with it, cut down to the events this seat may see (each event's `seen`).
-import { viewFor } from '../src/engine/rules'
-import { feedFor } from '../src/table/events'
+// What happened lately (the feed) comes with it, cut down to the events this seat may see (each event's `seen`) and
+// naming only the seeds it can still see (rules.ts feedViewFor).
+import { feedViewFor, viewFor } from '../src/engine/rules'
 import type { GameState } from '../src/engine/types'
 import type { GameView, Results } from './protocol'
 import type { ServerGame } from './serverGame'
@@ -28,7 +28,7 @@ export function viewOf(state: ServerGame, seatId: string): GameView {
     change: state.change,
     by: state.by,
     game: hideSecrets(state.game, mySeat),
-    feed: feedFor(state.feed, mySeat), // (seat -1, not playing: only the events everyone sees)
+    feed: feedViewFor(state.feed, state.game, mySeat), // (seat -1, not playing: only the events everyone sees)
     options: state.options,
     turnEndsAt: state.turnEndsAt,
     results,

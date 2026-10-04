@@ -76,6 +76,10 @@ function expectFeedForMe(view: GameView) {
     }
   }
   if (view.game.phase !== 'over') expect(JSON.stringify(view.feed)).not.toMatch(/"magic"|"tangleMagic"|"winners"/)
+  // A seed is named only while you can still see it: in your hand or on the board. One you drew or set aside that went
+  // back into the bag is '?' — its id would let you follow it around the bag (the e2e:online frame check, per view)
+  const mayKnow = new Set([...(view.game.hands[view.mySeat] ?? []), ...Object.values(view.game.seeds)].map((s) => s.id))
+  expect((JSON.stringify(view.feed).match(/seed-\d+/g) ?? []).filter((id) => !mayKnow.has(id))).toEqual([])
 }
 
 /** Fails if this view (seen by its own seat) holds anything secret. */

@@ -14,6 +14,7 @@ import { mayAct, type Flow } from '../table/flow'
 import { canSeeInside, indexOfPiece, type ZoneRule } from '../table/zones'
 import type { Action, GameState, SeedPiece, WordList } from './types'
 import type { ApplyOptions, Applied, Audience, Rules, Seat } from '../table/core'
+import { feedFor, type Feed } from '../table/events'
 import { hexKey, type Hex } from './hex'
 
 /** What a new game needs. The same as newGame's options, plus two numbers only the online server uses. */
@@ -172,6 +173,20 @@ export function viewFor(game: GameState, seat: Seat): SeatView {
       words: game.lastTurn.words.map((word) => ({ ...word, magic: 0 })),
     },
   }
+}
+
+/** The recent changes as `seat` may see them NOW (online, each view carries this — party/views.ts): only the events
+ *  that seat may see (the Table's feedFor), and a seed is named only while that seat can still see it — in its own
+ *  hand or planted on the board. A seed it drew or set aside that has since gone back into the bag becomes '?' (a
+ *  stable id would let it follow that seed around: the same promise as for hands — src/table/zones.ts). */
+export function feedViewFor(feed: Feed<GameEvent>, game: GameState, seat: Seat): Feed<GameEvent> {
+  const planted = Object.values(game.seeds)
+  const known = new Set([...(game.hands[seat] ?? []), ...planted].map((s) => s.id))
+  const named = (seeds: SeedPiece[]) => seeds.map((s) => (known.has(s.id) ? s : HIDDEN_SEED))
+  return feedFor(feed, seat).map(({ change, events }) => ({
+    change,
+    events: events.map((e) => (e.type === 'drew' || e.type === 'setAside' ? { ...e, seeds: named(e.seeds) } : e)),
+  }))
 }
 
 /** What `action` (played by `seat`) did, as events — read from the game before and after it. */
