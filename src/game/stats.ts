@@ -225,6 +225,36 @@ export function pincerHunts(game: GameState): PincerHunt[] {
   return hunts
 }
 
+export interface Hijack {
+  holder: number
+  /** The rival who grew the shorter word first. */
+  other: number
+  from: string
+  word: string
+  magic: number
+  /** Where the hijacking turn is in the log. */
+  turnIndex: number
+}
+
+/** Every hijack this game, in log order (the Hijack award's detector; the AI's steals meter counts them all): a word a
+ *  rival grew earlier (≥ minFrom letters), made into a longer one where the holder owns most of the seeds. */
+export function hijacks(game: GameState, minFrom: number = endscreenFile.hijackMinFrom): Hijack[] {
+  const turns = logOf(game).turns
+  const found: Hijack[] = []
+  turns.forEach((turn, i) => {
+    const seat = turn.seat
+    for (const w of turn.words) {
+      const hexes = w.hexes
+      if (!hexes || w.owners.filter((o) => o === seat).length * 2 <= w.owners.length) continue
+      const mine = new Set(hexes)
+      const theirs = turns.slice(0, i).filter((x) => x.seat !== seat).flatMap((x) => x.words.map((v) => ({ x, v })))
+        .find(({ v }) => v.hexes && v.letters.length >= minFrom && v.hexes.length < hexes.length && v.hexes.every((h) => mine.has(h)))
+      if (theirs) found.push({ holder: seat, other: theirs.x.seat, from: theirs.v.word, word: w.word, magic: w.magic, turnIndex: i })
+    }
+  })
+  return found
+}
+
 /** Every award earned this game, best moment per player per award, in the carousel's order (awardOrder, then size). */
 export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile): Award[] {
   const log = logOf(game)
@@ -239,7 +269,7 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
   const totalsBefore = (i: number) => (i > 0 ? turns[i - 1].totalsAfter : game.magic.map(() => 0))
   const everTangled = (id: number) => game.tangled.includes(id) || turns.some((x) => x.tangledAfter.includes(id))
 
-  turns.forEach((turn, i) => {
+  turns.forEach((turn) => {
     const seat = turn.seat
     const m = turn.mobility
     // ── Positioning & blocking ──
@@ -288,16 +318,12 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
       if (w.at !== undefined && w.at > 0 && Math.min(w.at, w.letters.length - 1 - w.at) >= t.bridgeMinSide) {
         add('bridge', seat, turn, w.letters.length * 100 + w.magic, { word: w.word, letter: w.letters[w.at], left: w.letters.slice(0, w.at).join(''), right: w.letters.slice(w.at + 1).join('') })
       }
-      // Hijack: a word a rival grew earlier, made into a longer one where the holder owns most of the seeds
-      const hexes = w.hexes
-      if (hexes && w.owners.filter((o) => o === seat).length * 2 > w.owners.length) {
-        const mine = new Set(hexes)
-        const theirs = turns.slice(0, i).filter((x) => x.seat !== seat).flatMap((x) => x.words.map((v) => ({ x, v })))
-          .find(({ v }) => v.hexes && v.letters.length >= t.hijackMinFrom && v.hexes.length < hexes.length && v.hexes.every((h) => mine.has(h)))
-        if (theirs) add('hijack', seat, turn, w.magic, { other: theirs.x.seat, from: theirs.v.word, word: w.word, n: w.magic }, [theirs.x.seat])
-      }
     }
   })
+  // Hijack: a word a rival grew earlier, made into a longer one where the holder owns most of the seeds
+  for (const h of hijacks(game, t.hijackMinFrom)) {
+    add('hijack', h.holder, turns[h.turnIndex], h.magic, { other: h.other, from: h.from, word: h.word, n: h.magic }, [h.other])
+  }
 
   // Pincer (D68): the biggest SHARE of one rival glyphling's room taken over a hunt — a run of your turns that each cut
   // it (Muzzy, 2026-10-04: "this proves aggressive play"). Only the share counts, so an early squeeze (lots of room)

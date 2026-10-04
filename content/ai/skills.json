@@ -18,6 +18,7 @@
     "topN": "…among at most this many moves",
     "wobble": "Trait wobble (0–1, higher = less consistent)",
     "beliefNoise": "Blur on its Magic guesses (0–1)",
+    "extras": "Glyphtender extras (vocabulary)",
     "extras.zipf": "Vocabulary: aims only for words this common (Zipf)"
   },
   "_sections": {

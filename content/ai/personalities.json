@@ -16,7 +16,7 @@
     "chattiness": "0–100: how likely it is to say something at a banter moment (big moments only).",
     "extras.nerve": "How far ahead (in believed Magic) it must think it is before it ends the game itself (\"calls it\"). Lower = bolder, calls it wrong more often.",
     "extras.vocabulary": "Added to the skill's vocabulary threshold (Zipf). Negative = knows MORE words; positive = fewer.",
-    "extras.extraWordBonus": "Strategist only: SCORE's bonus per extra word made in one cast (everyone else uses the default 3)."
+    "extras.extraWordBonus": "SCORE goal: bonus per extra word made in one cast (the original: 3). The Strategist — the two-words-one-move specialist — gets more."
   },
   "_labels": {
     "id": "Name (code)",
@@ -32,6 +32,7 @@
     "nudge": "Two-birds nudge from the other goals (0–1)",
     "shifts": "Mood shifts",
     "chattiness": "Banter: how chatty (0–100)",
+    "extras": "Glyphtender extras (nerve, vocabulary, multi-word bonus)",
     "extras.nerve": "Calls it when it thinks it's this far ahead (Magic)",
     "extras.vocabulary": "Vocabulary modifier (− = knows more words)",
     "extras.extraWordBonus": "SCORE: bonus per extra word in one cast"
@@ -66,7 +67,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
       "chattiness": 70,
-      "extras": { "nerve": 6, "vocabulary": 0.5 }
+      "extras": { "nerve": 6, "vocabulary": 0.5, "extraWordBonus": 3 }
     },
     {
       "id": "Scholar",
@@ -91,7 +92,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -20 }
       ],
       "chattiness": 50,
-      "extras": { "nerve": 14, "vocabulary": -1.0 }
+      "extras": { "nerve": 14, "vocabulary": -1.0, "extraWordBonus": 3 }
     },
     {
       "id": "Builder",
@@ -117,7 +118,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
       "chattiness": 30,
-      "extras": { "nerve": 10, "vocabulary": 0 }
+      "extras": { "nerve": 10, "vocabulary": 0, "extraWordBonus": 3 }
     },
     {
       "id": "Vulture",
@@ -141,7 +142,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
       "chattiness": 60,
-      "extras": { "nerve": 10, "vocabulary": 0 }
+      "extras": { "nerve": 10, "vocabulary": 0, "extraWordBonus": 3 }
     },
     {
       "id": "Survivor",
@@ -166,7 +167,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
       "chattiness": 30,
-      "extras": { "nerve": 18, "vocabulary": 0 }
+      "extras": { "nerve": 18, "vocabulary": 0, "extraWordBonus": 3 }
     },
     {
       "id": "Strategist",
@@ -214,7 +215,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
       "chattiness": 40,
-      "extras": { "nerve": 10, "vocabulary": 0 }
+      "extras": { "nerve": 10, "vocabulary": 0, "extraWordBonus": 3 }
     }
   ]
 }
