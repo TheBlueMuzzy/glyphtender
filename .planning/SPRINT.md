@@ -13,7 +13,7 @@ Check: both checks SAME; no id of a hidden seed in any message; B018 fixed.
 
 ## F32 🧱 Turns & flow
 Done when: the turn order is one flow (Draft snake → Play clockwise, skip fully tangled, refresh step → Over); rules.toAct, "your turn", who may act and undo limits all come from it; the 8 screen copies of "whose turn" are gone — and both checks SAME.
-- [ ] 🤖 7. Framework (v0.4 F14): turn flow in table/ — levels (who may act, order preset: snake · clockwise-skip, ends-when), step limits for undo; Table 0.3.0
+- [x] 🤖 7. Framework (v0.4 F14): turn flow in table/ — levels (who may act, order preset: snake · clockwise-skip, ends-when), step limits for undo; Table 0.3.0
 - [ ] 🤖 8. Rules run on the flow: draft / play / refresh / over as levels; rules.toAct from the flow; golden SAME — src/engine/{draft,tangle,refresh,rules}.ts
 - [ ] 🤖 9. Screen asks the flow: canPlay (gameStore), ActionBar notNow, SeedTray myTurn, nope, turnPulse, prompt, turnPlan, onlinePlay.isOthersTurn → one "may this seat act / is it my turn" answer
 - [ ] 🤖 10. Undo limits from the flow: cast → move, never past the turn's start (gameStore.undo, ActionBar)
