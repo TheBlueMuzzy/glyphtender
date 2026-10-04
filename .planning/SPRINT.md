@@ -4,11 +4,11 @@ Muzzy will see: `npm run ai:arena` — AI-vs-AI games with a decision note per t
 
 ## framework F19 🧱 Brain (framework v0.5, dev/framework `ai/`)
 Done when: a brain built from (game plug, personality, skill) turns a seat's view into an action + an explain note — readings → mood shifts → goal roll → candidates → main + nudge scoring → human choice; seeded (same game → same moves); tested with a toy game.
-- [ ] 🤖 1. Scaffold `framework/ai/` like `table/` (kit/, scripts/install-ai.mjs, package.json, README, VERSION 0.1.0)
-- [ ] 🤖 2. Data shapes: Personality (trait ranges, goal order, nudge, shifts, chattiness, nerve, extras) · Skill (candidates, worlds, pick spread, top N, belief noise, extras) · GamePlug (goals + scorers, readings, imagine, candidates, special decisions) — kit/types.ts
-- [ ] 🤖 3. Pipeline — kit/brain.ts: shift traits from readings · goal roll (range threshold vs d100, priority walk) · candidate cut · score main × 1 + others × nudge · pick within spread / top N weighted · explain note
-- [ ] 🤖 4. Tests with a toy game (kit/brain.test.ts): goal roll odds match ranges; Bully-like picks TRAP most; nudge breaks ties toward two-birds; seeded replay identical; never sees outside the view it's given
-- [ ] 🤖 5. Install into Glyphtender `src/ai/kit/` (install-ai.mjs, version stamp); framework ROADMAP F19 ✅
+- [x] 🤖 1. Scaffold `framework/ai/` like `table/` (kit/, scripts/install-ai.mjs, package.json, README, VERSION 0.1.0)
+- [x] 🤖 2. Data shapes: Personality (trait ranges, goal order, nudge, shifts, chattiness, nerve, extras) · Skill (candidates, worlds, pick spread, top N, belief noise, extras) · GamePlug (goals + scorers, readings, imagine, candidates, special decisions) — kit/types.ts
+- [x] 🤖 3. Pipeline — kit/brain.ts: shift traits from readings · goal roll (range threshold vs d100, priority walk) · candidate cut · score main × 1 + others × nudge · pick within spread / top N weighted · explain note
+- [x] 🤖 4. Tests with a toy game (kit/brain.test.ts): goal roll odds match ranges; Bully-like picks TRAP most; nudge breaks ties toward two-birds; seeded replay identical; never sees outside the view it's given
+- [x] 🤖 5. Install into Glyphtender `src/ai/kit/` (install-ai.mjs, version stamp); framework ROADMAP F19 ✅
 
 ## F38 🧱 Glyphtender AI plug
 Done when: Glyphtender gives the brain its readings, imagined seeds, candidate list and behaviour meters, and one decision is timed on a phone-speed budget.
