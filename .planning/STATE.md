@@ -1,11 +1,11 @@
 ## ▶ RESUME HERE
-Sprint 09 done — F30 Game core ✅ (approved 2026-10-04): every change goes through glyphtenderRules (framework Table module 0.1.0 in src/table); events with who-may-see; legalActions; fast mode; server move record. F31 Events drive the screen, F32 Turns & flow, F33 Zones & pieces are now 🟢 ready.
-Next: `/sprint` → plan the next slice (framework branch dev/table, game branch dev/table). Every v0.6 slice ends with check:golden + check:shots SAME and their results pages LINKED for Muzzy (dev server /e2e-shots/golden.html, /e2e-shots/report.html) — never hand him npm commands.
-Riskiest places (architecture map 2026-10-04): gameStore + onlinePlay timer sequencing · tray order ↔ engine hand order · log/insight fields the end screen reads · online secrecy (hideSecrets → rules.viewFor, startReplay hand poke, server re-seed) · 7 rule copies in screen code. Keep RNG call order or golden games change.
+Sprint 10 — The game knows its pieces and its turns by name (F33 Zones & pieces, then F32 Turns & flow; 0/12 tasks; .planning/SPRINT.md). Framework-first in framework branch dev/table (table/ module → src/table via install-table.mjs).
+Next: `/develop` continues with the next unticked task. Every slice ends with check:golden + check:shots SAME and their results pages LINKED for Muzzy (dev server /e2e-shots/golden.html, /e2e-shots/report.html) — never hand him npm commands.
+Riskiest places: tray order ↔ hand order (F33 replaces it with seed ids) · online secrecy (no ids for hidden seeds) · gameStore + onlinePlay timer sequencing · log/insight fields the end screen reads. Keep RNG call order or golden games change.
 Still open (Ask Muzzy, not blocking): phones on their side — Results scrolls 13–45 px, Scorecard 291 px. B019 (768×343 prompt over ☰) waits until after v0.6.
 
 ## Where we are
-Stage: develop · Milestone: v0.6 Rebuilt on the Table · Sprint: — (09 done; next: F31–F33) · Doing: planning · Branch: dev/table · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
+Stage: develop · Milestone: v0.6 Rebuilt on the Table · Sprint: 10 · Doing: F33 Zones & pieces — building · Branch: dev/table · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
