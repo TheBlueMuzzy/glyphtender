@@ -4,12 +4,12 @@ Muzzy will see: New Game → any seat can be an AI (personality card + skill); i
 
 ## F42 🎮 Play vs AI (+ framework F21: background thinking in a game)
 Done when: a solo game (you + 1–3 AIs) and a mixed pass-and-play game (people + AIs) play to the end on phone + desktop; the AI never freezes the screen; Settings → AI speed works; no handoff screen for an AI.
-- [ ] 🤖 1. Thinking off the main thread: src/ai/think.worker.ts (serveThinking) + src/ai/thinker.ts (makeThinker; inlineThinker fallback) — the brain runs in a Web Worker with the word list + content/ai loaded once
-- [ ] 🤖 2. localBot.ts plays AI seats through the thinker at the pace (kit pace.ts thinkDelay + waitLeft, content/ai/pace.json, speed from Settings); greedyBot stays only for tests
-- [ ] 🤖 3. New Game: seat = Person / AI; AI → personality picker (name, seat glyphling as portrait, bio — en.json ai.*) incl. "Surprise me", + skill (Apprentice · First Class · Archmage); remembered like the other choices (src/ui/NewGameScreen.tsx, newGame.ts) — game-ui kit parts only
-- [ ] 🤖 4. On its turn: "thinking…" cue on its chip/prompt; Settings → AI speed (Slow · Normal · Fast · Instant) in content/ui/settings.json + gameSettings.ts
-- [ ] 🤖 5. e2e: solo vs 1 AI and 2 people + 2 AIs play to the end (Instant), screenshots at every size; the end screen's awards/Story still work
-- [ ] 🤖 6. GDD §5 / TDD §2 (AI seats in the store, worker)
+- [x] 🤖 1. Thinking off the main thread: src/ai/think.worker.ts (serveThinking) + src/ai/thinker.ts (makeThinker; inlineThinker fallback) — the brain runs in a Web Worker with the word list + content/ai loaded once
+- [x] 🤖 2. localBot.ts plays AI seats through the thinker at the pace (kit pace.ts thinkDelay + waitLeft, content/ai/pace.json, speed from Settings); greedyBot stays only for tests
+- [x] 🤖 3. New Game: seat = Person / AI; AI → personality picker (name, seat glyphling as portrait, bio — en.json ai.*) incl. "Surprise me", + skill (Apprentice · First Class · Archmage); remembered like the other choices (src/ui/NewGameScreen.tsx, newGame.ts) — game-ui kit parts only
+- [x] 🤖 4. On its turn: "thinking…" cue on its chip/prompt; Settings → AI speed (Slow · Normal · Fast · Instant) in content/ui/settings.json + gameSettings.ts
+- [x] 🤖 5. e2e: solo vs 1 AI and 2 people + 2 AIs play to the end (Instant), screenshots at every size; the end screen's awards/Story still work
+- [x] 🤖 6. GDD §5 / TDD §2 (AI seats in the store, worker)
 
 ## F41 🔧 Dev Kit AI tab (+ framework F23)
 Done when: in the running game, the Dev Kit's AI tab lets Muzzy pick a personality, drag two-handled trait sliders, reorder goals, edit nudge / shifts / skill / bio, Save (to content/ai/ like Tuning saves), watch AIs play each other at human pace with each decision's note and belief meters, and run a small Personality Check.
@@ -28,3 +28,4 @@ Done when: positional personalities win their share (everyone 35–65% vs Balanc
 Check: npm test · check:fast (golden SAME) · check:full · `npm run ai:arena` report · screenshots at 390×844, 360×780, 844×390, 768×343, 1100 wide, 1440×900, 1920×1080.
 Ask Muzzy: F37 (4 AI calls — defaults in place) · bios' tone (en.json ai.personality.*.bio).
 Notes:
+- F42 (2026-10-04): New Game's first-time default stays **all people** (every existing e2e clicks Start with the defaults, and pass-and-play "stays the same"); solo = switch a seat to AI, then it's remembered. **Ask Muzzy:** should the first-time default be you + 1 AI? · "Surprise me" is never named in-game: the turn bar shows the same 🤖 badge as online bots (same intention → same look), the bio says you find out by how it plays. · An AI turn plays out like a person's: think (Web Worker) → wait the pace → the plan's glide → the throw (the Board's landing applies it). Instant still animates (pace.json says so). · During an AI's draft the legal hexes glow like any draft (existing rule, not changed). · e2e:ai uses port 5431 (5415 was taken by another helper). · F41 hooks ready: startGame({ bots, ai }), localBot.ts onAiDecision(listener(seat, decision)), setAiSpeedOverride(speed | null). · Seen in e2e:ai: the Bully at Apprentice sat on 0 Magic for 7 rounds of a 14-round solo game (F45 territory).
