@@ -10,7 +10,7 @@ Done when: one referee answer (framework Table referee) drives the drop glow, th
 
 ## F35 🧱 Hand view
 Done when: the seed tray IS the framework ui-kit Hand view with a "rack" preset (the game only draws the seed art) — pixel-identical (check:shots SAME at all 8 sizes), same drag / reorder / shuffle / refresh shrink-grow behaviour, same selectors (.game-tray, [data-tray-pos], [data-hand], [data-refresh-slot], data-refresh-stage).
-- [ ] 🤖 5. Framework (v0.4 F17): ui-kit HandView (rack preset: rows, slot maths, gaps, held / aimed / waiting / hidden states, shrink-grow stages, reorder-drag hooks; the piece art is the game's render prop) + gallery entry + CATALOG — ui-kit 0.3.0
+- [x] 🤖 5. Framework (v0.4 F17): ui-kit HandView (rack preset: rows, slot maths, gaps, held / aimed / waiting / hidden states, shrink-grow stages, reorder-drag hooks; the piece art is the game's render prop) + gallery entry + CATALOG — ui-kit 0.3.0
 - [ ] 🤖 6. The tray becomes HandView "rack": SeedTray.tsx draws seeds through it; trayLayout / refreshFx order maths → Table rack.ts; install ui-kit 0.3.0 + Table 0.5.0
 - [ ] 🤖 7. Prove it — check:shots SAME (pixel-identical), check:golden SAME; e2e:game (B008, B011, tray never re-sorts), portrait, margins, pass, pass4, online, previews; links
 - [ ] 🤖 8. TDD Decisions + STATE key facts · framework ROADMAP F16/F17 · ui-kit CATALOG
