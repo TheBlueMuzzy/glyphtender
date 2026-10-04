@@ -124,8 +124,11 @@
   .kit-carousel-row { display: flex; align-items: center; gap: var(--gap-xs); min-inline-size: 0; }
   .kit-carousel-row > .kit-button { flex: none; }
   .kit-carousel-view { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; touch-action: pan-y; cursor: pointer; }
-  .kit-carousel-track { display: flex; align-items: stretch; transform: translateX(calc(var(--kit-carousel-at, 0) * -100%)); transition: transform var(--motion-normal) var(--ease); }
-  .kit-carousel-item { flex: 0 0 100%; min-inline-size: 0; display: flex; align-items: center; justify-content: center; }
+  /* every item in one spot (the tallest sets the height); only the current one shows — Carousel.tsx slides the one
+     leaving and the one arriving, so it loops past the end without rushing back */
+  .kit-carousel-track { display: grid; }
+  .kit-carousel-item { grid-area: 1 / 1; min-inline-size: 0; display: flex; align-items: center; justify-content: center; visibility: hidden; }
+  .kit-carousel-item[data-current] { visibility: visible; }
   .kit-carousel-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap-xs); }
   .kit-carousel-dot { inline-size: 0.5rem; block-size: 0.5rem; }
   .kit-tab { flex: 1 0 auto; padding: var(--gap-s) var(--gap-l); border: 0; background: none; font-weight: 600; }

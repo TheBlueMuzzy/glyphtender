@@ -39,9 +39,11 @@
   .kit-hud-slot :is(button, input, [tabindex="0"]) { pointer-events: auto; }
   .kit-hud-chip { display: inline-flex; flex-wrap: nowrap; padding: var(--gap-xs) var(--gap-s); }
   .kit-hud-chip .kit-text { white-space: nowrap; overflow-wrap: normal; } /* short HUD words never break letter by letter */
-  /* A chip that starts with an avatar (or a player chip's icon) wraps it: the avatar sits flush in the chip's rounded
-     start, and only the text side keeps padding, so the chip is no wider than what's in it */
-  .kit-hud-chip:has(> :is(.kit-avatar, .kit-player-chip-icon):first-child) { padding-block: 0; padding-inline: 0 var(--gap-m); }
+  /* A chip that starts with an avatar (or a player chip's icon): breathing room on EVERY side — nothing ever touches a
+     card's edge (Muzzy, 2026-10-03: "there should always be breathing room around the edge of cards/containers so that
+     nothing touches the edges"); the text side a little more. The tightest size (xs, rows close together) keeps less. */
+  .kit-hud-chip:has(> :is(.kit-avatar, .kit-player-chip-icon):first-child) { padding: var(--gap-s) var(--gap-m) var(--gap-s) var(--gap-s); }
+  .kit-hud-chip[data-size="xs"]:has(> :is(.kit-avatar, .kit-player-chip-icon):first-child) { padding: var(--gap-xs) var(--gap-s) var(--gap-xs) var(--gap-xs); }
   /* HUD text: plain words on the game, no plate. Never catches taps. */
   .kit-hud-text { pointer-events: none; text-align: center; }
   .kit-hud-text .kit-stack { align-items: center; }

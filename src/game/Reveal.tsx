@@ -96,9 +96,11 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
     return () => watch.disconnect()
   }, [big, layout.revealBigZoom, revealAt])
 
-  const size: 'm' | 's' | 'xs' = !compact ? 'm' : game.magic.length > 2 ? 'xs' : 's'
+  // (3–4 players: a size down, so four padded cards don't squeeze the board — upright phones too)
+  const many = game.magic.length > 2
+  const size: 'm' | 's' | 'xs' = !compact ? (many && !big ? 's' : 'm') : many ? 'xs' : 's'
   return (
-    <div ref={panel} className="game-reveal" role="group" aria-label={w.label}>
+    <div ref={panel} className="game-reveal" data-size={size} role="group" aria-label={w.label}>
       {game.magic.map((_, seat) => {
         const score = view.scores[seat]
         const winner = view.announced && game.winners.includes(seat)

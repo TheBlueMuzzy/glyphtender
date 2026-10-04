@@ -9,7 +9,8 @@
 //           hidden sizer copy behind each card — Reveal.tsx — isn't a chip)
 //   results the highlights' top is UNDER the players' bottom (never beside), at every size; the Highlights are a
 //           carousel showing ONE award (none earned → no Highlights at all); at 390×844 and 1440×900 it moves on by
-//           itself (carouselSeconds) and a tap moves it on AND holds it (carouselPauseSeconds) before it carries on
+//           itself (carouselSeconds) and a tap moves it on AND holds it (carouselPauseSeconds) before it carries on;
+//           ▶ on the last award LOOPS to the first (slides in from the right; only two awards move)
 //   story   the key under the chart, the same carousel under the key, the caption under that; a 4-pointed star on the
 //           shown award's holder's line, which moves when the carousel moves on
 //   all     no page scrolls (phones on their side / short windows may — reported as a NOTE, not a failure); on a
@@ -223,7 +224,7 @@ try {
         if (!view) return 0
         return [...document.querySelectorAll('.game-end-results .kit-carousel-item')].filter((el) => {
           const r = el.getBoundingClientRect()
-          return r.right > view.left + 1 && r.left < view.right - 1
+          return getComputedStyle(el).visibility === 'visible' && r.right > view.left + 1 && r.left < view.right - 1
         }).length
       })
       if (awards.count) check(`the Highlights carousel shows ONE award at a time (${shownAtOnce} in view)`, shownAtOnce === 1 && awards.id !== null)
@@ -240,6 +241,22 @@ try {
         await page.waitForTimeout(TUNING.carouselPauseSeconds * 1000)
         check('…then it carries on', (await current()).id !== tapped.id)
         console.log(`ok   ${tag} carousel: moves on, a tap moves + holds, then carries on`)
+        // It LOOPS (Muzzy): ▶ on the last award slides the first one in from the right like any other step — only the
+        // award leaving and the one arriving move (never a rush back through them all)
+        const nextButton = page.getByRole('button', { name: /^Next/ }).first()
+        for (let k = 0; k < awards.count + 1; k++) {
+          const at = await page.evaluate(() => [...document.querySelectorAll('.game-end-results .kit-carousel-item')].findIndex((el) => el.hasAttribute('data-current')))
+          if (at === awards.count - 1) break
+          await nextButton.click()
+        }
+        await nextButton.click()
+        const slide = await page.evaluate(() => {
+          const items = [...document.querySelectorAll('.game-end-results .kit-carousel-item')]
+          const moving = items.filter((el) => el.getAnimations().length)
+          const arriving = items[0].getAnimations()[0]?.effect?.getKeyframes()[0]?.transform ?? ''
+          return { first: items[0].hasAttribute('data-current'), moving: moving.length, arriving }
+        })
+        check(`▶ on the last award loops to the first (${JSON.stringify(slide)})`, slide.first && slide.moving <= 2 && /translateX\(100%\)/.test(slide.arriving))
       }
       await fits('Results')
       await fills('Results', '.game-end-results')

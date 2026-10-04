@@ -4,10 +4,13 @@
 // swipe moves to the next / previous one AND holds the auto-advance for `pauseSeconds` (then it carries on as usual:
 // the next turn comes pauseSeconds + autoSeconds after the tap). Page dots under it show where you are (not buttons:
 // a long row of 44px dots wouldn't fit a phone). One item: just the item. None: nothing.
+// It LOOPS: past the last item the first one slides in from the same side, like any other step (never a rush back
+// through them all — Muzzy, 2026-10-03). Only the item leaving and the item arriving move, in the direction pressed.
 // Reduce motion: no slide — the next item just appears; it still moves on by itself.
 // index / onIndexChange: optional, to know (or set) which item shows — e.g. to mark it somewhere else.
 // The pointer events stop here, so a swipe on the carousel never also turns a page it sits on.
-import { Children, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { Children, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { motionTime } from '../blocks/motion'
 import { Button } from './Button'
 
 type CarouselProps = {
@@ -42,17 +45,38 @@ export function Carousel({ children, label, autoSeconds = 4, pauseSeconds = 3, i
     if (index === undefined) setOwn(wrapped)
     onIndexChange?.(wrapped)
   }
-  const step = (direction: -1 | 1) => {
+  const direction = useRef<-1 | 1>(1) // the way the last step went (the auto-advance goes forward)
+  const step = (way: -1 | 1) => {
     byUser.current = true
+    direction.current = way
     setTaps((n) => n + 1)
-    show(at + direction)
+    show(at + way)
   }
+
+  // The slide: the item leaving goes out one side while the new one comes in from the other — just those two, so
+  // last → first is one step like any other (the rest stay hidden where they are)
+  const track = useRef<HTMLDivElement>(null)
+  const shown = useRef(at)
+  useLayoutEffect(() => {
+    const from = shown.current
+    shown.current = at
+    const way = direction.current
+    direction.current = 1
+    const time = motionTime('motion-normal')
+    if (from === at || !time || from >= count) return
+    const slides = track.current?.children
+    const options: KeyframeAnimationOptions = { duration: time, easing: 'ease-out' }
+    const out = slides?.[from]?.animate?.([{ transform: 'translateX(0)', visibility: 'visible' }, { transform: `translateX(${-way * 100}%)`, visibility: 'visible' }], options)
+    const into = slides?.[at]?.animate?.([{ transform: `translateX(${way * 100}%)` }, { transform: 'translateX(0)' }], options)
+    return () => { out?.finish(); into?.finish() }
+  }, [at, count])
 
   useEffect(() => {
     if (count < 2 || !(autoSeconds > 0)) return
     const wait = (autoSeconds + (byUser.current ? Math.max(0, pauseSeconds) : 0)) * 1000
     const timer = setTimeout(() => {
       byUser.current = false
+      direction.current = 1
       show(at + 1)
     }, wait)
     return () => clearTimeout(timer)
@@ -92,7 +116,7 @@ export function Carousel({ children, label, autoSeconds = 4, pauseSeconds = 3, i
         {many && <Button variant="ghost" icon aria-label={`Previous ${name}`} onClick={() => step(-1)}>◀</Button>}
         <div className="kit-carousel-view" onPointerDown={onPointerDown} onPointerUp={onPointerUp}
           onPointerCancel={() => (start.current = null)}>
-          <div className="kit-carousel-track" style={{ '--kit-carousel-at': at } as CSSProperties}>
+          <div ref={track} className="kit-carousel-track">
             {items.map((item, i) => (
               <div key={i} className="kit-carousel-item" role="group" aria-roledescription="slide"
                 aria-label={`${i + 1} of ${count}`} aria-hidden={i !== at || undefined} inert={i !== at || undefined}

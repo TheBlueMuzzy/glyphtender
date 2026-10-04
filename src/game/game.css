@@ -140,6 +140,7 @@
   .game-reveal > [data-reveal-seat] > * { grid-area: 1 / 1; min-inline-size: 0; }
   .game-reveal > [data-reveal-seat] > .kit-player-chip { inline-size: auto; }
   .game-reveal-sizer { visibility: hidden; pointer-events: none; }
+  .game-reveal[data-size="xs"] { gap: var(--gap-xs); } /* the one-line cards on a phone on its side: rows close together */
   /* the score keeps to the card's right edge, in line on every card (the name stays left) */
   .game-reveal .kit-player-chip-score { margin-inline-start: auto; }
   .game[data-phase="over"] .game-panel { justify-content: center; }
