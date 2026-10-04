@@ -48,7 +48,9 @@ export function SettingsScreen() {
   const onAction = (id: string) => {
     if (id === 'credits') screens.push('credits')
   }
-  return <Settings schema={settings} info={{ version: `v${version.version}` }} hide={hiddenFullscreenRows()} onAction={onAction} onChange={settingsChanged} />
+  // (Esc on a computer turns Full screen off from outside this screen: key = start again from the saved values)
+  const resaved = useFullscreen((s) => s.resaved)
+  return <Settings key={resaved} schema={settings} info={{ version: `v${version.version}` }} hide={hiddenFullscreenRows()} onAction={onAction} onChange={settingsChanged} />
 }
 
 // CREDITS — people from en.json, then every asset listed in content/credits.json.

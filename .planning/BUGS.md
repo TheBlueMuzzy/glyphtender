@@ -1,6 +1,9 @@
 # Glyphtender — Bugs
-Open: 4 (P0 0 · P1 0 · P2 1 · P3 3)
+Open: 5 (P0 0 · P1 0 · P2 1 · P3 4)
 ## Open
+### B018 · P3 · open · found 2026-10-03 by /code-review (deliver v0.3.0) · v0.2.0 · Dev Kit only
+A Dev Kit snapshot taken while the seed tray has an empty place (after a cast, before the draw) loses its tray order when restored
+Steps: cast a seed so its tray place is empty, save a snapshot, restore it · Expected: the tray as it was · Actual: the tray order is dropped (src/devkit-game/glyphtenderAdapter.ts:115 doesn't know the empty places, TRAY_GAP). Players never see it.
 ### B017 · P3 · open · found 2026-10-01 by e2e:online4 (F28) · v0.2.0 · online lobby, phone sideways 844×390
 With 4 players the lobby shows only 2 seats at 844×390 — the rest (and the host's options) are below a scroll
 Steps: 4 players join a room, look at the lobby on a phone held sideways · Expected: all 4 seats in sight · Actual: Ada and Bo, then a scroll (shot e2e-shots/online4-844x390-1-lobby-host-4-seats.png). Nothing is clipped — it scrolls — but you can't see who's ready at a glance. A kit Lobby matter (framework): e.g. seats in two columns on wide-short screens, or the options collapsed

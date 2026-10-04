@@ -43,8 +43,10 @@ export function exitFullscreen() {
   go?.catch(() => {})
 }
 
-/** Is the page full screen right now (the main menu button's words follow it). */
-export const useFullscreen = create<{ on: boolean }>()(() => ({ on: fullscreenNow() }))
+/** Is the page full screen right now (the main menu button's words follow it). `resaved` counts the times the setting
+ *  was saved from here (a computer's Esc) — an open Settings screen re-reads its values then, so it never saves an old
+ *  "Full screen: on" back over it. */
+export const useFullscreen = create<{ on: boolean; resaved: number }>()(() => ({ on: fullscreenNow(), resaved: 0 }))
 
 /** The settings list with the Full screen row's default for this device: on for phones & tablets, off for computers. */
 export function withFullscreenDefault(schema: SettingsSchema): SettingsSchema {
@@ -91,6 +93,7 @@ export function startFullscreen(load: () => SettingsValues) {
     if (!fullscreenNow() && wanted && !isTouchDevice()) {
       wanted = false
       save(false)
+      useFullscreen.setState((st) => ({ resaved: st.resaved + 1 }))
     }
   }
   document.addEventListener('fullscreenchange', changed)

@@ -1,7 +1,8 @@
 // FULL SCREEN (src/ui/fullscreen.ts; Muzzy 2026-10-03: friends opening a link on a phone should see the whole game):
 //   phone (touch) — a tap anywhere goes full screen (Settings → Full screen is on by default there); the main menu
 //     button then says "Leave full screen", and pressing it leaves AND turns the setting off (no tap brings it back)
-//   computer — a click never goes full screen by itself; the button does; leaving turns the setting off
+//   computer — a click never goes full screen by itself; the button does; leaving turns the setting off — even with
+//     Settings open (changing another setting after Esc must not save Full screen back on)
 // (iPhone can't go full screen at all — the unit tests cover its Add to Home Screen tip.)
 // Starts its OWN dev server (port 5243) and closes only that one.   npm run e2e:fullscreen
 import { createServer } from 'vite'
@@ -47,6 +48,22 @@ try {
   await pc.waitForTimeout(300)
   const saved = await pc.evaluate(() => Object.values(localStorage).map((v) => JSON.parse(v).fullscreen))
   check('computer: leaving (Esc) turns the setting off', saved.includes(false) && !saved.includes(true))
+
+  // Esc while Settings is open, then another setting changed: Full screen must stay off (code review, 2026-10-03:
+  // Settings held an old "on" and saved it back)
+  await pc.getByRole('button', { name: 'Settings' }).click()
+  await pc.getByRole('tab', { name: 'Display' }).click()
+  await pc.getByRole('switch', { name: 'Full screen' }).click()
+  await pc.waitForTimeout(300)
+  check('computer: the Settings toggle goes full screen', await full(pc))
+  await pc.evaluate(() => document.exitFullscreen())
+  await pc.waitForTimeout(300)
+  await pc.getByRole('tab', { name: 'Display' }).click()
+  await pc.getByRole('button', { name: 'Next Graphics quality' }).click()
+  await pc.waitForTimeout(200)
+  const after = await pc.evaluate(() => Object.values(localStorage).map((v) => JSON.parse(v).fullscreen))
+  const toggle = await pc.getByRole('switch', { name: 'Full screen' }).getAttribute('aria-checked')
+  check(`computer: after Esc, changing another setting keeps Full screen off (saved ${after}, toggle ${toggle})`, !after.includes(true) && toggle === 'false')
 } finally {
   await browser.close()
   await server.close()
