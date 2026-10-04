@@ -140,7 +140,7 @@ try {
             for (const to of legalMoves(game, g.id)) {
               for (const target of legalCasts(game, g.id, to)) {
                 const far = steps(g.hex, to) + steps(to, target)
-                if (far > best) { best = far; pick = { glyphling: g.id, to: key(to), seed: 0, target: key(target) } }
+                if (far > best) { best = far; pick = { glyphling: g.id, to: key(to), seed: game.hands[game.current][0].id, target: key(target) } }
               }
             }
           }
