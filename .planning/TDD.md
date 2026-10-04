@@ -8,7 +8,7 @@
 - **Platforms:** web — phone browsers (portrait + landscape) and desktop. Installable PWA.
 - **Stack:** Vite + TypeScript + React, **2D SVG board (no Three.js)**, Zustand for screen state. Why: a flat hex board wants crisp, resizable, tappable shapes — SVG gives that for free, runs cool on phones, and every hex is a real element we can highlight and test.
 - **Where it runs online:** GitHub Pages (game) + **Muzzy's own Cloudflare account** (online rooms): Cloudflare Workers + Durable Objects through **PartyServer** (PartyKit's open-source successor) — live at `glyphtender.joebrogno.workers.dev` (F23, D46). `party/worker.ts` is the front door, `party/server.ts` the room; config `wrangler.json`. Local: `npm run party:dev` (`wrangler dev` on **port 1997**; Roll Better uses 1999) + `npm run dev`. Deploy: `npm run party:deploy` (Muzzy's call — it's public). Client: `partysocket` (reconnecting WebSocket), unchanged.
-- **Framework modules:** Game UI kit 0.2.5 (Cozy, night colours; 0.2.5 = Button `size`) · Dev Kit · **rooms** 0.1.0 (online, `src/rooms/`; harvested from Roll Better during this game) · **ai** (beta; first AI module, built from the original's goal-selection model).
+- **Framework modules:** Game UI kit 0.2.5 (Cozy, night colours; 0.2.5 = Button `size`) · Dev Kit · **rooms** 0.1.0 (online, `src/rooms/`; harvested from Roll Better during this game) · **ai** (beta, framework v0.5 — D69: the brain from the original's goal-selection model; Glyphtender's instincts in `src/ai/`, design `.planning/design/ai.md`).
 - **Dev Kit tools used:** Console, Tuning, Color, **Snapshots** + **Bug capture** (kit 0.3.0, framework-first — F16/F17): the game plugs in through `src/devkit-game/glyphtenderAdapter.ts` (state = engine GameState + tray order; events = a line per placement/turn/refresh/phase/tangle/note); snapshots live in `content/snapshots/`, captures in `.planning/bugs/`. **Screens** (kit 0.4.0, F27, D49 — dev only): previews of gated screens (handoff, Magic reveal + end table 2/3/4p + tie, Pause, Rules, New game, online lobby host/guest 4 seats, couldn't join, bot took a seat / away, reconnecting, word list didn't load) in a sandbox frame over the game; list + sample data in `src/devkit-game/previews.tsx` + `sampleGames.ts` (seeded sim games); proved by `npm run e2e:previews`. **Search + sections** (kit 0.5.0): a search box under the tabs filters Tuning + Color live (substring anywhere in a word, camelCase split, all words must match; key, label, help, section, file); settings sit in collapsible sections — every tuning key has a plain-English `_labels` entry and a `_sections` home (20 sections, order in `content/devkit.json` sectionOrder); `#rrggbb` tuning values get a colour picker; proved by `npm run e2e:devkit-search`. Later: Multiplayer (online milestone), AI (beta).
 
 ## 2. How it fits together
@@ -102,6 +102,10 @@ flowchart LR
 | `content/ui/settings.json` | Settings screen rows (kit standard list; `"on": false` hides a row — language, account and placeholder links are off for now); the game's own: Gameplay → Tray position (Standard / Flipped) | Obsidian |
 | `content/text/en.json` | every player-facing word — menu, new game (`newGame`), turn prompts, notes, buttons, pause, rules (3 pages), handoff, reveal, end table (`game` section) | Obsidian |
 | `content/rooms.json` | online rooms: seats 2–4, missed turns before a bot (2), dropped player → bot after (60 s), empty room kept (5 min), bots allowed (no) · Glyphtender: turn timer choices (the first = the default: 0 = off, then 60, 90, 120 s), bot turn delay (1.5 s). The server bundles it: a change needs a server rebuild | Obsidian |
+| `content/ai/personalities.json` | the 7 personalities: trait ranges, goal priority, nudge, mood-shift strengths, chattiness, Nerve, vocabulary modifier (D70) | Dev Kit → AI |
+| `content/ai/skills.json` | Apprentice / First Class / Archmage: candidates, imagined worlds, pick spread, belief noise, vocabulary Zipf | Dev Kit → AI |
+| `content/ai/feel-targets.json` | each personality's feel targets as behaviour meters + thresholds (D72) | Dev Kit → AI / Obsidian |
+| `content/ai/pace.json` | think times per action kind, speed presets, thinking time budget (phone) | Dev Kit → Tuning |
 | `content/credits.json` | fonts, word list | organize-assets |
 
 ## 4. Standards
@@ -141,6 +145,26 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D72 · 2026-10-04 · Personalities are proven by behaviour, not numbers: the Personality Check (Muzzy)
+  Muzzy: "we need to be able to test the expectation of a personality against lots of games to see if it's actually
+  resulting in that feel (not just hitting the numbers we give it)". Each personality has feel targets written as watchable
+  behaviour (content/ai/feel-targets.json), measured by behaviour meters that reuse the award detectors (stats.ts) over
+  ≥ 300 AI-vs-AI games; plus a tell-apart grid (nearest-centroid on per-game meters), win-rate grid, skill ladder.
+  Machine learning only offline and only as numbers in content/ ("What wins?" should, auto-tuner could); never in the game.
+D71 · 2026-10-04 · Main goal + a nudge from the other goals when scoring a move
+  Proposed by: Claude   Options: active goal only (the original) / blend all goals (the older main-branch AI) / main + nudge
+  Chose: main × 1 + others × nudge (default 0.2, per personality) — keeps the personality readable ("it's hunting me")
+  and lets it aim for the two-birds cast the original could only hit by luck.
+D70 · 2026-10-04 · Personality and skill are separate dials (Muzzy agreed: "not just easy medium hard")
+  Personality = what it wants (trait ranges, goal order, nudge, shifts, chattiness, Nerve). Skill = how well it sees
+  (candidates, imagined worlds, pick spread, belief noise, vocabulary) — Apprentice / First Class / Archmage presets in
+  content/ai/skills.json. A bot seat = one of each.
+D69 · 2026-10-04 · The AI is a framework module (framework v0.5 ai/); Glyphtender gives the instincts
+  Proposed by: Claude, agreed with Muzzy   Design: framework/.planning/design/ai.md + .planning/design/ai.md
+  Brain, beliefs, pace + background thinking (Web Worker on devices, inside the room on the server), banter picker, Dev
+  Kit editor, arena — framework. Goals' scorers, readings, imagined seeds, "call it", draft/refresh, meters, the 7
+  personalities — Glyphtender (src/ai/). Bot shape unchanged ((view, seat, rng) → action), so localBot.ts and the
+  server's turnClock just swap greedyBot for the brain. Arena in Node with the same engine (npm run ai:arena).
 D68 · 2026-10-04 · Pincer = the biggest share of one rival glyphling's room taken over a run of your turns (Muzzy)
   Why: D57 ranked by the biggest raw cut in moves, so early pincers (glyphlings with lots of room) always won. Muzzy:
   "% accumulated on one glyphling — 'Over 3 turns you squeezed Blue's glyphling from 14 moves to 2 (86%)' — this proves
@@ -589,6 +613,7 @@ D01 · 2026-09-30 · One pure rules engine shared by client, server, AI and test
 ## 10. Risks & open questions
 - ~~Board readability on phones~~ — F01: 36–42 px hexes on phones. ~~Commit style~~ — F01: One Cast (D08).
 - **Word rule edge cases** (union rule) → table-driven tests from every example Muzzy gave.
-- **AI speed in a browser** (beta) → Web Worker + timing test.
+- **AI speed in a browser** (beta) → background thinking + a time budget; measure F38 first (legalActions median ~1,600, max ~11,300; scoring needs a word preview each) — the candidate cut per skill is the knob.
+- **Personalities that differ on paper but play alike** (beta) → the tell-apart grid (D72).
 - ~~**Online secrecy**~~ — built (sprint 05): views hide it in the data; unit tests + the e2e check every view / every received frame.
-- **Server size** — 293 KB gzipped with the word list (limit 3 MB) — fine; re-measure if the AI (beta) moves onto the server.
+- **Server size** — 293 KB gzipped with the word list (limit 3 MB) — fine; re-measure when the AI (beta) moves onto the server; Durable Object CPU per message must cover one decision (measure in F42).

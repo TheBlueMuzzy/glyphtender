@@ -87,7 +87,7 @@
 ## 5. Systems
 - **Seats** — every player seat is *local*, *online* or *AI*; all submit the same actions to the same rules engine. Pass-and-play = several local seats + handoff screen (hand hidden, board visible).
 - **Online (alpha)** — Roll Better's PartyKit rooms: room code, 2–4 players, rejoin, host leaves, AFK. Server runs the same rules engine, so it validates every move (the original never did). Design: [design/online.md](design/online.md).
-- **AI (beta)** — the goal-selection personality model from the original's `festive-booth` branch (7 goals, 7 personalities, fuzzy Magic perception, difficulty) → built as the **first framework AI module**, game-specific goal scorers stay in the game. Add Amazons-style "reachable moves" evaluation for garden pockets. Detail: `research/original-digest.md §2`; `design/ai.md` in beta.
+- **AI (beta)** — defined 2026-10-04: [design/ai.md](design/ai.md) (Glyphtender's goals, readings, "call it", 7 personalities + their feel targets) on the framework AI module (`framework/.planning/design/ai.md`: the brain, fuzzy beliefs, personality ≠ skill, Dev Kit editor, Personality Check). Primary AI target **Hunted, but cozy**; secondary **Feels like a person**. Players pick a personality + a skill per AI seat; it sees only its seat's view; personalities are proven by their *behaviour* over hundreds of AI-vs-AI games, not by their numbers.
 - **Stats (1.0)** — per-game table at the end (alpha), lifetime stats + Wordsmith/Tanglesmith radar later.
 
 ## 6. Look & sound
@@ -113,13 +113,13 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 - Online rooms (Roll Better): create/join, 2–4, rejoin, host leaves, rematch
 - Grow animation (basic), Dev Kit tuning, GitHub Pages + PWA
 
-**Must — beta (AI)** — AI framework module · 7 personalities with bios and gentle banter · AI in any seat, 2–4 players, online AFK takeover · AI plays at human pace (speed setting) · basic audio · board-size / bag sims settle §9
+**Must — beta (AI)** — framework AI module (brain, fuzzy beliefs, pace + background thinking, banter) · Dev Kit personality editor + Personality Check · 7 personalities with bios and gentle banter, each passing its feel targets · AI in any seat, 2–4 players, personality + skill picked in New Game · online idle takeover by the AI · AI at human pace (speed setting) · basic audio · AI-vs-AI sims settle §9 + re-tune the award thresholds
 
 **Must — 1.0** — tutorial (progressive, first game) · accessibility pass (colour-blind glyphling marks, 200% text, reduce motion) · final art + audio · stats screen + radar · credits, privacy
 
-**Should** — board themes · colour preference · random starting player · hint ("show me a move") · topiary-grow cast effect (may move up)
-**Could** — async play (several games at once) · spectators · leaderboards/accounts · 3D figurine glyphlings
-**Won't** — 2v2 teams (cut in the original as "less fun") · multiplier squares / letter values (breaks *best speller doesn't always win*) · tilted 3D camera (breaks *Always readable*) · per-step confirm (F01 prototype: One Cast felt better)
+**Should** — board themes · colour preference · random starting player · hint ("show me a move" — the AI at Archmage) · topiary-grow cast effect (may move up) · host adds AI seats online (F37) · "What wins?" self-play report
+**Could** — async play (several games at once) · spectators · leaderboards/accounts · 3D figurine glyphlings · AI auto-tuner · AI look-ahead (several turns deep)
+**Won't** — an AI that sees hidden seeds/bag/Magic (breaks *fair seats*; Muzzy: "fuzzy knowledge always") · AI learning between games · 2v2 teams (cut in the original as "less fun") · multiplier squares / letter values (breaks *best speller doesn't always win*) · tilted 3D camera (breaks *Always readable*) · per-step confirm (F01 prototype: One Cast felt better)
 
 ## 8. Product
 - **Release path:** web (GitHub Pages) first; stores later if it earns it.   **Business:** none yet.
@@ -129,6 +129,6 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 - ❓ **Board size per player count** — sims in beta; alpha ships Small + Large.
 - ❓ **Bag run-out** — can 120 run out on Large with 4 players? Sim. If it does: stop drawing.
 - ❓ **Starting player** — Yellow always, or random?
-- ❓ **AI vocabulary tiers** — code thresholds (Zipf 3/2/0) give ~22k/~44k/63k words; the design said ~5k/~20k/all (would be 4/3/0). (beta)
-- ❓ **Strategist personality** — multi-word specialist or DENY-first tactician? (beta)
-- **Risks:** ~~board unreadable on phones~~ (F01: hexes 36–42 px on phones, both boards) · ~~undo flow feels wrong~~ (F01: approved) · AI too slow in a browser → Web Worker, timed in beta.
+- ❓ **AI vocabulary tiers** — code thresholds (Zipf 3/2/0) give ~22k/~44k/63k words; the design said ~5k/~20k/all (would be 4/3/0). Settled by the Personality Check's skill ladder (beta).
+- ❓ **AI calls for Muzzy (F37)** — Strategist (multi-word, rec.) · banter amount (big moments, rec.) · host adds AI online (rec. yes) · names/portraits (personality names + seat glyphling for beta, rec.). Defaults are in place.
+- **Risks:** ~~board unreadable on phones~~ (F01: hexes 36–42 px on phones, both boards) · ~~undo flow feels wrong~~ (F01: approved) · AI too slow in a browser → background thinking + a time budget, timed in F38 · personalities that look different on paper but play the same → the tell-apart check.
