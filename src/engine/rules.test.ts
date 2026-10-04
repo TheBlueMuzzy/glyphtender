@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { selfTest } from '../table/selfTest'
 import { goldenView } from './golden'
 import { legalCasts, legalMoves } from './moves'
-import { eventsFor } from '../table/core'
+import { addMove, eventsFor, replay, type MoveRecord } from '../table/core'
 import { glyphtenderRules, legalActions, setupGame, type GameEvent, type GameSetup } from './rules'
 import { greedyAction, randomAction } from './sim'
 import { hexAt, position } from './testkit'
@@ -153,6 +153,31 @@ describe('legalActions', () => {
       }
     }
   }, 60_000)
+})
+
+describe('fast mode — the same game without the end screen’s bookkeeping', () => {
+  for (const [players, boardName, seed] of [[2, 'small', 3], [3, 'large', 12], [4, 'large', 30]] as const) {
+    it(`${players} players on ${boardName}: a whole greedy game plays out the same, with no log written`, () => {
+      // Record a game in normal mode, then replay its moves in fast mode
+      let state = rules.setup({ players, boardName, seed })
+      let record: MoveRecord<GameSetup, Action> = { setup: { players, boardName, seed }, moves: [] }
+      let rng: number = seed
+      while (!rules.isOver(state)) {
+        const pick = greedyAction(state, rng, words)
+        rng = pick.rng
+        record = addMove(record, state.current, pick.action)
+        state = rules.apply(state, state.current, pick.action).state
+      }
+      const fast = replay(rules, record, { fast: true }).state
+      expect(sameGame(state, fast)).toBe(true)
+      expect(fast.winners).toEqual(state.winners)
+      expect(fast.magic).toEqual(state.magic)
+      expect(fast.tangleMagic).toEqual(state.tangleMagic)
+      expect(state.log!.turns).toHaveLength(state.turnCount) // normal mode logs every turn…
+      expect(fast.log).toEqual({ turns: [], end: null }) // …fast mode none
+      expect(fast.pendingLog ?? null).toBeNull()
+    })
+  }
 })
 
 describe('events — what happened, and who may see it', () => {

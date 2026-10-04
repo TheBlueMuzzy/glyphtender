@@ -11,7 +11,7 @@ import { applyAction, checkAction, legalCasts, legalDraftHexes, legalMoves, newG
 import { shuffle } from './rng'
 import type { NewGameOptions } from './setup'
 import type { Action, GameState, WordList } from './types'
-import type { Applied, Audience, Rules, Seat } from '../table/core'
+import type { ApplyOptions, Applied, Audience, Rules, Seat } from '../table/core'
 import type { Hex } from './hex'
 
 /** What a new game needs. The same as newGame's options, plus two numbers only the online server uses. */
@@ -206,10 +206,10 @@ export function glyphtenderRules(words: WordList): Rules<GameState, Action, Game
     setup: setupGame,
     legalActions,
     check: checkFor,
-    apply(state, seat, action): Applied<GameState, GameEvent> {
+    apply(state, seat, action, options?: ApplyOptions): Applied<GameState, GameEvent> {
       const problem = checkFor(state, seat, action)
       if (problem) throw new Error(problem)
-      const next = applyAction(state, action, words)
+      const next = applyAction(state, action, words, options) // options.fast: no game log (engine.ts)
       return { state: next, events: eventsOf(state, seat, action, next) }
     },
     isOver: (state) => state.phase === 'over',

@@ -13,8 +13,9 @@ export function checkRefresh(state: GameState, setAside: number[]): string | nul
   return null
 }
 
-/** Sets aside the chosen seeds, refills the hand from the bag, returns the set-aside seeds to the bag, ends the turn. */
-export function applyRefresh(state: GameState, setAside: number[]): GameState {
+/** Sets aside the chosen seeds, refills the hand from the bag, returns the set-aside seeds to the bag, ends the turn.
+ *  `fast` = skip the game log (engine.ts applyAction). */
+export function applyRefresh(state: GameState, setAside: number[], fast = false): GameState {
   const problem = checkRefresh(state, setAside)
   if (problem) throw new Error(problem)
   const seat = state.current
@@ -34,5 +35,5 @@ export function applyRefresh(state: GameState, setAside: number[]): GameState {
   }
   const hands = state.hands.map((h, s) => (s === seat ? [...kept, ...drawn] : h))
   const lastTurn = state.lastTurn ? { ...state.lastTurn, drew: drawn.length } : null
-  return endTurn({ ...state, hands, bag, rng, lastTurn }, setAside.length)
+  return endTurn({ ...state, hands, bag, rng, lastTurn }, setAside.length, fast)
 }

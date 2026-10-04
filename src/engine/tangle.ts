@@ -47,11 +47,12 @@ export function winnersOf(magic: number[]): number[] {
 /**
  * Called when a turn is complete: re-checks every glyphling (one can come untangled), logs the turn (log.ts),
  * then either ends the game or passes play to the next seat. `refreshed` = seeds set aside on a refresh (null = none).
+ * `fast` (bots, sims): no log entry and no log end — the game itself plays exactly the same.
  */
-export function endTurn(state: GameState, refreshed: number | null = null): GameState {
+export function endTurn(state: GameState, refreshed: number | null = null, fast = false): GameState {
   const tangled = tangledIds(state)
   const turnCount = state.turnCount + 1
-  const entry = logTurn(state, tangled, refreshed)
+  const entry = fast ? null : logTurn(state, tangled, refreshed)
   const before = logOf(state)
   const log = entry ? { turns: [...before.turns, entry], end: null } : { ...emptyLog(), ...before }
   // Also ends if no glyphling at all can move (only possible when tanglesToEnd is set above 2).

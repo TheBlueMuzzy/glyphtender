@@ -60,8 +60,9 @@ export function previewTurn(state: GameState, action: TurnAction, words: WordLis
   return { words: made, magic: made.reduce((sum, w) => sum + w.magic, 0) }
 }
 
-/** Plays a whole turn: move, cast, grow words into Magic, draw, and pass play on. */
-export function applyTurn(state: GameState, action: TurnAction, words: WordList): GameState {
+/** Plays a whole turn: move, cast, grow words into Magic, draw, and pass play on.
+ *  `fast` = skip the game log and its facts (engine.ts applyAction). */
+export function applyTurn(state: GameState, action: TurnAction, words: WordList, fast = false): GameState {
   const after = moveAndCast(state, action) // throws if the turn is illegal
   const seat = state.current
   const preview = previewTurn(state, action, words)
@@ -79,16 +80,17 @@ export function applyTurn(state: GameState, action: TurnAction, words: WordList)
   const magic = after.magic.map((m, s) => (s === seat ? m + preview.magic : m))
   // For the game log (the Weed toss award): the best word a rival could have grown on this cast's hex. It reads
   // rivals' hands, so it waits in pendingLog — hidden online like the log (party/views.ts) — until endTurn logs it.
-  const pendingLog = { blocked: blockedSpot(after, seat, action.target, words) }
+  // (Fast mode skips it: it's the slowest part of a turn, and only the log reads it.)
+  const pendingLog = fast ? null : { blocked: blockedSpot(after, seat, action.target, words) }
   if (preview.words.length > 0) {
     // Made Magic → draw 1 seed (if the bag isn't empty).
     const drawn = after.bag.slice(0, 1)
     const hands = after.hands.map((h, s) => (s === seat ? [...h, ...drawn] : h))
-    return endTurn({ ...after, magic, hands, bag: after.bag.slice(drawn.length), lastTurn: { ...lastTurn, drew: drawn.length }, pendingLog })
+    return endTurn({ ...after, magic, hands, bag: after.bag.slice(drawn.length), lastTurn: { ...lastTurn, drew: drawn.length }, pendingLog }, null, fast)
   }
   // No Magic → the same player may refresh their hand (skipped when the bag is empty: nothing to refill from).
   if (after.bag.length > 0) return { ...after, magic, lastTurn, phase: 'refresh', pendingLog }
-  return endTurn({ ...after, magic, lastTurn, pendingLog })
+  return endTurn({ ...after, magic, lastTurn, pendingLog }, null, fast)
 }
 
 /**
