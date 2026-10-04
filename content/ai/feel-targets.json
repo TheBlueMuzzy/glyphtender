@@ -1,0 +1,62 @@
+{
+  "_help": {
+    "_file": "How we PROVE each personality feels like itself: its behaviour, measured by meters (src/ai/meters.ts — meterNames has every meter's plain-English name) and averaged over many games (≥ 300 mixed games at First Class). Thresholds are starting guesses from design/ai.md; the Personality Check tunes them.",
+    "personalities": "Per personality: a list of checks. meter = which meter (its average per game) · op = the test · value = the number for >= / <= / nearAverage · label = what players would say it means.",
+    "op": ">= / <= : the meter's average must be at least / at most `value`. tableBest / tableWorst : the highest / lowest average of all personalities at the table. nearAverage : within `value` of the table's average. neverExtreme (meter \"*\") : not the table's highest or lowest on any meter.",
+    "all": "Checks every personality must pass. check = which test · min / max = its band · label = what it means."
+  },
+  "_labels": {
+    "personalities": "Feel targets per personality",
+    "meter": "Meter",
+    "op": "Test",
+    "value": "Number",
+    "label": "What it means",
+    "all": "Checks for every personality",
+    "check": "Check",
+    "min": "At least",
+    "max": "At most"
+  },
+  "_sections": {
+    "AI: feel targets": ["personalities"],
+    "AI: checks for all": ["all"]
+  },
+  "personalities": {
+    "Bully": [
+      { "meter": "rivalTangledThisGame", "op": ">=", "value": 0.6, "label": "tangles a rival in at least 60% of games" },
+      { "meter": "nearRivalShare", "op": ">=", "value": 0.5, "label": "ends at least half its turns within 2 hexes of a rival glyphling" },
+      { "meter": "rivalMovesCut", "op": "tableBest", "label": "cuts the most rival moves per turn at the table" }
+    ],
+    "Scholar": [
+      { "meter": "avgWordLength", "op": "tableBest", "label": "longest average word at the table" },
+      { "meter": "wordMagicShare", "op": ">=", "value": 0.85, "label": "at least 85% of its Magic comes from words" },
+      { "meter": "rivalTangledThisGame", "op": "<=", "value": 0.2, "label": "tangles a rival in at most 20% of games" }
+    ],
+    "Builder": [
+      { "meter": "setups", "op": "tableBest", "label": "most setups at the table (non-scoring casts next to its own seeds)" },
+      { "meter": "secondHalfRatio", "op": ">=", "value": 1.5, "label": "makes at least 1.5× as much Magic in the 2nd half as the 1st" }
+    ],
+    "Vulture": [
+      { "meter": "steals", "op": ">=", "value": 2, "label": "at least 2 steals per game" },
+      { "meter": "steals", "op": "tableBest", "label": "most steals at the table" }
+    ],
+    "Survivor": [
+      { "meter": "gotTangled", "op": "<=", "value": 0.15, "label": "its own glyphling is tangled in at most 15% of games" },
+      { "meter": "roomToMove", "op": "tableBest", "label": "most room to move at the table" }
+    ],
+    "Strategist": [
+      { "meter": "multiWordShare", "op": ">=", "value": 0.35, "label": "at least 35% of its scoring casts make two or more words" },
+      { "meter": "multiWordShare", "op": "tableBest", "label": "highest share of multi-word casts at the table" }
+    ],
+    "Balanced": [
+      { "meter": "*", "op": "neverExtreme", "label": "never the table's highest or lowest on any meter" },
+      { "meter": "won", "op": "nearAverage", "value": 0.1, "label": "win rate within 10 points of the table's average (the yardstick)" }
+    ]
+  },
+  "all": [
+    { "check": "winRateVsBalanced", "min": 0.35, "max": 0.65, "label": "wins 35–65% one-on-one against Balanced — nobody dominates" },
+    { "check": "tellApart", "min": 0.7, "label": "the tell-apart grid recognises it from its meters at least 70% of the time" },
+    { "check": "skillLadder", "min": 0.75, "label": "its Archmage beats its Apprentice at least 75% of the time" },
+    { "check": "callsIt", "min": 0.01, "label": "calls the game itself in some games (calledIt average above 0)" },
+    { "check": "callsItWrong", "min": 0.01, "label": "…and is wrong some of those times (calledIt but not calledItRight)" }
+  ]
+}
