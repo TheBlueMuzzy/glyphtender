@@ -37,6 +37,7 @@
     "fixtures:end": "node scripts/end-fixtures.mjs",
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
     "e2e:fullscreen": "node e2e/fullscreen.mjs",
+    "e2e:ai": "node e2e/ai-play.mjs",
     "shots:record": "node e2e/shots.mjs record",
     "check:shots": "node e2e/shots.mjs check",
     "ai:arena": "node scripts/ai-arena.mjs"
