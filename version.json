@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "build": 0,
   "history": [
     {
@@ -17,6 +17,11 @@
       "version": "0.2.0",
       "date": "2026-10-01",
       "summary": "Play online with friends — room codes, rejoin, a robot badge when a bot takes a seat; the phone layout no longer jumps or fights your phone's gestures"
+    },
+    {
+      "version": "0.3.0",
+      "date": "2026-10-03",
+      "summary": "The ending, polished: a Magic reveal where tangle bonuses fly in and can steal the win, an end screen with Results, Story and Scorecard, 14 skill Highlights, words that score one at a time, a plain Q, 4 players everywhere, and full screen on phones"
     }
   ]
 }
