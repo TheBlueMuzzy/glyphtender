@@ -146,6 +146,11 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D77 · 2026-10-04 · Keep "2 tangles end the game, your own included" — balance the AI through personalities (Muzzy)
+  Options tested in the arena (sandbox, reverted): "you can't end the game alone" (an ending tangle must include a
+  glyphling that isn't yours) evened every matchup (Bully–Scholar 9–91 → 53–48) and lengthened games to 53–67 turns;
+  tangle bonus +3 → +5 barely moved it. Muzzy: "no, that loses some of the strategy and I don't like that." Chose:
+  today's rule; spellers get real weaknesses as personality data (his rock-paper-scissors idea), not a rules change.
 D76 · 2026-10-04 · STEAL = growing a word that was already a rival's (Claude)
   Why: "any word using rival seeds" made every 2-letter crossing a steal (AO + TO beat CAT → CATS in the test position).
   Now a steal needs one side of the new seed to be a known word made mostly of rival seeds (CAT + S, S + CAT); +3 per
