@@ -273,9 +273,40 @@ for (const f of now) differences.push(`NEW      ${describe(f)}: shot now but not
 console.log('')
 problems.forEach((p) => console.log(`PROBLEM  ${p}`))
 differences.forEach((d) => console.log(d))
+writeReport(before, differences, problems)
 if (!problems.length && !differences.length) {
   console.log(`Same: all ${before.length} screenshots match the before set exactly (0 pixels differ).`)
   process.exit(0)
 }
 console.log(`\nNot the same: ${differences.length} of ${before.length} screenshot(s) differ${problems.length ? `, ${problems.length} problem(s) while shooting` : ''}.`)
 process.exit(1)
+
+/** e2e-shots/report.html — the result as a page Muzzy can open (dev server: /e2e-shots/report.html): the verdict on top,
+ *  then every screen at every size as before | now | the changed pixels in red (only where something changed). */
+function writeReport(files, differences, problems) {
+  const same = !differences.length && !problems.length
+  const changed = new Set(differences.map((d) => d.split(':')[0].slice(9).trim()))
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  const rows = files.map((f) => {
+    const name = describe(f)
+    const bad = changed.has(name)
+    const diff = bad && existsSync(`${DIFF}/${f}`) ? `<a href="shots-diff/${f}"><img src="shots-diff/${f}" loading="lazy"><span>Changed (red)</span></a>` : ''
+    return `<section class="${bad ? 'bad' : ''}"><h3>${bad ? '✗' : '✓'} ${esc(name)}</h3><div class="row">` +
+      `<a href="../${BEFORE}/${f}"><img src="../${BEFORE}/${f}" loading="lazy"><span>Before</span></a>` +
+      `<a href="shots-now/${f}"><img src="shots-now/${f}" loading="lazy"><span>Now</span></a>${diff}</div></section>`
+  })
+  const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Screenshot check</title><style>
+body{font:16px system-ui;background:#0f1729;color:#eee;margin:0;padding:16px}h1{margin:0 0 4px}p{margin:0 0 16px;color:#aab}
+.ok{color:#7d7}.no{color:#f77}section{margin:0 0 20px}h3{margin:0 0 6px;font-size:15px}.bad h3{color:#f77}
+.row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));max-width:820px;gap:8px}
+.row a{color:#aab;text-decoration:none;font-size:13px;text-align:center}
+.row img{display:block;width:100%;height:auto;max-height:260px;object-fit:contain;background:#000;border:1px solid #334;border-radius:4px}
+pre{white-space:pre-wrap;color:#f99}</style>
+<h1 class="${same ? 'ok' : 'no'}">${same ? `Same — all ${files.length} screenshots match the before set exactly` : `Not the same — ${differences.length} of ${files.length} differ`}</h1>
+<p>Checked ${new Date().toLocaleString()} · each row: before | now${same ? '' : ' | changed pixels in red'} · tap a picture to see it full size</p>
+${problems.length || differences.length ? `<pre>${esc([...problems.map((p) => 'PROBLEM ' + p), ...differences].join('\n'))}</pre>` : ''}
+${[...rows.filter((r) => r.startsWith('<section class="bad"')), ...rows.filter((r) => !r.startsWith('<section class="bad"'))].join('\n')}`
+  writeFileSync('e2e-shots/report.html', html)
+  console.log('Report page: e2e-shots/report.html')
+}

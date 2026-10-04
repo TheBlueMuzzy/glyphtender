@@ -6,6 +6,7 @@
 // so a change there is reported as "the inputs changed" rather than as a broken rebuild.
 // The engine itself is src/engine/golden.ts (loaded through Vite, like npm run sim).
 import { mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs'
+// The check also writes e2e-shots/golden.html — the result as a page (dev server: /e2e-shots/golden.html).
 import { runnerImport } from 'vite'
 
 const SEEDS_PER_SET = 25
@@ -62,15 +63,24 @@ if (mode === 'record') {
   let games = 0
   let actions = 0
   const problems = []
+  const perSet = []
   for (const file of expected) {
+    const set = { name: file.replace('.json', '').replace(/-/g, ' · '), games: 0, actions: 0, differ: 0 }
     for (const game of JSON.parse(readFileSync(new URL(file, DIR), 'utf8'))) {
       games++
       actions += game.steps.length
+      set.games++
+      set.actions += game.steps.length
       const problem = golden.replayGame(game, wordList)
-      if (problem) problems.push(problem)
+      if (problem) {
+        problems.push(problem)
+        set.differ++
+      }
     }
+    perSet.push(set)
   }
   const time = `${((Date.now() - started) / 1000).toFixed(1)} s`
+  writeReport(perSet, problems, games, actions)
   if (problems.length === 0) {
     console.log(`SAME — all ${games} golden games (${actions} actions) replay identically. (${time})`)
   } else {
@@ -79,4 +89,22 @@ if (mode === 'record') {
     if (problems.length > 20) console.log(`  …and ${problems.length - 20} more`)
     process.exit(1)
   }
+}
+
+/** e2e-shots/golden.html: the verdict, one row per set of 25 games, and the first difference in each game that changed. */
+function writeReport(perSet, problems, games, actions) {
+  const same = problems.length === 0
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  const rows = perSet.map((s) => `<tr class="${s.differ ? 'no' : ''}"><td>${s.differ ? '✗' : '✓'} ${esc(s.name)}</td><td>${s.games}</td><td>${s.actions}</td><td>${s.differ ? s.differ + ' differ' : 'same'}</td></tr>`)
+  const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Golden games check</title><style>
+body{font:16px system-ui;background:#0f1729;color:#eee;margin:0;padding:16px}h1{margin:0 0 4px}p{margin:0 0 16px;color:#aab}
+.ok{color:#7d7}.no{color:#f77}table{border-collapse:collapse}td,th{padding:6px 12px;border-bottom:1px solid #334;text-align:left}
+pre{white-space:pre-wrap;color:#f99}</style>
+<h1 class="${same ? 'ok' : 'no'}">${same ? `Same — all ${games} golden games replay identically` : `Different — ${problems.length} of ${games} golden games play differently`}</h1>
+<p>Checked ${new Date().toLocaleString()} · ${actions} moves replayed through today's rules · players · board · computer player</p>
+<table><tr><th>Set</th><th>Games</th><th>Moves</th><th>Result</th></tr>${rows.join('')}</table>
+${same ? '' : `<h2>First difference in each game</h2><pre>${esc(problems.join('\n'))}</pre>`}`
+  mkdirSync(new URL('../e2e-shots/', import.meta.url), { recursive: true })
+  writeFileSync(new URL('../e2e-shots/golden.html', import.meta.url), html)
 }
