@@ -38,7 +38,8 @@
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
     "e2e:fullscreen": "node e2e/fullscreen.mjs",
     "shots:record": "node e2e/shots.mjs record",
-    "check:shots": "node e2e/shots.mjs check"
+    "check:shots": "node e2e/shots.mjs check",
+    "ai:arena": "node scripts/ai-arena.mjs"
   },
   "dependencies": {
     "partyserver": "^0.5.10",

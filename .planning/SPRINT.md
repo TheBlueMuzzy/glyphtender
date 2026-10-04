@@ -31,7 +31,7 @@ Done when: all 7 goals score candidates sensibly (each has a hand-made position 
 Done when: content/ai/ holds the 7 personalities (original ranges + priority), 3 skills and feel targets; bios in en.json; `npm run ai:arena` plays them against each other and prints a note per decision + a per-personality meter table.
 - [x] 🤖 1. content/ai/personalities.json, skills.json, feel-targets.json, pace.json (+ Dev Kit _labels/_sections)
 - [x] 🤖 2. Bios (one line each) in content/text/en.json `ai` (stand-in — Muzzy reviews tone)
-- [ ] 🤖 3. scripts/ai-arena.mjs (`npm run ai:arena -- --games 50 --seats bully,scholar`) — notes for one game, meter table for many
+- [x] 🤖 3. scripts/ai-arena.mjs (`npm run ai:arena -- --games 50 --seats bully,scholar`) — notes for one game, meter table for many
 - [ ] 🤖 4. Prove it: npm test, check:fast (golden SAME), arena run; first read of feel targets → Notes (tuning comes in F45)
 
 Check: framework ai tests green · Glyphtender npm test + check:fast green, golden SAME · `npm run ai:arena` runs all 7 · a decision takes ≤ ~300 ms at First Class on a phone budget.
