@@ -41,7 +41,7 @@ flowchart LR
 
 ## 2b. Game-specific systems
 **Coordinates** — engine uses **axial hex coordinates** (q, r) — the standard (Red Blob Games) — so leylines are simple steps. Boards are defined in `content/data/boards.json` as column heights (`[4,7,8,9,10,9,10,9,8,7,4]`) like Muzzy's paper notation, converted at load. Designer notation `C4-3` shown in Dev Kit / bug reports.
-**Rules engine files** (`src/engine/`, built in sprint 02) — `types.ts` (GameState is plain JSON-able data: phase draft/play/refresh/over, current seat, snake order, glyphlings `{id, seat, hex}` with id = seat×2+0/1, seeds by hexKey, hands, bag (draw from the front), Magic, tangled ids, lastTurn, tangle bonus, winners, rng) · `setup.ts` (bag + snake order) · `draft.ts` · `moves.ts` · `turn.ts` (move + cast + Magic + draw) · `refresh.ts` · `wordFinder.ts` · `words.ts` (list loader) · `tangle.ts` (tangles, end, bonus, winners) · `engine.ts` (the one door: `applyAction`) · `sim.ts` (random/greedy players + invariants; `npm run sim`) · `testkit.ts` (hand-made positions by designer label). Actions: `{type:'draft', hex}` · `{type:'turn', glyphling, to, seed: hand index | null, target}` · `{type:'refresh', setAside: hand indexes}`. Illegal actions **throw** an Error with a plain-English reason. Rule numbers are copied from `content/tuning/rules.json` into `state.config.rules` at new game, so replays and online games keep the numbers they started with.
+**Rules engine files** (`src/engine/`, built in sprint 02) — `types.ts` (GameState is plain JSON-able data: phase draft/play/refresh/over, current seat, snake order, glyphlings `{id, seat, hex}` with id = seat×2+0/1, seeds by hexKey, hands, bag (draw from the front), Magic, tangled ids, lastTurn, tangle bonus, winners, rng) · `setup.ts` (bag + snake order) · `draft.ts` · `moves.ts` · `turn.ts` (move + cast + Magic + draw) · `refresh.ts` · `wordFinder.ts` · `words.ts` (list loader) · `tangle.ts` (tangles, end, bonus, winners) · `engine.ts` (`applyAction`) · `rules.ts` (THE one door since F30/D61: the framework Table contract — setup, legalActions, check, apply → state + events, fast mode, viewFor; every caller goes through it) · `sim.ts` (random/greedy players + invariants; `npm run sim`) · `testkit.ts` (hand-made positions by designer label). Actions: `{type:'draft', hex}` · `{type:'turn', glyphling, to, seed: hand index | null, target}` · `{type:'refresh', setAside: hand indexes}`. Illegal actions **throw** an Error with a plain-English reason. Rule numbers are copied from `content/tuning/rules.json` into `state.config.rules` at new game, so replays and online games keep the numbers they started with.
 **Words** — per leyline, collect the run of letters through the new seed; check every sub-run of ≥ min length containing the new seed; keep valid words; drop any word covered by the union of the other kept words on that line (GARDENING/DEN, SEAL+LEAP/ALE). Tested against every example in the digest.
 **Piece states + the throw** (from the F01 prototype) — every piece shows one of: options (the current player's colour — move = filled hex + dot, cast = dashed ring + hollow dot; D51) · held (solid ring, player colour) · planned (pulsing halo at the hex edge, player colour; targeted seed faded) · done. The halo sits *outside* the art's own coloured frame. Cast plays: glyphling hop → seed flies a bezier arc (time = `flightBase` + `flightPerHex` × distance) → runeblossom sprouts with overshoot; the game state commits on landing; input is locked in flight. Frames mutate SVG attributes directly (no React state per frame): the flight is a requestAnimationFrame loop on a ref, the hop / sprout / grown-word glow use the Web Animations API, the planned halo pulses with an SVG `<animate>`. After landing the words that grew score one at a time and fade (the score sequence, D52). Reduce motion → no flight, the turn commits at once. **Move glide** (F15, `glide.ts` + `useGlide.ts`): whenever a glyphling is drawn on a different hex than last render it slides there (Web Animations on its `[data-glide]` group, ease-in-out + a tiny `moveSettle` bounce; time = `moveBase` + `movePerHex` × hexes) — it only knows "was on A, now on B", so a planned move, Undo / the ghost, the dev hook and (online) other players' committed moves all glide the same way; a new change mid-glide starts from where it is on screen; it never locks input; reduce motion = instant. Numbers: `content/tuning/anim.json`, colours: `garden.json`.
 **Feel pass** (sprint 06, GDD §4 "Muzzy's feel notes") —
@@ -141,6 +141,30 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D61 · 2026-10-04 · One rules door: Glyphtender on the framework Table contract (F30)
+  src/engine/rules.ts = glyphtenderRules(words): the Table module's Rules (src/table/core.ts, framework table/ 0.1.0)
+  wrapping the engine — no rule rewrites. Made by a function because apply needs the word list and the contract has no
+  context slot (cheap to make; setupGame / legalActions / checkFor / viewFor also exported on their own).
+  · Setup = NewGameOptions + optional bagSeed / rngSeed, so an ONLINE game's record replays exactly (onStart's secret
+    reshuffle + rng start; it still draws its numbers in the same order).
+  · check: "The game is over." → "It's not your turn." → the engine's checkAction. viewFor = party/views.ts hideSecrets,
+    moved over unchanged (views.ts now calls it).
+  · legalActions: same-letter seeds = one choice (first index); refresh choices deduped by letters. Sizes: draft 16–81,
+    play median 1,624 (max 11,304), refresh ≤ 128 — fine for the beta AI.
+  · Events (worked out from before/after, the engine untouched): everyone — placed, moved, cast, scored (words + hexes,
+    NO Magic), refreshed (count), tangled, turnStarted, gameOver (winners + all Magic); that seat only — drew, setAside
+    (letters); other seats — drewHidden (count). No Magic in any event before gameOver, not even the caster's (views
+    zero it too). Nothing on screen reads events yet (F31).
+  · Fast mode: one `fast` flag applyAction → applyTurn / applyRefresh → endTurn skips logTurn / logEnd (+ insight) and
+    blockedSpot; the game plays the same (self-test + whole-game tests). Only simulateGame uses it (npm run sim 36 s →
+    20 s, identical output); golden games, Dev Kit samples, devHook and the server stay normal (the end screen reads the log).
+  · One door: store send/startGame, devHook jumps, sim, golden, sampleGames, party serverGame.play (+ turnClock bots),
+    glyphtenderRules onStart/onAction. Outside on purpose: loadState / migrateGame / snapshots (jumps, not actions),
+    onlinePlay startReplay hand poke + view swap (F31/F36), read-only checkAction in sendOnline / usePreview,
+    scripts/award-rates.mjs + end-fixtures.mjs, engine unit tests.
+  · The server keeps a MoveRecord (setup incl. the secret numbers + every move) in its own state; server.test proves it
+    replays to the server's exact final game (2/3/4p, bot turns) and that no message to any player ever carries the
+    record, bagSeed or rngSeed.
 D60 · 2026-10-04 · The safety net: golden games fingerprint what players see; before-shots live in the repo (F29)
   Golden games (golden/, src/engine/golden.ts, scripts/golden.mjs): 300 seeded sim games, 2/3/4p × small/large ×
   random/greedy × 25 seeds; each step = action (+ the letters it used) + a 16-hex fingerprint of goldenView(state).
