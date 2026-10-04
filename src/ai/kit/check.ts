@@ -70,6 +70,7 @@ export function checkFeelTargets(results: GameResult[], targets: Record<string, 
       const avg = t.meter === '*' ? new Map<string, number>() : averages(results, t.meter, skill)
       const measured = round(avg.get(personality) ?? NaN)
       if (t.op === 'neverExtreme') {
+        if (!seatsBy(results, skill).has(personality)) return { ...t, measured: NaN, pass: false, extremes: [] }
         const meters = [...new Set(results.flatMap((g) => g.seats.flatMap((s) => Object.keys(s.meters))))]
         const extremes = meters.filter((m) => {
           const avgs = averages(results, m, skill)
