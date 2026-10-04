@@ -10,3 +10,4 @@
 - 2026-09-30 — Project created (remake). Old repo/folder renamed to glyphtender-original. /discover done: digest, references, directions.
 - 2026-09-30 — F23: online server moved to Muzzy's own Cloudflare (PartyServer); deployed + e2e green against live.
 - 2026-10-01 — Released v0.2.0: online play live (own Cloudflare), phone portrait layout fixes B012–B014, bot badge B015, room code label; review caught a reconnect seat bug (fixed, live-tested).
+- 2026-10-01 — Sprint 07 (autonomous): plain Q, word spotlight, end screen overhaul + game log, Dev Kit Screens previews, 4 players everywhere; review fixes; all green. Waiting on Muzzy.

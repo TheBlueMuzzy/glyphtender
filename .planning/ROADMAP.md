@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.6 Rebuilt on the Table (musts 0/8), then AI (musts not set — /define) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — AI (musts not set — /define) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -109,7 +109,7 @@ flowchart LR
   F20[✅ F20] --> F28[F28 4 players]
 ```
 
-## v0.6 — Rebuilt on the Table  ← current  (plays and looks the same; prepares online + AI) · ALL 8 BUILT overnight 2026-10-04 — next: Muzzy plays it, then /deliver
+## v0.6 — Rebuilt on the Table  ✅ released 2026-10-04 (v0.4.0)  (plays and looks the same; prepares online + AI)
 Goal: Glyphtender runs on the framework's Table foundation (Game core + events, Turns & flow, Zones & pieces, drag referee, Hand view, seats & per-seat views) with NO change a player can see — and is ready for AI (local and online) and a second game. Design: `../../framework/.planning/design/table.md`. Each slice is framework-first (dev/framework v0.4), switched over here in the same sprint; golden games + before-screenshots must match after every slice.
 - ✅ F29 🧱 Safety net: golden games (~300 seeded sim games, every action + a state fingerprint after each, 2–4 players, both boards) + before-screenshots of every screen at every size + compare scripts (`npm run check:golden`, `npm run check:shots`) — must:beta · sprint 08
   why: "plays and looks the same" must be proven, not hoped — every later slice is judged by it

@@ -1,7 +1,7 @@
 {
   "name": "Glyphtender",
-  "version": "0.3.0",
-  "build": 3,
+  "version": "0.4.0",
+  "build": 0,
   "history": [
     {
       "version": "0.0.0",
@@ -22,6 +22,11 @@
       "version": "0.3.0",
       "date": "2026-10-03",
       "summary": "The ending, polished: a Magic reveal where tangle bonuses fly in and can steal the win, an end screen with Results, Story and Scorecard, 14 skill Highlights, words that score one at a time, a plain Q, 4 players everywhere, and full screen on phones"
+    },
+    {
+      "version": "0.4.0",
+      "date": "2026-10-04",
+      "summary": "Rebuilt on the framework Table (plays and looks the same — ready for AI); Pincer is now a hunt; online: your server-played turn glides, no false lost-move note, nothing missed when catching up"
     }
   ]
 }
