@@ -331,6 +331,22 @@ describe('online server — says no, and changes nothing', () => {
     expect(server.game!.version).toBe(version)
   })
 
+  it('B021: each view says which change my OWN last action made (only mine; a turn the server played for me is not one)', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoom(2, { turnSeconds: 60 })
+    expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([0, 0]) // nothing sent yet
+    const yellow = conns[0].lastView()!
+    send(server, conns[0], { kind: 'play', action: randomAction(yellow.game, 1).action, version: yellow.version })
+    expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([1, 0]) // Yellow's placement made change 1; Blue sent nothing
+    vi.advanceTimersByTime(60_000) // Blue's clock runs out: the server places for Blue
+    expect(server.game!.version).toBe(2)
+    expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([1, 0]) // not Blue's own action
+    const blue = conns[1].lastView()!
+    send(server, conns[1], { kind: 'play', action: randomAction(blue.game, 2).action, version: blue.version })
+    expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([1, 3])
+    conns.forEach((conn) => conn.views().forEach(expectNoSecrets))
+  })
+
   it('bad options are refused at the start', () => {
     const { server } = startRoom(2, { boardName: 'huge' } as Partial<OnlineOptions>)
     expect(server.game).toBeNull()
