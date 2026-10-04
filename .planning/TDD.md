@@ -141,6 +141,20 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D67 · 2026-10-04 · One seat model; every seat sees only what it may; bots see only their view (F36, built overnight)
+  Table 0.6.0 seats.ts + rooms 0.2.0 (sendEventPerSeat — unused by Glyphtender: events ride in views, D64). The game's
+  Seat = TableSeat (kind human | bot · where local | online · connected) + name + colour; localSeats (all people here),
+  onlineSeats (mine = person here; others person / bot online, connected from the room message — B015 badges still read
+  the room message). One viewer seat: src/store/viewer.ts viewerOf = Table viewerSeat (online: mine; pass-and-play: the
+  person whose turn it is, switching only when "Show my seeds" is tapped; during a bot's turn the last person) — SeedTray
+  and the end table's "You" use it; the prompt / Handoff box keep handoff.seat (the person the device goes TO).
+  Bots: src/engine/bot.ts greedyBot(words) = a Table Bot fed ONLY viewFor(game, seat); party/turnClock autoPlay uses it.
+  Proven: on all 300 golden games (23,407 positions) the bot picks the same action + rng from the view as from the full
+  state (a sample runs in npm test). Local bot seats exist for tests / Dev Kit only (startGame({ bots }), botPlays,
+  src/store/localBot.ts driveLocalBots; NO menu, NO AI). Leak tests: hidden ORDER (two games differing only in a rival's
+  hand order → byte-identical messages to every other seat), views unchanged when bag / rival hands are shuffled, no
+  room `event` messages, nothing early from a bot-finished game, record / bagSeed / rngSeed / botRng never sent, an undone
+  plan never leaves the device; e2e frame checks extended.
 D66 · 2026-10-04 · The tray IS the framework Hand view, "rack" preset (F35, built overnight)
   ui-kit 0.3.0 HandView (kit/views: rackLayout = the old trayLayout maths; places with attrs / held / aimed / waiting /
   staged; renderEmpty + renderPiece = the game's look; hidden; shrink → grow stages + reduce motion) and Table 0.5.0
