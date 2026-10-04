@@ -16,18 +16,23 @@ export function checkTurn(state: GameState, action: TurnAction): string | null {
   if (!g) return `There is no glyphling ${action.glyphling}`
   if (g.seat !== state.current) return 'That glyphling belongs to another player'
   if (!includesHex(legalMoves(state, g.id), action.to)) return 'A glyphling moves in a straight line and cannot pass through or land on anything'
-  const hand = state.hands[state.current]
-  const casts = legalCasts(state, g.id, action.to)
   if (action.seed === null) {
     if (action.target !== null) return 'Pick a seed to cast'
     // You must cast if you can: moving only is allowed with an empty hand or nowhere to cast.
-    if (hand.length > 0 && casts.length > 0) return 'You must cast a seed when you can'
+    if (!mayMoveOnly(state, g.id, action.to)) return 'You must cast a seed when you can'
     return null
   }
+  const hand = state.hands[state.current]
   if (typeof action.seed !== 'string' || indexOfPiece(hand, action.seed) < 0) return 'That seed is not in your hand'
   if (!action.target) return 'Pick where to cast the seed'
-  if (!includesHex(casts, action.target)) return "A seed flies in a straight line onto an empty hex, over your own pieces but not other players'"
+  if (!includesHex(legalCasts(state, g.id, action.to), action.target)) return "A seed flies in a straight line onto an empty hex, over your own pieces but not other players'"
   return null
+}
+
+/** May the player whose turn it is move this glyphling to `to` and NOT cast? Only with an empty hand, or when there's
+ *  nowhere to cast from `to` — otherwise they must cast (the "End turn" button and its prompt ask this too). */
+export function mayMoveOnly(state: GameState, glyphling: number, to: Hex): boolean {
+  return state.hands[state.current].length === 0 || legalCasts(state, glyphling, to).length === 0
 }
 
 /** The letter of the seed with this id in a hand (throws if it isn't there). */
@@ -52,9 +57,16 @@ export function seedMagic(state: GameState, hex: Hex, seat: number): number {
   return 1 + (state.seeds[hexKey(hex)]?.seat === seat ? state.config.rules.ownershipBonus : 0)
 }
 
+/** Each seed's Magic in each word a cast by `seat` grew, word by word (seedMagic) — e.g. [[1, 2], [2, 1, 1]].
+ *  Reads only the board (which seeds are whose), so it works on anyone's view: the score pops use it. */
+export function seedMagicOfTurn(state: GameState, words: readonly { hexes: readonly Hex[] }[], seat: number): number[][] {
+  return words.map((w) => w.hexes.map((h) => seedMagic(state, h, seat)))
+}
+
 /** The Magic each word makes: its seeds + ownershipBonus for each of the caster's own seeds in it. */
 export function magicFor(state: GameState, found: FoundWord[], seat: number): MadeWord[] {
-  return found.map((w) => ({ word: w.word, hexes: w.hexes, magic: w.hexes.reduce((sum, h) => sum + seedMagic(state, h, seat), 0) }))
+  const perSeed = seedMagicOfTurn(state, found, seat)
+  return found.map((w, i) => ({ word: w.word, hexes: w.hexes, magic: perSeed[i].reduce((sum, m) => sum + m, 0) }))
 }
 
 /** What a turn would make, without playing it — for the "Cast · +N" button. Throws if the turn is illegal. */

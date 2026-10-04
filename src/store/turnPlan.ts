@@ -3,6 +3,7 @@
 import { legalCasts, legalDraftHexes, legalMoves } from '../engine/engine'
 import { sameHex, type Hex } from '../engine/hex'
 import type { Action, GameState, SeedPiece } from '../engine/types'
+import { mayMoveOnly as rulesMayMoveOnly } from '../engine/rules'
 import { isMyTurn } from './myTurn'
 import type { Seat } from './seats'
 import { undoStep, type TurnSteps } from '../table/flow'
@@ -51,10 +52,9 @@ export const isCurrents = (game: GameState, id: number) =>
 export const castOptions = (game: GameState, move: PlannedMove | null): Hex[] =>
   move ? legalCasts(game, move.glyphling, move.to) : []
 
-/** Moving without casting is only allowed with an empty hand or nowhere to cast. */
+/** May the planned move end the turn without a cast? The rules answer (empty hand, or nowhere to cast). */
 export function mayMoveOnly(game: GameState, move: PlannedMove | null): boolean {
-  if (!move) return false
-  return game.hands[game.current].length === 0 || castOptions(game, move).length === 0
+  return move !== null && rulesMayMoveOnly(game, move.glyphling, move.to)
 }
 
 /**

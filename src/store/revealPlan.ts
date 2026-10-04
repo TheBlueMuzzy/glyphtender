@@ -6,9 +6,8 @@
 //                total, which pops — the same as a cast's score sequence (Muzzy, 2026-10-03: same intention, same motion)
 //   4. winner  — "Grand Glyphtender!" (ties share it)
 // Plain data from the finished game; the screen (src/game/Reveal.tsx, RevealMarks.tsx) plays it with anim.json timings.
-import { getBoard } from '../engine/boards'
-import { hexKey, neighbours, type Hex } from '../engine/hex'
-import { occupancy } from '../engine/moves'
+import type { Hex } from '../engine/hex'
+import { tanglePieces } from '../engine/rules'
 import type { GameState } from '../engine/types'
 
 export type RevealStep =
@@ -29,22 +28,13 @@ export interface RevealTiming {
 
 /** Every step of the reveal for a finished game. */
 export function revealSteps(game: GameState): RevealStep[] {
-  const board = getBoard(game.config.boardName)
-  const taken = occupancy(game)
   const steps: RevealStep[] = [{ kind: 'tangles' }]
   // Word Magic first, lowest first, so the biggest comes last (equal: seat order) — the bonuses can still change the order
   const order = game.magic.map((magic, seat) => ({ words: magic - (game.tangleMagic[seat] ?? 0), seat }))
     .sort((a, b) => a.words - b.words || a.seat - b.seat)
   for (const { seat } of order) steps.push({ kind: 'count', seat })
-  // Same sum as the engine's tangle bonus: each rival seed or glyphling next to a tangled glyphling
-  for (const id of game.tangled) {
-    const tangled = game.glyphlings.find((g) => g.id === id)
-    if (!tangled) continue
-    for (const hex of neighbours(board, tangled.hex)) {
-      const who = taken.get(hexKey(hex))
-      if (who && who.seat !== tangled.seat) steps.push({ kind: 'bonus', glyphling: id, hex, seat: who.seat, amount: game.config.rules.tangleBonus })
-    }
-  }
+  // The engine's tangle bonus, piece by piece: each rival seed or glyphling next to a tangled glyphling
+  for (const piece of tanglePieces(game, game.tangled)) steps.push({ kind: 'bonus', ...piece })
   steps.push({ kind: 'winner' })
   return steps
 }

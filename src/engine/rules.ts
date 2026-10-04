@@ -9,6 +9,7 @@
 import { emptyLog } from './log'
 import { applyAction, checkAction, legalCasts, legalDraftHexes, legalMoves, newGame } from './engine'
 import { shuffle } from './rng'
+import { movesLeft } from './tangle'
 import type { NewGameOptions } from './setup'
 import { mayAct, type Flow } from '../table/flow'
 import { canSeeInside, indexOfPiece, type ZoneRule } from '../table/zones'
@@ -117,7 +118,7 @@ export function legalActions(state: GameState, seat: Seat): Action[] {
   for (const g of state.glyphlings.filter((x) => x.seat === seat)) {
     for (const to of legalMoves(state, g.id)) {
       const casts = legalCasts(state, g.id, to)
-      if (hand.length === 0 || casts.length === 0) {
+      if (hand.length === 0 || casts.length === 0) { // (mayMoveOnly's rule — the casts are needed below anyway)
         actions.push({ type: 'turn', glyphling: g.id, to, seed: null, target: null })
         continue
       }
@@ -125,6 +126,23 @@ export function legalActions(state: GameState, seat: Seat): Action[] {
     }
   }
   return actions
+}
+
+// ── Answers for the screen ─────────────────────────────────────────────────────────────────────────────────────
+// The screen asks the rules these questions instead of working them out again (F34): the "End turn" button, the turn
+// pulse, the danger cues, the score pops and the Magic reveal all read the same rules the server checks.
+
+// mayMoveOnly — may the current player move without casting? (empty hand, or nowhere to cast from there)
+// seedMagicOfTurn — each seed's Magic in each word a cast grew (read from the board: fine on any seat's view)
+export { mayMoveOnly, seedMagicOfTurn } from './turn'
+// movesLeft — how many legal moves a glyphling has left (0 = tangled)
+// tanglePieces — the tangle bonus piece by piece: each rival piece next to a tangled glyphling
+export { movesLeft, tanglePieces, type TanglePiece } from './tangle'
+
+/** The glyphlings `seat` could move right now (ids): none unless it's that seat's turn to play, and never a tangled one. */
+export function movableGlyphlings(state: GameState, seat: Seat): number[] {
+  if (state.phase !== 'play' || !mayAct(flowOf(state), seat)) return []
+  return state.glyphlings.filter((g) => g.seat === seat && movesLeft(state, g.id) > 0).map((g) => g.id)
 }
 
 /** The hand index of the first seed of each letter, e.g. [E, A, E] → [0, 1]. */
