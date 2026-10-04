@@ -1,6 +1,7 @@
 // Glyphtender's Dev Kit adapter: a snapshot round-trips through the store, and turns show up as events.
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
+import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from '../store/gameStore'
 import { screens } from '../ui/kit'
 import { TRAY_GAP } from '../store/turnPlan'
@@ -136,6 +137,44 @@ describe('glyphtenderAdapter', () => {
     const count = lines.length
     store().leaveGame()
     expect(lines).toHaveLength(count) // stopped listening
+  })
+
+  it('the lines come from the rules’ events: a placement, a cast and its words (Magic from the board), a refresh, the phase', () => {
+    const lines: string[] = []
+    const stop = glyphtenderAdapter.onEvent!((text) => lines.push(text))
+    store().startGame({ players: 2, seed: 7 })
+    store().tapHex(legalDraftHexes(store().game!)[0])
+    expect(lines.at(-1)).toMatch(/^draft: Yellow placed a glyphling at C\d+-\d+$/)
+
+    // A Yellow T at C6-3: A cast onto C6-4 grows a word; its Magic in the line is the engine's own (lastTurn)
+    store().loadState(position({
+      glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' },
+      seeds: [{ 'C6-3': 'T' }],
+      hands: [['A', 'B'], ['E']],
+      bag: ['V', 'W', 'X'],
+    }))
+    lines.length = 0
+    store().grabGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    store().tapSeed(store().game!.hands[0][0].id)
+    store().tapHex(hexAt('C6-4'))
+    store().startCast()
+    store().finishCast()
+    expect(lines[0]).toBe(`Yellow moved glyphling 0 C6-7 → C6-6, cast A at C6-4 → TA (${store().game!.lastTurn!.magic} Magic)`)
+
+    // A cast that grows nothing → refresh; Keep all → the phase moves on
+    store().loadState(yellowToPlay())
+    lines.length = 0
+    store().grabGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    store().tapSeed(store().game!.hands[0][0].id)
+    store().tapHex(hexAt('C6-4'))
+    store().startCast()
+    store().finishCast()
+    expect(lines).toEqual(['Yellow moved glyphling 0 C6-7 → C6-6, cast B at C6-4', 'phase: play → refresh'])
+    store().refresh(true)
+    expect(lines.slice(2)).toEqual(['Yellow refreshed their seeds', 'phase: refresh → play'])
+    stop()
   })
 
   it('describes a moment in one line', () => {

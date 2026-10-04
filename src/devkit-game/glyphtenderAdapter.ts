@@ -7,12 +7,17 @@
 //               (the stats start from nothing, the options stay as they are); an old "Qu" seed loads as a plain "Q" (F24, in store.loadState)
 //   canRestore: only offline — in an online game a restore would change play for the others (and this device only holds its own view)
 //   onEvent:    a short line each time the game moves on: a draft placement, a turn, a phase change, a tangle, a note
+//               — read from the rules' events (store.happened, F31); only a new game, leaving and a jump back (not
+//               moves: no events) are read from the game itself
 // Reads and writes the store only through its public getState / setState / subscribe / loadState.
 import versionFile from '../../version.json'
 import type { DevKitGame } from '../devkit/devkitGame'
 import { getBoard } from '../engine/boards'
 import type { Hex } from '../engine/hex'
 import { SEAT_COLOURS, type GameState, type SeedPiece } from '../engine/types'
+import type { GameEvent } from '../engine/rules'
+import { eventOf, startedTurn, turnOf } from '../store/happened'
+import { popsTotal, scorePops } from '../store/wordMarks'
 import { useGameStore, type GameOptions, type GameStore } from '../store/gameStore'
 import { TRAY_GAP } from '../store/turnPlan'
 import type { PlayerStats } from '../store/stats'
@@ -67,25 +72,32 @@ export function gameEvents(before: GameStore, after: GameStore): string[] {
       lines.push(`game started: ${now.config.players} players · ${now.config.boardName} board · seed ${now.config.seed} · ${describeGlyphtender({ game: now, trayOrder: [] })}`)
     } else if (now.turnCount < was.turnCount || now.draftIndex < was.draftIndex) {
       lines.push(`jumped back (a restore or a replay): ${describeGlyphtender({ game: now, trayOrder: [] })}`)
-    } else {
-      if (now.draftIndex !== was.draftIndex) {
-        const placed = now.glyphlings.find((g) => !was.glyphlings.some((w) => w.id === g.id))
-        lines.push(`draft: ${seatName(was.current)} placed a glyphling${placed ? ` at ${hexName(now, placed.hex)}` : ''}`)
-      }
-      // (a refresh copies lastTurn into the new state, so compare what it says, not which object it is)
-      if (now.lastTurn && JSON.stringify(now.lastTurn) !== JSON.stringify(was.lastTurn)) {
-        const t = now.lastTurn
-        const cast = t.letter ? `, cast ${t.letter} at ${hexName(now, t.target)}` : ', move only'
-        const words = t.words.length ? ` → ${t.words.map((w) => w.word).join(', ')} (${t.magic} Magic)` : ''
-        lines.push(`${seatName(t.seat)} moved glyphling ${t.glyphlingId} ${hexName(now, t.from)} → ${hexName(now, t.to)}${cast}${words}`)
-      }
-      if (now.phase === 'play' && was.phase === 'refresh') lines.push(`${seatName(was.current)} refreshed their seeds`)
-      if (now.phase !== was.phase) lines.push(`phase: ${was.phase} → ${now.phase}`)
-      const newlyTangled = now.tangled.filter((id) => !was.tangled.includes(id))
-      if (newlyTangled.length) lines.push(`tangled: glyphling ${newlyTangled.join(', ')} (${now.tangled.length} in all)`)
+    } else if (after.happened && after.happened !== before.happened) {
+      lines.push(...changeLines(after.happened.events, was, now))
     }
   }
   if (after.note && after.note !== before.note) lines.push(`note shown: ${after.note}`)
+  return lines
+}
+
+/** One change's events (store.happened) as lines: a placement, a turn, a refresh, the phase moving on, new tangles. */
+function changeLines(events: GameEvent[], was: GameState, now: GameState): string[] {
+  const lines: string[] = []
+  const placed = eventOf(events, 'placed')
+  if (placed) lines.push(`draft: ${seatName(placed.seat)} placed a glyphling at ${hexName(now, placed.hex)}`)
+  const t = turnOf(events)
+  if (t) {
+    const cast = t.letter ? `, cast ${t.letter} at ${hexName(now, t.target)}` : ', move only'
+    // (its Magic is worked out from the board, like the score pops — events carry no Magic before the end)
+    const words = t.words.length ? ` → ${t.words.map((w) => w.word).join(', ')} (${popsTotal(scorePops(now, t))} Magic)` : ''
+    lines.push(`${seatName(t.seat)} moved glyphling ${t.glyphlingId} ${hexName(now, t.from)} → ${hexName(now, t.to)}${cast}${words}`)
+  }
+  const refreshed = eventOf(events, 'refreshed')
+  if (refreshed) lines.push(`${seatName(refreshed.seat)} refreshed their seeds`)
+  const phase = startedTurn(events)?.phase ?? (eventOf(events, 'gameOver') ? 'over' : was.phase)
+  if (phase !== was.phase) lines.push(`phase: ${was.phase} → ${phase}`)
+  const tangled = eventOf(events, 'tangled')?.tangled ?? []
+  if (tangled.length) lines.push(`tangled: glyphling ${tangled.join(', ')} (${now.tangled.length} in all)`)
   return lines
 }
 
