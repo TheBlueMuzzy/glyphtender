@@ -1,5 +1,5 @@
 /// <reference types="node" />
-// A bot seat on this device (localBot.ts — tests and the Dev Kit only): it plays whole pass-and-play games with
+// A bot seat on this device (localBot.ts): the instant greedy bot (playLocalBot, tests) and the AI driver (F42) play with
 // people, from its own seat's view, through the store; the device is never handed to it, and the screen never shows
 // its seeds.
 import { readFileSync } from 'node:fs'
@@ -9,7 +9,7 @@ import { randomAction } from '../engine/sim'
 import { parseWordList } from '../engine/words'
 import type { WordList } from '../engine/types'
 import { useGameStore } from './gameStore'
-import { driveLocalBots, playLocalBot } from './localBot'
+import { driveLocalBots, onAiDecision, playLocalBot, setAiSpeedOverride } from './localBot'
 import { isBusy } from './myTurn'
 import { viewerOf } from './viewer'
 
@@ -91,14 +91,66 @@ describe('a bot on this device', () => {
     expect(playLocalBot()).toBe(false) // a person's turn now
   })
 
-  it('driveLocalBots plays the bot’s turns by itself, a beat after each change', () => {
+})
+
+// The AI (F42): driveLocalBots thinks through the thinker (no Web Worker in tests: right here), waits its moment at
+// the AI speed, and plays through the store — a turn glides, then throws (the screen calls finishCast on the landing).
+describe('the AI on this device (driveLocalBots)', () => {
+  afterEach(() => setAiSpeedOverride(null))
+
+  /** Lets time pass for the AI: its promise answers, its moment's timer, the glide's timer — and the landing. */
+  async function aiTime(ms: number) {
+    await vi.advanceTimersByTimeAsync(ms)
+    if (store().flying && store().seats[store().game!.current].kind === 'bot') store().finishCast()
+  }
+
+  it('waits its think time (Normal speed), then places; nothing before that', async () => {
+    setAiSpeedOverride('normal')
+    store().startGame({ players: 2, seed: 3, hideSeeds: false, bots: [0], ai: { 0: { personality: 'Bully', skill: 'Apprentice' } } })
+    expect(store().seats[0].ai).toEqual({ personality: 'Bully', skill: 'Apprentice' })
+    const stop = driveLocalBots()
+    try {
+      await vi.advanceTimersByTimeAsync(300) // shorter than any draft think (pace.json draft.min 0.6 s)
+      expect(store().game!.glyphlings).toHaveLength(0)
+      await vi.advanceTimersByTimeAsync(5_000)
+      expect(store().game!.glyphlings).toHaveLength(1) // the AI placed, then waits for the person
+      expect(store().game!.current).toBe(1)
+    } finally {
+      stop()
+    }
+  })
+
+  it('1 person + 1 AI at Instant: a whole game to the end; every AI decision is heard; no handoff', async () => {
+    setAiSpeedOverride('instant')
+    store().startGame({ players: 2, seed: 11, hideSeeds: true, bots: [1], ai: { 1: { personality: 'Scholar', skill: 'Apprentice' } } })
+    const heard: number[] = []
+    const unhear = onAiDecision((seat) => heard.push(seat))
+    const stop = driveLocalBots()
+    try {
+      for (let i = 0; i < 5000 && store().game!.phase !== 'over'; i++) {
+        expect(store().handoff).toBeNull()
+        const s = store()
+        if (s.seats[s.game!.current].kind === 'bot' || isBusy(s)) { await aiTime(2_000); continue }
+        personPlays(i)
+      }
+      expect(store().game!.phase).toBe('over')
+      expect(heard.length).toBeGreaterThan(5)
+      expect(heard.every((seat) => seat === 1)).toBe(true)
+    } finally {
+      stop()
+      unhear()
+    }
+  })
+
+  it('a new game drops the thinking in progress (the old answer is never played)', async () => {
+    setAiSpeedOverride('slow')
     store().startGame({ players: 2, seed: 3, hideSeeds: false, bots: [0] })
     const stop = driveLocalBots()
     try {
-      expect(store().game!.glyphlings).toHaveLength(0)
-      vi.advanceTimersByTime(5_000)
-      expect(store().game!.glyphlings).toHaveLength(1) // the bot placed, then waits for the person
-      expect(store().game!.current).toBe(1)
+      await vi.advanceTimersByTimeAsync(100) // thinking / waiting its moment
+      store().startGame({ players: 2, seed: 4, hideSeeds: false, bots: [1] }) // now seat 0 is a person
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(store().game!.glyphlings).toHaveLength(0) // nothing played into the new game
     } finally {
       stop()
     }

@@ -35,8 +35,10 @@
       "othersTurn": "{player} is playing…",
       "othersDraft": "{player} is placing a glyphling…",
       "othersRefresh": "{player} is refreshing seeds…",
-      "waitingHost": "Waiting for the host to start the next game…"
+      "waitingHost": "Waiting for the host to start the next game…",
+      "aiThinking": "{player} is thinking…"
     },
+    "aiSeat": "{name}: the AI plays this seat",
     "notes": {
       "moveFirst": "Move a glyphling first",
       "notYours": "That one isn't yours",
@@ -262,7 +264,13 @@
     "wordIndicators": "Word indicators",
     "wordIndicatorsDetail": "Off: no word borders, no Magic numbers",
     "start": "Start",
-    "back": "Main menu"
+    "back": "Main menu",
+    "person": "Person",
+    "ai": "AI",
+    "personality": "Personality",
+    "skill": "Skill",
+    "surprise": { "name": "Surprise me", "bio": "A random personality — you'll find out who by how it plays." },
+    "needPerson": "At least one seat must be a person"
   },
   "online": {
     "lobby": {

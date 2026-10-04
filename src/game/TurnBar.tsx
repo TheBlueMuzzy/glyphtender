@@ -1,10 +1,11 @@
 // THE TOP BAR — whose turn (their glyphling portrait, ringed) on one side, the Menu button on the other.
 // (What to do next sits just above the tray: PromptLine.tsx.) Kit parts only: Avatar, Badge, Button.
 // Online, a badge beside the portrait says who's really at that seat (B015): a robot while a bot plays it,
-// "Away" while their connection is down and the seat waits for them.
+// "Away" while their connection is down and the seat waits for them. On this device, an AI seat (F42) gets the same robot.
 // Online, the room code sits quietly beside the Menu button ("Room: BAKU") — to invite or rejoin without remembering it.
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
+import { isLocalBot } from '../store/seats'
 import { Avatar, Badge, Button, HudText, Row, fill, screens } from '../ui/kit'
 import { seatStatus } from '../ui/online/seatStatus'
 import { useOnline } from '../ui/online/session'
@@ -21,7 +22,9 @@ export function TurnBar() {
   const name = playerName(seat)
   // Online: room seats are in game seat order. Not during the end reveal (the game is done).
   const roomSeat = useOnline((s) => s.room?.room?.seats[seat])
-  const status = state.online && state.game?.phase !== 'over' ? seatStatus(roomSeat) : null
+  const playing = state.game?.phase !== 'over'
+  const status = state.online && playing ? seatStatus(roomSeat) : null
+  const localAi = !state.online && playing && isLocalBot(state.seats[seat])
   const w = text.online.seats
   const code = useOnline((s) => s.code)
   return (
@@ -29,6 +32,7 @@ export function TurnBar() {
       <Row gap="s">
         <Avatar name={name} src={glyphlingArt(seat)} color={colours[colourOf(seat)]} active />
         {status === 'bot' && <Badge variant="primary"><span role="img" aria-label={fill(w.bot, { name })} data-seat-status="bot">{ROBOT}</span></Badge>}
+        {localAi && <Badge variant="primary"><span role="img" aria-label={fill(text.game.aiSeat, { name })} data-seat-status="ai">{ROBOT}</span></Badge>}
         {status === 'away' && <Badge><span role="img" aria-label={fill(w.awayLabel, { name })} data-seat-status="away">{w.away}</span></Badge>}
       </Row>
       <Row gap="s">

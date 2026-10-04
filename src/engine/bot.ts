@@ -3,7 +3,7 @@
 // players' seeds or the Magic (rules.viewFor hides them). For now it's the engine's greedy sim player (sim.ts: tries
 // 20 random turns and keeps the one making the most Magic; drafts and refreshes stay random). The beta AI swaps in here.
 // Used by the server (party/turnClock.ts: a bot has the seat, or a turn timer ran out) and by a bot seat on this
-// device (store/localBot.ts — tests and the Dev Kit only).
+// device in tests (store/localBot.ts playLocalBot). AI seats on this device play aiBot through src/ai/thinker.ts (F42).
 import type { SeatView } from './rules'
 import { greedyAction } from './sim'
 import type { Action, WordList } from './types'

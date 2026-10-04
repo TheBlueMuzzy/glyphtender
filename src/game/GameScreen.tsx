@@ -11,6 +11,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import text from '../../content/text/en.json'
 import { getBoard } from '../engine/boards'
 import { useGameStore } from '../store/gameStore'
+import { driveLocalBots } from '../store/localBot'
 import { revealSteps } from '../store/revealPlan'
 import { rackLayout, toast, useScreens } from '../ui/kit'
 import { useGameSettings } from '../ui/gameSettings'
@@ -42,6 +43,8 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const colours = useGardenTuning()
 
   useEffect(() => { loadWords(wordListUrl()) }, [loadWords])
+  // The AI seats on this device play by themselves while the game is on screen (store/localBot.ts)
+  useEffect(() => driveLocalBots(), [])
   // Couldn't load the words (a first visit on a bad connection): say so — the Cast button becomes Retry
   useEffect(() => {
     if (wordsStatus === 'failed') toast(text.game.notes.wordsFailed, { variant: 'danger', dismissible: true })

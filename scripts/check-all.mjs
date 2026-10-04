@@ -25,6 +25,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['online', 'e2e/online-shots.mjs', 'e2e-shots 5404 1995'],
   ['online4', 'e2e/online-four.mjs', 'e2e-shots 5405 1994'],
   ['screenshots', 'e2e/shots.mjs', 'check'], // (always port 5250)
+  ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 7 sizes)
   ['pass4', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5403 4'],
   ['game', 'e2e/game-shots.mjs', 'e2e-shots 5401'],
   ['pass', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5402 3'],

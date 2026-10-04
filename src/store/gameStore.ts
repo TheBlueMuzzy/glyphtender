@@ -24,7 +24,8 @@ import {
   isCurrents, mayMoveOnly, TRAY_GAP, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
 import { NEW_GLYPHLING, onHex, playReferee, type Piece } from './referee'
-import { isLocalBot, localSeats, needsHandoff, type Seat } from './seats'
+import { defaultAi, isLocalBot, localSeats, needsHandoff, type AiPick, type Seat } from './seats'
+import { glideSeconds } from '../game/glide'
 import { firstViewer, viewerOf } from './viewer'
 import { canPlayNow, isBusy } from './myTurn'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
@@ -115,8 +116,9 @@ export interface GameStore {
   /** The last piece that said "no" to a tap (it shakes); the count changes every time, so the same piece can shake again. */
   nope: (NopeTarget & { count: number }) | null
 
-  /** `bots`: seats a bot plays on this device (store/localBot.ts) — tests and the Dev Kit only, no menu. */
-  startGame: (options: Partial<GameOptions> & { players: number; seed: number; bots?: number[] }) => void
+  /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
+   *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays Balanced at First Class. */
+  startGame: (options: Partial<GameOptions> & { players: number; seed: number; bots?: number[]; ai?: Record<number, AiPick> }) => void
   leaveGame: () => void
   /** The next player has the device: show their seeds. */
   showSeeds: () => void
@@ -146,8 +148,10 @@ export interface GameStore {
   /** Before a tap or drag does its thing: if the piece can't be touched it shakes "no" (nope.ts). True = refused. */
   refuseTap: (tap: Tap) => boolean
   /** A bot on this device plays its seat's whole action (localBot.ts) — through the same rules door and the same
-   *  follow-ups (tray, handoff, score, refresh) as a person's taps, without the taps. */
-  botPlays: (action: Action) => void
+   *  follow-ups (tray, handoff, score, refresh) as a person's taps, without the taps.
+   *  `show` (the AI in a real game): a turn plays out like a person's — the glyphling glides, then the seed flies, and
+   *  its landing (Board → finishCast) makes it real. Without it (tests) the turn is made real at once. */
+  botPlays: (action: Action, show?: boolean) => void
   /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known). */
   loadState: (game: GameState, stats?: PlayerStats[]) => void
 }
@@ -227,6 +231,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
   const stopRefreshFx = () => {
     if (refreshTimer) clearTimeout(refreshTimer)
     refreshTimer = null
+    stopBotTurn() // (every place that stops the refresh — a new game, leaving, a jump — stops a bot's glide too)
+  }
+
+  // A bot's turn playing out (botPlays with show): the wait between its glide and its throw
+  let botTimer: ReturnType<typeof setTimeout> | null = null
+  const stopBotTurn = () => {
+    if (botTimer) clearTimeout(botTimer)
+    botTimer = null
   }
   // Stage "in": the new seeds grow into their slots, then `done` (pass-and-play: play passes on)
   const growIn = (fx: RefreshFx, done: () => void) => {
@@ -310,7 +322,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     scoring: null,
     happened: null,
 
-    startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators, bots = [] }) => {
+    startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {} }) => {
       const game = setupGame({ players, seed, boardName, rules: minWordLength ? { minWordLength } : undefined })
       const options: GameOptions = {
         players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: hideSeeds ?? true,
@@ -318,7 +330,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       }
       stopRefreshFx()
       stopScoring()
-      const seats = localSeats(players, text.game.players).map((seat, i): Seat => (bots.includes(i) ? { ...seat, kind: 'bot' } : seat))
+      const seats = localSeats(players, text.game.players).map((seat, i): Seat => (bots.includes(i) ? { ...seat, kind: 'bot', ai: ai[i] ?? defaultAi() } : seat))
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players),
@@ -514,15 +526,29 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ trayOrder: order })
     },
 
-    botPlays: (action) => {
+    botPlays: (action, show = false) => {
       const { game, seats, online } = get()
       if (!game || online || !isLocalBot(seats[game.current]) || isBusy(get())) return
       if (action.type === 'draft') return draftAt(action.hex)
       if (action.type === 'refresh') return refreshNow(action.setAside)
       // A turn: its plan, then the landing — as if the bot had planned it on the board and its seed had flown
+      const move = { glyphling: action.glyphling, to: action.to }
       const cast = action.seed !== null && action.target ? { seed: action.seed, target: action.target } : null
-      set({ ...noPlan(), move: { glyphling: action.glyphling, to: action.to }, cast })
-      get().finishCast()
+      if (!show) {
+        set({ ...noPlan(), move, cast })
+        return get().finishCast()
+      }
+      // Shown like a person's turn: the plan's move first (the glyphling glides there, useGlide), then the throw
+      // (flying: the Board flies the seed and calls finishCast when it lands). A move-only turn ends after the glide.
+      const from = game.glyphlings.find((g) => g.id === action.glyphling)?.hex ?? action.to
+      set({ ...noPlan(), move })
+      stopBotTurn()
+      botTimer = setTimeout(() => {
+        botTimer = null
+        if (get().game !== game) return // (the game moved on or was left meanwhile)
+        if (cast) set({ cast, flying: true })
+        else get().finishCast()
+      }, reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000)
     },
 
     refuseTap: (tap) => {
