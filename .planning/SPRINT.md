@@ -32,7 +32,7 @@ Done when: content/ai/ holds the 7 personalities (original ranges + priority), 3
 - [x] 🤖 1. content/ai/personalities.json, skills.json, feel-targets.json, pace.json (+ Dev Kit _labels/_sections)
 - [x] 🤖 2. Bios (one line each) in content/text/en.json `ai` (stand-in — Muzzy reviews tone)
 - [x] 🤖 3. scripts/ai-arena.mjs (`npm run ai:arena -- --games 50 --seats bully,scholar`) — notes for one game, meter table for many
-- [ ] 🤖 4. Prove it: npm test, check:fast (golden SAME), arena run; first read of feel targets → Notes (tuning comes in F45)
+- [x] 🤖 4. Prove it: npm test, check:fast (golden SAME), arena run; first read of feel targets → Notes (tuning comes in F45)
 
 Check: framework ai tests green · Glyphtender npm test + check:fast green, golden SAME · `npm run ai:arena` runs all 7 · a decision takes ≤ ~300 ms at First Class on a phone budget.
 Ask Muzzy: F37 (4 AI calls — defaults in place: Strategist multi-word · banter big moments only · host may add AI online · personality names + seat glyphling).
@@ -41,3 +41,11 @@ Notes:
 - F38-1 spike (Node, 15 mid-game golden positions — 2p small / 3p + 4p large, avg 2,172 legal actions): legalActions 0.2 ms; legalActions + previewTurn for 150 / 300 / 800 candidates = 2 / 3.5 / 8.6 ms. Previewing words is cheap — the whole decision (7 goals × every candidate × worlds) is the real cost, first dominated by territory (0.33 ms per candidate as text-keyed BFS → rewritten on numbered cells, ~12× faster). Whole aiBot decision now: Apprentice (150, 1 world) avg 11 / worst 24 ms · First Class (300, 2 worlds) avg 22 / worst 33 ms · Archmage (800, 4 worlds) avg 55 / worst 81 ms → phone (×4) First Class ~90–130 ms, Archmage ~220–325 ms. **Candidate counts 150 / 300 / 800 hold** (Archmage's worst case sits at the phone budget; fine for the top tier).
 - F38/F39 surprises: (1) a seat's view zeroes even its OWN Magic and the game seed — beliefs count its own words from the board too, and the belief key is made from the seats (D75). (2) STEAL first counted any borrowed rival seed, so 2-letter crossings out-scored real steals — now it must grow a word that was already a rival's (D76). (3) First look (20 games, 2p small, First Class, test personalities, not the real data): the Bully tangled both Scholar glyphlings in most games yet lost all 20 on Magic (~2:1); calls it happened in 7 games, all won by the caller. Tuning is F45 — the tangle bonus / Bully's SCORE nudge are the knobs to watch.
 - Belief noise: the plug's readings use the skill's beliefNoise (aiBot passes it into glyphtenderPlug); "call it" needs lead ≥ nerve ÷ the least confidence among rivals.
+- **First Personality Check (2026-10-04, `npm run ai:arena -- --games 60 --ladder 4`, 88 games, 84 s): decision median 13 ms · 90% 29 ms · slowest 63 ms (phone ≈ ×4 → well inside 300 ms).** Feel 9/16 green · tell-apart 61% · for-all 2/5.
+  - ✅ Bully 3/3 (tangles a rival in 89% of games, 79% of turns near a rival, cuts 7.6 rival moves/turn vs next 2.9; told apart 94%) · Builder 2/2 · skill ladder holds for all 7 · everyone calls it sometimes.
+  - ❌ **The catchphrase is broken by the AIs:** win share Strategist 79% · Scholar 77% · Balanced 53% · Vulture 41% · Bully 6% · Survivor 4% · Builder 0%. Positional play (tangles) isn't paying enough to beat spelling-first play. → F45's first diagnosis (MDA): is it the personalities (positional ones barely score: nudge 0.2) or the rules (tangle bonus +3/piece too small vs word Magic)? Try the personality knob first (nudge for Bully/Survivor/Builder), the rules knob only with Muzzy.
+  - ❌ Vulture steals ~0.04/game (target ≥ 2) — STEAL rarely finds a real hijack; check the goal vs the meter's definition (rival word ≥ 3 letters grown into one it owns most of).
+  - ❌ Scholar / Strategist / Balanced blur together (told apart 23% / 46% / 32%) — all score-first. Scholar's word length isn't the longest (2.35 vs Vulture 2.53): vocabulary is aimed but the 2-letter words still dominate.
+  - ❌ Survivor never calls it wrongly (it rarely calls it at all: 4%).
+  - Report: e2e-shots/ai-check.html.
+
