@@ -28,6 +28,10 @@ export interface AiPersonality {
   traits: Record<string, AiRange>
   goals: string[]
   nudge: number
+  /** 0–1: how single-minded at a big moment (see the game's goal settings). Missing = 0. */
+  focus?: number
+  /** Goals every move also tries for, goal → weight 0–1 ({ "SCORE": 0.6 }). Missing = none. */
+  steady?: Record<string, number>
   shifts: AiShift[]
   chattiness: number
   extras?: Record<string, number>
@@ -49,6 +53,18 @@ export interface AiFile {
   data: Record<string, unknown>
   /** Which key holds the list ("personalities" / "skills"). */
   listKey: string
+}
+
+/**
+ * One of the game's own AI settings files (e.g. content/ai/goals.json — each goal's big-moment bar; content/ai/pace.json
+ * — how long the AI seems to think). Every value in it is a row like the Tuning tab's (slider + number box), named,
+ * grouped and helped by the file's own "_labels", "_sections", "_help" and "_ranges". Save writes it back whole.
+ */
+export interface AiSettingsFile {
+  /** Where it lives, e.g. "content/ai/goals.json". */
+  path: string
+  /** The file's data, as imported. */
+  data: Record<string, unknown>
 }
 
 /** One line from a watched game: who decided, its note, and what it believes about everyone's score. */
@@ -76,7 +92,17 @@ export interface DevKitAi {
   personalities: AiFile
   skills: AiFile
   /** Optional: where each personality's bio text lives (e.g. content/text/en.json → ai.personality.<id>.bio). */
-  bios?: { path: string; data: Record<string, unknown>; at: (id: string) => string[] }
+  bios?: {
+    path: string
+    data: Record<string, unknown>
+    at: (id: string) => string[]
+    /** Optional: where a personality's name for players lives (e.g. ai.personality.<id>.name) — "Copy to new" fills it. */
+    nameAt?: (id: string) => string[]
+    /** Optional: the name a new personality gets there (e.g. "the Brute"). Default: its id. */
+    nameFor?: (id: string) => string
+  }
+  /** Optional: the game's own AI settings files (goal settings, pace…), edited like Tuning rows. */
+  settings?: AiSettingsFile[]
   /** Optional: the game's readings (mood-shift "reading" choices), e.g. ["myDanger", "behind"]. */
   readings?: string[]
   /** Optional: plain-English problems with a personality ([] = fine) — e.g. the AI kit's personalityProblems. */
