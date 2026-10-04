@@ -4,7 +4,7 @@
 // The turn comes from the rules' events (happened.ts turnOf: who cast, where, the words in order); the Magic of each
 // seed is worked out here from the board, which everyone sees (events carry no Magic before the end, on purpose).
 import animJson from '../../content/tuning/anim.json'
-import { seedMagic } from '../engine/engine'
+import { seedMagicOfTurn } from '../engine/rules'
 import { hexKey, type Hex } from '../engine/hex'
 import type { GameState } from '../engine/types'
 import type { TurnPlay } from './happened'
@@ -36,12 +36,13 @@ export interface ScorePop {
 export function scorePops(game: GameState, turn: TurnPlay): ScorePop[] {
   const pops: ScorePop[] = []
   const onHex = new Map<string, number>()
+  const magic = seedMagicOfTurn(game, turn.words, turn.seat) // the rules' own per-seed Magic, word by word
   turn.words.forEach((word, w) => {
-    for (const hex of word.hexes) {
+    word.hexes.forEach((hex, i) => {
       const stack = onHex.get(hexKey(hex)) ?? 0
       onHex.set(hexKey(hex), stack + 1)
-      pops.push({ hex, amount: seedMagic(game, hex, turn.seat), word: w, order: pops.length, stack })
-    }
+      pops.push({ hex, amount: magic[w][i], word: w, order: pops.length, stack })
+    })
   })
   return pops
 }

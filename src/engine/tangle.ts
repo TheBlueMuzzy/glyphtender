@@ -1,14 +1,43 @@
 // Tangles: a glyphling with no legal move is tangled. Enough tangles end the game.
 import { getBoard } from './boards'
-import { hexKey, neighbours } from './hex'
+import { hexKey, neighbours, type Hex } from './hex'
 import { emptyLog, logEnd, logOf, logTurn } from './log'
 import { legalMoves, occupancy } from './moves'
 import { nextClockwise } from '../table/flow'
 import type { GameState, LogTangle } from './types'
 
+/** How many legal moves this glyphling has right now (0 = tangled; the danger cues warn at 1). */
+export const movesLeft = (state: GameState, glyphlingId: number): number => legalMoves(state, glyphlingId).length
+
 /** Ids of every glyphling that can't move right now. */
 export function tangledIds(state: GameState): number[] {
-  return state.glyphlings.filter((g) => legalMoves(state, g.id).length === 0).map((g) => g.id)
+  return state.glyphlings.filter((g) => movesLeft(state, g.id) === 0).map((g) => g.id)
+}
+
+/** One rival piece next to a tangled glyphling: it earns its owner (`seat`) `amount` Magic (the tangle bonus). */
+export interface TanglePiece {
+  glyphling: number
+  /** Where the rival piece (a seed or a glyphling) stands. */
+  hex: Hex
+  seat: number
+  amount: number
+}
+
+/** Every rival piece next to each tangled glyphling, one by one (the owner's own pieces earn nothing) — the tangle
+ *  bonus piece by piece. The end's Magic reveal pops each one on its piece. */
+export function tanglePieces(state: GameState, tangled: number[]): TanglePiece[] {
+  const board = getBoard(state.config.boardName)
+  const taken = occupancy(state)
+  const found: TanglePiece[] = []
+  for (const id of tangled) {
+    const g = state.glyphlings.find((x) => x.id === id)
+    if (!g) continue
+    for (const n of neighbours(board, g.hex)) {
+      const who = taken.get(hexKey(n))
+      if (who && who.seat !== g.seat) found.push({ glyphling: id, hex: n, seat: who.seat, amount: state.config.rules.tangleBonus })
+    }
+  }
+  return found
 }
 
 /**
@@ -16,18 +45,14 @@ export function tangledIds(state: GameState): number[] {
  * The owner gets nothing from their own pieces.
  */
 export function tangleDetails(state: GameState, tangled: number[]): LogTangle[] {
-  const board = getBoard(state.config.boardName)
-  const taken = occupancy(state)
+  const pieces = tanglePieces(state, tangled)
   const details: LogTangle[] = []
   for (const id of tangled) {
     const g = state.glyphlings.find((x) => x.id === id)
     if (!g) continue
-    const pieces: number[] = Array(state.config.players).fill(0)
-    for (const n of neighbours(board, g.hex)) {
-      const who = taken.get(hexKey(n))
-      if (who && who.seat !== g.seat) pieces[who.seat] += 1
-    }
-    details.push({ glyphling: id, owner: g.seat, pieces, bonus: pieces.map((p) => p * state.config.rules.tangleBonus) })
+    const count: number[] = Array(state.config.players).fill(0)
+    for (const p of pieces) if (p.glyphling === id) count[p.seat] += 1
+    details.push({ glyphling: id, owner: g.seat, pieces: count, bonus: count.map((p) => p * state.config.rules.tangleBonus) })
   }
   return details
 }
