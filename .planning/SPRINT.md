@@ -3,7 +3,7 @@ Started 2026-10-04 · Milestone v0.6 · Features: F30
 
 ## F30 🧱 Game core
 Done when: the game, dev shortcuts, sims and the online server all change the game only through one rules contract (framework Table module); every action returns events tagged with who may see them; `legalActions` lists every choice; fast mode plays the same game without end-screen bookkeeping; the server keeps a replayable move record — and check:golden + check:shots both say SAME (results pages linked for Muzzy).
-- [ ] 🤖 1. Framework (v0.4 F12): `table/` module — the rules contract (setup · legalActions · check · apply → {state, events} · isOver · viewFor), events with who-may-see, move record + replay, eventsFor(seat), a contract self-test any game runs; install script → game `src/table/` — dev/framework branch dev/table
+- [x] 🤖 1. Framework (v0.4 F12): `table/` module — the rules contract (setup · legalActions · check · apply → {state, events} · isOver · viewFor), events with who-may-see, move record + replay, eventsFor(seat), a contract self-test any game runs; install script → game `src/table/` — dev/framework branch dev/table
 - [ ] 🤖 2. Glyphtender plugs in: `src/engine/rules.ts` wraps the engine (no rule rewrites); viewFor moves in from party/views.ts hideSecrets
 - [ ] 🤖 3. `legalActions(state, seat)` — draft hexes · move (+ cast seed × target, or no cast) · refresh subsets; same-letter seeds deduped; self-test: every listed action passes check, every sim pick is listed
 - [ ] 🤖 4. Events from apply — placed / moved / cast / scored / drew (only that seat) / refreshed / tangled / turnStarted / gameOver; nothing on screen reads them yet (F31)
