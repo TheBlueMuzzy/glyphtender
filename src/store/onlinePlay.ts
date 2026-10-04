@@ -24,6 +24,7 @@ import { emptyStats } from './stats'
 import { inHandOrder } from './turnPlan'
 import { trailOf } from './trail'
 import { newSeedSlots, refillInPlace } from './refreshFx'
+import { drawnIds } from './happened'
 
 /** How long to wait for my own action's view before asking again (design §6 timers table; counted from Cast). */
 export const WAIT_FOR_VIEW_MS = 3000
@@ -78,7 +79,7 @@ function startFrom(view: GameView) {
   const online: OnlineLink = { mySeat: view.mySeat, gameId: view.gameId, version: view.version, post, landed, resume: showNext }
   const seats: Seat[] = view.names.map((name, seat) => ({ kind: seat === view.mySeat ? 'local' : 'online', name, colour: SEAT_COLOURS[seat] }))
   set({
-    game, online, seats, waiting: false, flying: false, handoff: null, revealAt: null, landed: null, refreshFx: null, trail: null, scoring: null,
+    game, online, seats, waiting: false, flying: false, handoff: null, revealAt: null, landed: null, refreshFx: null, trail: null, scoring: null, happened: null,
     move: null, cast: null, selected: null, setAside: [], note: null,
     options: {
       players: game.config.players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: false,
@@ -140,11 +141,13 @@ function apply(view: GameView) {
     waiting: mine ? false : store().waiting, flying: false, trail: null,
     move: null, cast: null, selected: null, setAside: [], note: null,
     stats: view.results?.stats ?? store().stats,
+    // (until the feed is played change by change: the view's newest turn is what happened)
+    happened: [...view.feed].reverse().find((c) => c.events.some((e) => e.type === 'moved')) ?? null,
   })
   // a seed that just landed scores now (its words one at a time); the next view waits for it to fade
   if (sprout !== landed) store().startScoring()
   // the new seeds grow into the emptied places (the ids that weren't in my hand before)
-  if (myRefresh) store().refreshArrived(newSeedSlots(order[online.mySeat], old.hands[online.mySeat]))
+  if (myRefresh) store().refreshArrived(newSeedSlots(order[online.mySeat], drawnIds(view.feed.at(-1)?.events ?? [], online.mySeat)))
 }
 
 /** The stand-in id of another player's seed while its throw is replayed (startReplay) — no real seed has this id. */

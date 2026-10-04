@@ -67,8 +67,9 @@ describe('score pops', () => {
   it('nothing covers the garden until the score sequence has faded (only when it shows)', () => {
     const game = catAndTo()
     const sprout = animJson.growTime + animJson.wordGlowTime
-    expect(landingSeconds(game, false, animJson)).toBe(sprout)
-    expect(landingSeconds(game, true, animJson)).toBe(Math.max(sprout, scoreSequence(scorePops(game, game.lastTurn!), animJson).end))
+    expect(landingSeconds(game, game.lastTurn, false, animJson)).toBe(sprout)
+    expect(landingSeconds(game, game.lastTurn, true, animJson)).toBe(Math.max(sprout, scoreSequence(scorePops(game, game.lastTurn!), animJson).end))
+    expect(landingSeconds(game, null, true, animJson)).toBe(sprout) // nothing landed
   })
 
   it('a letter shared by two words gets one border', () => {

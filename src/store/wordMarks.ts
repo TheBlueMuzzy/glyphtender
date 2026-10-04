@@ -1,10 +1,13 @@
 // WHAT THE BOARD MARKS ABOUT MADE WORDS (word indicators on) — plain functions, tested:
 //   the hexes that get the white word border (WordBorders.tsx), and the score sequence after a cast
 //   (ScorePops.tsx + useScoreSequence.ts): each seed's Magic, word by word, and when each part plays.
+// The turn comes from the rules' events (happened.ts turnOf: who cast, where, the words in order); the Magic of each
+// seed is worked out here from the board, which everyone sees (events carry no Magic before the end, on purpose).
 import animJson from '../../content/tuning/anim.json'
 import { seedMagic } from '../engine/engine'
 import { hexKey, type Hex } from '../engine/hex'
-import type { GameState, TurnSummary } from '../engine/types'
+import type { GameState } from '../engine/types'
+import type { TurnPlay } from './happened'
 
 type AnimTuning = typeof animJson
 
@@ -30,7 +33,7 @@ export interface ScorePop {
  * 1, + the ownership bonus for the caster's own seed). `game` is the garden right AFTER the turn. Works on an
  * online view too: the words and seeds are on the board for all to see (only the running totals are secret).
  */
-export function scorePops(game: GameState, turn: TurnSummary): ScorePop[] {
+export function scorePops(game: GameState, turn: TurnPlay): ScorePop[] {
   const pops: ScorePop[] = []
   const onHex = new Map<string, number>()
   turn.words.forEach((word, w) => {
@@ -113,10 +116,10 @@ export function scoreSequence(pops: ScorePop[], t: SequenceTiming): ScoreSequenc
 /**
  * How long the garden needs after a seed lands before anything may cover it (the handoff box, the reveal) or the next
  * turn may start: the sprout + wordGlowTime, or — with score pops — until the score sequence has faded away.
+ * `turn` = the turn that landed (happened.ts turnOf), `game` = the garden right after it.
  */
-export function landingSeconds(game: GameState, showPops: boolean, t: AnimTuning): number {
+export function landingSeconds(game: GameState, turn: TurnPlay | null, showPops: boolean, t: AnimTuning): number {
   const sprout = t.growTime + t.wordGlowTime
-  const turn = game.lastTurn
   if (!showPops || !turn || turn.words.length === 0) return sprout
   return Math.max(sprout, scoreSequence(scorePops(game, turn), t).end)
 }

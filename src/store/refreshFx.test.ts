@@ -39,10 +39,10 @@ describe('refresh maths', () => {
     expect(refillInPlace(ids('ABC'), ids('C'), hand('AB'))).toEqual(ids('AB'))
   })
 
-  it('the new seeds go where: every tray position holding a seed that was not in the hand before', () => {
-    expect(newSeedSlots(ids('XBYDEFGH'), hand('ABCDEFGH'))).toEqual([0, 2])
-    expect(newSeedSlots(ids('XABYCDEZ'), hand('ABCDEFG'))).toEqual([0, 3, 7])
-    expect(newSeedSlots(ids('X_B'), hand('AB'))).toEqual([0]) // an empty place holds nothing new
+  it('the new seeds go where: every tray position holding a seed just drawn (the rules’ drew event)', () => {
+    expect(newSeedSlots(ids('XBYDEFGH'), ids('XY'))).toEqual([0, 2])
+    expect(newSeedSlots(ids('XABYCDEZ'), ids('XYZ'))).toEqual([0, 3, 7])
+    expect(newSeedSlots(ids('X_B'), ids('X'))).toEqual([0]) // an empty place holds nothing new
   })
 
   it('how long each stage lasts: staggered slot after slot; nothing set aside or reduce motion = instant', () => {

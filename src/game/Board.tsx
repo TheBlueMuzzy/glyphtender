@@ -36,10 +36,11 @@ import { useGlide } from './useGlide'
 import { useTurnPulse } from './useTurnPulse'
 import { pulsingGlyphlings } from '../store/turnPulse'
 import { ScorePops } from './ScorePops'
-import { WordBorders, WordLabels, type SpotWord } from './WordBorders'
+import { WordBorders, WordLabels, type GrownWord, type SpotWord } from './WordBorders'
 import { useWordSpotlight } from './useWordSpotlight'
 import { TurnTrail } from './TurnTrail'
 import { boardTrail, trailKey as trailKeyOf } from '../store/trail'
+import { turnOf } from '../store/happened'
 import { usePreview } from './usePreview'
 import { HEX, useThrow } from './useThrow'
 import { useAnimTuning, useGardenTuning, useLayoutTuning } from './useTuning'
@@ -65,6 +66,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const waiting = useGameStore((s) => s.waiting)
   const indicators = useGameStore((s) => s.options?.wordIndicators ?? true)
   const replayTrail = useGameStore((s) => s.trail)
+  const happened = useGameStore((s) => s.happened)
   const finishCast = useGameStore((s) => s.finishCast)
   const colours = useGardenTuning()
   const timing = useAnimTuning()
@@ -130,12 +132,12 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const lit = board.cells.filter((h) => highlight?.hexes.some((x) => hexKey(x) === hexKey(h)))
   // Word indicators off: nothing shows which seeds make a word (players spot words themselves)
   const planned: SpotWord[] = indicators && !flying ? preview?.words ?? NO_WORDS : NO_WORDS
-  // The score pops belong to the seed that just landed (its turn grew words)
-  const turn = game.lastTurn
+  // The score pops belong to the seed that just landed (its turn grew words) — what happened: the rules' events
+  const turn = useMemo(() => turnOf(happened?.events), [happened])
   const pops = indicators && landed && turn?.target && hexKey(turn.target) === landed.key && turn.words.length > 0 ? turn : null
   // The words it grew score one at a time, then fade with the final total (ScorePops plays them; they start and end dark,
   // so nothing from this turn is left once the next one starts — the store's `scoring` holds the next turn till then)
-  const grown: SpotWord[] = pops ? pops.words : NO_WORDS
+  const grown: GrownWord[] = pops ? pops.words : NO_WORDS
   // The turn trail: a replayed turn (live) or my plan — trail.ts
   const shownTrail = useMemo(() => boardTrail({ game, trail: replayTrail, move, cast }), [game, replayTrail, move, cast])
   useWordSpotlight(svgRef, 'planned', planned, 0, 1, timing, colours.spotlightLabel)

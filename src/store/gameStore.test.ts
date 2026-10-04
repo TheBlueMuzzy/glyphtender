@@ -370,4 +370,44 @@ describe('game store — what happened (the rules’ events, F31)', () => {
     expect(store().happened?.change).toBe(2)
     expect(store().happened?.events.map((e) => e.type)).toEqual(['refreshed', 'drew', 'drewHidden', 'turnStarted'])
   })
+
+  /** Yellow's hand A B C…; a Yellow T at C6-3, so A cast onto C6-4 grows AT (Magic → draw 1). */
+  const castAT = () => {
+    store().loadState(position({
+      glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' },
+      seeds: [{ 'C6-3': 'T' }],
+      hands: [['A', 'B', 'C', 'D', 'F', 'G', 'H', 'J'], ['E']],
+      bag: ['V', 'W'],
+    }))
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    store().tapSeed(seed(0))
+    store().tapHex(hexAt('C6-4'))
+    store().startCast()
+    store().finishCast()
+  }
+
+  it('a landing scores the words its cast event + scored event name (not the game’s lastTurn)', () => {
+    vi.useFakeTimers()
+    castAT()
+    expect(store().landed?.key).toBe(hexKey(hexAt('C6-4'))) // the cast event's target
+    expect(store().scoring).toBe(store().landed!.count) // AT scores: input waits for the sequence
+    vi.runAllTimers()
+    expect(store().scoring).toBeNull()
+    // The same landing with nothing on screen having happened (a jump): no score sequence, whatever lastTurn says
+    useGameStore.setState({ happened: null })
+    store().startScoring()
+    expect(store().game!.lastTurn?.words).toHaveLength(1)
+    expect(store().scoring).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('the drawn seed takes the cast seed’s place (the cast + drew events); the handoff follows turnStarted', () => {
+    useGameStore.setState({ options: { players: 2, boardName: 'small', minWordLength: 2, hideSeeds: true, wordIndicators: true } })
+    castAT()
+    const drew = store().happened!.events.find((e) => e.type === 'drew')
+    expect(drew && 'seeds' in drew && drew.seeds.map((s) => s.letter)).toEqual(['V'])
+    expect(store().trayOrder[0][0]).toBe(drew && 'seeds' in drew && drew.seeds[0].id) // in A's place
+    expect(store().handoff).toEqual({ seat: 1, afterGrow: true }) // Blue plays next (turnStarted), after the grow
+  })
 })

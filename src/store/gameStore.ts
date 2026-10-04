@@ -19,7 +19,7 @@ import { migrateGame } from '../engine/migrate'
 import { parseWordList } from '../engine/words'
 import type { Action, GameState, WordList } from '../engine/types'
 import type { Applied } from '../table/core'
-import type { Happened } from './happened'
+import { drawnIds, eventOf, setAsideIds, startedTurn, turnOf, type Happened } from './happened'
 import {
   castOptions, hexIn, highlightFor, inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
   shuffled, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
@@ -225,11 +225,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
     after(refreshTimes(fx.newSlots?.length ?? 0, anim.current, false).growMs, done)
   }
 
-  // Once play has passed on: must the device be handed over first? (from = null: always — after the draft)
-  const handoffTo = (from: number | null, next: GameState, afterGrow: boolean): Handoff | null => {
+  // Once play has passed on (the change's turnStarted event: who plays next): must the device be handed over first?
+  // (from = null: always — after the draft)
+  const handoffTo = (from: number | null, events: GameEvent[], afterGrow: boolean): Handoff | null => {
     const { seats, options } = get()
-    if (next.phase !== 'play') return null
-    return needsHandoff(seats, from, next.current, options?.hideSeeds ?? false) ? { seat: next.current, afterGrow } : null
+    const next = startedTurn(events)
+    if (next?.phase !== 'play') return null
+    return needsHandoff(seats, from, next.seat, options?.hideSeeds ?? false) ? { seat: next.seat, afterGrow } : null
   }
 
   return {
@@ -340,7 +342,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         const dealt = next.phase === 'play' // the draft is over and seeds are dealt: pass the device before turn 1
         return set({
           ...noPlan(), game: next, happened: changeOf(applied.events), trayOrder: dealt ? next.hands.map(inHandOrder) : get().trayOrder,
-          handoff: dealt ? handoffTo(null, next, false) : null,
+          handoff: dealt ? handoffTo(null, applied.events, false) : null,
         })
       }
       if (game.phase !== 'play') return
@@ -391,25 +393,31 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!applied) return set({ flying: false })
       const next = applied.state
       const seat = game.current
+      // What happened (the rules' events): the seed that was cast and where it landed
+      const thrown = eventOf(applied.events, 'cast')
       const order = [...trayOrder]
-      order[seat] = refillInPlace(order[seat] ?? [], cast ? [cast.seed] : [], next.hands[seat]) // the drawn seed takes the cast one's place
-      const landed = cast ? { key: hexKey(cast.target), count: (get().landed?.count ?? 0) + 1 } : get().landed
-      const played = next.lastTurn ? addTurn(stats, next.lastTurn) : stats
-      set({ ...noPlan(), game: next, happened: changeOf(applied.events), flying: false, trayOrder: order, landed, stats: played, handoff: handoffTo(seat, next, cast !== null) })
-      if (cast) get().startScoring()
+      order[seat] = refillInPlace(order[seat] ?? [], thrown ? [thrown.seed.id] : [], next.hands[seat]) // the drawn seed takes the cast one's place
+      const landed = thrown ? { key: hexKey(thrown.target), count: (get().landed?.count ?? 0) + 1 } : get().landed
+      const played = next.lastTurn ? addTurn(stats, next.lastTurn) : stats // (the end table's numbers need the Magic: lastTurn)
+      set({
+        ...noPlan(), game: next, happened: changeOf(applied.events), flying: false, trayOrder: order, landed, stats: played,
+        handoff: handoffTo(seat, applied.events, !!thrown),
+      })
+      if (thrown) get().startScoring()
     },
     // The words a landing grew score one at a time (ScorePops / useScoreSequence draw it); until it has faded away
-    // nothing can be touched, and online the next view waits (Muzzy: nothing from a turn survives into the next)
+    // nothing can be touched, and online the next view waits (Muzzy: nothing from a turn survives into the next).
+    // The turn is the one on screen (happened: the rules' events) — and it must be the seed that just landed.
     startScoring: () => {
-      const { game, landed, options } = get()
+      const { game, landed, options, happened } = get()
       stopScoring()
-      const turn = game?.lastTurn
+      const turn = turnOf(happened?.events)
       const scores = (options?.wordIndicators ?? true) && !!landed && !!turn?.target && hexKey(turn.target) === landed.key && turn.words.length > 0
       if (!game || !scores) return set({ scoring: null })
       set({ scoring: landed!.count })
       // (+ a beat: the board's animations start a frame or two after this, and the fade's last frame must be painted
       // before anything of the next turn shows)
-      scoreTimer = setTimeout(() => get().endScoring(), landingSeconds(game, true, anim.current) * 1000 + SCORE_BEAT_MS)
+      scoreTimer = setTimeout(() => get().endScoring(), landingSeconds(game, turn, true, anim.current) * 1000 + SCORE_BEAT_MS)
     },
     endScoring: () => {
       stopScoring()
@@ -448,12 +456,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!applied) return
       const next = applied.state
       const happened = changeOf(applied.events)
+      // What happened (the rules' events): which seeds went back, and which came — they grow into the emptied places
       const order = [...trayOrder]
-      order[seat] = refillInPlace(order[seat] ?? [], chosen, next.hands[seat])
-      const passOn = () => set({ ...noPlan(), game: next, happened, trayOrder: order, handoff: handoffTo(seat, next, false), refreshFx: null })
+      order[seat] = refillInPlace(order[seat] ?? [], setAsideIds(applied.events, seat), next.hands[seat])
+      const passOn = () => set({ ...noPlan(), game: next, happened, trayOrder: order, handoff: handoffTo(seat, applied.events, false), refreshFx: null })
       if (shrinkMs === 0) return passOn()
       set({ refreshFx: { seat, slots, stage: 'out' }, selected: null })
-      const newSlots = newSeedSlots(order[seat], game.hands[seat])
+      const newSlots = newSeedSlots(order[seat], drawnIds(applied.events, seat))
       after(shrinkMs, () => growIn({ seat, slots, newSlots, stage: 'in', hand: next.hands[seat], order: order[seat] }, passOn))
     },
     refreshArrived: (newSlots) => {

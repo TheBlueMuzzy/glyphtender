@@ -15,6 +15,7 @@ import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { revealSteps, revealView, stepSeconds } from '../store/revealPlan'
 import { landingSeconds } from '../store/wordMarks'
+import { turnOf } from '../store/happened'
 import { PlayerChip, reduceMotion, screens } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
 import { juiceFor } from './feel'
@@ -46,8 +47,9 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
   useEffect(() => {
     if (revealAt !== null || scoring) return
     const quick = reduceMotion()
-    const scored = pops && (game.lastTurn?.words.length ?? 0) > 0 // (its sequence outlasts the sprout)
-    const timer = setTimeout(() => setRevealAt(quick ? end : 0), quick || scored ? 0 : landingSeconds(game, false, timing) * 1000)
+    const turn = turnOf(useGameStore.getState().happened?.events) // what just happened (the rules' events)
+    const scored = pops && (turn?.words.length ?? 0) > 0 // (its sequence outlasts the sprout)
+    const timer = setTimeout(() => setRevealAt(quick ? end : 0), quick || scored ? 0 : landingSeconds(game, turn, false, timing) * 1000)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealAt, end, scoring])

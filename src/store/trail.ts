@@ -10,8 +10,9 @@
 // shots'") and NOTHING after the landing ("the dotted line/paths stick around and shouldn't post cast"): a trail
 // is gone once the seed lands — for my own turn and for a replay.
 import { hexKey, type Hex } from '../engine/hex'
-import type { GameState, TurnSummary } from '../engine/types'
+import type { GameState } from '../engine/types'
 import type { GameStore } from './gameStore'
+import type { TurnPlay } from './happened'
 
 /** One turn's path: whose, which glyphling, from → to, and the hex its seed was cast at (null = it only moved). */
 export interface Trail {
@@ -24,8 +25,8 @@ export interface Trail {
 
 export type TrailMode = 'plan' | 'live'
 
-/** A finished turn's trail (null before the first turn). */
-export function trailOf(turn: TurnSummary | null | undefined): Trail | null {
+/** A turn's trail, from its events (happened.ts turnOf; null = not a turn). */
+export function trailOf(turn: TurnPlay | null | undefined): Trail | null {
   if (!turn) return null
   return { seat: turn.seat, glyphlingId: turn.glyphlingId, from: turn.from, to: turn.to, target: turn.target }
 }

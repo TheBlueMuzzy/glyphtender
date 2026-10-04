@@ -41,9 +41,9 @@ export function refillInPlace(order: string[], removed: string[], newHand: reado
   return next
 }
 
-/** The tray positions holding new seeds: ids that weren't in the hand before (`before` = that hand). */
-export function newSeedSlots(order: string[], before: readonly SeedPiece[]): number[] {
-  return order.flatMap((id, pos) => (id !== TRAY_GAP && !before.some((seed) => seed.id === id) ? [pos] : []))
+/** The tray positions holding new seeds: the seeds just drawn (`drawn` = their ids — the rules' 'drew' event). */
+export function newSeedSlots(order: string[], drawn: readonly string[]): number[] {
+  return order.flatMap((id, pos) => (id !== TRAY_GAP && drawn.includes(id) ? [pos] : []))
 }
 
 /** How long each stage lasts, in ms (the last slot's stagger included; the pause sits after the shrink).
