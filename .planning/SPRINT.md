@@ -9,7 +9,7 @@ Done when: the game, dev shortcuts, sims and the online server all change the ga
 - [x] 🤖 4. Events from apply — placed / moved / cast / scored / drew (only that seat) / refreshed / tangled / turnStarted / gameOver; nothing on screen reads them yet (F31)
 - [x] 🤖 5. Fast mode — skips log / pendingLog / insight (log.ts, insight.ts, turn.ts:82, tangle.ts); test: same goldenView apart from the log; sim speed before → after
 - [x] 🤖 6. One door + move record — store send (src/store/gameStore.ts), devHook jumps, sim, party/serverGame.ts play + turnClock bots go through rules.apply; the server keeps {setup secrets, actions} (glyphtenderRules onStart re-seed), never sent to a client; test: replaying an online game's record = the server's state
-- [ ] 🤖 7. Prove it — check:golden + check:shots SAME, npm test, build, lint, e2e:pass, e2e:online (one at a time); results pages + game links for Muzzy
+- [x] 🤖 7. Prove it — check:golden + check:shots SAME, npm test, build, lint, e2e:pass, e2e:online (one at a time); results pages + game links for Muzzy
 - [x] 🤖 8. TDD (engine section + Decision) · framework ROADMAP F12 + version · STATE Key facts
 Check: both checks SAME; contract self-test green for Glyphtender; online game replays from its record.
 Ask Muzzy: —
