@@ -32,7 +32,9 @@
     "e2e:trails": "node e2e/trail-shots.mjs",
     "fixtures:end": "node scripts/end-fixtures.mjs",
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
-    "e2e:fullscreen": "node e2e/fullscreen.mjs"
+    "e2e:fullscreen": "node e2e/fullscreen.mjs",
+    "shots:record": "node e2e/shots.mjs record",
+    "check:shots": "node e2e/shots.mjs check"
   },
   "dependencies": {
     "partyserver": "^0.5.10",
@@ -52,7 +54,9 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^16.5.0",
+    "pixelmatch": "^7.2.0",
     "playwright-core": "^1.63.0",
+    "pngjs": "^7.0.0",
     "sharp": "^0.35.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.71.0",
