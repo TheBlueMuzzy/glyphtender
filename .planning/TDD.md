@@ -141,6 +141,23 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D66 · 2026-10-04 · The tray IS the framework Hand view, "rack" preset (F35, built overnight)
+  ui-kit 0.3.0 HandView (kit/views: rackLayout = the old trayLayout maths; places with attrs / held / aimed / waiting /
+  staged; renderEmpty + renderPiece = the game's look; hidden; shrink → grow stages + reduce motion) and Table 0.5.0
+  rack.ts (GAP, rackOf, moveInRack, refillRack, placesOf, shuffleRack) replace SeedTray's own drawing maths,
+  trayLayout.ts, turnPlan's moveInOrder / shuffled / inHandOrder and refreshFx's refillInPlace / newSeedSlots /
+  refreshSlots (TRAY_GAP stays as a re-export of GAP). SeedTray 139 → 115 lines: it only decides what each place holds
+  and draws the hex slot, the art and the rings. Pixel-identical on the first try (check:shots 192/192, 0 px).
+D65 · 2026-10-04 · One drag referee; the screen stops re-working the rules (F34, built overnight)
+  Table 0.5.0 referee.ts. src/store/referee.ts = the game's referee (pieces: glyphling / newGlyphling (draft) / seed;
+  targets: hex / tray place): mayAct = isMyTurn && !isBusy (the glow and drop light keep their own gates, D63, passed in)
+  → accepts by kind → live rules. The shake (nope.nopeFor → mayPickUp), the lift (usePieceInput.startDrag), the glow
+  (boardHighlight → targetsFor over every hex), the drop light (dropKind → judge) and the drop (tapHex, moveTraySeed →
+  judge) all ask it — moveTraySeed itself now refuses a reorder before the move (B008, not just the pointer). The 7
+  rule copies are gone: the engine answers mayMoveOnly, movesLeft (danger), movableGlyphlings (pulse), seedMagicOfTurn
+  (score pops, still from the public board online), tanglePieces (reveal) — screenAnswers.test proves each equals the
+  old screen code over sim games. Behaviour edge: while the screen is busy a dragged piece no longer lifts (it used to
+  float and then do nothing) — Ask Muzzy.
 D64 · 2026-10-04 · The screen plays what happened: a numbered event feed (F31, built overnight)
   Framework Table 0.4.0 events.ts. The server keeps the last 12 changes (ServerGame.feed, addChange per play(), the
   change number = the view's version — bot / turn-clock moves included); each seat's view carries

@@ -1,6 +1,9 @@
 # Glyphtender — Bugs
-Open: 7 (P0 0 · P1 0 · P2 2 · P3 5)
+Open: 8 (P0 0 · P1 0 · P2 2 · P3 6)
 ## Open
+### B022 · P3 · open · found 2026-10-04 (F35 helper) · since v0.3.0 (main has it too) · tooling
+`npm run check:ui` reports 3 rule problems + 6 warnings in reveal / end-screen code
+Where: game.css:118–119, RevealMarks.tsx:93 (problems); game.css 139–336 kit-restyle warnings. Confirmed the same on main (v0.3.0) — not from v0.6. Fix in a UI pass (game-ui skill), not during the "no visible change" rebuild.
 ### B020 · P3 · open · found 2026-10-04 by the F31 review (not new — v0.3.0 did the same) · online
 When the server plays a turn FOR you (turn clock / a bot after you went idle), your glyphling jumps instead of gliding
 Steps: online, go idle on your turn until the server plays it · Expected: the same trail → glide → throw as any other turn · Actual: it's shown at once (onlinePlay canReplay refuses replays for my own seat). Related, also old: a rival's replay can start while my refresh's new seeds are still growing (the queue only waits for stage 'out'). Both are visible changes → after v0.6, Muzzy's call.
