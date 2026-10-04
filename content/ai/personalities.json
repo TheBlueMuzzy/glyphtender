@@ -72,13 +72,13 @@
     {
       "id": "Scholar",
       "traits": {
-        "aggression": { "min": 5, "max": 20 },
+        "aggression": { "min": 10, "max": 25 },
         "greed": { "min": 85, "max": 100 },
         "spite": { "min": 30, "max": 50 },
-        "caution": { "min": 25, "max": 45 },
+        "caution": { "min": 40, "max": 60 },
         "patience": { "min": 60, "max": 80 },
         "opportunism": { "min": 20, "max": 40 },
-        "pragmatism": { "min": 30, "max": 50 }
+        "pragmatism": { "min": 50, "max": 70 }
       },
       "goals": ["SCORE", "BUILD", "DENY", "DUMP", "ESCAPE", "STEAL", "TRAP"],
       "nudge": 0.2,
@@ -97,13 +97,13 @@
     {
       "id": "Builder",
       "traits": {
-        "aggression": { "min": 5, "max": 20 },
-        "greed": { "min": 50, "max": 70 },
-        "spite": { "min": 25, "max": 45 },
-        "caution": { "min": 35, "max": 55 },
+        "aggression": { "min": 10, "max": 25 },
+        "greed": { "min": 40, "max": 60 },
+        "spite": { "min": 20, "max": 40 },
+        "caution": { "min": 50, "max": 70 },
         "patience": { "min": 85, "max": 100 },
         "opportunism": { "min": 15, "max": 35 },
-        "pragmatism": { "min": 25, "max": 45 }
+        "pragmatism": { "min": 40, "max": 60 }
       },
       "goals": ["BUILD", "SCORE", "ESCAPE", "DENY", "DUMP", "STEAL", "TRAP"],
       "nudge": 0.2,
@@ -123,13 +123,13 @@
     {
       "id": "Vulture",
       "traits": {
-        "aggression": { "min": 10, "max": 25 },
-        "greed": { "min": 40, "max": 60 },
+        "aggression": { "min": 20, "max": 40 },
+        "greed": { "min": 50, "max": 70 },
         "spite": { "min": 70, "max": 85 },
-        "caution": { "min": 25, "max": 45 },
-        "patience": { "min": 25, "max": 45 },
+        "caution": { "min": 30, "max": 50 },
+        "patience": { "min": 40, "max": 60 },
         "opportunism": { "min": 80, "max": 95 },
-        "pragmatism": { "min": 20, "max": 40 }
+        "pragmatism": { "min": 30, "max": 50 }
       },
       "goals": ["STEAL", "DENY", "SCORE", "BUILD", "ESCAPE", "DUMP", "TRAP"],
       "nudge": 0.2,
@@ -148,12 +148,12 @@
       "id": "Survivor",
       "traits": {
         "aggression": { "min": 5, "max": 20 },
-        "greed": { "min": 35, "max": 55 },
-        "spite": { "min": 25, "max": 45 },
+        "greed": { "min": 40, "max": 60 },
+        "spite": { "min": 20, "max": 40 },
         "caution": { "min": 85, "max": 100 },
-        "patience": { "min": 40, "max": 60 },
-        "opportunism": { "min": 15, "max": 35 },
-        "pragmatism": { "min": 25, "max": 45 }
+        "patience": { "min": 60, "max": 80 },
+        "opportunism": { "min": 20, "max": 40 },
+        "pragmatism": { "min": 40, "max": 60 }
       },
       "goals": ["ESCAPE", "BUILD", "SCORE", "DENY", "DUMP", "STEAL", "TRAP"],
       "nudge": 0.2,
@@ -172,13 +172,13 @@
     {
       "id": "Strategist",
       "traits": {
-        "aggression": { "min": 15, "max": 30 },
+        "aggression": { "min": 25, "max": 45 },
         "greed": { "min": 70, "max": 85 },
-        "spite": { "min": 40, "max": 60 },
-        "caution": { "min": 30, "max": 50 },
+        "spite": { "min": 50, "max": 70 },
+        "caution": { "min": 45, "max": 65 },
         "patience": { "min": 65, "max": 80 },
-        "opportunism": { "min": 30, "max": 50 },
-        "pragmatism": { "min": 20, "max": 40 }
+        "opportunism": { "min": 40, "max": 60 },
+        "pragmatism": { "min": 35, "max": 55 }
       },
       "goals": ["SCORE", "BUILD", "DENY", "ESCAPE", "STEAL", "DUMP", "TRAP"],
       "nudge": 0.4,
@@ -196,13 +196,13 @@
     {
       "id": "Balanced",
       "traits": {
-        "aggression": { "min": 40, "max": 70 },
-        "greed": { "min": 40, "max": 70 },
-        "spite": { "min": 40, "max": 70 },
-        "caution": { "min": 40, "max": 70 },
-        "patience": { "min": 40, "max": 70 },
-        "opportunism": { "min": 40, "max": 70 },
-        "pragmatism": { "min": 40, "max": 70 }
+        "aggression": { "min": 40, "max": 60 },
+        "greed": { "min": 50, "max": 70 },
+        "spite": { "min": 40, "max": 60 },
+        "caution": { "min": 50, "max": 70 },
+        "patience": { "min": 40, "max": 60 },
+        "opportunism": { "min": 40, "max": 60 },
+        "pragmatism": { "min": 40, "max": 60 }
       },
       "goals": ["SCORE", "ESCAPE", "DENY", "BUILD", "STEAL", "DUMP", "TRAP"],
       "nudge": 0.3,
