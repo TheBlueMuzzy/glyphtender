@@ -141,6 +141,29 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D63 · 2026-10-04 · Turns & flow: whose turn is decided once (F32, built overnight)
+  Framework Table 0.3.0 flow.ts (Flow = level + acting seats; snakeOrder; nextClockwise; TurnSteps/undoStep).
+  Engine: draftOrder = snakeOrder(players, 2); endTurn's next seat = nextClockwise(current, players, canMove) (null =
+  nobody can move = game over); rules.flowOf(state) (level from phase, acting [current] or [] when over) drives toAct,
+  check and legalActions; GameState fields unchanged (golden reads them). Screen: ONE answer in src/store/myTurn.ts —
+  isMyTurn (a seat on this device that the flow lets act: pass-and-play every local seat, online only mySeat, bots
+  never), isBusy (flying / waiting / handoff / refreshFx / scoring), canPlayNow; the store's canPlayAt(level) replaced
+  the "canPlay && phase === X" pairs; ActionBar, SeedTray, nope, turnPlan, turnPulse, prompt, onlinePlay.isOthersTurn
+  and the server's "not your turn" ask it. Kept different ON PURPOSE (same screen as before): ActionBar's busy ignores
+  scoring; turnPulse keeps its smaller quiet set; nope returns no shake at 'over' first. Undo: TURN_STEPS = move → cast,
+  undoNow = undoStep(stepsDone) — cast, then move, never past the turn's start (gameStore.undo + both Undo buttons).
+D62 · 2026-10-04 · Seeds have stable ids; nobody names a seed by its place in a hand (F33, built overnight)
+  Framework Table 0.2.0 zones.ts. Ids "seed-0".."seed-119" = stableIds over the UNSHUFFLED fullBag (an id never hints at
+  the draw order); the same shuffle with the same RNG calls now shuffles the pieces (setup test proves the order is
+  identical); planted seeds keep their id. Actions name ids (turn.seed, refresh.setAside); legalActions still offers
+  one seed per letter. Golden files keep hand positions: golden.ts toRecorded / fromRecorded translate (no re-record).
+  Secrecy: the bag and rivals' hands are sent as {id:"?", letter:"?"} per seed (kept the array shape — the framework's
+  hidden() count would make hands a union type all through the client); drew / setAside carry ids only to that seat;
+  e2e:online's frame check flags any hidden id. Tray: trayOrder = seed ids, TRAY_GAP = "gap"; refillInPlace keeps kept
+  seeds by id (fixes B018). Online replay of a rival's cast uses a stand-in piece {id:"replay"}. Server refuses anything
+  but "seed-<n>" (bad_action) and ids not in the sender's hand. migrate.ts gives old saves/snapshots ids (first unused
+  box id per letter: planted → hands → bag; extras "seed-extra-N"); content/snapshots + e2e fixtures stay old-format
+  on purpose to prove it. DEPLOY: server + site together (an old phone's index actions are refused).
 D61 · 2026-10-04 · One rules door: Glyphtender on the framework Table contract (F30)
   src/engine/rules.ts = glyphtenderRules(words): the Table module's Rules (src/table/core.ts, framework table/ 0.1.0)
   wrapping the engine — no rule rewrites. Made by a function because apply needs the word list and the contract has no
