@@ -53,5 +53,5 @@ export interface GameView {
   results: Results | null
 }
 
-/** What stands in for a seed nobody may see (another player's hand, the bag). */
-export const HIDDEN = '?'
+/** What stands in for a seed nobody may see (another player's hand, the bag) — decided by the rules (rules.ts). */
+export { HIDDEN } from '../src/engine/rules'
