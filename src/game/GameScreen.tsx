@@ -5,13 +5,14 @@
 // The board always fits its box and hugs the tray's side of it, so board and tray sit close.
 // A margin all round (layout.json edgeMargin, margins.ts); beside the board the spare width is shared so
 // edge | board | tray | edge look even, and the turn bar lines up with the tray.
-// The tray is real size (trayLayout.ts); the buttons are about a board hex tall (finger-sized, ≥ 44 px).
+// The tray is real size (the UI kit's rackLayout: as wide as a board hex, 2 rows before it shrinks);
+// the buttons are about a board hex tall (finger-sized, ≥ 44 px).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import text from '../../content/text/en.json'
 import { getBoard } from '../engine/boards'
 import { useGameStore } from '../store/gameStore'
 import { revealSteps } from '../store/revealPlan'
-import { toast, useScreens } from '../ui/kit'
+import { rackLayout, toast, useScreens } from '../ui/kit'
 import { useGameSettings } from '../ui/gameSettings'
 import { leaveToMenu } from '../ui/newGame'
 import { ActionBar } from './ActionBar'
@@ -25,7 +26,6 @@ import { RevealPanel } from './Reveal'
 import { PromptLine } from './PromptLine'
 import { SeedTray } from './SeedTray'
 import { TurnBar } from './TurnBar'
-import { trayLayout } from './trayLayout'
 import { useNopeShake } from './useNopeShake'
 import { usePieceInput } from './usePieceInput'
 import { useGardenTuning, useLayoutTuning } from './useTuning'
@@ -79,11 +79,11 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const edge = edgeMargin(space.width, space.height, layout.edgeMargin, layout.edgeMarginShare)
   const room = stacked ? space.width - 2 * edge : Math.floor(space.width * layout.sidePanelShare)
   const slots = game.phase === 'draft' ? 2 : game.config.rules.handSize
-  const tray = trayLayout({ room, hexPx, slots, tileMin: layout.trayTileMin, gap: layout.trayGap })
+  const tray = rackLayout({ room, tileWanted: hexPx, places: slots, tileMin: layout.trayTileMin, gap: layout.trayGap })
   // The side column keeps ONE width all game (draft, turns, handoff, reveal, end): its share of the screen,
   // or a full tray if that's wider. The ruler below holds it open, so whatever sits in the tray's place
   // (the reveal's narrow chips) can't shrink it and push the turn bar's words off the screen.
-  const fullTray = trayLayout({ room, hexPx, slots: game.config.rules.handSize, tileMin: layout.trayTileMin, gap: layout.trayGap })
+  const fullTray = rackLayout({ room, tileWanted: hexPx, places: game.config.rules.handSize, tileMin: layout.trayTileMin, gap: layout.trayGap })
   const column = Math.max(room, fullTray.width)
 
   // The empty rulers that make the margins (game.css places them round the edge; each sits next to a grid gap,

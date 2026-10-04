@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import anim from '../../content/tuning/anim.json'
 import { hexAt, position, wordsOf } from '../engine/testkit'
 import { useGameStore } from './gameStore'
-import { newSeedSlots, refillInPlace, refreshSlots, refreshTimes } from './refreshFx'
+import { refreshTimes } from './refreshFx'
+import { placesOf, refillRack } from '../table/rack'
 import { letterIn, TRAY_GAP } from './turnPlan'
 
 const store = () => useGameStore.getState()
@@ -16,33 +17,33 @@ describe('refresh maths', () => {
   const ids = (letters: string) => [...letters].map((l) => (l === '_' ? TRAY_GAP : l)) // '_' = an empty place
 
   it('the slots are the tray positions of the set-aside seeds, left to right', () => {
-    expect(refreshSlots(ids('ABCD'), ids('CA'))).toEqual([0, 2])
-    expect(refreshSlots(ids('DACB'), ids('BD'))).toEqual([0, 3]) // a reordered tray: its own places
-    expect(refreshSlots(ids('ABC'), [])).toEqual([])
+    expect(placesOf(ids('ABCD'), ids('CA'))).toEqual([0, 2])
+    expect(placesOf(ids('DACB'), ids('BD'))).toEqual([0, 3]) // a reordered tray: its own places
+    expect(placesOf(ids('ABC'), [])).toEqual([])
   })
 
   it('new seeds take the set-aside places; kept seeds stay put (the tray follows each seed by its id)', () => {
     // hand ABCDEFGH, set aside A and C → new hand BDEFGH + 2 drawn (X, Y)
-    expect(refillInPlace(ids('ABCDEFGH'), ids('AC'), hand('BDEFGHXY'))).toEqual(ids('XBYDEFGH'))
+    expect(refillRack(ids('ABCDEFGH'), ids('AC'), hand('BDEFGHXY'))).toEqual(ids('XBYDEFGH'))
     // a reordered tray
-    expect(refillInPlace(ids('DACB'), ids('BD'), hand('ACXY'))).toEqual(ids('XACY'))
+    expect(refillRack(ids('DACB'), ids('BD'), hand('ACXY'))).toEqual(ids('XACY'))
     // the bag ran short: one new seed for two places — the second place stays empty (nothing shifts)
-    expect(refillInPlace(ids('ABCD'), ids('AC'), hand('BDX'))).toEqual(ids('XB_D'))
+    expect(refillRack(ids('ABCD'), ids('AC'), hand('BDX'))).toEqual(ids('XB_D'))
     // a short hand (an old 3-seed tray) refilled: the extra new seed goes on the end
-    expect(refillInPlace(ids('ABC'), ids('B'), hand('ACXY'))).toEqual(ids('AXCY'))
+    expect(refillRack(ids('ABC'), ids('B'), hand('ACXY'))).toEqual(ids('AXCY'))
     // an empty place (a cast seed's, nothing drawn) is filled before the end; nothing new = it stays
-    expect(refillInPlace(ids('A_BC'), [], hand('ABCX'))).toEqual(ids('AXBC'))
-    expect(refillInPlace(ids('A_BC'), [], hand('ABC'))).toEqual(ids('A_BC'))
+    expect(refillRack(ids('A_BC'), [], hand('ABCX'))).toEqual(ids('AXBC'))
+    expect(refillRack(ids('A_BC'), [], hand('ABC'))).toEqual(ids('A_BC'))
     // a cast (one seed gone, one drawn): the drawn seed takes its place
-    expect(refillInPlace(ids('DABC'), ids('B'), hand('ACDX'))).toEqual(ids('DAXC'))
+    expect(refillRack(ids('DABC'), ids('B'), hand('ACDX'))).toEqual(ids('DAXC'))
     // an empty place at the end is just a free slot (the tray always shows a full hand's slots)
-    expect(refillInPlace(ids('ABC'), ids('C'), hand('AB'))).toEqual(ids('AB'))
+    expect(refillRack(ids('ABC'), ids('C'), hand('AB'))).toEqual(ids('AB'))
   })
 
   it('the new seeds go where: every tray position holding a seed just drawn (the rules’ drew event)', () => {
-    expect(newSeedSlots(ids('XBYDEFGH'), ids('XY'))).toEqual([0, 2])
-    expect(newSeedSlots(ids('XABYCDEZ'), ids('XYZ'))).toEqual([0, 3, 7])
-    expect(newSeedSlots(ids('X_B'), ids('X'))).toEqual([0]) // an empty place holds nothing new
+    expect(placesOf(ids('XBYDEFGH'), ids('XY'))).toEqual([0, 2])
+    expect(placesOf(ids('XABYCDEZ'), ids('XYZ'))).toEqual([0, 3, 7])
+    expect(placesOf(ids('X_B'), ids('X'))).toEqual([0]) // an empty place holds nothing new
   })
 
   it('how long each stage lasts: staggered slot after slot; nothing set aside or reduce motion = instant', () => {

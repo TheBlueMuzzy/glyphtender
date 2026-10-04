@@ -21,8 +21,7 @@ import type { Action, GameState, WordList } from '../engine/types'
 import type { Applied } from '../table/core'
 import { drawnIds, eventOf, setAsideIds, startedTurn, turnOf, type Happened } from './happened'
 import {
-  inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
-  shuffled, TRAY_GAP, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
+  isCurrents, mayMoveOnly, TRAY_GAP, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
 import { NEW_GLYPHLING, onHex, playReferee, type Piece } from './referee'
 import { localSeats, needsHandoff, type Seat } from './seats'
@@ -30,7 +29,8 @@ import { canPlayNow } from './myTurn'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
-import { newSeedSlots, refillInPlace, refreshSlots, refreshTimes, type RefreshFx } from './refreshFx'
+import { refreshTimes, type RefreshFx } from './refreshFx'
+import { moveInRack, placesOf, rackOf, refillRack, shuffleRack } from '../table/rack'
 import { landingSeconds } from './wordMarks'
 import type { Trail } from './trail'
 
@@ -267,7 +267,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, seats: localSeats(players, text.game.players), stats: emptyStats(players),
-        trayOrder: game.hands.map(inHandOrder),
+        trayOrder: game.hands.map(rackOf),
       })
     },
     leaveGame: () => {
@@ -344,7 +344,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         const next = applied.state
         const dealt = next.phase === 'play' // the draft is over and seeds are dealt: pass the device before turn 1
         return set({
-          ...noPlan(), game: next, happened: changeOf(applied.events), trayOrder: dealt ? next.hands.map(inHandOrder) : get().trayOrder,
+          ...noPlan(), game: next, happened: changeOf(applied.events), trayOrder: dealt ? next.hands.map(rackOf) : get().trayOrder,
           handoff: dealt ? handoffTo(null, applied.events, false) : null,
         })
       }
@@ -398,7 +398,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       // What happened (the rules' events): the seed that was cast and where it landed
       const thrown = eventOf(applied.events, 'cast')
       const order = [...trayOrder]
-      order[seat] = refillInPlace(order[seat] ?? [], thrown ? [thrown.seed.id] : [], next.hands[seat]) // the drawn seed takes the cast one's place
+      order[seat] = refillRack(order[seat] ?? [], thrown ? [thrown.seed.id] : [], next.hands[seat]) // the drawn seed takes the cast one's place
       const landed = thrown ? { key: hexKey(thrown.target), count: (get().landed?.count ?? 0) + 1 } : get().landed
       const played = next.lastTurn ? addTurn(stats, next.lastTurn) : stats // (the end table's numbers need the Magic: lastTurn)
       set({
@@ -442,7 +442,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const seat = game.current
       // (in hand order, whatever order they were tapped in — the order they go back into the bag in)
       const chosen = keepAll ? [] : game.hands[seat].filter((seed) => setAside.includes(seed.id)).map((seed) => seed.id)
-      const slots = refreshSlots(trayOrder[seat] ?? [], chosen)
+      const slots = placesOf(trayOrder[seat] ?? [], chosen)
       const { shrinkMs } = refreshTimes(slots.length, anim.current, reduceMotion())
       if (online) {
         // The action leaves at once (the trip to the server hides inside the shrink); its view waits for the shrink
@@ -460,11 +460,11 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const happened = changeOf(applied.events)
       // What happened (the rules' events): which seeds went back, and which came — they grow into the emptied places
       const order = [...trayOrder]
-      order[seat] = refillInPlace(order[seat] ?? [], setAsideIds(applied.events, seat), next.hands[seat])
+      order[seat] = refillRack(order[seat] ?? [], setAsideIds(applied.events, seat), next.hands[seat])
       const passOn = () => set({ ...noPlan(), game: next, happened, trayOrder: order, handoff: handoffTo(seat, applied.events, false), refreshFx: null })
       if (shrinkMs === 0) return passOn()
       set({ refreshFx: { seat, slots, stage: 'out' }, selected: null })
-      const newSlots = newSeedSlots(order[seat], drawnIds(applied.events, seat))
+      const newSlots = placesOf(order[seat], drawnIds(applied.events, seat))
       after(shrinkMs, () => growIn({ seat, slots, newSlots, stage: 'in', hand: next.hands[seat], order: order[seat] }, passOn))
     },
     refreshArrived: (newSlots) => {
@@ -479,14 +479,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const seed: Piece = { kind: 'seed', id: trayOrder[game.current]?.[from] ?? TRAY_GAP }
       if (!playReferee(get()).judge(game.current, seed, { kind: 'tray', pos: to }).ok) return
       const order = [...trayOrder]
-      order[game.current] = moveInOrder(order[game.current], from, to)
+      order[game.current] = moveInRack(order[game.current], from, to)
       set({ trayOrder: order })
     },
     shuffleTray: () => {
       const { game, trayOrder } = get()
       if (!game || !canPlay()) return
       const order = [...trayOrder]
-      order[game.current] = shuffled(order[game.current])
+      order[game.current] = shuffleRack(order[game.current])
       set({ trayOrder: order })
     },
 
@@ -505,7 +505,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         happened: null, // a jump, not a change: nothing "just happened"
         seats: get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players),
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
-        trayOrder: game.hands.map(inHandOrder),
+        trayOrder: game.hands.map(rackOf),
       })
     },
   }

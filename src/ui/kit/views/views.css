@@ -1,0 +1,7 @@
+/* THE VIEWS' CSS — how a zone of pieces is drawn (HandView). Layout only: the pieces' look is the game's. */
+@layer kit-base {
+  /* The hand's svg: its own size, never squashed in a flex column; a lifted piece may poke out of the top */
+  .kit-hand { display: block; flex: none; overflow: visible; }
+  /* A piece shrinking away or growing in does it around its own middle, inside its place */
+  .kit-hand-staged { transform-box: fill-box; transform-origin: center; }
+}

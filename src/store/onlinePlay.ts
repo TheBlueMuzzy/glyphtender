@@ -29,9 +29,8 @@ import { reduceMotion } from '../ui/kit/blocks/motion'
 import { useGameStore, type OnlineLink } from './gameStore'
 import type { Seat } from './seats'
 import { emptyStats } from './stats'
-import { inHandOrder } from './turnPlan'
 import { trailOf } from './trail'
-import { newSeedSlots, refillInPlace } from './refreshFx'
+import { placesOf, rackOf, refillRack } from '../table/rack'
 import { actorOf, drawnIds, eventOf, showChange, turnOf, type Happened, type TurnPlay } from './happened'
 
 /** How long to wait for my own action's view before asking again (design §6 timers table; counted from Cast). */
@@ -99,7 +98,7 @@ function startFrom(view: GameView) {
       wordIndicators: view.options?.wordIndicators ?? true, // the host's choice, the same on every screen
     },
     stats: view.results?.stats ?? emptyStats(game.config.players),
-    trayOrder: game.hands.map(inHandOrder),
+    trayOrder: game.hands.map(rackOf),
   })
 }
 
@@ -159,8 +158,8 @@ function show(view: GameView, change: Happened, last: boolean) {
   const thrown = eventOf(events, 'cast')
   const left = thrown?.seat === me ? [thrown.seed.id] : [] // (set-aside seeds are simply gone from the hand)
   const order = game.hands.map((hand, seat) => {
-    if (seat !== me) return inHandOrder(hand) // (other players' seeds come as '?': no ids — nothing to follow)
-    return refillInPlace(trayOrder[seat] ?? [], left, hand) // a drawn seed takes the place of one that left
+    if (seat !== me) return rackOf(hand) // (other players' seeds come as '?': no ids — nothing to follow)
+    return refillRack(trayOrder[seat] ?? [], left, hand) // a drawn seed takes the place of one that left
   })
   const sprout = thrown ? { key: hexKey(thrown.target), count: (landed?.count ?? 0) + 1 } : landed
   if (mine) clearTimers()
@@ -174,7 +173,7 @@ function show(view: GameView, change: Happened, last: boolean) {
   // a seed that just landed scores now (its words one at a time); the next change waits for it to fade
   if (sprout !== landed) store().startScoring()
   // my refresh: the new seeds (the drew event) grow into the emptied places
-  if (mine && eventOf(events, 'refreshed')) store().refreshArrived(newSeedSlots(order[me], drawnIds(events, me)))
+  if (mine && eventOf(events, 'refreshed')) store().refreshArrived(placesOf(order[me], drawnIds(events, me)))
 }
 
 /** Straight to a view, nothing animated (the changes before it are gone from the feed). */
@@ -186,7 +185,7 @@ function jumpTo(view: GameView) {
   lastPlayed = view.version
   set({
     game: view.game, online: { ...online, version: view.version }, happened: null,
-    trayOrder: view.game.hands.map((hand, seat) => (seat === online.mySeat ? refillInPlace(trayOrder[seat] ?? [], [], hand) : inHandOrder(hand))),
+    trayOrder: view.game.hands.map((hand, seat) => (seat === online.mySeat ? refillRack(trayOrder[seat] ?? [], [], hand) : rackOf(hand))),
     waiting: mine ? false : store().waiting, flying: false, trail: null, refreshFx: null, // (a refresh waiting for its seeds: they're simply there)
     move: null, cast: null, selected: null, setAside: [], note: null,
     stats: view.results?.stats ?? store().stats,
