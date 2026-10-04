@@ -9,6 +9,7 @@
 import { useRef, type PointerEvent, type RefObject } from 'react'
 import type { Hex } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
+import { playReferee, targetsOf, type Piece } from '../store/referee'
 import { dropKind, letterIn } from '../store/turnPlan'
 import { glyphlingArt, seedArt } from './art'
 import { showDropTarget } from './dropTarget'
@@ -69,13 +70,15 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
     const { game } = store()
     const img = drag.image.current
     if (!game || !img) return
+    // May it be lifted at all? The drag referee (the same answer as the shake, the glow and the drop) — a quiet moment
+    // (a seed landing, the device being passed on…) lifts nothing, and shakes nothing either
+    const liftable = (piece: Piece) => playReferee(store()).mayPickUp(game.current, piece, targetsOf(game, piece)).ok
     let art: string | null = null
     if (p.glyph !== undefined) {
       const refused = store().refuseTap({ glyph: p.glyph })
       store().grabGlyphling(p.glyph) // (a refused one still says why in the prompt)
       if (refused) return void (p.refused = true)
-      const g = game.glyphlings.find((x) => x.id === p.glyph)
-      if (g && g.seat === game.current && game.phase === 'play' && !game.tangled.includes(g.id)) art = glyphlingArt(g.seat)
+      if (liftable({ kind: 'glyphling', id: p.glyph })) art = glyphlingArt(game.current)
     } else if (p.hand !== undefined) {
       // Before the move (or not my turn) a seed can't be dragged at all, not even to reorder the tray (B008)
       if (store().refuseTap({ hand: p.hand })) {
@@ -83,7 +86,7 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
         return void (p.refused = true)
       }
       store().grabSeed(p.hand)
-      art = seedArt(letterIn(game.hands[game.current], p.hand) ?? '', game.current)
+      if (liftable({ kind: 'seed', id: p.hand })) art = seedArt(letterIn(game.hands[game.current], p.hand) ?? '', game.current)
     } else if (p.draft) {
       art = glyphlingArt(game.current)
     }

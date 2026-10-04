@@ -12,7 +12,7 @@ import text from '../../content/text/en.json'
 import animFile from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
 import { reduceMotion } from '../ui/kit/blocks/motion'
-import { checkAction, legalDraftHexes } from '../engine/engine'
+import { checkAction } from '../engine/engine'
 import { flowOf, glyphtenderRules, setupGame, type GameEvent, type GlyphtenderLevel } from '../engine/rules'
 import { hexKey, sameHex, type Hex } from '../engine/hex'
 import { migrateGame } from '../engine/migrate'
@@ -21,9 +21,10 @@ import type { Action, GameState, WordList } from '../engine/types'
 import type { Applied } from '../table/core'
 import { drawnIds, eventOf, setAsideIds, startedTurn, turnOf, type Happened } from './happened'
 import {
-  castOptions, hexIn, highlightFor, inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
-  shuffled, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
+  inHandOrder, isCurrents, mayMoveOnly, moveInOrder,
+  shuffled, TRAY_GAP, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
+import { NEW_GLYPHLING, onHex, playReferee, type Piece } from './referee'
 import { localSeats, needsHandoff, type Seat } from './seats'
 import { canPlayNow } from './myTurn'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
@@ -333,8 +334,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
     tapHex: (hex) => {
       const { game, move, cast, selected } = get()
       if (!game || !canPlay()) return
+      // May this piece go on this hex? The drag referee's answer (the same one the glow and the shake ask)
+      const allowed = (piece: Piece) => playReferee(get()).judge(game.current, piece, onHex(hex)).ok
       if (game.phase === 'draft') {
-        if (!hexIn(legalDraftHexes(game), hex)) return // not a glowing hex: nothing happens
+        if (!allowed(NEW_GLYPHLING)) return // not a glowing hex: nothing happens
         if (get().online) return void sendOnline({ type: 'draft', hex })
         const applied = send({ type: 'draft', hex })
         if (!applied) return
@@ -346,17 +349,16 @@ export const useGameStore = create<GameStore>()((set, get) => {
         })
       }
       if (game.phase !== 'play') return
-      const options = highlightFor(game, move, selected)
-      if (selected?.kind === 'glyphling' && options && hexIn(options.hexes, hex)) {
+      if (selected?.kind === 'glyphling' && allowed(selected)) {
         return set({ move: { glyphling: selected.id, to: hex }, cast: null, selected: null, note: null })
       }
-      if (selected?.kind === 'seed' && move && hexIn(castOptions(game, move), hex)) {
+      if (selected?.kind === 'seed' && allowed(selected)) {
         return set({ cast: { seed: selected.id, target: hex }, selected: null, note: null })
       }
       if (cast && sameHex(cast.target, hex)) return set({ cast: null, note: null }) // the seed goes back to the tray
       const origin = move && game.glyphlings.find((g) => g.id === move.glyphling)?.hex
       if (origin && sameHex(origin, hex)) return set({ ...noPlan() }) // tapped the ghost: the glyphling goes back
-      if (cast && !selected && hexIn(castOptions(game, move), hex)) return set({ cast: { ...cast, target: hex }, note: null }) // aim it elsewhere
+      if (cast && !selected && allowed({ kind: 'seed', id: cast.seed })) return set({ cast: { ...cast, target: hex }, note: null }) // aim it elsewhere
       set({ selected: null })
     },
 
@@ -473,6 +475,9 @@ export const useGameStore = create<GameStore>()((set, get) => {
     moveTraySeed: (from, to) => {
       const { game, trayOrder } = get()
       if (!game || !canPlay() || from === to) return
+      // The drag referee: a seed may be reordered only after the move (B008), or while choosing what to refresh
+      const seed: Piece = { kind: 'seed', id: trayOrder[game.current]?.[from] ?? TRAY_GAP }
+      if (!playReferee(get()).judge(game.current, seed, { kind: 'tray', pos: to }).ok) return
       const order = [...trayOrder]
       order[game.current] = moveInOrder(order[game.current], from, to)
       set({ trayOrder: order })

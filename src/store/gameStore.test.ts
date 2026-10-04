@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
-import { hexKey } from '../engine/hex'
+import { hexKey, type Hex } from '../engine/hex'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
 import { castOptions, dropKind, highlightFor, letterIn, moveInOrder, shuffled, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
@@ -116,12 +116,13 @@ describe('game store — planning a turn (One Cast + undo)', () => {
 
   it('gold cast ranges show as soon as the move is planned — before a seed is picked, while aiming, and after Undo of the cast', () => {
     yellowToPlay()
-    const lit = () => { const s = store(); return highlightFor(s.game!, s.move, s.selected) }
+    const byKey = (hexes: Hex[]) => hexes.map(hexKey).sort() // (the board draws the glow in its own order)
+    const lit = () => { const s = store(); const h = highlightFor(s.game!, s.move, s.selected); return h && { ...h, hexes: byKey(h.hexes) } }
     expect(lit()).toBeNull() // nothing held, nothing planned
     store().tapGlyphling(0)
     expect(lit()?.kind).toBe('move')
     store().tapHex(hexAt('C6-6'))
-    const gold = castOptions(store().game!, store().move)
+    const gold = byKey(castOptions(store().game!, store().move))
     expect(gold.length).toBeGreaterThan(0)
     expect(lit()).toEqual({ kind: 'cast', hexes: gold }) // no seed picked yet
     store().tapSeed(seed(0))
@@ -252,10 +253,12 @@ describe('game store — Cast', () => {
 
   it('the tray keeps its own order across a turn', () => {
     yellowToPlay()
-    store().moveTraySeed(7, 0) // K to the front
-    expect(trayPositions()).toEqual([7, 0, 1, 2, 3, 4, 5, 6])
+    store().moveTraySeed(7, 0) // before the move: the tray can't be reordered (B008)
+    expect(trayPositions()).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
+    store().moveTraySeed(7, 0) // K to the front
+    expect(trayPositions()).toEqual([7, 0, 1, 2, 3, 4, 5, 6])
     store().tapSeed(seed(0))
     store().tapHex(hexAt('C6-4'))
     store().startCast()
@@ -294,6 +297,8 @@ describe("the tray never re-sorts on a cast (Muzzy 2026-10-01: don't resort, it'
 
   it("the player's own order is kept too: the new seed lands where the cast one was", () => {
     yellowCanMakeAT()
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6')) // (the tray reorders only after the move: B008)
     store().moveTraySeed(7, 0) // K to the front: K B C A F G H J
     castFromTray(2) // A, now fourth
     expect(trayLetters()).toEqual(['K', 'B', 'C', 'V', 'F', 'G', 'H', 'J'])

@@ -29,14 +29,14 @@ describe('glyphtenderAdapter', () => {
 
   it('a snapshot is plain JSON, and restoring it brings the game back — without the planned move', () => {
     store().loadState(yellowToPlay())
+    store().grabGlyphling(0)
+    store().tapHex(hexAt('C6-6')) // a planned move (the tray reorders only after it: B008)
     store().moveTraySeed(0, 2)
     const saved = JSON.parse(JSON.stringify(glyphtenderAdapter.getState())) as GlyphtenderMoment
     const [b, c, d] = saved.game!.hands[0].map((s) => s.id)
     expect(saved.trayOrder[0]).toEqual([c, d, b]) // the tray holds seed ids
 
-    // Play on: plan a move, then load something else
-    store().grabGlyphling(0)
-    store().tapHex(hexAt('C6-6'))
+    // Then load something else
     expect(store().move).not.toBeNull()
     store().startGame({ players: 3, seed: 99 })
 
@@ -50,10 +50,10 @@ describe('glyphtenderAdapter', () => {
   it('B018: a snapshot taken with an empty tray place (a cast seed, nothing drawn) keeps its tray order, gap and all', () => {
     // Yellow casts C (no word, an empty bag: nothing drawn) — its place stays empty: B _ D
     store().loadState(position({ glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, hands: [['B', 'C', 'D'], ['E']], bag: [] }))
-    store().moveTraySeed(2, 0) // D B C
-    store().moveTraySeed(2, 1) // D C B — the player's own order
     store().grabGlyphling(0)
     store().tapHex(hexAt('C6-6'))
+    store().moveTraySeed(2, 0) // D B C (after the move: B008)
+    store().moveTraySeed(2, 1) // D C B — the player's own order
     store().tapSeed(store().game!.hands[0][1].id) // C
     store().tapHex(hexAt('C6-4'))
     store().startCast()

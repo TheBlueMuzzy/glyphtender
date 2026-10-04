@@ -44,10 +44,11 @@ describe('the "no" shake', () => {
 
   it('a tray seed tapped or dragged before I’ve moved shakes (B008: no reordering before the move); after the move it’s fine', () => {
     yellowToPlay()
-    expect(nope({ hand: 'seed-1' })).toEqual({ kind: 'hand', key: 'seed-1' })
+    const e = store().game!.hands[0][1].id // (a seed really in my hand)
+    expect(nope({ hand: e })).toEqual({ kind: 'hand', key: e })
     store().tapGlyphling(0)
     store().tapHex(hexAt('C6-6'))
-    expect(nope({ hand: 'seed-1' })).toBeNull()
+    expect(nope({ hand: e })).toBeNull()
   })
 
   it('the store shakes the piece: a new "no" each time, even on the same piece', () => {
