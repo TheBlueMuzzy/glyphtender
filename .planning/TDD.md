@@ -141,6 +141,19 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D64 · 2026-10-04 · The screen plays what happened: a numbered event feed (F31, built overnight)
+  Framework Table 0.4.0 events.ts. The server keeps the last 12 changes (ServerGame.feed, addChange per play(), the
+  change number = the view's version — bot / turn-clock moves included); each seat's view carries
+  rules.feedViewFor(feed, game, seat) = feedFor (events by `seen`) + any seed no longer in that seat's hand or on the
+  board blanked to '?' (a set-aside seed back in the bag can't be followed — e2e:online caught it). Online events ride
+  INSIDE views (not room sendEvent): React can batch views and skip some; the feed means nothing is lost — onlinePlay
+  keeps lastPlayed and plays newChanges(view.feed, lastPlayed) one change at a time; rivals' turns replay from
+  moved / cast / scored, my own change is recognised by actor, `missed` (or a new gameId) jumps to the view. Local: the
+  store keeps `happened` {change, events} (src/store/happened.ts: turnOf, actorOf, drawnIds…); finishCast,
+  startScoring, refresh's new places, Board pops, Handoff, Reveal, ScorePops, trails and the Dev Kit adapter read it.
+  Gone: isNewTurn, isOthersTurn, lastTurn diffing, `sent`. Still reads lastTurn: the end-table stats (they need the
+  turn's Magic, which events never carry before gameOver). anim.json timings untouched. The Listeners hub is unused
+  so far (the store reads `happened`).
 D63 · 2026-10-04 · Turns & flow: whose turn is decided once (F32, built overnight)
   Framework Table 0.3.0 flow.ts (Flow = level + acting seats; snakeOrder; nextClockwise; TurnSteps/undoStep).
   Engine: draftOrder = snakeOrder(players, 2); endTurn's next seat = nextClockwise(current, players, canMove) (null =
