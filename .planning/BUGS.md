@@ -1,6 +1,12 @@
 # Glyphtender — Bugs
-Open: 5 (P0 0 · P1 0 · P2 2 · P3 3)
+Open: 7 (P0 0 · P1 0 · P2 2 · P3 5)
 ## Open
+### B020 · P3 · open · found 2026-10-04 by the F31 review (not new — v0.3.0 did the same) · online
+When the server plays a turn FOR you (turn clock / a bot after you went idle), your glyphling jumps instead of gliding
+Steps: online, go idle on your turn until the server plays it · Expected: the same trail → glide → throw as any other turn · Actual: it's shown at once (onlinePlay canReplay refuses replays for my own seat). Related, also old: a rival's replay can start while my refresh's new seeds are still growing (the queue only waits for stage 'out'). Both are visible changes → after v0.6, Muzzy's call.
+### B021 · P3 · open · found 2026-10-04 by the F31 review · online, rare
+After a long gap (12+ missed changes) while waiting for my own move's answer, a false "your move didn't go through" note can show
+Steps: send a move, lose the connection long enough for 12+ changes, come back · Actual: jumpTo keeps `waiting` when the newest change isn't mine; the next sync reply calls actionLost. Fix idea: on a jump, check whether the view already holds my move (e.g. the server echoes the last action id it applied per seat).
 ### B019 · P2 · open · found 2026-10-04 by the F29 screenshot helper (e2e/shots.mjs) · v0.3.0 · short browser window 768×343
 In a short window the prompt's words run over the ☰ Menu button and the turn portrait, so a tap on ☰ lands on the prompt
 Steps: a window 768×343, play to a turn whose prompt is long ("No Magic this turn — refresh seeds?"), tap ☰ · Expected: the Pause menu opens · Actual: the tap hits the prompt (e2e/shots.mjs clicks the button directly to get past it). e2e:margins doesn't shoot 768×343. Fix after v0.6 (a fix now would change the before-shots) or record it as a meant change.
