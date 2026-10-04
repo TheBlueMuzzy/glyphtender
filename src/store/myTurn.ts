@@ -17,7 +17,7 @@ export function isMyTurn(s: TurnState): boolean {
   const game = s.game
   if (!game) return false
   const flow = flowOf(game)
-  return s.seats.some((_, seat) => isLocalHuman(s.seats, seat) && mayAct(flow, seat))
+  return s.seats.some((who, seat) => isLocalHuman(who) && mayAct(flow, seat))
 }
 
 type BusyState = Pick<GameStore, 'flying' | 'waiting' | 'handoff'> & Partial<Pick<GameStore, 'refreshFx' | 'scoring'>>

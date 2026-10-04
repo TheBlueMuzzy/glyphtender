@@ -2,25 +2,38 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { hexAt, position, wordsOf } from '../engine/testkit'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
-import { isLocalHuman, localSeats, needsHandoff, type Seat } from './seats'
+import { isLocalHuman, localSeats, needsHandoff, onlineSeats, type Seat } from './seats'
 
 const store = () => useGameStore.getState()
 const names = { yellow: 'Yellow', blue: 'Blue', purple: 'Purple', pink: 'Pink' }
 
 describe('seats', () => {
-  it('one local seat per player, in colour order', () => {
+  it('pass-and-play: one person-on-this-device seat per player, in colour order', () => {
     expect(localSeats(3, names)).toEqual([
-      { kind: 'local', name: 'Yellow', colour: 'yellow' },
-      { kind: 'local', name: 'Blue', colour: 'blue' },
-      { kind: 'local', name: 'Purple', colour: 'purple' },
+      { kind: 'human', where: 'local', connected: true, name: 'Yellow', colour: 'yellow' },
+      { kind: 'human', where: 'local', connected: true, name: 'Blue', colour: 'blue' },
+      { kind: 'human', where: 'local', connected: true, name: 'Purple', colour: 'purple' },
     ])
   })
 
-  it('only a local seat is a human on this device', () => {
-    const seats: Seat[] = [...localSeats(1, names), { kind: 'ai', name: 'Bot', colour: 'blue' }]
-    expect(isLocalHuman(seats, 0)).toBe(true)
-    expect(isLocalHuman(seats, 1)).toBe(false)
-    expect(isLocalHuman(seats, 5)).toBe(false)
+  it('only a person on this device is a local human (not a bot here, not a person online)', () => {
+    const seats: Seat[] = [...localSeats(1, names), { kind: 'bot', where: 'local', connected: true, name: 'Bot', colour: 'blue' },
+      { kind: 'human', where: 'online', connected: true, name: 'Bo', colour: 'purple' }]
+    expect(isLocalHuman(seats[0])).toBe(true)
+    expect(isLocalHuman(seats[1])).toBe(false)
+    expect(isLocalHuman(seats[2])).toBe(false)
+    expect(isLocalHuman(seats[5])).toBe(false)
+  })
+
+  it('online: my seat is a person here; the others are a person or a bot elsewhere, connected as the room says', () => {
+    const room = [{ kind: 'human' as const, connected: true }, { kind: 'bot' as const, connected: false }, { kind: 'human' as const, connected: false }]
+    expect(onlineSeats(['Ada', 'Bo', 'Cy'], 0, room).map((s) => [s.kind, s.where, s.connected, s.name, s.colour])).toEqual([
+      ['human', 'local', true, 'Ada', 'yellow'],
+      ['bot', 'online', false, 'Bo', 'blue'],
+      ['human', 'online', false, 'Cy', 'purple'],
+    ])
+    // before the room message arrives: everyone else is a connected person
+    expect(onlineSeats(['Ada', 'Bo'], 1).map((s) => [s.kind, s.where, s.connected])).toEqual([['human', 'online', true], ['human', 'local', true]])
   })
 
   it('the device is passed only between two humans on it, and only when seeds are hidden', () => {
@@ -29,7 +42,7 @@ describe('seats', () => {
     expect(needsHandoff(two, 0, 1, false)).toBe(false) // seeds are public: no handoff
     expect(needsHandoff(two, 1, 1, true)).toBe(false) // same player again
     expect(needsHandoff(two, null, 0, true)).toBe(true) // before the first turn
-    const vsAi: Seat[] = [two[0], { kind: 'ai', name: 'Bot', colour: 'blue' }]
+    const vsAi: Seat[] = [two[0], { kind: 'bot', where: 'local', connected: true, name: 'Bot', colour: 'blue' }]
     expect(needsHandoff(vsAi, 1, 0, true)).toBe(false) // one human: nobody to hide from
     expect(needsHandoff(vsAi, 0, 1, true)).toBe(false)
   })

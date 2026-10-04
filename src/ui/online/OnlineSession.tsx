@@ -9,7 +9,7 @@ import text from '../../../content/text/en.json'
 import type { GameView, OnlineAction, OnlineOptions } from '../../../party/protocol'
 import type { RoomState } from '../../rooms/protocol'
 import { useRoom } from '../../rooms/useRoom'
-import { actionRefused, connectOnline, receiveView } from '../../store/onlinePlay'
+import { actionRefused, connectOnline, receiveView, roomSeatsChanged } from '../../store/onlinePlay'
 import { useGameStore } from '../../store/gameStore'
 import { Reconnecting, fill, screens, toast } from '../kit'
 import { closeAllScreens } from '../newGame'
@@ -30,6 +30,11 @@ export function OnlineSession() {
   // This device's moves go out through the room
   const send = room.send
   useEffect(() => connectOnline(send), [send])
+
+  // Who's really at each seat (a person or a bot, connected or not) goes to the game store's seats — before the view,
+  // so a new game starts with them
+  const roomSeats = room.room?.seats
+  useEffect(() => roomSeatsChanged(roomSeats ?? []), [roomSeats])
 
   // Every new view goes to the game store; a view of "no game" (the host went back to the lobby) ends the game
   // and closes the end table (and anything else open), so the lobby shows

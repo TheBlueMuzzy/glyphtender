@@ -23,11 +23,11 @@ import { hexKey, sameHex } from '../engine/hex'
 import { flowOf } from '../engine/rules'
 import { mayAct } from '../table/flow'
 import { newChanges } from '../table/events'
-import { SEAT_COLOURS, type Action, type GameState } from '../engine/types'
+import type { Action, GameState } from '../engine/types'
 import { glideSeconds } from '../game/glide'
 import { reduceMotion } from '../ui/kit/blocks/motion'
 import { useGameStore, type OnlineLink } from './gameStore'
-import type { Seat } from './seats'
+import { onlineSeats } from './seats'
 import { emptyStats } from './stats'
 import { trailOf } from './trail'
 import { placesOf, rackOf, refillRack } from '../table/rack'
@@ -52,6 +52,8 @@ let lastPlayed = 0
 let toServer: (message: OnlineAction) => boolean = () => false
 let syncTimer: ReturnType<typeof setTimeout> | null = null
 let replayTimer: ReturnType<typeof setTimeout> | null = null
+/** Who's really at each seat, from the last room message (a person or a bot, connected or not), in game seat order. */
+let roomSeats: readonly { kind: 'human' | 'bot'; connected: boolean }[] = []
 
 /** Where this device's messages go (useRoom's send: false = not connected right now). Set by OnlineSession.tsx. */
 export function connectOnline(post: (message: OnlineAction) => boolean) {
@@ -64,6 +66,14 @@ export function receiveView(view: GameView) {
   if (!online || !game || view.gameId !== online.gameId) return startFrom(view)
   inbox.push(view)
   showNext()
+}
+
+/** A new room message (OnlineSession.tsx): the store's seats follow who's really at each seat — a person or a bot,
+ *  connected or not. (The TurnBar badge and the seat toasts still read the room message itself, B015.) */
+export function roomSeatsChanged(seats: readonly { kind: 'human' | 'bot'; connected: boolean }[]) {
+  roomSeats = seats
+  const { online, game } = store()
+  if (online && game) set({ seats: onlineSeats(store().seats.map((s) => s.name), online.mySeat, roomSeats) })
 }
 
 /** The server refused my action (a stale version, or something illegal): drop the plan, ask for the true view. */
@@ -89,7 +99,7 @@ function startFrom(view: GameView) {
   lastPlayed = view.version // (what came before this view is already in it)
   const game = view.game
   const online: OnlineLink = { mySeat: view.mySeat, gameId: view.gameId, version: view.version, post, landed, resume: showNext }
-  const seats: Seat[] = view.names.map((name, seat) => ({ kind: seat === view.mySeat ? 'local' : 'online', name, colour: SEAT_COLOURS[seat] }))
+  const seats = onlineSeats(view.names, view.mySeat, roomSeats)
   set({
     game, online, seats, waiting: false, flying: false, handoff: null, revealAt: null, landed: null, refreshFx: null, trail: null, scoring: null, happened: null,
     move: null, cast: null, selected: null, setAside: [], note: null,

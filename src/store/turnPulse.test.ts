@@ -62,7 +62,7 @@ describe('turn pulse', () => {
 
   it('online: only on my own turn', () => {
     yellowToPlay()
-    useGameStore.setState({ seats: [{ kind: 'online', name: 'Bo', colour: 'yellow' }, { kind: 'local', name: 'Me', colour: 'blue' }] })
+    useGameStore.setState({ seats: [{ kind: 'human', where: 'online', connected: true, name: 'Bo', colour: 'yellow' }, { kind: 'human', where: 'local', connected: true, name: 'Me', colour: 'blue' }] })
     expect(pulsing()).toEqual([]) // Yellow is on another device
   })
 })

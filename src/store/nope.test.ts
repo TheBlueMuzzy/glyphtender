@@ -63,7 +63,7 @@ describe('the "no" shake', () => {
 
   it('online, not my turn: my own glyphling and tray seeds shake too', () => {
     yellowToPlay()
-    useGameStore.setState({ seats: [{ kind: 'online', name: 'Bo', colour: 'yellow' }, { kind: 'local', name: 'Me', colour: 'blue' }] })
+    useGameStore.setState({ seats: [{ kind: 'human', where: 'online', connected: true, name: 'Bo', colour: 'yellow' }, { kind: 'human', where: 'local', connected: true, name: 'Me', colour: 'blue' }] })
     expect(nope({ glyph: 2 })).toEqual({ kind: 'glyph', key: '2' })
     expect(nope({ hand: 'seed-0' })).toEqual({ kind: 'hand', key: 'seed-0' })
   })

@@ -9,10 +9,10 @@ import type { Seat } from './seats'
 const yellowToPlay = (): GameState => position({ glyphlings: { 0: 'C6-7', 1: 'C1-1', 2: 'C11-1', 3: 'C11-4' }, hands: [['T'], ['E']], bag: ['X'] })
 const blueToPlay = (): GameState => ({ ...yellowToPlay(), current: 1 })
 
-const seat = (kind: Seat['kind']): Seat => ({ kind, name: kind, colour: 'yellow' })
-const passAndPlay = [seat('local'), seat('local')]
-const onlineAsYellow = [seat('local'), seat('online')] // onlinePlay.ts: my seat is 'local', the others 'online'
-const vsBot = [seat('local'), seat('ai')]
+const seat = (kind: Seat['kind'], where: Seat['where']): Seat => ({ kind, where, connected: true, name: kind, colour: 'yellow' })
+const passAndPlay = [seat('human', 'local'), seat('human', 'local')]
+const onlineAsYellow = [seat('human', 'local'), seat('human', 'online')] // onlinePlay.ts: my seat is a person here, the others online
+const vsBot = [seat('human', 'local'), seat('bot', 'local')]
 const calm = { flying: false, waiting: false, handoff: null, refreshFx: null, scoring: null }
 
 describe('isMyTurn — the rules say whose turn, the seats say whether they are here', () => {

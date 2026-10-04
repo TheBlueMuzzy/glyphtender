@@ -15,7 +15,7 @@ import settings from '../../content/rooms.json'
 import animJson from '../../content/tuning/anim.json'
 import { glideSeconds } from '../game/glide'
 import { useGameStore } from './gameStore'
-import { actionRefused, connectOnline, receiveView, REPLAY_SEED, stopOnline } from './onlinePlay'
+import { actionRefused, connectOnline, receiveView, REPLAY_SEED, roomSeatsChanged, stopOnline } from './onlinePlay'
 import { boardHighlight, castOptions, dropKind, TRAY_GAP } from './turnPlan'
 import { boardTrail } from './trail'
 
@@ -76,6 +76,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   store().leaveGame()
   stopOnline()
+  roomSeatsChanged([])
   store().setWords(words)
   let n = 42
   server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647) }), settings)
@@ -109,9 +110,16 @@ describe('online store — starting and the draft', () => {
   it('the first view starts the game: my seat is local, the others online, no handoff', () => {
     expect(store().game?.phase).toBe('draft')
     expect(store().online?.mySeat).toBe(0)
-    expect(store().seats.map((s) => [s.kind, s.name])).toEqual([['local', 'Ada'], ['online', 'Bo']])
+    expect(store().seats.map((s) => [s.kind, s.where, s.name])).toEqual([['human', 'local', 'Ada'], ['human', 'online', 'Bo']])
     expect(store().options?.hideSeeds).toBe(false)
     expect(store().options?.wordIndicators).toBe(true) // the host's lobby option (on unless turned off)
+  })
+
+  it('the seats follow the room message: who is a bot, who is connected (my seat stays a person here)', () => {
+    roomSeatsChanged([{ kind: 'human', connected: true }, { kind: 'bot', connected: false }])
+    expect(store().seats.map((s) => [s.kind, s.where, s.connected, s.name])).toEqual([['human', 'local', true, 'Ada'], ['bot', 'online', false, 'Bo']])
+    roomSeatsChanged([{ kind: 'bot', connected: true }, { kind: 'human', connected: true }]) // (my own seat: always mine to play here)
+    expect(store().seats.map((s) => [s.kind, s.where, s.connected])).toEqual([['human', 'local', true], ['human', 'online', true]])
   })
 
   it('my placement goes to the server and nothing can be touched until its view comes back', () => {
