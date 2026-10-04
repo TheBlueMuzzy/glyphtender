@@ -275,15 +275,67 @@ describe('online store — turns', () => {
 
   it('a sync answered with the same version means my action was lost: the plan comes back to play again', () => {
     finishDraft()
-    yellowPlansAndCasts()
-    server.game = { ...server.game!, version: server.game!.version - 1 } // (pretend the server never got it)
-    me.mail = []
+    dropConnection()
+    yellowPlansAndCasts() // the server never gets it
     store().finishCast()
-    vi.advanceTimersByTime(3000)
-    server.game = { ...server.game!, version: store().online!.version }
+    reconnect()
+    vi.advanceTimersByTime(3000) // no answer: ask again
     deliver()
     expect(store().waiting).toBe(false)
     expect(store().note).toBe('problem')
+  })
+
+  // B021: back after a gap too long for the feed while I was still waiting for my own move's answer
+  /** The connection drops: what this device sends never arrives (it thinks it went). */
+  const dropConnection = () => connectOnline((message) => { sent.push(message); return true })
+  /** …and comes back. */
+  const reconnect = () => connectOnline((message) => { sent.push(message); toServer(me, { type: 'action', action: message }); return true })
+  /** Blue plays one action from its own view (my mail stays undelivered). */
+  function blueActsAlone(seed: number) {
+    for (const m of blue.mail.splice(0)) if (m.type === 'view' && m.view) blue.seen.push(m.view as GameView)
+    const view = blueView()
+    toServer(blue, { type: 'action', action: { kind: 'play', action: randomAction(view.game, seed).action, version: view.version } })
+  }
+  /** I come back: only the newest view arrives, and the changes before it have left the feed (a jump). */
+  function backAfterLongGap() {
+    const newest = me.mail.filter((m) => m.type === 'view').at(-1) as { view: GameView }
+    me.mail = []
+    reconnect()
+    receiveView({ ...newest.view, feed: newest.view.feed.slice(-1) })
+    return newest.view
+  }
+
+  it('B021: a jump while waiting — the server did apply my move: no false "didn\'t go through" note', () => {
+    server.game = { ...server.game!, options: { ...server.game!.options, turnSeconds: 60 } } // (the clock plays my refresh if one comes)
+    finishDraft()
+    yellowPlansAndCasts() // my move reaches the server…
+    dropConnection()
+    me.mail = [] // …but its answer never comes back
+    store().finishCast()
+    expect(store().waiting).toBe(true)
+    for (let i = 0; i < 70 && server.game!.game.current === 0; i++) vi.advanceTimersByTime(1000) // (my refresh, by the clock)
+    blueActsAlone(3) // the game goes on: the newest change is Blue's, not mine
+    const view = backAfterLongGap()
+    expect(store().online!.version).toBe(view.version)
+    expect(store().waiting).toBe(false) // the view says my move was applied
+    expect(store().note).toBeNull()
+    vi.advanceTimersByTime(3000)
+    deliver()
+    expect(store().note).toBeNull()
+  })
+
+  it('B021: a jump while waiting — my move truly never arrived: the "didn\'t go through" note', () => {
+    server.game = { ...server.game!, options: { ...server.game!.options, turnSeconds: 60 } } // (the host's turn timer)
+    finishDraft()
+    dropConnection()
+    yellowPlansAndCasts() // my move never reaches the server
+    store().finishCast()
+    expect(store().waiting).toBe(true)
+    for (let i = 0; i < 70 && server.game!.game.current === 0; i++) vi.advanceTimersByTime(1000) // the clock plays my turn instead
+    blueActsAlone(3)
+    backAfterLongGap()
+    expect(store().waiting).toBe(false)
+    expect(store().note).toBe('problem') // play it again
   })
 
   it('a refused action drops the plan, says "problem" and asks for the true view', () => {

@@ -31,6 +31,10 @@ export interface ServerGame {
   /** What happened lately: the last few changes, each numbered with the version it made, with ALL their events
    *  (secret ones too). Never sent as is: each view carries rules.feedViewFor(feed, game, seat) — only what that seat may see. */
   feed: Feed<GameEvent>
+  /** Per seat: the change number made by the last action that seat SENT ITSELF (0 = none yet) — not the turns the
+   *  server played for it (turn clock, bot). Each seat's view carries only its own number (myLastAction), so its
+   *  screen knows whether its move got through, even after a gap too long for the feed (B021). */
+  lastOwnAction: number[]
 }
 
 /** Plays one action for `seat` through the rules (throws if they say no), keeps the end-table numbers, writes the

@@ -29,6 +29,7 @@ export function viewOf(state: ServerGame, seatId: string): GameView {
     by: state.by,
     game: hideSecrets(state.game, mySeat),
     feed: feedViewFor(state.feed, state.game, mySeat), // (seat -1, not playing: only the events everyone sees)
+    myLastAction: state.lastOwnAction[mySeat] ?? 0, // (only this seat's own number; seat -1 → 0)
     options: state.options,
     turnEndsAt: state.turnEndsAt,
     results,

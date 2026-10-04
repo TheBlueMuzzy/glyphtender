@@ -99,7 +99,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       }
       const game = glyphtenderRules(words()).setup(setup)
       const state: ServerGame = {
-        game, gameId: seedMaker(), version: 0, record: { setup, moves: [] }, feed: [],
+        game, gameId: seedMaker(), version: 0, record: { setup, moves: [] }, feed: [], lastOwnAction: seats.map(() => 0),
         seatIds: seats.map((s) => s.id), names: seats.map((s) => s.name),
         options, change: 'start', by: null,
         stats: emptyStats(players), turnEndsAt: null, botRng: seed ^ 0x5eed,
@@ -117,7 +117,10 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       if (message.version !== state.version) throw new Error('The game moved on — try again.')
       const problem = glyphtenderRules(words()).check(state.game, mine, message.action)
       if (problem) throw new Error(problem)
-      return planNextTurn(play(state, mine, message.action, words()), room, words)
+      const next = play(state, mine, message.action, words())
+      // (remember which change this seat's own action made — its view tells its screen the move got through, B021)
+      const lastOwnAction = next.lastOwnAction.map((change, seat) => (seat === mine ? next.version : change))
+      return planNextTurn({ ...next, lastOwnAction }, room, words)
     },
 
     viewFor: (state, seat) => viewOf(state, seat.id),

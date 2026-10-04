@@ -51,6 +51,9 @@ export interface GameView {
    *  player may see. The screen plays the ones it hasn't played yet (onlinePlay.ts) — so a view that was skipped
    *  (several came at once) or a reconnect loses nothing. */
   feed: Feed<GameEvent>
+  /** The change number my OWN last action made (0 = none yet) — a turn the server played for me doesn't count. If it's
+   *  newer than the version I sent my move on, the server applied my move (B021). Only my own number, never anyone else's. */
+  myLastAction: number
   /** The host's table options for this game (nothing secret — every player's screen follows them, e.g. word indicators). */
   options: OnlineOptions
   /** When the current turn's timer runs out (server time, ms), or null when there's no timer. */

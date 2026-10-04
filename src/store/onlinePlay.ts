@@ -5,7 +5,8 @@
 // reconnect) still play every change they missed:
 //   · MY seat plans and animates exactly like pass-and-play. Cast sends the action at once (gameStore.ts);
 //     when the seed lands, my change is shown (if its view hasn't come yet we wait; every WAIT_FOR_VIEW_MS
-//     without it, we ask the server to send it again). My change is never replayed — I've just seen it.
+//     without it, we ask the server to send it again). My change is never replayed — I've just seen it. (Which change
+//     answers my action: the view's myLastAction — the change my own last action made, B021.)
 //   · OTHER seats' turns are played out from their events (moved, cast, scored) on the game as it was — their
 //     trail draws on in their colour and holds (trail.ts; anim.json trailLead + trailHold), the glyphling glides
 //     from → to, the throw starts after glideSeconds, lands — then the change is shown and the runeblossom
@@ -49,6 +50,8 @@ let playing: { view: GameView; changes: Happened[] } | null = null
 let replaying: { view: GameView; change: Happened; last: boolean } | null = null
 /** The newest change number shown on screen (a change = one action; its number = the version it made). */
 let lastPlayed = 0
+/** The version my last action was planned on (sent with it). A view whose myLastAction is newer = it was applied. */
+let sentOn = -1
 let toServer: (message: OnlineAction) => boolean = () => false
 let syncTimer: ReturnType<typeof setTimeout> | null = null
 let replayTimer: ReturnType<typeof setTimeout> | null = null
@@ -89,6 +92,7 @@ export function stopOnline() {
   playing = null
   replaying = null
   lastPlayed = 0
+  sentOn = -1
   clearTimers()
 }
 
@@ -123,7 +127,7 @@ function showNext() {
       if (!view) return
       if (view.version <= online.version) {
         // The server answered a sync (or a rejoin) with the game as it was: it never got my action
-        if (view.version === online.version && store().waiting) actionLost()
+        if (view.version === online.version && store().waiting && !myActionApplied(view)) actionLost()
         continue // old news
       }
       const { changes, missed } = newChanges(view.feed ?? [], lastPlayed)
@@ -141,6 +145,10 @@ function showNext() {
     show(view, change, last)
   }
 }
+
+/** Did the server apply the action I sent? (It says which change my own last action made: newer than the version I
+ *  sent it on = yes. A turn the server played for me doesn't count.) */
+const myActionApplied = (view: GameView) => view.myLastAction > sentOn
 
 /** Is this change another player's turn that we can play out on the game we're showing now? */
 function canReplay(shown: GameState, change: Happened, mySeat: number): boolean {
@@ -190,14 +198,19 @@ function show(view: GameView, change: Happened, last: boolean) {
 function jumpTo(view: GameView) {
   const { online, trayOrder } = store()
   if (!online) return
-  const mine = view.by === online.mySeat // (the newest change was mine: the answer I was waiting for is here)
-  if (mine) clearTimers()
+  // Was I waiting for my own action's answer? The view says whether the server applied it (B021) — even when the
+  // newest change is someone else's. If it moved on WITHOUT it, my move can't arrive any more (it was planned on an
+  // older version): give the plan back at once.
+  const waiting = store().waiting
+  const applied = waiting && myActionApplied(view)
+  const lost = waiting && !applied && view.version > sentOn
+  if (applied || lost) clearTimers()
   lastPlayed = view.version
   set({
     game: view.game, online: { ...online, version: view.version }, happened: null,
     trayOrder: view.game.hands.map((hand, seat) => (seat === online.mySeat ? refillRack(trayOrder[seat] ?? [], [], hand) : rackOf(hand))),
-    waiting: mine ? false : store().waiting, flying: false, trail: null, refreshFx: null, // (a refresh waiting for its seeds: they're simply there)
-    move: null, cast: null, selected: null, setAside: [], note: null,
+    waiting: applied || lost ? false : waiting, flying: false, trail: null, refreshFx: null, // (a refresh waiting for its seeds: they're simply there)
+    move: null, cast: null, selected: null, setAside: [], note: lost ? 'problem' : null,
     stats: view.results?.stats ?? store().stats,
   })
 }
@@ -240,6 +253,7 @@ function startReplay(view: GameView, change: Happened, last: boolean) {
 function post(action: Action) {
   const online = store().online
   if (!online) return
+  sentOn = online.version // (the server applies it only on this version: its view will say so — myLastAction)
   if (toServer({ kind: 'play', action, version: online.version })) waitForMyView()
   else actionLost() // not connected right now (the Reconnecting box is up)
 }
