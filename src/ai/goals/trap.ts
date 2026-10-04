@@ -1,15 +1,17 @@
 // TRAP (Aggression) — hem rival glyphlings in. Scores a move by:
 //   every move it takes from a rival glyphling ×5 · a tangle +50, +3 per own piece next to it ("plan the kill") ·
 //   a rival glyphling newly down to ≤ 2 moves +15 · territory taken: hexes rivals no longer reach first ×2.
+// Cast spots taken (F45): the empty hexes rivals could cast into next turn — a speller's room to score. Measured
+// 2026-10-04 (Bully vs Scholar, 60 games): weight 1 → 8% wins, 0 → 9% — no help on its own, so off (0) for now.
 // Timing (F45): tangles end the game. A tangle that ENDS it, or leaves it one tangle from the end, while it believes
 // it's behind just hands the leader the win ("call it") — so then the tangle is worth nothing, and ending it is bad.
 import { getBoard } from '../../engine/boards'
 import { hexKey, neighbours } from '../../engine/hex'
 import type { WordList } from '../../engine/types'
-import { mobilityAfter, mobilityNow, outcomeOf, seatName, territoryAfter, territoryNow } from '../look'
+import { castReachAfter, castReachNow, mobilityAfter, mobilityNow, outcomeOf, seatName, territoryAfter, territoryNow } from '../look'
 import { NOTHING, asTurn, rivalsOf, type GlyphGoal } from './shared'
 
-export const TRAP_WEIGHTS = { perMoveCut: 5, tangle: 50, perOwnPieceNear: 3, nearlyTrapped: 15, perHexTaken: 2, endWhileBehind: -100 }
+export const TRAP_WEIGHTS = { perMoveCut: 5, tangle: 50, perOwnPieceNear: 3, nearlyTrapped: 15, perHexTaken: 2, perCastSpotTaken: 0, endWhileBehind: -100 }
 
 export function trapGoal(words: WordList): GlyphGoal {
   return {
@@ -48,10 +50,13 @@ export function trapGoal(words: WordList): GlyphGoal {
       const ground = (owned: number[]) => rivals.reduce((sum, s) => sum + owned[s], 0)
       const taken = ground(territoryNow(ctx.world)) - ground(territoryAfter(ctx.world, turn, words))
       value += W.perHexTaken * taken
+      const spotsTaken = ground(castReachNow(ctx.world)) - ground(castReachAfter(ctx.world, turn, words))
+      value += W.perCastSpotTaken * spotsTaken
       if (behind && tangledAfter >= need) value += W.endWhileBehind
       let why: string | undefined
       if (tangled !== null) why = `tangled ${seatName(tangled)}'s glyphling`
       else if (biggest) why = `cut ${seatName(biggest.seat)}'s glyphling ${biggest.from} → ${biggest.to}`
+      else if (spotsTaken >= 5) why = `took ${spotsTaken} of rivals' casting spots`
       else if (taken > 0) why = `took ${taken} hexes of rivals' ground`
       return { value, why }
     },

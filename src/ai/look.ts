@@ -7,6 +7,7 @@
 // and remembered (boardMemo), not once per goal per world.
 import { getBoard } from '../engine/boards'
 import { DIRECTIONS, LEYLINES, addHex, hexKey, type Hex } from '../engine/hex'
+import { legalCasts, legalMoves } from '../engine/moves'
 import { magicFor } from '../engine/turn'
 import { findWords } from '../engine/wordFinder'
 import { SEAT_COLOURS, type Action, type GameState, type MadeWord, type WordList } from '../engine/types'
@@ -208,6 +209,30 @@ export const mobilityAfter = (state: GameState, action: TurnAction, words: WordL
 /** Territory after this turn, remembered. */
 export const territoryAfter = (state: GameState, action: TurnAction, words: WordList): number[] =>
   remember(boardMemo(state), `territory ${turnKey(action)}`, () => territory(outcomeOf(state, action, words).after))
+
+// ── Cast reach (a speller's room to score) ──────────────────────────────────────────────────────────────────────
+
+/** For each seat: how many different empty hexes it could cast a seed into on its next turn (any untangled glyphling,
+ *  any legal move, then any legal cast — the engine's own rules). A speller needs these, not moves: squeezing them
+ *  is how a hunter beats a speller (F45, Muzzy's rock-paper-scissors). */
+export function castReach(state: GameState): number[] {
+  const out = state.magic.map(() => 0)
+  for (let seat = 0; seat < out.length; seat++) {
+    const spots = new Set<string>()
+    for (const g of state.glyphlings) {
+      if (g.seat !== seat) continue
+      for (const to of legalMoves(state, g.id)) for (const h of legalCasts(state, g.id, to)) spots.add(hexKey(h))
+    }
+    out[seat] = spots.size
+  }
+  return out
+}
+
+export const castReachNow = (state: GameState): number[] => remember(boardMemo(state), 'castReach', () => castReach(state))
+
+/** Cast reach after this turn, remembered. */
+export const castReachAfter = (state: GameState, action: TurnAction, words: WordList): number[] =>
+  remember(boardMemo(state), `castReach ${turnKey(action)}`, () => castReach(outcomeOf(state, action, words).after))
 
 // ── Words ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
