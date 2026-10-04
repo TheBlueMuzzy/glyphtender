@@ -1,7 +1,7 @@
 // GLYPHTENDER'S RULES ON THE SERVER — the plug-in the rooms module runs (src/rooms/server/gameRules.ts).
 // It never re-writes a rule: it runs the SAME engine as the phones (src/engine — golden rule).
 // The server makes the game with its own random seed and keeps the bag, the rng and every hand;
-// players only send intentions ("move glyphling 2 there, cast seed 4 here"), which are checked here:
+// players only send intentions ("move glyphling 2 there, cast seed-31 here"), which are checked here:
 // the right shape → the right player → planned on the latest version → legal (the rules' check) → the rules' apply
 // (src/engine/rules.ts — the one door; serverGame.ts play also writes each move into the game's move record).
 // Design: .planning/design/online.md.
@@ -10,7 +10,7 @@ import { boardNames, defaultBoardFor } from '../src/engine/boards'
 import { glyphtenderRules, type GameSetup } from '../src/engine/rules'
 import type { Action, WordList } from '../src/engine/types'
 import { emptyStats } from '../src/store/stats'
-import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
+import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
 import type { GameRules } from '../src/rooms/server/gameRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
 import { afterSeatChange, planNextTurn } from './turnClock'
@@ -25,8 +25,15 @@ export interface RulesSetup {
   randomSeed?: () => number
 }
 
-// Hexes, glyphling ids and hand slots are small whole numbers; anything bigger is junk.
+// Hexes and glyphling ids are small whole numbers; anything bigger is junk.
 const BIG = 64
+/** A seed is named by its id (F33): "seed-0" … "seed-119" — text, never a hand position. Anything else is junk;
+ *  a well-formed id that isn't in your hand is refused by the rules ("That seed is not in your hand"). */
+const seedIdOf = (raw: unknown) => {
+  const id = mustBeText(raw, 16, 'seed')
+  if (!/^seed-\d{1,4}$/.test(id)) throw new Error('seed must be a seed id like "seed-12"')
+  return id
+}
 const hexOf = (raw: unknown, what: string) => {
   const hex = mustBeObject(raw, what)
   return { q: mustBeWholeNumber(hex.q, -BIG, BIG, `${what}.q`), r: mustBeWholeNumber(hex.r, -BIG, BIG, `${what}.r`) }
@@ -38,14 +45,13 @@ function engineActionOf(raw: unknown): Action {
   const type = mustBeOneOf(action.type, ['draft', 'turn', 'refresh'], 'action type')
   if (type === 'draft') return { type, hex: hexOf(action.hex, 'hex') }
   if (type === 'refresh') {
-    const slot = (item: unknown) => mustBeWholeNumber(item, 0, BIG, 'seed')
-    return { type, setAside: mustBeListWithoutRepeats(action.setAside, BIG, slot, 'setAside') }
+    return { type, setAside: mustBeListWithoutRepeats(action.setAside, BIG, seedIdOf, 'setAside') }
   }
   return {
     type,
     glyphling: mustBeWholeNumber(action.glyphling, 0, BIG, 'glyphling'),
     to: hexOf(action.to, 'to'),
-    seed: nullOr(action.seed, (seed) => mustBeWholeNumber(seed, 0, BIG, 'seed')),
+    seed: nullOr(action.seed, seedIdOf),
     target: nullOr(action.target, (target) => hexOf(target, 'target')),
   }
 }
