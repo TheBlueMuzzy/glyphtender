@@ -176,6 +176,35 @@ describe('online store — turns', () => {
     })
   })
 
+  it('side door (F36): a plan never leaves the device — taps, undo, re-aiming, tray moves send nothing; Cast sends ONE whole turn', () => {
+    finishDraft()
+    const game = store().game!
+    const pick = randomAction(game, 1).action
+    if (pick.type !== 'turn') throw new Error('expected a turn')
+    const sentBefore = sent.length
+    store().tapGlyphling(pick.glyphling)
+    store().tapHex(pick.to)
+    store().undo() // the move goes back
+    expect(store().move).toBeNull()
+    store().tapGlyphling(pick.glyphling)
+    store().tapHex(pick.to)
+    const targets = castOptions(game, { glyphling: pick.glyphling, to: pick.to })
+    expect(targets.length).toBeGreaterThan(0)
+    const seed = game.hands[0][0].id
+    store().tapSeed(seed)
+    store().tapHex(targets[0])
+    store().undo() // the cast goes back
+    store().shuffleTray()
+    store().tapSeed(seed)
+    store().tapHex(targets.at(-1)!)
+    expect(sent.length).toBe(sentBefore) // nothing of the plan (or of undoing it) went anywhere
+    store().startCast()
+    expect(sent.slice(sentBefore)).toEqual([{
+      kind: 'play', version: store().online!.version,
+      action: { type: 'turn', glyphling: pick.glyphling, to: pick.to, seed, target: targets.at(-1) },
+    }])
+  })
+
   it('my seed lands before the answer: it waits, asks again after 3 s, and shows it when it comes', () => {
     finishDraft()
     yellowPlansAndCasts()

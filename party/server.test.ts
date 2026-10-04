@@ -8,6 +8,8 @@ import { newGame } from '../src/engine/engine'
 import { glyphtenderRules } from '../src/engine/rules'
 import { replay } from '../src/table/core'
 import { randomAction } from '../src/engine/sim'
+import { shuffle } from '../src/engine/rng'
+import type { Action, GameState } from '../src/engine/types'
 import { parseWordList } from '../src/engine/words'
 import type { WordList } from '../src/engine/types'
 import { RoomServer, type PartyConnection, type PartyRoom } from '../src/rooms/server/roomServer'
@@ -16,6 +18,7 @@ import settings from '../content/rooms.json'
 import { makeRules } from './glyphtenderRules'
 import { HIDDEN, type GameView, type OnlineAction, type OnlineOptions } from './protocol'
 import type { ServerGame } from './serverGame'
+import { viewOf } from './views'
 
 let words: WordList
 beforeAll(() => { words = parseWordList(readFileSync('public/words/words.csv', 'utf8')) })
@@ -243,12 +246,13 @@ describe('online server — the move record (setup with its secret numbers + eve
         expect(conn.received.length).toBeGreaterThan(10)
         for (const message of conn.received) {
           const text = JSON.stringify(message)
-          expect(text).not.toMatch(/"record"|"moves"|"bagSeed"|"rngSeed"/)
+          expect(text).not.toMatch(/"record"|"moves"|"bagSeed"|"rngSeed"|"botRng"/)
           expect(holdsNumber(text, setup.bagSeed!)).toBe(false) // the bag's second shuffle: never, not even at the end
           const over = message.type === 'view' && (message as { view?: GameView }).view?.game.phase === 'over'
           if (over) continue // the end reveals the game's seed and rng position (D47) — never the bag's second number
           expect(holdsNumber(text, setup.seed)).toBe(false)
           expect(holdsNumber(text, setup.rngSeed!)).toBe(false)
+          expect(holdsNumber(text, setup.seed ^ 0x5eed)).toBe(false) // the server bot's random start (botRng)
         }
       }
     })
@@ -400,5 +404,121 @@ describe('online server — the turn timer and idle players', () => {
     }
     expect(server.game!.game.phase).toBe('over')
     conns[0].views().forEach(expectNoSecrets)
+  })
+})
+
+// ─── Side doors (F36) ───────────────────────────────────────────────
+// Not just "is a secret in the message" — could a player WORK OUT something hidden from what they're sent? Hidden
+// ORDER is a secret too: the order of a rival's seeds and of the bag. Each test changes only what a seat may not see
+// and checks that seat receives exactly the same messages.
+
+/** Plays a game to the end like playOut, writing down every action (seat + action) in order. */
+function playAndWriteDown(server: Server, conns: FakeConnection[], rngStart: number): { seat: number; action: Action }[] {
+  const played: { seat: number; action: Action }[] = []
+  let rng = rngStart
+  for (let step = 0; step < 3000 && server.game!.game.phase !== 'over'; step++) {
+    const seat = server.game!.game.current
+    const mine = conns[seat].lastView()!
+    const pick = randomAction(mine.game, rng)
+    rng = pick.rng
+    played.push({ seat, action: pick.action })
+    send(server, conns[seat], { kind: 'play', action: pick.action, version: mine.version })
+  }
+  expect(server.game!.game.phase).toBe('over')
+  return played
+}
+
+/** Every message a seat got before the game was over (the reveal shows the whole truth on purpose). */
+function beforeTheEnd(conn: FakeConnection): string[] {
+  const end = conn.received.findIndex((m) => m.type === 'view' && (m as { view?: GameView }).view?.game.phase === 'over')
+  return conn.received.slice(0, end < 0 ? undefined : end).map((m) => JSON.stringify(m))
+}
+
+/** The same game with `seat`'s hand in another order (the seeds are the same; only their order changes). */
+const withHandReversed = (state: ServerGame, seat: number): ServerGame => ({
+  ...state, game: { ...state.game, hands: state.game.hands.map((hand, s) => (s === seat ? [...hand].reverse() : hand)) },
+})
+
+describe('online server — side doors: hidden ORDER can’t be worked out', () => {
+  for (const [players, seed] of [[2, 3], [3, 5], [4, 9]]) {
+    it(`${players} players, game ${seed}: a rival’s seeds in another order → every other seat gets exactly the same messages`, () => {
+      // Game A, played and written down
+      const a = startRoom(players, {}, seed)
+      const played = playAndWriteDown(a.server, a.conns, seed)
+      // Game B: the same start and the same actions (seeds are named by id, so they mean the same seeds) — but as
+      // soon as the seeds are dealt, seat 1's hand is put in another order
+      const b = startRoom(players, {}, seed)
+      let reordered = false
+      for (const { seat, action } of played) {
+        if (!reordered && b.server.game!.game.phase === 'play') {
+          const before = b.server.game!.game.hands[1]
+          b.server.game = withHandReversed(b.server.game!, 1)
+          expect(b.server.game.game.hands[1]).not.toEqual(before) // (the two games really differ)
+          reordered = true
+        }
+        send(b.server, b.conns[seat], { kind: 'play', action, version: b.conns[seat].lastView()!.version })
+      }
+      expect(reordered).toBe(true)
+      expect(b.server.game!.game.phase).toBe('over')
+      a.conns.forEach((conn, seat) => {
+        if (seat === 1) expect(beforeTheEnd(b.conns[1])).not.toEqual(beforeTheEnd(conn)) // (its owner sees its own order)
+        else expect(beforeTheEnd(b.conns[seat])).toEqual(beforeTheEnd(conn))
+      })
+    })
+  }
+
+  it('at every moment of a game, each seat’s view is the same whatever order the bag and the rivals’ seeds are in', () => {
+    const { server, conns } = startRoom(3, {}, 5)
+    let rng = 5
+    let checked = 0
+    const shuffled = (state: GameState, mySeat: number, n: number): GameState => ({
+      ...state,
+      bag: shuffle(n, state.bag).items,
+      hands: state.hands.map((hand, s) => (s === mySeat ? hand : shuffle(n + s, hand).items)),
+    })
+    for (let step = 0; step < 3000 && server.game!.game.phase !== 'over'; step++) {
+      const state = server.game!
+      state.seatIds.forEach((seatId, seat) => {
+        const other = { ...state, game: shuffled(state.game, seat, step + 1) }
+        expect(viewOf(other, seatId)).toEqual(viewOf(state, seatId))
+        checked++
+      })
+      const seat = state.game.current
+      const mine = conns[seat].lastView()!
+      const pick = randomAction(mine.game, rng)
+      rng = pick.rng
+      send(server, conns[seat], { kind: 'play', action: pick.action, version: mine.version })
+    }
+    expect(server.game!.game.phase).toBe('over')
+    expect(checked).toBeGreaterThan(100)
+  })
+})
+
+describe('online server — side doors: events, the log, the bot', () => {
+  it('nothing but views carries the game (events ride inside views, D64): no room event messages at all', () => {
+    const { server, conns } = startRoom(3, {}, 5)
+    playOut(server, conns, 5)
+    for (const conn of conns) expect(conn.received.filter((m) => m.type === 'event')).toEqual([])
+  })
+
+  it('a game a bot finished: the log, its pending facts, the Magic and the bot’s random numbers never reach the others early', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoom(3, {}, 9)
+    server.onMessage(JSON.stringify({ type: 'leave' }), conns[2]) // a bot takes seat 2
+    let rng = 9
+    for (let i = 0; i < 3000 && server.game!.game.phase !== 'over'; i++) {
+      const seat = server.game!.game.current
+      if (seat === 2) { vi.advanceTimersByTime(settings.botTurnDelayMs); continue }
+      const view = conns[seat].lastView()!
+      const pick = randomAction(view.game, rng)
+      rng = pick.rng
+      send(server, conns[seat], { kind: 'play', action: pick.action, version: view.version })
+    }
+    expect(server.game!.game.phase).toBe('over')
+    expect(server.game!.record.moves.filter((m) => m.seat === 2).length).toBeGreaterThan(5) // (the bot really played)
+    for (const conn of conns.slice(0, 2)) {
+      conn.views().forEach(expectNoSecrets)
+      for (const text of beforeTheEnd(conn)) expect(holdsNumber(text, server.game!.botRng)).toBe(false)
+    }
   })
 })

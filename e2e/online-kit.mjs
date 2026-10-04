@@ -59,9 +59,15 @@ export function secretsIn(frame) {
   try { message = JSON.parse(frame) } catch { return [] }
   const out = []
   if (/persistent/i.test(frame)) out.push('a persistentId')
+  // the server's move record and its secret numbers (the bag's second shuffle, the rng start, the bot's rng): never, not even at the end
+  if (/"record"|"bagSeed"|"rngSeed"|"botRng"/.test(frame)) out.push('the move record / secret numbers')
   if (message.type !== 'view' || !message.view) return out
   const { game, mySeat, results } = message.view
   if (game.phase === 'over') return out // the reveal: the whole truth, on purpose
+  // the feed (what happened lately): another seat's drawn / set-aside seeds never come, not even as letters
+  for (const { events } of message.view.feed ?? []) {
+    for (const e of events) if ((e.type === 'drew' || e.type === 'setAside') && e.seat !== mySeat) out.push(`seat ${e.seat}'s ${e.type} seeds`)
+  }
   // a hidden seed is { id: '?', letter: '?' }: you may know how many, never which (F33: no ids either)
   const hiddenSeed = (s) => s.id === HIDDEN && s.letter === HIDDEN
   game.hands.forEach((hand, seat) => { if (seat !== mySeat && !hand.every(hiddenSeed)) out.push(`seat ${seat}'s seeds`) })
