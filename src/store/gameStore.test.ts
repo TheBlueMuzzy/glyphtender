@@ -352,3 +352,22 @@ describe('game store — loading an older game', () => {
     expect(loaded.log?.turns[0].words[0].letters).toEqual(['Q', 'A'])
   })
 })
+
+describe('game store — what happened (the rules’ events, F31)', () => {
+  it('every change keeps its events beside the game it made, numbered one after another; a jump has none', () => {
+    yellowToPlay()
+    expect(store().happened).toBeNull() // a jump, not a change
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    store().tapSeed(seed(0)) // B — makes no word
+    store().tapHex(hexAt('C6-4'))
+    store().startCast()
+    expect(store().happened).toBeNull() // planning changes nothing
+    store().finishCast()
+    expect(store().happened?.change).toBe(1)
+    expect(store().happened?.events.map((e) => e.type)).toEqual(['moved', 'cast', 'turnStarted'])
+    store().refresh(true) // Keep all: one new seed
+    expect(store().happened?.change).toBe(2)
+    expect(store().happened?.events.map((e) => e.type)).toEqual(['refreshed', 'drew', 'drewHidden', 'turnStarted'])
+  })
+})

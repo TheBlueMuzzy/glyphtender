@@ -99,7 +99,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       }
       const game = glyphtenderRules(words()).setup(setup)
       const state: ServerGame = {
-        game, gameId: seedMaker(), version: 0, record: { setup, moves: [] },
+        game, gameId: seedMaker(), version: 0, record: { setup, moves: [] }, feed: [],
         seatIds: seats.map((s) => s.id), names: seats.map((s) => s.name),
         options, change: 'start', by: null,
         stats: emptyStats(players), turnEndsAt: null, botRng: seed ^ 0x5eed,

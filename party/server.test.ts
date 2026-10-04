@@ -64,9 +64,24 @@ function startRoom(players: number, options: Partial<OnlineOptions> = {}, seed: 
 const send = (server: Server, conn: FakeConnection, action: unknown) =>
   server.onMessage(JSON.stringify({ type: 'action', action }), conn)
 
+/** Fails if this view's feed (what happened lately) holds an event this seat may not see: another seat's drawn or
+ *  set-aside seeds (ids or letters), or any Magic before the end. (The game itself is checked by expectNoSecrets.) */
+function expectFeedForMe(view: GameView) {
+  for (const { events } of view.feed) {
+    for (const e of events) {
+      if (e.type === 'drew' || e.type === 'setAside') expect(e.seat).toBe(view.mySeat) // only your own seeds, ever
+      if (e.type === 'drewHidden') expect(e.seat).not.toBe(view.mySeat) // (the count is for everyone else)
+      if (e.seen !== 'all') expect(e.seen.seats).toContain(view.mySeat)
+      if (e.type === 'gameOver') expect(view.game.phase).toBe('over') // the Magic, only at the end
+    }
+  }
+  if (view.game.phase !== 'over') expect(JSON.stringify(view.feed)).not.toMatch(/"magic"|"tangleMagic"|"winners"/)
+}
+
 /** Fails if this view (seen by its own seat) holds anything secret. */
 function expectNoSecrets(view: GameView) {
   const { game, mySeat } = view
+  expectFeedForMe(view)
   if (game.phase === 'over') return
   game.hands.forEach((hand, seat) => { if (seat !== mySeat) expect(hand.every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true) })
   expect(game.bag.every((s) => s.id === HIDDEN && s.letter === HIDDEN)).toBe(true)
@@ -121,6 +136,26 @@ describe('online server — secrets stay secret', () => {
       expect(server.game!.game.magic.some((m) => m > 0)).toBe(true)
     })
   }
+
+  it('each view carries the feed: every change numbered by its version, only that seat’s own seeds in it', () => {
+    const { server, conns } = startRoom(3, {}, 5)
+    playOut(server, conns, 5)
+    // The server's feed holds every seat's drawn seeds (so the cutting really hides something)…
+    const all = server.game!.feed.flatMap((c) => c.events)
+    expect(new Set(all.filter((e) => e.type === 'drew').map((e) => e.seat)).size).toBeGreaterThan(1)
+    for (const conn of conns) {
+      const views = conn.views()
+      for (const view of views) {
+        expectFeedForMe(view)
+        // …the newest change is the view's own version, and the numbers run on without a gap
+        if (view.version > 0) expect(view.feed.at(-1)!.change).toBe(view.version)
+        view.feed.forEach((c, i) => i > 0 && expect(c.change).toBe(view.feed[i - 1].change + 1))
+        // another seat's drawn letters never appear: no seeds at all in an event about someone else
+        for (const { events } of view.feed) for (const e of events) if ('seeds' in e) expect(e.seat).toBe(view.mySeat)
+      }
+      expect(views.some((v) => v.feed.some((c) => c.events.some((e) => e.type === 'drew')))).toBe(true) // (it saw its own draws)
+    }
+  })
 
   it('each player gets their OWN view: their seeds, the others as "?"', () => {
     const { server, conns } = startRoom(2)
