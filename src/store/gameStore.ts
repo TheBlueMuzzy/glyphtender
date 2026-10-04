@@ -25,6 +25,7 @@ import {
 } from './turnPlan'
 import { NEW_GLYPHLING, onHex, playReferee, type Piece } from './referee'
 import { localSeats, needsHandoff, type Seat } from './seats'
+import { firstViewer, viewerOf } from './viewer'
 import { canPlayNow } from './myTurn'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
@@ -85,8 +86,11 @@ export interface GameStore {
   /** The seed that just landed (hexKey) and a counter that changes every landing, for the grow + glow. */
   landed: { key: string; count: number } | null
   note: Note | null
-  /** Who sits in each seat (all local for now). */
+  /** Who sits in each seat: a person or a bot, on this device or online (seats.ts). */
   seats: Seat[]
+  /** The last person on this device who looked at the game — the viewer seat stays with them while the device is
+   *  being passed on or a bot plays (viewer.ts; kept up to date at the bottom of this file). */
+  lastViewer: number
   options: GameOptions | null
   /** Set while the device is being passed on — the tray is hidden and nothing can be touched. */
   handoff: Handoff | null
@@ -244,6 +248,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     trayOrder: [],
     landed: null,
     seats: [],
+    lastViewer: 0,
     options: null,
     handoff: null,
     stats: [],
@@ -264,9 +269,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
       }
       stopRefreshFx()
       stopScoring()
+      const seats = localSeats(players, text.game.players)
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
-        happened: null, seats: localSeats(players, text.game.players), stats: emptyStats(players),
+        happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players),
         trayOrder: game.hands.map(rackOf),
       })
     },
@@ -500,13 +506,22 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const game = migrateGame(saved) // an older save brought up to date (the old "Qu" seed → "Q")
       stopRefreshFx()
       stopScoring()
+      const seats = get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players)
       set({
         ...noPlan(), game, flying: false, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, // a jump, not a change: nothing "just happened"
-        seats: get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players),
+        seats, lastViewer: firstViewer(seats, game),
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
         trayOrder: game.hands.map(rackOf),
       })
     },
   }
+})
+
+// The viewer seat remembers the last person who looked (viewer.ts): whenever the screen's viewer changes — a new
+// player's turn, the handoff passed — it becomes the new "last viewer". (While the device is being passed on or a bot
+// plays, the viewer IS the last viewer, so nothing changes.)
+useGameStore.subscribe((s) => {
+  const viewer = viewerOf(s)
+  if (viewer !== s.lastViewer) useGameStore.setState({ lastViewer: viewer })
 })

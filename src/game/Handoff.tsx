@@ -3,6 +3,8 @@
 // The store decides WHEN (store.handoff — after the draft, and whenever play passes to another local player,
 // after any refresh). This screen only waits for a thrown seed to finish growing (and its score sequence to fade
 // away — the store's `scoring` blocks play for the same time), so everyone sees the move and nothing is left over.
+// Tapping "Show my seeds" is the moment the VIEWER seat switches to Blue (store/viewer.ts) — until then the screen
+// stays with the last person who looked.
 // Kit parts only: Screen (dialog = dims what's under it), Panel, Avatar, Text, Button.
 import { useEffect, useState, type CSSProperties } from 'react'
 import text from '../../content/text/en.json'

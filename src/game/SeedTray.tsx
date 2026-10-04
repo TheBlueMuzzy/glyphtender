@@ -6,7 +6,8 @@
 // an empty slot with a pulsing halo · waiting (move first) = dimmed. In refresh mode, set-aside seeds look held.
 // During the draft it shows the glyphlings still waiting to be placed instead. While the device is being
 // passed on (handoff) it shows empty slots: nobody sees the next player's seeds until they tap.
-// Online it always shows THIS device's seeds (dimmed while it's someone else's turn).
+// It shows the VIEWER's seeds (store/viewer.ts): online always THIS device's (dimmed while it's someone else's turn),
+// pass-and-play the player to move (it switches when the handoff is passed).
 // REFRESH (B011, store/refreshFx.ts): the set-aside seeds shrink away one after another, then the new seeds grow
 // into those slots (a small overshoot — feel.json refreshGrow); the store passes play on after. The Hand view
 // animates the "staged" places (Web Animations, never React state per frame). Reduce motion → the store skips it.
@@ -16,6 +17,7 @@
 import { hexCorners } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
+import { viewerOf } from '../store/viewer'
 import { letterIn, TRAY_GAP } from '../store/turnPlan'
 import { HandView, type HandPlace, type RackLayout } from '../ui/kit'
 import { colourOf, glyphlingArt, seedArt } from './art'
@@ -36,11 +38,10 @@ export function SeedTray({ layout, boxWidth }: Props) {
   const setAside = useGameStore((s) => s.setAside)
   const trayOrder = useGameStore((s) => s.trayOrder)
   const hidden = useGameStore((s) => s.handoff !== null) // passing the device: the next player's seeds stay hidden
-  const mySeat = useGameStore((s) => s.online?.mySeat ?? null)
   const refreshFx = useGameStore((s) => s.refreshFx)
   const colours = useGardenTuning()
   const timing = useAnimTuning()
-  const seat = mySeat ?? game.current
+  const seat = useGameStore(viewerOf)
   const refreshing = refreshFx?.seat === seat ? refreshFx : null
   const stage = refreshing?.stage
   const myTurn = useGameStore(isMyTurn) // online, the plan on the board may be another player's replay

@@ -22,6 +22,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
+import { youOf } from '../store/viewer'
 import { Row, Screen, ScrollArea, Stack, Tabs, Text, fill } from '../ui/kit'
 import { colourOf } from './art'
 import { EndBar } from './EndBar'
@@ -64,7 +65,7 @@ function useMedia(query: string): boolean {
 
 export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const game = useGameStore((s) => s.game)
-  const me = useGameStore((s) => s.online?.mySeat ?? null)
+  const me = useGameStore(youOf) // the "You" badge: online, my seat
   const colours = useGardenTuning()
   const tuning = useEndTuning()
   const wide = useMedia('(min-aspect-ratio: 1/1)') // a phone on its side or a desktop: everyone in one row (a podium)
