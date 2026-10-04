@@ -5,7 +5,7 @@ Every slice ends with check:golden + check:shots SAME and their results pages LI
 Still open (Ask Muzzy, not blocking): phones on their side — Results scrolls 13–45 px, Scorecard 291 px. B019 (768×343 prompt over ☰) waits until after v0.6.
 
 ## Where we are
-Stage: develop · Milestone: v0.6 Rebuilt on the Table · Sprint: 12 · Doing: F34 Drag referee → F35 Hand view — building (autonomous run) · Branch: dev/table · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
+Stage: develop · Milestone: v0.6 Rebuilt on the Table · Sprint: 13 · Doing: F36 Seats & per-seat views — building (autonomous run) · Branch: dev/table · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
