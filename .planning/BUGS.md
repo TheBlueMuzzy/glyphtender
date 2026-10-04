@@ -1,6 +1,9 @@
 # Glyphtender — Bugs
-Open: 5 (P0 0 · P1 0 · P2 1 · P3 4)
+Open: 6 (P0 0 · P1 0 · P2 2 · P3 4)
 ## Open
+### B019 · P2 · open · found 2026-10-04 by the F29 screenshot helper (e2e/shots.mjs) · v0.3.0 · short browser window 768×343
+In a short window the prompt's words run over the ☰ Menu button and the turn portrait, so a tap on ☰ lands on the prompt
+Steps: a window 768×343, play to a turn whose prompt is long ("No Magic this turn — refresh seeds?"), tap ☰ · Expected: the Pause menu opens · Actual: the tap hits the prompt (e2e/shots.mjs clicks the button directly to get past it). e2e:margins doesn't shoot 768×343. Fix after v0.6 (a fix now would change the before-shots) or record it as a meant change.
 ### B018 · P3 · open · found 2026-10-03 by /code-review (deliver v0.3.0) · v0.2.0 · Dev Kit only
 A Dev Kit snapshot taken while the seed tray has an empty place (after a cast, before the draw) loses its tray order when restored
 Steps: cast a seed so its tray place is empty, save a snapshot, restore it · Expected: the tray as it was · Actual: the tray order is dropped (src/devkit-game/glyphtenderAdapter.ts:115 doesn't know the empty places, TRAY_GAP). Players never see it.

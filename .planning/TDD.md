@@ -109,6 +109,7 @@ flowchart LR
 - **Naming:** game words in code match the GDD: `glyphling`, `seed`, `cast`, `magic`, `tangled`, `leyline`. Files `PascalCase.tsx` for components, `camelCase.ts` for logic; JSON keys camelCase.
 - **Readable code:** plain names, small files (< ~300 lines), a one-line comment on anything non-obvious. No clever tricks.
 - **Tests:** vitest for the engine (every rule, every original bug as a guard) and store; e2e (Playwright, bundled Chromium only) for a scripted full game at 390×844, 844×390, 1440×900. Feel is judged by Muzzy, not tests.
+- **Safety net (F29, v0.6):** `npm run check:golden` (300 golden games replay move for move, ~6 s; a 24-game sample runs in `npm test`) and `npm run check:shots` (24 screens × 8 sizes vs `e2e/shots-before/`, ~3.5 min, port 5250, diffs in `e2e-shots/shots-diff/`) must both say SAME after every rebuild slice. Re-record (`npm run golden:record` / `npm run shots:record`) only when a change is MEANT to play / look different (D60).
 - **Same build everywhere:** CI runs `npm test` + `npm run build` (type check included) before deploying.
 - **Branches:** one work branch per delivery (`dev/<milestone>`), merged by /deliver. Tiny fixes on main.
 - **Prototypes** live in `sketches/`, reachable at `/glyphtender/sketches/<name>`; their code is not reused unless it's clean — the learnings go into the GDD/TDD.
@@ -140,6 +141,18 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D60 · 2026-10-04 · The safety net: golden games fingerprint what players see; before-shots live in the repo (F29)
+  Golden games (golden/, src/engine/golden.ts, scripts/golden.mjs): 300 seeded sim games, 2/3/4p × small/large ×
+  random/greedy × 25 seeds; each step = action (+ the letters it used) + a 16-hex fingerprint of goldenView(state).
+  goldenView is a hand-picked list of what a player can notice (positions, hands, bag order, Magic, turn, lastTurn,
+  log…), not the raw GameState — so F30–F36 may reshape the state: update goldenView to build the same view, and the
+  fingerprints must still match. The letters let F33's stable seed ids translate the old hand-index actions.
+  golden/inputs.json fingerprints the word list, boards and rule VALUES (JSON by value; spacing and _labels ignored):
+  a change there reports "inputs changed — re-record", not a broken rebuild. Before-shots (e2e/shots-before/, 192 PNGs,
+  ~30 MB) are committed so both machines compare against one set; re-recording only adds the files that changed.
+  Exact match (pixelmatch 0.1, 0 pixels). Freezing is dev-only (?freeze, src/game/freeze.ts): a fixed Math.random
+  sequence, no CSS transitions, carousel + reveal held; the script waits for animations to end and pauses SVG <animate>
+  blinks (Playwright's freeze misses them — the one flake found).
 D59 · 2026-10-04 · Rebuild on the framework's Table before AI — plays and looks the same (Muzzy)
   Why: Muzzy: "AI can wait. this is more foundational" — prove the framework's lattice (Muzzy's BlokParty model: zones,
   pieces, states, tags, seats) by rebuilding Glyphtender underneath, since the target experience is already known and
