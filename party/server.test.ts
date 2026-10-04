@@ -347,6 +347,16 @@ describe('online server — says no, and changes nothing', () => {
     conns.forEach((conn) => conn.views().forEach(expectNoSecrets))
   })
 
+  it('B021: a room started before lastOwnAction existed still takes moves (the server update lands mid-game)', () => {
+    const { server, conns } = startRoom(2)
+    delete (server.game as Partial<ServerGame>).lastOwnAction // as saved by the old server
+    const yellow = conns[0].lastView()!
+    expect(yellow.myLastAction).toBe(0)
+    send(server, conns[0], { kind: 'play', action: randomAction(yellow.game, 1).action, version: yellow.version })
+    expect(conns[0].lastView()!.version).toBe(1) // the move went through
+    expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([1, 0])
+  })
+
   it('bad options are refused at the start', () => {
     const { server } = startRoom(2, { boardName: 'huge' } as Partial<OnlineOptions>)
     expect(server.game).toBeNull()

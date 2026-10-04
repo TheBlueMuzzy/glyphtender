@@ -34,7 +34,7 @@ export interface ServerGame {
   /** Per seat: the change number made by the last action that seat SENT ITSELF (0 = none yet) — not the turns the
    *  server played for it (turn clock, bot). Each seat's view carries only its own number (myLastAction), so its
    *  screen knows whether its move got through, even after a gap too long for the feed (B021). */
-  lastOwnAction: number[]
+  lastOwnAction?: number[] // (missing in a room started before B021 — read it with a fallback)
 }
 
 /** Plays one action for `seat` through the rules (throws if they say no), keeps the end-table numbers, writes the

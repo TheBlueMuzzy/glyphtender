@@ -119,7 +119,8 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       if (problem) throw new Error(problem)
       const next = play(state, mine, message.action, words())
       // (remember which change this seat's own action made — its view tells its screen the move got through, B021)
-      const lastOwnAction = next.lastOwnAction.map((change, seat) => (seat === mine ? next.version : change))
+      // (a room started before B021 has no lastOwnAction yet: everyone starts at 0)
+      const lastOwnAction = (next.lastOwnAction ?? next.game.hands.map(() => 0)).map((change, seat) => (seat === mine ? next.version : change))
       return planNextTurn({ ...next, lastOwnAction }, room, words)
     },
 
