@@ -1,12 +1,11 @@
 ## ▶ RESUME HERE
-v0.3.0 released 2026-10-03 (v0.5 Polish ✅). Now: **v0.6 Rebuilt on the Table** (defined 2026-10-04) — rebuild Glyphtender onto the framework's Table foundation with NO visible change, built for online + AI (local and online). Plan: ROADMAP v0.6 F29–F36 · design: `../../framework/.planning/design/table.md` · decision D59.
-Next: `/sprint` → F29 Safety net (golden games: ~300 seeded sim games, every action + state fingerprint; before-screenshots of every screen at every size; compare scripts). Then F30 Game core. Each slice framework-first (framework v0.4), switched over here the same sprint.
+Sprint 08 — A safety net that proves nothing changed (F29, 0/7 tasks; .planning/SPRINT.md). Milestone v0.6 Rebuilt on the Table (ROADMAP F29–F36, D59, design `../../framework/.planning/design/table.md`).
+Next: `/develop` → makes branch dev/table, starts task 1 (scripts/golden.mjs: ~300 seeded sim games, action + fingerprint each).
 Riskiest places (architecture map 2026-10-04): gameStore + onlinePlay timer sequencing · tray order ↔ engine hand order · log/insight fields the end screen reads · online secrecy (hideSecrets, startReplay hand poke, server re-seed) · 7 rule copies in screen code. Keep RNG call order or golden games change.
-Muzzy's rules (global CLAUDE.md): same intention → same motion; breathing room; fixed-size cards in a sequence. AI waits until v0.6 is done.
 Still open (Ask Muzzy, not blocking): phones on their side — Results scrolls 13–45 px, Scorecard 291 px.
 
 ## Where we are
-Stage: define → develop · Milestone: v0.6 Rebuilt on the Table · Sprint: — (next: F29) · Doing: planned · Branch: main (/develop makes dev/table) · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
+Stage: define → develop · Milestone: v0.6 Rebuilt on the Table · Sprint: 08 · Doing: F29 Safety net · Branch: main (/develop makes dev/table) · Version: 0.3.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.3.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
