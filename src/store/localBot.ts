@@ -107,7 +107,7 @@ export function driveLocalBots(): () => void {
     const delay = thinkDelay(pace, paceKind(game), aiSpeed(), paceRng)
     paceRng = delay.rng
     thinker
-      .think({ view: viewFor(game, seat), seat, rng: rngs[seat], personalityId: ai.personality, skillId: ai.skill })
+      .think({ view: viewFor(game, seat), seat, rng: rngs[seat], personalityId: ai.personality, skillId: ai.skill, custom: ai.custom })
       .then((answer) => {
         if (mine.dropped) return
         timer = setTimeout(() => {

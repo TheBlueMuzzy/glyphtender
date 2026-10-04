@@ -7,6 +7,7 @@
 //     exactly as the room message says (onlinePlay.ts keeps them up to date)
 // The turn flow only ever asks the Table helpers: "is this seat a person on this device?" and so on.
 import { SEAT_COLOURS, type SeatColour } from '../engine/types'
+import type { Personality, Skill } from '../ai/kit/types'
 import type { TableSeat } from '../table/seats'
 
 export { isLocalBot, isLocalHuman, needsHandoff, playsHere } from '../table/seats'
@@ -15,6 +16,8 @@ export { isLocalBot, isLocalHuman, needsHandoff, playsHere } from '../table/seat
 export interface AiPick {
   personality: string
   skill: string
+  /** The Dev Kit's ▶ Watch: play these (unsaved) settings instead of the files' — never set by a menu. */
+  custom?: { personality: Personality; skill: Skill }
 }
 
 /** The AI for a seat nobody chose for (tests, the Dev Kit): Balanced at First Class. */

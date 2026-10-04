@@ -19,6 +19,8 @@ export interface ThinkRequest {
   personalityId: string
   /** An id from content/ai/skills.json, e.g. "FirstClass". */
   skillId: string
+  /** The Dev Kit's ▶ Watch: these (unsaved) settings instead of the files' ids. Plain JSON, so it crosses to the worker. */
+  custom?: { personality: Personality; skill: Skill }
 }
 
 export interface ThinkResult {
@@ -45,19 +47,21 @@ interface SeatBot {
 /** The thinking for one game's word list: request in, decision out. */
 export function seatThinking(words: WordList): (request: ThinkRequest) => ThinkResult {
   const bots = new Map<string, SeatBot>()
-  const botFor = (seat: number, personalityId: string, skillId: string): SeatBot => {
-    const key = `${seat} ${personalityId} ${skillId}`
+  const botFor = (seat: number, personalityId: string, skillId: string, custom?: ThinkRequest['custom']): SeatBot => {
+    const key = custom ? `${seat} custom ${JSON.stringify(custom)}` : `${seat} ${personalityId} ${skillId}`
     let bot = bots.get(key)
     if (!bot) {
       const made: SeatBot = { play: () => { throw new Error('not made yet') }, last: null }
-      made.play = aiBot(personalityById(personalityId), skillById(skillId), words, (decision) => { made.last = decision })
+      const personality = custom?.personality ?? personalityById(personalityId)
+      const skill = custom?.skill ?? skillById(skillId)
+      made.play = aiBot(personality, skill, words, (decision) => { made.last = decision })
       bots.set(key, made)
       bot = made
     }
     return bot
   }
-  return ({ view, seat, rng, personalityId, skillId }) => {
-    const bot = botFor(seat, personalityId, skillId)
+  return ({ view, seat, rng, personalityId, skillId, custom }) => {
+    const bot = botFor(seat, personalityId, skillId, custom)
     const picked = bot.play(view, seat, rng)
     const decision = bot.last!
     return { action: picked.action, rng: picked.rng, note: decision.note, decision }
