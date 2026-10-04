@@ -83,7 +83,8 @@
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) button:disabled { cursor: not-allowed; }
 
-  .kit-text { margin: 0; overflow-wrap: anywhere; }
+  /* text-wrap: pretty — wrapped lines never end with one word alone on the last line (no orphans) */
+  .kit-text { margin: 0; overflow-wrap: anywhere; text-wrap: pretty; }
   .kit-text[data-kind="display"] { font-size: var(--text-display); line-height: 1.1; font-weight: 800; }
   .kit-text[data-kind="title"] { font-size: var(--text-title); line-height: 1.15; font-weight: 700; }
   .kit-text[data-kind="heading"] { font-size: var(--text-heading); line-height: 1.2; font-weight: 700; }

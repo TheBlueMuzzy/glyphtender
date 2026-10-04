@@ -2,7 +2,7 @@
 // Every block takes its words, data and callbacks as props; none of them holds game rules.
 import './blocks.css'
 
-export { fill } from './words'
+export { fill, noOrphan } from './words'
 export { reduceMotion, motionTime, useCountUp } from './motion'
 export * from './dialogs'
 export * from './frontend'

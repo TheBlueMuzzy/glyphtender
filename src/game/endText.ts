@@ -3,7 +3,7 @@
 import text from '../../content/text/en.json'
 import { logOf } from '../engine/log'
 import type { GameState, LogTurn } from '../engine/types'
-import { fill } from '../ui/kit/blocks/words'
+import { fill, noOrphan } from '../ui/kit/blocks/words'
 import { LENGTHS, type Award, type ChartMarker, type Scorecard } from './stats'
 
 const w = text.game.gameOver
@@ -18,7 +18,7 @@ export function awardText(award: Award, name: Name): { title: string; reason: st
   let reason = words.reason
   if (award.id === 'weedToss' && award.values.kind === 'cut' && words.reasonCut) reason = words.reasonCut
   if (award.id === 'weedToss' && award.values.refreshed === true && words.refreshed) reason += words.refreshed
-  return { title: words.title, reason: fill(reason, values) }
+  return { title: words.title, reason: noOrphan(fill(reason, values)) } // (never one word alone on the last line)
 }
 
 /** What happened on one turn: "Round 7 · Blue cast N: GARDEN + DEN, +14". */
@@ -35,8 +35,10 @@ export function tangleBonusCaption(game: GameState, name: Name): string {
   return parts.length ? fill(w.chart.tangleBonus, { list: parts.join(w.separator) }) : w.chart.noTangleBonus
 }
 
-/** The line under the chart when a marker is tapped. */
-export function markerCaption(game: GameState, marker: ChartMarker, awards: Award[], name: Name): string {
+/** The line under the chart when a marker is tapped (never one word alone on its last line). */
+export const markerCaption = (...args: Parameters<typeof markerLine>) => noOrphan(markerLine(...args))
+
+function markerLine(game: GameState, marker: ChartMarker, awards: Award[], name: Name): string {
   const turn = marker.turnNo === null ? null : logOf(game).turns.find((t) => t.turnNo === marker.turnNo) ?? null
   if (marker.kind === 'tangle' && turn) {
     const owner = name(marker.seat)

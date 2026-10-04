@@ -4,6 +4,7 @@ import type { LogTurn } from '../engine/types'
 import { awardText, bestCells, markerCaption, scorecardRows, tangleBonusCaption, turnCaption } from './endText'
 import type { Award, Scorecard } from './stats'
 
+const NB = String.fromCharCode(160) // the no-break space holding a caption's last two words together
 const names = ['Yellow', 'Blue', 'Purple', 'Pink']
 const name = (seat: number) => names[seat]
 const award = (id: Award['id'], values: Award['values'], holder = 0): Award => ({ id, holder, seats: [holder], moment: 3, values, effect: 1 })
@@ -13,15 +14,18 @@ const turn = (extra: Partial<LogTurn>): LogTurn => ({
 })
 
 describe('award words', () => {
+  it('never leaves one word alone on the last line: the last two words are held together (no-break space)', () => {
+    expect(awardText(award('pincer', { other: 0, from: 18, to: 7 }), name).reason).toMatch(new RegExp(`to${NB}7$`))
+  })
   it('fills in the proof: "Blue’s glyphling: 9 moves → 2"', () => {
-    expect(awardText(award('lockdown', { other: 1, from: 9, to: 2 }), name)).toEqual({ title: 'Lockdown', reason: "Blue's glyphling: 9 moves → 2" })
+    expect(awardText(award('lockdown', { other: 1, from: 9, to: 2 }), name)).toEqual({ title: 'Lockdown', reason: `Blue's glyphling: 9 moves →${NB}2` })
   })
   it('Weed toss: a taken spot or a cut, and whether they refreshed after', () => {
-    expect(awardText(award('weedToss', { kind: 'block', other: 2, n: 8, word: 'GARDEN', refreshed: false }), name).reason).toBe("A junk seed took Purple's +8 spot (GARDEN)")
-    expect(awardText(award('weedToss', { kind: 'cut', other: 1, from: 6, to: 1, refreshed: true }), name).reason).toBe("A junk seed cut Blue's glyphling: 6 moves → 1, then refreshed")
+    expect(awardText(award('weedToss', { kind: 'block', other: 2, n: 8, word: 'GARDEN', refreshed: false }), name).reason).toBe(`A junk seed took Purple's +8 spot${NB}(GARDEN)`)
+    expect(awardText(award('weedToss', { kind: 'cut', other: 1, from: 6, to: 1, refreshed: true }), name).reason).toBe(`A junk seed cut Blue's glyphling: 6 moves → 1, then${NB}refreshed`)
   })
   it('Trickster’s Victory names who ended it', () => {
-    expect(awardText(award('trickster', { other: 3, n: 5 }), name).reason).toBe('Pink ended the game 5 behind')
+    expect(awardText(award('trickster', { other: 3, n: 5 }), name).reason).toBe(`Pink ended the game 5${NB}behind`)
   })
 })
 
@@ -39,8 +43,8 @@ describe('chart captions', () => {
   })
   it('a tangle mark: who tangled whom, or their own', () => {
     const game = { ...newGame({ players: 2, seed: 1 }), log: { turns: [turn({ turnNo: 7 })], end: null } }
-    expect(markerCaption(game, { kind: 'tangle', seat: 0, x: 4, turnNo: 7, by: 1, glyphling: 0 }, [], name)).toBe("Round 4 · Blue tangled Yellow's glyphling")
-    expect(markerCaption(game, { kind: 'tangle', seat: 1, x: 4, turnNo: 7, by: 1, glyphling: 2 }, [], name)).toBe('Round 4 · Blue tangled their own glyphling')
+    expect(markerCaption(game, { kind: 'tangle', seat: 0, x: 4, turnNo: 7, by: 1, glyphling: 0 }, [], name)).toBe(`Round 4 · Blue tangled Yellow's${NB}glyphling`)
+    expect(markerCaption(game, { kind: 'tangle', seat: 1, x: 4, turnNo: 7, by: 1, glyphling: 2 }, [], name)).toBe(`Round 4 · Blue tangled their own${NB}glyphling`)
   })
 })
 
