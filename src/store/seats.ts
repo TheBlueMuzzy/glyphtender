@@ -11,10 +11,21 @@ import type { TableSeat } from '../table/seats'
 
 export { isLocalBot, isLocalHuman, needsHandoff, playsHere } from '../table/seats'
 
+/** Who an AI seat is (F42): ids from content/ai/personalities.json and skills.json. */
+export interface AiPick {
+  personality: string
+  skill: string
+}
+
+/** The AI for a seat nobody chose for (tests, the Dev Kit): Balanced at First Class. */
+export const defaultAi = (): AiPick => ({ personality: 'Balanced', skill: 'FirstClass' })
+
 export interface Seat extends TableSeat {
   /** What players read, e.g. "Blue". */
   name: string
   colour: SeatColour
+  /** A bot seat on this device: which AI plays it (store/localBot.ts). */
+  ai?: AiPick
 }
 
 /** One person-on-this-device seat per player, in turn order (Yellow, Blue, Purple, Pink). `names` = colour → name (en.json). */

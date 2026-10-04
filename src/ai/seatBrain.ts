@@ -9,6 +9,7 @@ import { aiBot } from '../engine/bot'
 import type { SeatView } from '../engine/rules'
 import type { Action, WordList } from '../engine/types'
 import type { Decision, Personality, Skill } from './kit/types'
+import { defaultAi } from '../store/seats'
 
 export interface ThinkRequest {
   view: SeatView
@@ -31,12 +32,9 @@ export interface ThinkResult {
 export const personalities: Personality[] = personalitiesFile.personalities
 export const skills: Skill[] = skillsFile.skills
 
-/** Who plays an AI seat nobody chose for (tests, the Dev Kit, a stand-in): Balanced at First Class. */
-export const DEFAULT_PERSONALITY = 'Balanced'
-export const DEFAULT_SKILL = 'FirstClass'
-
-const personalityById = (id: string) => personalities.find((p) => p.id === id) ?? personalities.find((p) => p.id === DEFAULT_PERSONALITY)!
-const skillById = (id: string) => skills.find((s) => s.id === id) ?? skills.find((s) => s.id === DEFAULT_SKILL)!
+// An unknown id (a renamed personality in an old save, say) plays as the default AI (store/seats.ts defaultAi)
+const personalityById = (id: string) => personalities.find((p) => p.id === id) ?? personalities.find((p) => p.id === defaultAi().personality)!
+const skillById = (id: string) => skills.find((s) => s.id === id) ?? skills.find((s) => s.id === defaultAi().skill)!
 
 /** One seat's bot and the last decision it reported (a bot tells its decisions to its onDecision listener). */
 interface SeatBot {
