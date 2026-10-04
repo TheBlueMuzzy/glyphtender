@@ -12,7 +12,7 @@ Done when: a brain built from (game plug, personality, skill) turns a seat's vie
 
 ## F38 🧱 Glyphtender AI plug
 Done when: Glyphtender gives the brain its readings, imagined seeds, candidate list and behaviour meters, and one decision is timed on a phone-speed budget.
-- [ ] 🤖 1. Spike: time legalActions + previewTurn scoring for 150 / 300 / 800 candidates on mid-game golden positions (Node, then ×4 for a phone) → candidate counts in content/ai/skills.json
+- [x] 🤖 1. Spike: time legalActions + previewTurn scoring for 150 / 300 / 800 candidates on mid-game golden positions (Node, then ×4 for a phone) → candidate counts in content/ai/skills.json
 - [ ] 🤖 2. Readings — src/ai/readings.ts: hand quality, my danger, rivals' danger, board fill, territory (who reaches each hex first, on insight.ts reachArea), end near
 - [ ] 🤖 3. Imagine — src/ai/imagine.ts: deal rivals' '?' seeds + the bag from the unseen letters (seeded); test it never uses the real hidden seeds
 - [ ] 🤖 4. Beliefs' evidence — src/ai/evidence.ts: each rival's Magic as SEEN growing on the board (no totals); a plain estimate now, fuzz comes with framework F20
@@ -37,3 +37,4 @@ Done when: content/ai/ holds the 7 personalities (original ranges + priority), 3
 Check: framework ai tests green · Glyphtender npm test + check:fast green, golden SAME · `npm run ai:arena` runs all 7 · a decision takes ≤ ~300 ms at First Class on a phone budget.
 Ask Muzzy: F37 (4 AI calls — defaults in place: Strategist multi-word · banter big moments only · host may add AI online · personality names + seat glyphling).
 Notes:
+- F38-1 spike (Node, 15 mid-game golden positions — 2p small / 3p + 4p large, avg 2,172 legal actions): legalActions 0.2 ms; legalActions + previewTurn for 150 / 300 / 800 candidates = 2 / 3.5 / 8.6 ms. Previewing words is cheap — the whole decision (7 goals × every candidate × worlds) is the real cost, first dominated by territory (0.33 ms per candidate as text-keyed BFS → rewritten on numbered cells, ~12× faster). Whole aiBot decision now: Apprentice (150, 1 world) avg 11 / worst 24 ms · First Class (300, 2 worlds) avg 22 / worst 33 ms · Archmage (800, 4 worlds) avg 55 / worst 81 ms → phone (×4) First Class ~90–130 ms, Archmage ~220–325 ms. **Candidate counts 150 / 300 / 800 hold** (Archmage's worst case sits at the phone budget; fine for the top tier).
