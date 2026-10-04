@@ -12,5 +12,5 @@ Done when: the game, dev shortcuts, sims and the online server all change the ga
 - [x] 🤖 7. Prove it — check:golden + check:shots SAME, npm test, build, lint, e2e:pass, e2e:online (one at a time); results pages + game links for Muzzy
 - [x] 🤖 8. TDD (engine section + Decision) · framework ROADMAP F12 + version · STATE Key facts
 Check: both checks SAME; contract self-test green for Glyphtender; online game replays from its record.
-Ask Muzzy: —
+Ask Muzzy: — · Muzzy approved 2026-10-04 (feel check "plays exactly like before": approved).
 Notes: Built (helper, tasks 2–6): see TDD D61 for every call (rules made by glyphtenderRules(words) — no context slot; setup carries bagSeed/rngSeed; no Magic in events before gameOver; drew + drewHidden; fast mode only in simulateGame: sim 36 s → 20 s). legalActions play median 1,624, max 11,304. 396 tests; golden SAME; shots SAME; e2e:pass + e2e:online green (0 leaks in 165 frames). Code review (low): nothing. Lessons for the framework → framework design/table.md "Learned in the slices". Decided: framework module named "Table" (table/kit → src/table). Online records keep the server's secret setup numbers (seed + bag reshuffle + rng) so any online game replays exactly. randomAction/greedyAction keep their exact RNG call order (golden games depend on it) — legalActions is new, not a rewrite of them.
