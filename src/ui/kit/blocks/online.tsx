@@ -4,8 +4,8 @@
 // Optional: onBack (a Back button on the create / join card), onReady (leave it out for games
 // that mark players ready by themselves: no Ready button, and Start doesn't wait for it),
 // children (the room: extra rows under the players, e.g. the host's game options — they scroll with the list),
-// onRemove (the host's ✕ Remove button on players marked `removable`, e.g. bots they added). A player's `detail`
-// (e.g. "🤖 Apprentice" for a bot) sits under their name.
+// onRemove (the host's ✕ Remove button on bots — players marked `bot`, who never show Ready: they always are).
+// A player's `detail` (e.g. "🤖 Apprentice" for a bot) sits under their name.
 import { useRef, useState, type ReactNode } from 'react'
 import { Panel, Row, Screen, Stack } from '../layout'
 import { Avatar, Badge, Button, ListRow, RoomCodeInput, ScrollArea, Text, TextInput } from '../controls'
@@ -19,7 +19,7 @@ export const lobbyWords = {
   copy: 'Copy', copied: 'Code copied!', remove: 'Remove',
   waitingHost: 'Waiting for the host to start…', needPlayers: 'Need at least {n} players', waitingReady: 'Waiting for everyone to be ready',
 }
-export type LobbyPlayer = { id: string; name: string; ready?: boolean; avatar?: string; color?: string; detail?: string; removable?: boolean }
+export type LobbyPlayer = { id: string; name: string; ready?: boolean; avatar?: string; color?: string; detail?: string; bot?: boolean }
 type LobbyProps = {
   roomCode?: string // no code yet → the create / join screen; a code → the room
   players?: LobbyPlayer[]; meId?: string; hostId?: string; minPlayers?: number; codeLength?: number
@@ -28,7 +28,7 @@ type LobbyProps = {
   onCreate: () => void; onJoin: (code: string) => void
   onReady?: (ready: boolean) => void // leave out when the game marks players ready itself
   onStart: () => void; onLeave: () => void
-  onRemove?: (id: string) => void // the host's Remove button on `removable` players
+  onRemove?: (id: string) => void // the host's ✕ Remove button on bots
   onBack?: () => void // shows a Back button on the create / join card
   words?: Partial<typeof lobbyWords>
   children?: ReactNode // the room only: extra rows under the players (e.g. the host's game options)
@@ -125,8 +125,8 @@ function Room({ w, roomCode, players = [], meId, hostId, minPlayers = 2, onReady
               </Stack>
             </Row>
           }>
-            {iAmHost && onRemove && p.removable
-              ? <Button variant="ghost" icon aria-label={`${w.remove} ${p.name}`} onClick={() => onRemove(p.id)}>✕</Button>
+            {p.bot
+              ? iAmHost && onRemove && <Button variant="ghost" icon aria-label={`${w.remove} ${p.name}`} onClick={() => onRemove(p.id)}>✕</Button>
               : onReady && p.id !== hostId && <Badge variant={p.ready ? 'primary' : 'neutral'}>{p.ready ? `✓ ${w.ready}` : w.notReady}</Badge>}
           </ListRow>
         ))}

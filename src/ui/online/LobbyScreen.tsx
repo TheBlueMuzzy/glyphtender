@@ -34,7 +34,7 @@ export function LobbyScreen() {
   const seats = room.room.seats
   const players = seats.map((seat, i) => ({
     id: seat.id, name: seat.name, ready: seat.ready, color: colours[colourOf(i)], avatar: glyphlingArt(i),
-    ...(seat.kind === 'bot' && { detail: fill(w.lobby.aiDetail, { skill: skillName(aiOf(seat.profile).skill) }), removable: true }),
+    ...(seat.kind === 'bot' && { detail: fill(w.lobby.aiDetail, { skill: skillName(aiOf(seat.profile).skill) }), bot: true }),
   }))
   const start = () => {
     saveOnlineOptions(options)

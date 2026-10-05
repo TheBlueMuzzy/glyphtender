@@ -1,2 +1,2 @@
 0.3.0
-commit 82e742e + F43 local change (Lobby: player badge / detail, host Remove on removable players) — port to framework ui-kit
+commit 82e742e + F43 local change (Lobby: player detail, bot: no Ready, the host's ✕ Remove) — port to framework ui-kit
