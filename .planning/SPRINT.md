@@ -7,7 +7,7 @@ Done when: every AI action (draft, move, cast, refresh, call-it, aim) plays the 
 - [x] 🤖 1. Audit: list every AI action vs the person's version (motion, timing, path, sounds/pops) → SPRINT Notes
 - [x] 🤖 2. Draft: the AI's glyphling leaves the tray (SeedTray draft) and travels to its hex like a person's drop (src/store/gameStore.ts draftAt, localBot.ts)
 - [x] 🤖 3. Fix any other mismatch the audit finds (same timings — reuse the existing animation, never a second one)
-- [ ] 🤖 4. Framework `design/ai.md`: the "AI looks human" standard; TDD Decisions
+- [x] 🤖 4. Framework `design/ai.md`: the "AI looks human" standard; TDD Decisions
 - [ ] 🤖 5. e2e: an AI draft shows the travel (frame check) + screenshots at every size
 
 ## F43 🎮 Online AI

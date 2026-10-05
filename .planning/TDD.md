@@ -146,6 +146,12 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D78 · 2026-10-05 · The AI looks human: its pieces move like a person's, reusing the person's animations (Muzzy · F50)
+  Muzzy: "if a human would drag, they should too… at least the same animation speeds" (framework design/ai.md).
+  Audit (SPRINT 16 Notes): only the draft differed — the AI's glyphling popped in. Now the tray shows the AI's waiting
+  glyphlings while it drafts and the person's drag piece (drag layer) carries one to its hex on the glide's path + timings
+  (useBotDraft → store.botDraft / landBotDraft; busy while it travels). A turn also holds its aim before the throw, like a
+  person before Cast: pacing data, pace.json thinkSeconds.aim (0.3–0.6 s at Normal, 0 at Instant). Reduce motion → placed at once.
 D77 · 2026-10-04 · Keep "2 tangles end the game, your own included" — balance the AI through personalities (Muzzy)
   Options tested in the arena (sandbox, reverted): "you can't end the game alone" (an ending tangle must include a
   glyphling that isn't yours) evened every matchup (Bully–Scholar 9–91 → 53–48) and lengthened games to 53–67 turns;
