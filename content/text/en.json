@@ -252,6 +252,7 @@
     "title": "New game",
     "players": "Players",
     "playerN": "Player {n}",
+    "aiType": "AI Type",
     "board": "Garden",
     "boards": {
       "small": "Small",
@@ -347,9 +348,9 @@
   "ai": {
     "_help": "The AI opponents' names and one-line bios (stand-in text — Muzzy reviews the tone). Gentle and cozy: even the Bully is mischievous, not mean. Bios grew from the original game's flavour lines.",
     "personality": {
-      "Scholar": {"name": "the Scholar", "bio": "Did you know QUIXOTIC is worth…? It will tell you anyway."},
-      "Survivor": {"name": "the Survivor", "bio": "You won't catch it — it always keeps a way out."},
-      "Strategist": {"name": "the Strategist", "bio": "Always two moves ahead — and one of them is quietly around your glyphling."}
+      "Scholar": {"name": "the Scholar", "type": "Scholar", "bio": "It eats words for breakfast."},
+      "Survivor": {"name": "the Survivor", "type": "Survivor", "bio": "Head on a swivel like an owl."},
+      "Strategist": {"name": "the Strategist", "type": "Strategist", "bio": "Always two moves ahead."}
     },
     "skill": {
       "Apprentice": "Apprentice",

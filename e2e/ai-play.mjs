@@ -45,7 +45,7 @@ const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
 function problems() {
   const out = []
   if (document.documentElement.scrollWidth > innerWidth + 0.5) out.push(`sideways scroll (${document.documentElement.scrollWidth} > ${innerWidth})`)
-  for (const el of document.querySelectorAll('.game button, .game-tray, .kit-screen button, .kit-text, .kit-card')) {
+  for (const el of document.querySelectorAll('.game button, .game-tray, .kit-screen button, .kit-text, .new-game-ai')) {
     const r = el.getBoundingClientRect()
     if (!r.width || !r.height) continue
     const name = (el.textContent || el.getAttribute('class') || '').trim().slice(0, 30)
@@ -55,16 +55,7 @@ function problems() {
     if (r.left < box.left - 0.5 || r.right > box.right + 0.5) out.push(`clipped sideways: ${name}`)
     if (!scroll && (r.top < -0.5 || r.bottom > innerHeight + 0.5)) out.push(`clipped: ${name}`)
   }
-  // Breathing room: nothing inside an AI card touches its edge
-  for (const card of document.querySelectorAll('.kit-card')) {
-    const c = card.getBoundingClientRect()
-    for (const el of card.querySelectorAll('.kit-avatar, .kit-text, .kit-picker, .kit-card-title')) {
-      const r = el.getBoundingClientRect()
-      if (!r.width) continue
-      const room = Math.min(r.left - c.left, c.right - r.right, r.top - c.top, c.bottom - r.bottom)
-      if (room < 4) out.push(`touches its card's edge (${Math.round(room)} px): ${(el.textContent || el.className).trim().slice(0, 30)}`)
-    }
-  }
+  // (the AI rows are ordinary menu rows now, not a boxed card — the clipped checks above cover them)
   return out
 }
 
@@ -87,17 +78,17 @@ try {
     // New game: Blue = AI → its card (Surprise me at First Class) → the Strategist, Apprentice
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
-    h.check('Blue switched to AI shows its personality card', (await page.locator('.kit-card').count()) === 1)
+    h.check('Blue switched to AI shows its personality card', (await page.locator('.new-game-ai').count()) === 1)
     h.check('a new AI seat starts as "Surprise me" at First Class',
-      (await page.locator('.kit-card .kit-picker-value', { hasText: 'Surprise me' }).count()) === 1
-      && (await page.locator('.kit-card .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
+      (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Surprise me' }).count()) === 1
+      && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
     // Step through the personalities until the Strategist shows (the list is data — don't count on its order)
-    for (let i = 0; i < 6 && (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 0; i++) {
+    for (let i = 0; i < 6 && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 0; i++) {
       await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
     }
     await page.getByRole('button', { name: 'Previous Player 2: Skill' }).click()
-    h.check('picked the Strategist at Apprentice', (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 1
-      && (await page.locator('.kit-card .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
+    h.check('picked the Strategist at Apprentice', (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 1
+      && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
     await page.getByRole('button', { name: 'Start' }).click()
     await h.ready()
     h.check('Blue is the AI: the Strategist at Apprentice', await h.store((s) => s.seats[1].kind === 'bot' && s.seats[1].ai.personality === 'Strategist' && s.seats[1].ai.skill === 'Apprentice'))
@@ -110,8 +101,8 @@ try {
     await page.getByRole('dialog', { name: /Grand Glyphtender/ }).getByRole('button', { name: 'New game' }).click()
     await page.getByRole('button', { name: 'Start' }).waitFor({ timeout: 3000 })
     h.check('New game remembers Blue = AI, the Strategist, Apprentice',
-      (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 1
-      && (await page.locator('.kit-card .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
+      (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 1
+      && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
     if (errors.length) fail(`solo: console errors: ${errors.join(' | ')}`)
     await page.close()
   }
@@ -156,10 +147,10 @@ try {
     const h = helpers(page, size.mobile, size.name)
     await page.goto(URL_)
     await page.getByRole('button', { name: 'Play', exact: true }).click()
-    h.check('two AI cards', (await page.locator('.kit-card').count()) === 2)
+    h.check('two AI cards', (await page.locator('.new-game-ai').count()) === 2)
     await h.shot('1-new-game-ai')
     // the cards hold one size whatever personality shows: flip Blue's through all 8 (Surprise me + 7)
-    const cardSize = () => page.evaluate(() => [...document.querySelectorAll('.kit-card')].map((c) => `${Math.round(c.getBoundingClientRect().width)}×${Math.round(c.getBoundingClientRect().height)}`).join(' '))
+    const cardSize = () => page.evaluate(() => [...document.querySelectorAll('.new-game-ai')].map((c) => `${Math.round(c.getBoundingClientRect().width)}×${Math.round(c.getBoundingClientRect().height)}`).join(' '))
     const sizes = new Set()
     for (let i = 0; i < 8; i++) {
       sizes.add(await cardSize())
