@@ -14,7 +14,7 @@ Done when: every AI action (draft, move, cast, refresh, call-it, aim) plays the 
 Done when: online, an idle / dropped seat is played by the real AI (Survivor at First Class = seats.ts defaultAi) instead of greedyBot, thinking inside the room within its CPU budget; the host can add AI seats in the lobby; no secret leaks; e2e:online / online4 green.
 - [x] 🤖 1. Server thinking: party/ runs the AI brain for a bot seat on viewFor(game, seat) only, with a time budget + the never-freeze fallback
 - [x] 🤖 2. Idle takeover uses it (replaces greedyBot); human pace on the server (pace.json)
-- [ ] 🤖 3. Lobby: host can add / remove AI seats (personality + skill) — game-ui kit parts only
+- [x] 🤖 3. Lobby: host can add / remove AI seats (personality + skill) — game-ui kit parts only
 - [ ] 🤖 4. Tests: server.test (AI seat sees only its view, never the log), e2e:online with an AI seat
 - [ ] 🤖 5. GDD / TDD (server AI, CPU budget)
 
@@ -32,3 +32,4 @@ Notes:
 - **F43 (helper, 2026-10-05):** server AI = the same seatBrain thinking as the phone, run inside the room (turnClock.ts aiAction): the seat's view only, rules-checked, greedy / "keep all" fallback (logged). Pace = pace.json Normal (draft · move+cast · refresh, each its own paced step) — rooms.json botTurnDelayMs retired. Timing (`npm run ai:server-timing`, this PC, worst per decision): Apprentice 45/98 ms, First Class 83/204 ms, Archmage 231/497 ms (2p/4p) vs serverBudgetMs 1000 (DO CPU limit 30 s per event). The Worker's clock stands still while code runs, so the room can't time itself — the budget is checked by the script, not live.
 - **F43 rooms kit change (game copy, src/rooms — port to framework rooms):** add_bot carries an optional `profile`, the public Seat carries it, GameRules gets optional `botProfile(profile) → { profile, name }` (named bots numbered on repeats). Helpers can't touch the framework repo (permission denied) — the lead/Muzzy ports it.
 - **F43 calls:** an AI seat is named after its personality ("The Survivor", repeats "The Survivor 2"); no "Surprise me" online yet (its name would give it away) — Ideas.
+- **F43 lobby:** the host's "Add an AI player" card (next seat's glyphling, personality ◀ ▶ with its bio — sized to the longest bio like New Game — skill, Add AI) sits under the players; an AI row reads "The Survivor / 🤖 First Class" with a ✕ Remove for the host only. UI kit change (game copy, src/ui/kit — port to framework ui-kit): LobbyPlayer `detail` + `removable`, Lobby `onRemove` (✕ icon button). rooms.json allowBots → true.

@@ -60,7 +60,7 @@ export function secretsIn(frame) {
   const out = []
   if (/persistent/i.test(frame)) out.push('a persistentId')
   // the server's move record and its secret numbers (the bag's second shuffle, the rng start, the bot's rng): never, not even at the end
-  if (/"record"|"bagSeed"|"rngSeed"|"botRng"/.test(frame)) out.push('the move record / secret numbers')
+  if (/"record"|"bagSeed"|"rngSeed"|"botRng"|"paceRng"/.test(frame)) out.push('the move record / secret numbers')
   if (message.type !== 'view' || !message.view) return out
   const { game, mySeat, results } = message.view
   if (game.phase === 'over') return out // the reveal: the whole truth, on purpose

@@ -293,7 +293,11 @@
       "copied": "Code copied!",
       "waitingHost": "Waiting for the host to start…",
       "needPlayers": "Need at least {n} players",
-      "waitingReady": "Waiting for everyone to be ready"
+      "waitingReady": "Waiting for everyone to be ready",
+      "remove": "Remove",
+      "addAiTitle": "Add an AI player",
+      "addAi": "Add AI",
+      "aiDetail": "🤖 {skill}"
     },
     "options": {
       "board": "Garden",
