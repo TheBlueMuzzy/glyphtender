@@ -9,7 +9,8 @@
 // Its picks are repeatable: each seat has its own random position from the game's seed (botSeed), moved on only by
 // the actions it really plays. A new game, leaving the game or the game moving on drops any thinking in progress.
 // It never gets a handoff screen: there's nobody to hide the seeds from (seats.ts needsHandoff).
-// playLocalBot (below) is the old instant greedy bot — tests only.
+// playLocalBot (below) is the old instant greedy bot — tests only. If thinking ever fails, the greedy bot plays that
+// one move instead, so a game never freezes.
 import paceFile from '../../content/ai/pace.json'
 import { thinkDelay, waitLeft, type Pace } from '../ai/kit/pace'
 import { botSeed } from '../ai/kit/brain'
@@ -121,8 +122,15 @@ export function driveLocalBots(): () => void {
       })
       .catch((error) => {
         if (mine.dropped) return
-        console.warn('The AI could not decide', error)
+        // Never freeze the game: say what went wrong, then play a safe legal move instead (the simple greedy bot,
+        // from the same seat's view) — a broken personality in the Dev Kit can't stall an all-AI table.
+        console.warn('The AI could not decide — playing a simple move instead', error)
         job = null
+        const s = store()
+        if (!s.words || s.game !== mine.game) return check()
+        const fallback = greedyBot(s.words)(viewFor(mine.game, seat), seat, rngs[seat])
+        rngs[seat] = fallback.rng
+        s.botPlays(fallback.action, true)
       })
   }
 

@@ -87,7 +87,10 @@ try {
     h.check('a new AI seat starts as "Surprise me" at First Class',
       (await page.locator('.kit-card .kit-picker-value', { hasText: 'Surprise me' }).count()) === 1
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
-    await page.getByRole('button', { name: 'Next Blue: Personality' }).click()
+    // Step through the personalities until the Strategist shows (the list is data — don't count on its order)
+    for (let i = 0; i < 6 && (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 0; i++) {
+      await page.getByRole('button', { name: 'Next Blue: Personality' }).click()
+    }
     await page.getByRole('button', { name: 'Previous Blue: Skill' }).click()
     h.check('picked the Strategist at Apprentice', (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 1
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)

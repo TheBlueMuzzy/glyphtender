@@ -12,6 +12,8 @@ describe('threats', () => {
     expect(chanceToHold(10, 10, 3)).toBe(1)
     expect(chanceToHold(1, 10, 1)).toBeCloseTo(0.1)
     expect(chanceToHold(2, 10, 2)).toBeCloseTo(1 - (8 / 10) * (7 / 9))
+    expect(chanceToHold(1, 3, 4)).toBe(1) // a hand bigger than the pool (hand-made positions): never NaN
+    expect(chanceToHold(3, 3, 4)).toBe(1)
   })
 
   it("finds the rival's likely word spot, and never uses the real hidden seeds", () => {

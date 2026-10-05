@@ -30,7 +30,13 @@ export function personalityProblems<View, Action, World>(p: Personality, plug: G
   for (const sw of p.switches ?? []) {
     if (!modes.some((m) => m.id === sw.to)) problems.push(`${p.id}: switches to mode "${sw.to}", which isn't one of the game's modes (${modes.map((m) => m.id).join(', ') || 'none'})`)
   }
-  for (const m of modes) for (const id of m.goals ?? []) if (!plug.goals.some((g) => g.id === id)) problems.push(`mode ${m.id}: goal "${id}" isn't one of this game's goals`)
+  for (const m of modes) {
+    for (const id of m.goals ?? []) if (!plug.goals.some((g) => g.id === id)) problems.push(`mode ${m.id}: goal "${id}" isn't one of this game's goals`)
+    if (m.goals && m.goals.length === 0) problems.push(`mode ${m.id}: its goal list is empty (leave it out to keep the personality's)`)
+    for (const [trait, r] of Object.entries(m.traits ?? {})) {
+      if (!(r.min >= 0 && r.max <= 100 && r.min <= r.max)) problems.push(`mode ${m.id}: trait "${trait}" range ${r.min}–${r.max} must be inside 0–100, low to high`)
+    }
+  }
   const goalIds = plug.goals.map((g) => g.id)
   for (const id of p.goals) if (!goalIds.includes(id)) problems.push(`${p.id}: goal "${id}" isn't one of this game's goals (${goalIds.join(', ')})`)
   for (const g of plug.goals) {
@@ -65,7 +71,7 @@ export function inMode(p: Personality, mode: Mode | null): Personality {
   return {
     ...p,
     traits: { ...p.traits, ...(mode.traits ?? {}) },
-    goals: mode.goals ?? p.goals,
+    goals: mode.goals?.length ? mode.goals : p.goals,
     nudge: mode.nudge ?? p.nudge,
     focus: mode.focus ?? p.focus,
     steady: mode.steady ?? p.steady,

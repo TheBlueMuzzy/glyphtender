@@ -53,7 +53,8 @@ export function trapGoal(words: WordList): GlyphGoal {
       let cutOff = 0
       let cut: { seat: number; word: string } | null = null
       for (const [key, threat] of threatsFor(ctx.view, ctx.world, ctx.seat, words)) {
-        if (castReachOf(board, threat.seat).has(key)) continue
+        // (cut off only when NO rival can reach it any more — at 3–4 players another may still get there)
+        if (rivals.some((r) => castReachOf(board, r).has(key))) continue
         cutOff += threat.expected
         if (!cut) cut = { seat: threat.seat, word: threat.word }
       }

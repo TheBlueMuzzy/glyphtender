@@ -120,6 +120,23 @@ describe('the AI on this device (driveLocalBots)', () => {
     }
   })
 
+  it('never freezes: an AI whose thinking fails (a broken personality from the Dev Kit) still plays a legal move', async () => {
+    setAiSpeedOverride('instant')
+    const broken = { id: 'Broken', traits: {}, goals: ['NAP'], nudge: 0, shifts: [], chattiness: 0 } // not this game's goals
+    const skill = { id: 'x', candidates: 10, worlds: 1, spread: 1, topN: 1, wobble: 0, beliefNoise: 0 }
+    store().startGame({ players: 2, seed: 3, hideSeeds: false, bots: [0], ai: { 0: { personality: 'Broken', skill: 'x', custom: { personality: broken, skill } } } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const stop = driveLocalBots()
+    try {
+      await vi.advanceTimersByTimeAsync(5_000)
+      expect(store().game!.glyphlings).toHaveLength(1) // it placed anyway (the simple fallback move)
+      expect(warn).toHaveBeenCalled()
+    } finally {
+      stop()
+      warn.mockRestore()
+    }
+  })
+
   it('1 person + 1 AI at Instant: a whole game to the end; every AI decision is heard; no handoff', async () => {
     setAiSpeedOverride('instant')
     store().startGame({ players: 2, seed: 11, hideSeeds: true, bots: [1], ai: { 1: { personality: 'Scholar', skill: 'Apprentice' } } })

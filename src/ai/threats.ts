@@ -37,7 +37,8 @@ export function castReachOf(world: GameState, seat: number): Set<string> {
 
 /** The chance a hand of `handSize` unseen seeds holds at least one of a letter that has `copies` of the `pool` left. */
 export function chanceToHold(copies: number, pool: number, handSize: number): number {
-  if (copies <= 0 || handSize <= 0) return 0
+  if (copies <= 0 || handSize <= 0 || pool <= 0) return 0
+  if (handSize > pool - copies) return 1 // more seeds in hand than letters that AREN'T this one: it must hold one
   let none = 1
   for (let i = 0; i < handSize; i++) none *= Math.max(0, pool - copies - i) / (pool - i)
   return 1 - none
