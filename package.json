@@ -41,7 +41,8 @@
     "e2e:ai": "node e2e/ai-play.mjs",
     "shots:record": "node e2e/shots.mjs record",
     "check:shots": "node e2e/shots.mjs check",
-    "ai:arena": "node scripts/ai-arena.mjs"
+    "ai:arena": "node scripts/ai-arena.mjs",
+    "ai:server-timing": "node scripts/ai-server-timing.mjs"
   },
   "dependencies": {
     "partyserver": "^0.5.10",

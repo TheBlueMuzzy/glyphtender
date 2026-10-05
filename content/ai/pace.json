@@ -11,7 +11,8 @@
     "speeds.normal": "Settings → AI speed: Normal (1 = the pauses above as they are).",
     "speeds.fast": "Settings → AI speed: Fast (2 = half as long).",
     "speeds.instant": "Settings → AI speed: Instant. 0 = no pause at all (the moves still animate).",
-    "timeBudgetMs": "The most time one decision may take on a phone, in milliseconds. The skill's candidate count is chosen to fit inside it."
+    "timeBudgetMs": "The most time one decision may take on a phone, in milliseconds. The skill's candidate count is chosen to fit inside it.",
+    "serverBudgetMs": "Online: the most time one decision may take in the room on the server, in milliseconds (the room waits while it thinks). npm run ai:server-timing checks every skill against it. The online AI's pauses are the Normal-speed ones above."
   },
   "_labels": {
     "thinkSeconds.draft.min": "Draft: shortest think (s)",
@@ -24,10 +25,11 @@
     "speeds.normal": "AI speed Normal (×)",
     "speeds.fast": "AI speed Fast (×)",
     "speeds.instant": "AI speed Instant (0 = no pause)",
-    "timeBudgetMs": "Thinking budget per decision on a phone (ms)"
+    "timeBudgetMs": "Thinking budget per decision on a phone (ms)",
+    "serverBudgetMs": "Thinking budget per decision online, on the server (ms)"
   },
   "_sections": {
-    "AI: pace": ["thinkSeconds", "speeds", "timeBudgetMs"]
+    "AI: pace": ["thinkSeconds", "speeds", "timeBudgetMs", "serverBudgetMs"]
   },
   "_ranges": {
     "thinkSeconds.draft.min": [0, 3, 0.1],
@@ -39,7 +41,8 @@
     "speeds.slow": [0.1, 1, 0.05],
     "speeds.normal": [0.5, 2, 0.05],
     "speeds.fast": [1, 5, 0.1],
-    "timeBudgetMs": [50, 1000, 10]
+    "timeBudgetMs": [50, 1000, 10],
+    "serverBudgetMs": [100, 3000, 50]
   },
   "thinkSeconds": {
     "draft": { "min": 0.6, "max": 1.2 },
@@ -47,5 +50,6 @@
     "refresh": { "min": 0.5, "max": 1.0 }
   },
   "speeds": { "slow": 0.5, "normal": 1, "fast": 2, "instant": 0 },
-  "timeBudgetMs": 300
+  "timeBudgetMs": 300,
+  "serverBudgetMs": 1000
 }

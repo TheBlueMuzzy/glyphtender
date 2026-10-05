@@ -25,6 +25,9 @@ export interface ServerGame {
   turnEndsAt: number | null
   /** The random position for turns the server plays itself (timer ran out, a bot has the seat). */
   botRng: number
+  /** The random position for the AI's person-like pauses before it acts (turnClock.ts, pace.json) — its own secret
+   *  number, so the pauses say nothing about anything else. (Missing in a room started before F43.) */
+  paceRng?: number
   /** The whole game as a replayable record: its setup (WITH the secret seed numbers) + every move in order.
    *  SECRET: never sent to anyone (views.ts builds each view field by field and leaves it out; server.test checks). */
   record: MoveRecord<GameSetup, Action>

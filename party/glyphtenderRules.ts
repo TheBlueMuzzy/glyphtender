@@ -15,6 +15,7 @@ import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBe
 import type { GameRules } from '../src/rooms/server/gameRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
 import { afterSeatChange, planNextTurn } from './turnClock'
+import { botProfile } from './aiSeats'
 import { play, type ServerGame } from './serverGame'
 import { viewOf } from './views'
 
@@ -102,7 +103,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
         game, gameId: seedMaker(), version: 0, record: { setup, moves: [] }, feed: [], lastOwnAction: seats.map(() => 0),
         seatIds: seats.map((s) => s.id), names: seats.map((s) => s.name),
         options, change: 'start', by: null,
-        stats: emptyStats(players), turnEndsAt: null, botRng: seed ^ 0x5eed,
+        stats: emptyStats(players), turnEndsAt: null, botRng: seed ^ 0x5eed, paceRng: seedMaker(),
       }
       return planNextTurn(state, room, words)
     },
@@ -127,6 +128,9 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
     viewFor: (state, seat) => viewOf(state, seat.id),
 
     isOver: (state) => state.game.phase === 'over',
+
+    // The host adds an AI seat in the lobby: "<personality>/<skill>" (aiSeats.ts) → the seat's profile and name
+    botProfile,
 
     // A bot took a seat (the player left, idled or stayed away): if it's that seat's turn, it plays now.
     // A player took their seat back from a bot on their turn: their clock starts (turnClock.ts).
