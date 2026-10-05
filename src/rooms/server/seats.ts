@@ -10,7 +10,7 @@
 //   or missing too many turns, hands it to a bot. The game carries on.
 // - Host: stays host while connected. If not, the first connected human (in seat order) becomes host.
 import type { CloseReason, RoomPhase, RoomState, Seat } from '../protocol'
-import { cleanName } from '../protocol'
+import { cleanName, MAX_NAME_LENGTH } from '../protocol'
 import { isRoomCode } from '../roomCodes'
 import type { RoomSettings } from './settings'
 
@@ -151,11 +151,17 @@ export function takeBack(room: RoomData, seatId: string): void {
   chooseHost(room)
 }
 
-/** Host adds a bot seat in the lobby. null = not allowed or no room. */
-export function addBot(room: RoomData, settings: RoomSettings): SeatRecord | null {
+/** Host adds a bot seat in the lobby (`profile` + `name` from the game's botProfile, if any). null = not allowed or no room. */
+export function addBot(room: RoomData, settings: RoomSettings, described?: { profile: string; name: string }): SeatRecord | null {
   if (!settings.allowBots || room.phase !== 'lobby' || room.seats.length >= settings.maxSeats) return null
-  const botNumber = room.seats.filter(isAddedBot).length + 1
-  const seat = makeSeat(room, `bot:${room.seatsMade + 1}`, `Bot ${botNumber}`, 'bot')
+  const base = cleanName(described?.name) || 'Bot'
+  const taken = new Set(room.seats.map((s) => s.name))
+  // "Bot 1", "Bot 2"… — a named bot keeps its name, numbered only when it's taken ("Ada", "Ada 2")
+  let number = described ? 1 : room.seats.filter(isAddedBot).length + 1
+  const nameOf = (n: number) => (described && n === 1 ? base : `${base.slice(0, MAX_NAME_LENGTH - 1 - String(n).length)} ${n}`)
+  while (taken.has(nameOf(number))) number += 1
+  const seat = makeSeat(room, `bot:${room.seatsMade + 1}`, nameOf(number), 'bot')
+  if (described) seat.profile = described.profile
   room.seats.push(seat)
   return seat
 }
@@ -233,8 +239,8 @@ export function backToLobby(room: RoomData): void {
 
 /** A seat without its owner's persistentId. */
 export function publicSeat(seat: SeatRecord): Seat {
-  const { id, name, kind, isHost, connected, ready, missedTurns } = seat
-  return { id, name, kind, isHost, connected, ready, missedTurns }
+  const { id, name, kind, isHost, connected, ready, missedTurns, profile } = seat
+  return profile === undefined ? { id, name, kind, isHost, connected, ready, missedTurns } : { id, name, kind, isHost, connected, ready, missedTurns, profile }
 }
 
 export function publicRoom(room: RoomData, settings: RoomSettings): RoomState {

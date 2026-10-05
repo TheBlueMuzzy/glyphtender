@@ -3,7 +3,9 @@
 // passes in what's true right now; these screens only show it and report button presses.
 // Optional: onBack (a Back button on the create / join card), onReady (leave it out for games
 // that mark players ready by themselves: no Ready button, and Start doesn't wait for it),
-// children (the room: extra rows under the players, e.g. the host's game options — they scroll with the list).
+// children (the room: extra rows under the players, e.g. the host's game options — they scroll with the list),
+// onRemove (the host's ✕ Remove button on bots — players marked `bot`, who never show Ready: they always are).
+// A player's `detail` (e.g. "🤖 Apprentice" for a bot) sits under their name.
 import { useRef, useState, type ReactNode } from 'react'
 import { Panel, Row, Screen, Stack } from '../layout'
 import { Avatar, Badge, Button, ListRow, RoomCodeInput, ScrollArea, Text, TextInput } from '../controls'
@@ -14,10 +16,10 @@ export const lobbyWords = {
   title: 'Play online', create: 'Create a room', or: 'or join a friend', join: 'Join', name: 'Your name',
   room: 'Room {code}', share: 'Share this code with your friends', host: 'Host', ready: 'Ready', notReady: 'Not ready',
   imReady: 'I’m ready', notYet: 'Not ready yet', start: 'Start game', leave: 'Leave', back: 'Back',
-  copy: 'Copy', copied: 'Code copied!',
+  copy: 'Copy', copied: 'Code copied!', remove: 'Remove',
   waitingHost: 'Waiting for the host to start…', needPlayers: 'Need at least {n} players', waitingReady: 'Waiting for everyone to be ready',
 }
-export type LobbyPlayer = { id: string; name: string; ready?: boolean; avatar?: string; color?: string }
+export type LobbyPlayer = { id: string; name: string; ready?: boolean; avatar?: string; color?: string; detail?: string; bot?: boolean }
 type LobbyProps = {
   roomCode?: string // no code yet → the create / join screen; a code → the room
   players?: LobbyPlayer[]; meId?: string; hostId?: string; minPlayers?: number; codeLength?: number
@@ -26,6 +28,7 @@ type LobbyProps = {
   onCreate: () => void; onJoin: (code: string) => void
   onReady?: (ready: boolean) => void // leave out when the game marks players ready itself
   onStart: () => void; onLeave: () => void
+  onRemove?: (id: string) => void // the host's ✕ Remove button on bots
   onBack?: () => void // shows a Back button on the create / join card
   words?: Partial<typeof lobbyWords>
   children?: ReactNode // the room only: extra rows under the players (e.g. the host's game options)
@@ -90,7 +93,7 @@ export async function copyText(text: string, shown?: HTMLElement | null): Promis
   }
 }
 
-function Room({ w, roomCode, players = [], meId, hostId, minPlayers = 2, onReady, onStart, onLeave, children }: LobbyProps & { w: typeof lobbyWords; roomCode: string }) {
+function Room({ w, roomCode, players = [], meId, hostId, minPlayers = 2, onReady, onStart, onLeave, onRemove, children }: LobbyProps & { w: typeof lobbyWords; roomCode: string }) {
   const codeBox = useRef<HTMLSpanElement>(null)
   const me = players.find((p) => p.id === meId)
   const iAmHost = meId !== undefined && meId === hostId
@@ -116,10 +119,15 @@ function Room({ w, roomCode, players = [], meId, hostId, minPlayers = 2, onReady
           <ListRow key={p.id} label={
             <Row gap="s" className="kit-nowrap">
               <Avatar name={p.name} src={p.avatar} color={p.color} active={p.id === meId} />
-              <Row gap="xs" className="kit-result-name"><Text kind="label">{p.name}</Text>{p.id === hostId && <Badge>{w.host}</Badge>}</Row>
+              <Stack gap="xs" className="kit-result-name">
+                <Row gap="xs"><Text kind="label">{p.name}</Text>{p.id === hostId && <Badge>{w.host}</Badge>}</Row>
+                {p.detail && <Text kind="caption">{p.detail}</Text>}
+              </Stack>
             </Row>
           }>
-            {onReady && p.id !== hostId && <Badge variant={p.ready ? 'primary' : 'neutral'}>{p.ready ? `✓ ${w.ready}` : w.notReady}</Badge>}
+            {p.bot
+              ? iAmHost && onRemove && <Button variant="ghost" icon aria-label={`${w.remove} ${p.name}`} onClick={() => onRemove(p.id)}>✕</Button>
+              : onReady && p.id !== hostId && <Badge variant={p.ready ? 'primary' : 'neutral'}>{p.ready ? `✓ ${w.ready}` : w.notReady}</Badge>}
           </ListRow>
         ))}
         {children}

@@ -24,6 +24,9 @@ export interface Seat {
   ready: boolean
   /** Turns in a row the server had to play for this player (resets when they act). */
   missedTurns: number
+  /** A bot the host added: who plays it, in the game's own words (e.g. "Survivor/FirstClass") — the game's
+   *  botProfile() checked it. Missing for players and for bots the game didn't describe. */
+  profile?: string
 }
 // Note: the player's persistentId (the thing that owns a seat) is NEVER sent to other players —
 // anyone who knew it could take that seat and see that player's hand. It stays on the server.
@@ -52,8 +55,8 @@ export type ClientMessage =
   | { type: 'start'; options: unknown }
   /** Host only. Removes a player (or a bot) — a kicked player can't come back to this room. */
   | { type: 'kick'; seatId: string }
-  /** Host only, lobby only, if the game allows bots. */
-  | { type: 'add_bot' }
+  /** Host only, lobby only, if the game allows bots. `profile` = which bot (the game's own words, checked by its botProfile()). */
+  | { type: 'add_bot'; profile?: string }
   /** Host only, after a game: everyone back to the lobby. */
   | { type: 'back_to_lobby' }
   /** The game's own move. The server's game rules check it. */
@@ -95,6 +98,8 @@ export type ServerMessage =
 // ─── Checking what arrives ──────────────────────────────────────────
 
 export const MAX_NAME_LENGTH = 16
+/** A bot's profile is a short tag (the game checks what it means). */
+export const MAX_PROFILE_LENGTH = 40
 /** Bigger messages than this are refused unread (a real one is far smaller). */
 export const MAX_MESSAGE_LENGTH = 16_000
 
@@ -137,7 +142,9 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'kick':
       return typeof data.seatId === 'string' ? { type: 'kick', seatId: data.seatId } : null
     case 'add_bot':
-      return { type: 'add_bot' }
+      if (data.profile === undefined) return { type: 'add_bot' }
+      if (typeof data.profile !== 'string' || data.profile.length > MAX_PROFILE_LENGTH) return null
+      return { type: 'add_bot', profile: data.profile }
     case 'back_to_lobby':
       return { type: 'back_to_lobby' }
     case 'action':

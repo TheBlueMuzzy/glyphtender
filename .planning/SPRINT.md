@@ -12,11 +12,11 @@ Done when: every AI action (draft, move, cast, refresh, call-it, aim) plays the 
 
 ## F43 🎮 Online AI
 Done when: online, an idle / dropped seat is played by the real AI (Survivor at First Class = seats.ts defaultAi) instead of greedyBot, thinking inside the room within its CPU budget; the host can add AI seats in the lobby; no secret leaks; e2e:online / online4 green.
-- [ ] 🤖 1. Server thinking: party/ runs the AI brain for a bot seat on viewFor(game, seat) only, with a time budget + the never-freeze fallback
-- [ ] 🤖 2. Idle takeover uses it (replaces greedyBot); human pace on the server (pace.json)
-- [ ] 🤖 3. Lobby: host can add / remove AI seats (personality + skill) — game-ui kit parts only
-- [ ] 🤖 4. Tests: server.test (AI seat sees only its view, never the log), e2e:online with an AI seat
-- [ ] 🤖 5. GDD / TDD (server AI, CPU budget)
+- [x] 🤖 1. Server thinking: party/ runs the AI brain for a bot seat on viewFor(game, seat) only, with a time budget + the never-freeze fallback
+- [x] 🤖 2. Idle takeover uses it (replaces greedyBot); human pace on the server (pace.json)
+- [x] 🤖 3. Lobby: host can add / remove AI seats (personality + skill) — game-ui kit parts only
+- [x] 🤖 4. Tests: server.test (AI seat sees only its view, never the log), e2e:online with an AI seat
+- [x] 🤖 5. GDD / TDD (server AI, CPU budget)
 
 ## F51 🔧 Snapshots record the seats
 Done when: a Dev Kit snapshot saves each seat's kind (person / AI) + personality + skill, and loading an old snapshot still works.
@@ -42,3 +42,7 @@ Notes:
   | Handoff box | between people when seeds are hidden | never | by design |
   | Online (another device's draft, a server bot) | — | a remote seat's draft still pops in (onlinePlay: "draft placements are simply shown") | out of F50 (local); note for F43: reuse useBotDraft for a replayed draft |
 - **F51 (2026-10-05, Claude):** a snapshot's state now carries `seats` (kind + ai {personality, skill}); restoring sets them up on THIS device (store/seats.ts restoredSeats — an AI stays that AI and plays on from the moment; an online game's seats come back as local people/AIs). An older snapshot without seats keeps today's behaviour (seats stay as they are). Muzzy's first-game-with-ai.json still restores (adapter test). Proved: check:fast ALL PASS (golden SAME), devkit-search + devkit-ai PASS, e2e:previews PASS (52 shots; its first run in check:full failed in 1 s at server start — a port clash while the F43 helper ran its servers; alone it passes).
+- **F43 (helper, 2026-10-05):** server AI = the same seatBrain thinking as the phone, run inside the room (turnClock.ts aiAction): the seat's view only, rules-checked, greedy / "keep all" fallback (logged). Pace = pace.json Normal (draft · move+cast · refresh, each its own paced step) — rooms.json botTurnDelayMs retired. Timing (`npm run ai:server-timing`, this PC, worst per decision): Apprentice 45/98 ms, First Class 83/204 ms, Archmage 231/497 ms (2p/4p) vs serverBudgetMs 1000 (DO CPU limit 30 s per event). The Worker's clock stands still while code runs, so the room can't time itself — the budget is checked by the script, not live.
+- **F43 rooms kit change (game copy, src/rooms — port to framework rooms):** add_bot carries an optional `profile`, the public Seat carries it, GameRules gets optional `botProfile(profile) → { profile, name }` (named bots numbered on repeats). Helpers can't touch the framework repo (permission denied) — the lead/Muzzy ports it.
+- **F43 calls:** an AI seat is named after its personality ("The Survivor", repeats "The Survivor 2"); no "Surprise me" online yet (its name would give it away) — Ideas.
+- **F43 lobby:** the host's "Add an AI player" card (next seat's glyphling, personality ◀ ▶ with its bio — sized to the longest bio like New Game — skill, Add AI) sits under the players; an AI row reads "The Survivor / 🤖 First Class" with a ✕ Remove for the host only. UI kit change (game copy, src/ui/kit — port to framework ui-kit): LobbyPlayer `detail` + `bot` (no Ready badge — bots always are), Lobby `onRemove` (the host's ✕ on bots). rooms.json allowBots → true.

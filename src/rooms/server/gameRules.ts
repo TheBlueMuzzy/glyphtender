@@ -70,6 +70,12 @@ export interface GameRules<State, Options, Action, View, Event = never> {
   viewFor(state: State, seat: Seat): View
   /** Is the game finished? (The room then goes to "over": rematch or back to the lobby.) */
   isOver(state: State): boolean
+  /**
+   * Optional: the host asks for a particular bot (add_bot's `profile`, e.g. "Survivor/FirstClass") → the profile to keep
+   * on the seat and the bot's name (the room numbers repeats: "Ada", "Ada 2"). Throw to refuse it. Without this,
+   * profiles are ignored and bots are "Bot 1", "Bot 2"…
+   */
+  botProfile?(profile: string): { profile: string; name: string }
   /** Optional: a seat changed mid-game (see SeatChange) → the new state. E.g. start a bot's turn. */
   onSeatChange?(state: State, seat: Seat, change: SeatChange, room: RoomTools<State, Event>): State
 }

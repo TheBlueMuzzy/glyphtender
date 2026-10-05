@@ -1,2 +1,2 @@
 0.2.0
-commit 967ae5c
+commit 967ae5c + F43 local change (bot profiles: add_bot profile, Seat.profile, GameRules.botProfile) — port to framework rooms
