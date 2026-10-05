@@ -568,8 +568,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     landBotDraft: () => {
-      const { botDraft, game, seats } = get()
+      const { botDraft, game, seats, online } = get()
       if (!botDraft) return
+      // Online: another seat's draft (onlinePlay.ts) has travelled — the replay shows its change now (F43)
+      if (online) return void (set({ botDraft: null }), online.landed())
       if (game && isLocalBot(seats[game.current])) draftAt(botDraft) // (it clears botDraft with the rest of the plan)
       if (get().botDraft) set({ botDraft: null }) // (refused, or the game moved on meanwhile)
     },

@@ -18,7 +18,7 @@ import { useGameStore } from './gameStore'
 import { actionRefused, connectOnline, receiveView, REPLAY_SEED, roomSeatsChanged, stopOnline } from './onlinePlay'
 import { boardHighlight, castOptions, dropKind, TRAY_GAP } from './turnPlan'
 import { boardTrail } from './trail'
-import { canPlayNow } from './myTurn'
+import { canPlayNow, isBusy } from './myTurn'
 import { pulsingGlyphlings } from './turnPulse'
 
 let words: WordList
@@ -99,10 +99,11 @@ beforeEach(() => {
 })
 afterEach(() => vi.useRealTimers())
 
-/** Both players place their glyphlings (Yellow through the store's taps). */
+/** Both players place their glyphlings (Yellow through the store's taps; Blue's travels out of the tray and lands). */
 function finishDraft() {
   while (store().game!.phase === 'draft') {
-    if (store().game!.current === 0) store().tapHex(legalDraftHexes(store().game!)[0])
+    if (store().botDraft) store().landBotDraft() // (the screen's useBotDraft does this when the travel ends)
+    else if (store().game!.current === 0) store().tapHex(legalDraftHexes(store().game!)[0])
     else bluePlays()
     deliver()
   }
@@ -133,6 +134,20 @@ describe('online store — starting and the draft', () => {
     expect(store().waiting).toBe(false)
     expect(store().game!.glyphlings).toHaveLength(1)
     expect(store().online!.version).toBe(1)
+  })
+
+  it("F43: Blue's placement travels out of the tray like a person's drag (useBotDraft), then it's shown", () => {
+    store().tapHex(legalDraftHexes(store().game!)[0])
+    deliver()
+    bluePlays()
+    deliver()
+    const hex = store().botDraft
+    expect(hex).not.toBeNull() // travelling (the screen moves the drag layer's piece from the tray)
+    expect(store().game!.glyphlings).toHaveLength(1) // not on the board yet
+    expect(isBusy(store())).toBe(true) // nothing can be touched meanwhile
+    store().landBotDraft()
+    expect(store().botDraft).toBeNull()
+    expect(store().game!.glyphlings.map((g) => [g.seat, g.hex])).toEqual([[0, expect.anything()], [1, hex]])
   })
 
   it("Blue's placement: dragging my waiting glyphling over a glowing hex is no \"drop here\" (it isn't my turn)", () => {
@@ -527,6 +542,7 @@ describe('online store — the feed (F31): every change played once, in order', 
   function playOut() {
     for (let i = 0; i < 200; i++) {
       if (store().flying) store().finishCast()
+      if (store().botDraft) store().landBotDraft() // (a rival's placement travelled — useBotDraft on the screen)
       vi.advanceTimersByTime(250)
     }
   }

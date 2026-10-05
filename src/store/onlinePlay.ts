@@ -13,7 +13,10 @@
 //     trail draws on in their colour and holds (trail.ts; anim.json trailLead + trailHold), the glyphling glides
 //     from → to, the throw starts after glideSeconds, lands — then the change is shown and the runeblossom
 //     sprouts and scores; the trail is gone with the landing. Views that arrive meanwhile wait in the inbox.
-//   · Anything else (draft placements, refreshes) is simply shown.
+//   · Another seat's DRAFT placement (a person's or an AI's — or one the server made for me) travels out of the tray
+//     to its hex the way a person's drag does (F43: store.botDraft → game/useBotDraft.ts, the glide's timings — the
+//     same as an AI's draft on this device, F50), then the change is shown.
+//   · Anything else (refreshes) is simply shown.
 //   · The LAST change of a view shows the view itself (the server's truth). A change before it (two came in one
 //     view) is shown by putting its public facts on the game on screen (happened.ts showChange).
 //   · MY refresh plays out on my own tray (B011, refreshFx.ts): the set-aside seeds shrink while the action
@@ -111,7 +114,7 @@ function startFrom(view: GameView) {
   const seats = onlineSeats(view.names, view.mySeat, roomSeats)
   set({
     game, online, seats, waiting: false, flying: false, handoff: null, revealAt: null, landed: null, refreshFx: null, trail: null, scoring: null, happened: null,
-    move: null, cast: null, selected: null, setAside: [], note: null,
+    move: null, cast: null, selected: null, setAside: [], note: null, botDraft: null,
     options: {
       players: game.config.players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: false,
       wordIndicators: view.options?.wordIndicators ?? true, // the host's choice, the same on every screen
@@ -149,6 +152,8 @@ function showNext() {
     const last = playing.changes.length === 0
     if (last) playing = null
     if (canReplay(game, change, view)) return startReplay(view, change, last)
+    const placed = eventOf(change.events, 'placed')
+    if (placed && !answersMe(view, change) && !reduceMotion() && canDraftReplay(game, placed)) return startDraftReplay(view, change, last, placed.hex)
     show(view, change, last)
   }
 }
@@ -228,6 +233,21 @@ function jumpTo(view: GameView) {
 
 /** The stand-in id of another player's seed while its throw is replayed (startReplay) — no real seed has this id. */
 export const REPLAY_SEED = 'replay'
+
+// ─── Another player's draft placement, played out ───────────────────
+
+/** Is our game the moment just before this placement: the draft, that seat placing, the hex still empty? */
+function canDraftReplay(shown: GameState, placed: { seat: number; hex: { q: number; r: number } }): boolean {
+  const flow = flowOf(shown)
+  return flow.level === 'draft' && mayAct(flow, placed.seat) && !shown.glyphlings.some((g) => sameHex(g.hex, placed.hex))
+}
+
+/** Their glyphling leaves the tray and travels to its hex (useBotDraft); its landing (store.landBotDraft → landed)
+ *  shows the change. */
+function startDraftReplay(view: GameView, change: Happened, last: boolean, hex: { q: number; r: number }) {
+  replaying = { view, change, last }
+  set({ botDraft: hex, move: null, cast: null, selected: null, note: null })
+}
 
 // ─── Another player's turn, played out ──────────────────────────────
 

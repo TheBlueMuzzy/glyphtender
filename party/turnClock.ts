@@ -29,7 +29,8 @@ const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, time
 /** The kind of action (pace.json thinkSeconds) for the step the game is at. */
 const paceKind = (game: GameState) => (game.phase === 'draft' ? 'draft' : game.phase === 'refresh' ? 'refresh' : 'moveCast')
 
-// The AI's thinking for the word list, made once per server copy (the bots keep nothing between decisions)
+// The AI's thinking for the word list, made once per server copy and SHARED by every room on it — safe only because
+// the brain keeps nothing between decisions. Give the AI memory (beliefs, mode stickiness) → key this by room first.
 let thinking: { words: WordList; think: (request: ThinkRequest) => ThinkResult } | null = null
 const thinkingFor = (words: WordList) => (thinking?.words === words ? thinking : (thinking = { words, think: seatThinking(words) })).think
 
