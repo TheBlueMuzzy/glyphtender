@@ -82,7 +82,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -20 }
       ],
       "homeMode": "Focus",
-      "switches": [{ "reading": "myDanger", "atLeast": 6, "to": "Flight" }],
+      "switches": [{ "reading": "myDanger", "atLeast": 6.5, "to": "Flight" }],
       "chattiness": 50,
       "extras": { "nerve": 14, "extraWordBonus": 3 }
     },
@@ -100,7 +100,7 @@
       "goals": ["ESCAPE", "BUILD", "SCORE", "DENY", "DUMP", "STEAL", "TRAP"],
       "nudge": 0.3,
       "focus": 0.8,
-      "steady": { "SCORE": 0.6 },
+      "steady": { "SCORE": 0.3 },
       "shifts": [
         { "reading": "myDanger", "from": 4, "full": 9, "trait": "caution", "by": 30 },
         { "reading": "myDanger", "from": 4, "full": 9, "trait": "aggression", "by": -20 },
@@ -111,7 +111,7 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
       "homeMode": "Flight",
-      "switches": [{ "reading": "myDanger", "atMost": 3, "to": "Focus" }],
+      "switches": [],
       "chattiness": 30,
       "extras": { "nerve": 18, "extraWordBonus": 3 }
     },

@@ -27,17 +27,17 @@
   },
   "personalities": {
     "Scholar": [
-      { "meter": "won", "op": "beats", "against": "Survivor", "value": 0.6, "label": "beats the Survivor (out-spells a cautious player) — rock-paper-scissors" },
+      { "meter": "won", "op": "beats", "against": "Survivor", "value": 0.55, "label": "beats the Survivor (out-spells a cautious player) — rock-paper-scissors" },
       { "meter": "avgWordLength", "op": "tableBest", "label": "longest average word at the table" },
       { "meter": "gotTangled", "op": ">=", "value": 0.5, "label": "gets its glyphlings hemmed in often (it can't see traps coming)" }
     ],
     "Survivor": [
-      { "meter": "won", "op": "beats", "against": "Strategist", "value": 0.6, "label": "beats the Strategist (it can't be caught) — rock-paper-scissors" },
+      { "meter": "won", "op": "beats", "against": "Strategist", "value": 0.55, "label": "beats the Strategist (it can't be caught) — rock-paper-scissors" },
       { "meter": "gotTangled", "op": "tableWorst", "label": "tangled least often at the table" },
       { "meter": "roomToMove", "op": "tableBest", "label": "most room to move at the table" }
     ],
     "Strategist": [
-      { "meter": "won", "op": "beats", "against": "Scholar", "value": 0.6, "label": "beats the Scholar (hems the speller in) — rock-paper-scissors" },
+      { "meter": "won", "op": "beats", "against": "Scholar", "value": 0.55, "label": "beats the Scholar (hems the speller in) — rock-paper-scissors" },
       { "meter": "rivalTangledThisGame", "op": ">=", "value": 0.6, "label": "tangles a rival in at least 60% of games" },
       { "meter": "nearRivalShare", "op": ">=", "value": 0.5, "label": "ends at least half its turns within 2 hexes of a rival glyphling" },
       { "meter": "rivalMovesCut", "op": "tableBest", "label": "cuts the most rival moves per turn at the table" }
