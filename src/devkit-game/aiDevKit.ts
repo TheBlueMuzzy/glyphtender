@@ -7,6 +7,7 @@
 //   validate:  the AI kit's personalityProblems against Glyphtender's 7 goals (goal missing, range upside down…)
 //   watch:     an all-AI game on the real board, notes + beliefs (aiWatch.ts)
 //   runCheck:  the Personality Check in a Web Worker → the report page (aiCheck.ts)
+import { MODES } from '../engine/bot'
 import goalsFile from '../../content/ai/goals.json'
 import paceFile from '../../content/ai/pace.json'
 import personalitiesFile from '../../content/ai/personalities.json'
@@ -38,7 +39,7 @@ export const glyphtenderAi: DevKitAi = {
     { path: 'content/ai/pace.json', data: paceFile },
   ],
   readings: [...READINGS],
-  validate: (p) => personalityProblems(p as unknown as Personality, plugForChecks),
+  validate: (p) => personalityProblems(p as unknown as Personality, plugForChecks, MODES),
   watch: startWatch,
   runCheck: runCheckInWorker,
 }

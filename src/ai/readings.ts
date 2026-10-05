@@ -7,14 +7,15 @@
 //   territory    who reaches each hex first (look.ts): 5 = even with an average rival, 10 = all mine, 0 = none
 //   endNear      tangled glyphlings + glyphlings down to ≤ 1 move, against how many tangles end the game
 //   behind/ahead how far behind / ahead it BELIEVES it is (evidence.ts beliefs): 0 = level, 1 point ≈ 2.5 Magic
+//   garden       its walled garden: hexes ONLY its glyphlings can ever reach (look.ts gardens), 1 point = 2 hexes
 import { getBoard } from '../engine/boards'
 import type { SeatView } from '../engine/rules'
 import type { WordList } from '../engine/types'
 import { beliefsOf } from './evidence'
-import { HARD_LETTERS, VOWELS, hexDistance, mobilityNow, reading, territoryNow } from './look'
+import { HARD_LETTERS, VOWELS, gardens, hexDistance, mobilityNow, reading, territoryNow } from './look'
 
 /** The names, in one place (personalities' shifts must use these). */
-export const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead'] as const
+export const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead', 'garden'] as const
 export type ReadingName = (typeof READINGS)[number]
 
 /** Magic per reading point for behind / ahead. */
@@ -85,5 +86,6 @@ export function readingsFor(view: SeatView, seat: number, words: WordList, belie
     endNear: playing ? endNear(view) : 0,
     behind: reading(-lead / MAGIC_PER_POINT),
     ahead: reading(lead / MAGIC_PER_POINT),
+    garden: playing ? reading(gardens(view)[seat] / 2) : 0,
   }
 }

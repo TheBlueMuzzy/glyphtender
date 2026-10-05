@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { viewFor } from '../engine/rules'
-import { position } from '../engine/testkit'
+import { position, type PositionPlan } from '../engine/testkit'
 import { chanceToHold, threatsFor } from './threats'
 import { officialWords } from './testkit'
 
@@ -16,7 +16,7 @@ describe('threats', () => {
 
   it("finds the rival's likely word spot, and never uses the real hidden seeds", () => {
     // Blue owns C, A on C6-2, C6-3 — CAT / CAB / CAN… on C6-4 next turn, if it holds a finishing letter.
-    const plan = { glyphlings: { 0: 'C4-6', 1: 'C2-3', 2: 'C6-9', 3: 'C10-5' }, seeds: [{}, { 'C6-2': 'C', 'C6-3': 'A' }] } as const
+    const plan: Omit<PositionPlan, 'hands'> = { glyphlings: { 0: 'C4-6', 1: 'C2-3', 2: 'C6-9', 3: 'C10-5' }, seeds: [{}, { 'C6-2': 'C', 'C6-3': 'A' }] }
     const a = position({ ...plan, hands: [['E'], ['T']] })
     const b = position({ ...plan, hands: [['E'], ['Q']] }) // the same view for Yellow: Blue's one seed is '?' either way
     const threatsA = threatsFor(viewFor(a, 0), a, 0, words)

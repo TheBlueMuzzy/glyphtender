@@ -1,4 +1,5 @@
 // The AI's data files (content/ai/) stay in the shapes the brain reads, with a plain-English note for every setting.
+import modesFile from '../../content/ai/modes.json'
 import { describe, expect, it } from 'vitest'
 import type { Personality, Skill } from './kit/types'
 import personalitiesFile from '../../content/ai/personalities.json'
@@ -10,7 +11,7 @@ import { meterNames } from './meters'
 
 const GOALS = ['TRAP', 'SCORE', 'DENY', 'ESCAPE', 'BUILD', 'STEAL', 'DUMP']
 const TRAITS = ['aggression', 'greed', 'spite', 'caution', 'patience', 'opportunism', 'pragmatism']
-const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead']
+const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead', 'garden']
 const IDS = ['Scholar', 'Survivor', 'Strategist'] // the rock-paper-scissors three (Muzzy, 2026-10-04)
 
 const personalities: Personality[] = personalitiesFile.personalities
@@ -118,3 +119,29 @@ describe('pace.json', () => {
     for (const t of Object.values(paceFile.thinkSeconds)) expect(t.min).toBeLessThanOrEqual(t.max)
   })
 })
+
+describe('modes.json (fight · flight · focus)', () => {
+  const modes = modesFile.modes as { id: string; goals: string[]; traits: Record<string, { min: number; max: number }>; sight?: Record<string, number>; steady?: Record<string, number>; focus?: number }[]
+  it('has Fight, Flight and Focus, each a full goal order with sane ranges', () => {
+    expect(modes.map((m) => m.id)).toEqual(['Fight', 'Flight', 'Focus'])
+    for (const m of modes) {
+      expect([...m.goals].sort()).toEqual([...GOALS].sort())
+      for (const r of Object.values(m.traits)) expect(0 <= r.min && r.min <= r.max && r.max <= 100).toBe(true)
+      for (const [goal, v] of Object.entries({ ...(m.sight ?? {}), ...(m.steady ?? {}) })) {
+        expect(GOALS).toContain(goal)
+        expect(v >= 0 && v <= 1).toBe(true)
+      }
+    }
+  })
+  it("every personality has a home mode and switches into real modes on real readings", () => {
+    for (const p of personalities as unknown as { id: string; homeMode: string; switches: { reading: string; to: string }[] }[]) {
+      expect(modes.map((m) => m.id)).toContain(p.homeMode)
+      for (const sw of p.switches) {
+        expect(READINGS).toContain(sw.reading)
+        expect(modes.map((m) => m.id)).toContain(sw.to)
+        expect(sw.to).not.toBe(p.homeMode)
+      }
+    }
+  })
+})
+

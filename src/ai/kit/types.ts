@@ -48,8 +48,33 @@ export interface Personality {
   shifts: Shift[]
   /** 0–100: how likely it is to say something at a banter moment. */
   chattiness: number
+  /** The name of its own (home) mode, for notes ("Focus"). Its own traits / goals / sight ARE that mode. */
+  homeMode?: string
+  /** When to switch heavily into another mode (the game's modes). Checked every decision from the readings. */
+  switches?: ModeSwitch[]
   /** Game-specific numbers (Glyphtender: nerve, vocabulary). */
   extras?: Record<string, number>
+}
+
+/** A MODE (fight · flight · focus…): a whole set of priorities an AI can switch into. Whatever it sets replaces the
+ *  personality's own while the AI is in it (Muzzy, 2026-10-05: "a key personality, but shift into another one
+ *  heavily" — the Scholar is Focus until threatened, then Flight). Games keep their modes as data. */
+export interface Mode {
+  id: string
+  traits?: Record<string, Range>
+  goals?: string[]
+  nudge?: number
+  focus?: number
+  steady?: Record<string, number>
+  sight?: Record<string, number>
+}
+
+/** Switch into `to` when a reading is at least / at most a value. The first switch that matches wins; none → home. */
+export interface ModeSwitch {
+  reading: string
+  atLeast?: number
+  atMost?: number
+  to: string
 }
 
 export interface Skill {
@@ -141,6 +166,8 @@ export interface Decision<Action> {
   mainGoalMattered: boolean
   /** The main goal saw a big moment, so it focused on it. */
   bigMoment: boolean
+  /** The mode it decided in (its home mode's name, or the mode a switch put it in). */
+  mode: string
   chosen: { move: string; score: number; why: string[] }
   /** The next best moves it might have picked instead. */
   alternatives: { move: string; score: number }[]

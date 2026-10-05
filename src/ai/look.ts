@@ -99,34 +99,45 @@ export const mobilityNow = (state: GameState): number[] => remember(boardMemo(st
  * rules), and so how many hexes each seat reaches FIRST — strictly before every other seat. A hex two seats reach in
  * the same number of moves belongs to nobody. Glyphlings and seeds block the way (the movers' own starting hexes too).
  */
-export function territory(state: GameState): number[] {
-  const grid = gridOf(state.config.boardName)
-  const count = grid.cells.length
-  const blocked = new Uint8Array(count)
-  for (const key of Object.keys(state.seeds)) blocked[grid.numberOf.get(key)!] = 1
-  for (const g of state.glyphlings) blocked[grid.numberOf.get(hexKey(g.hex))!] = 1
-  const players = state.config.players
-  const FAR = 9999
-  const distances: Int16Array[] = []
-  for (let seat = 0; seat < players; seat++) {
-    const dist = new Int16Array(count).fill(FAR)
-    let frontier = state.glyphlings.filter((g) => g.seat === seat).map((g) => grid.numberOf.get(hexKey(g.hex))!)
-    for (let step = 1; frontier.length > 0; step++) {
-      const reached: number[] = []
-      for (const from of frontier) {
-        for (let dir = 0; dir < 6; dir++) {
-          // Slide along the line until something is in the way (a hex reached already doesn't stop the slide).
-          for (let c = grid.next[from * 6 + dir]; c >= 0 && !blocked[c]; c = grid.next[c * 6 + dir]) {
-            if (dist[c] !== FAR) continue
-            dist[c] = step
-            reached.push(c)
+const FAR = 9999
+
+/** For each seat, how many moves its glyphlings need to reach each cell (FAR = never), remembered per board. */
+function reachDistances(state: GameState): Int16Array[] {
+  return remember(boardMemo(state), 'reachDistances', () => {
+    const grid = gridOf(state.config.boardName)
+    const count = grid.cells.length
+    const blocked = new Uint8Array(count)
+    for (const key of Object.keys(state.seeds)) blocked[grid.numberOf.get(key)!] = 1
+    for (const g of state.glyphlings) blocked[grid.numberOf.get(hexKey(g.hex))!] = 1
+    const players = state.config.players
+    const distances: Int16Array[] = []
+    for (let seat = 0; seat < players; seat++) {
+      const dist = new Int16Array(count).fill(FAR)
+      let frontier = state.glyphlings.filter((g) => g.seat === seat).map((g) => grid.numberOf.get(hexKey(g.hex))!)
+      for (let step = 1; frontier.length > 0; step++) {
+        const reached: number[] = []
+        for (const from of frontier) {
+          for (let dir = 0; dir < 6; dir++) {
+            // Slide along the line until something is in the way (a hex reached already doesn't stop the slide).
+            for (let c = grid.next[from * 6 + dir]; c >= 0 && !blocked[c]; c = grid.next[c * 6 + dir]) {
+              if (dist[c] !== FAR) continue
+              dist[c] = step
+              reached.push(c)
+            }
           }
         }
+        frontier = reached
       }
-      frontier = reached
+      distances.push(dist)
     }
-    distances.push(dist)
-  }
+    return distances
+  })
+}
+
+export function territory(state: GameState): number[] {
+  const count = gridOf(state.config.boardName).cells.length
+  const players = state.config.players
+  const distances = reachDistances(state)
   const owned = Array(players).fill(0)
   for (let c = 0; c < count; c++) {
     let best = FAR
@@ -160,6 +171,21 @@ function gridOf(boardName: string): Grid {
   const grid = { cells: board.cells, numberOf, next }
   grids.set(boardName, grid)
   return grid
+}
+
+/** WALLED GARDENS: for each seat, how many hexes its glyphlings can reach that NO rival glyphling can reach at all —
+ *  ground only it can ever play in (the original's "closed off areas that only I have access to"). */
+export function gardens(state: GameState): number[] {
+  const distances = reachDistances(state)
+  const count = gridOf(state.config.boardName).cells.length
+  return distances.map((mine, seat) => {
+    let only = 0
+    for (let c = 0; c < count; c++) {
+      if (mine[c] === FAR) continue
+      if (distances.every((d, s) => s === seat || d[c] === FAR)) only++
+    }
+    return only
+  })
 }
 
 /** Territory on this board, remembered. */

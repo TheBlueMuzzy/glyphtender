@@ -9,7 +9,8 @@ import { greedyAction } from './sim'
 import type { Action, WordList } from './types'
 import type { Bot } from '../table/seats'
 import { asBot, makeBrain } from '../ai/kit/brain'
-import type { Decision, Personality, Skill } from '../ai/kit/types'
+import type { Decision, Mode, Personality, Skill } from '../ai/kit/types'
+import modesFile from '../../content/ai/modes.json'
 import { glyphtenderPlug } from '../ai/plug'
 
 /** The greedy bot for this word list. `view` must be the bot's own seat's view (rules.viewFor(game, seat)). */
@@ -18,6 +19,9 @@ export const greedyBot = (words: WordList): Bot<SeatView, Action> => (view, _sea
 /** The AI (beta): a brain (src/ai/kit/brain.ts) with Glyphtender's instincts (src/ai/plug.ts), one personality and one
  *  skill (data: content/ai/). `onDecision` hears each decision's note (Dev Kit, the arena, bug reports — never players).
  *  Like greedyBot it sees only `view` = rules.viewFor(game, seat). (The server keeps greedyBot until F43.) */
+/** Glyphtender's AI modes — fight · flight · focus (content/ai/modes.json; personalities switch into them). */
+export const MODES = modesFile.modes as unknown as Mode[] // (JSON infers each mode separately; the shape is checked in aiContent.test)
+
 export function aiBot(personality: Personality, skill: Skill, words: WordList, onDecision?: (decision: Decision<Action>, seat: number) => void): Bot<SeatView, Action> {
-  return asBot(makeBrain(glyphtenderPlug(words, skill.beliefNoise), personality, skill), onDecision)
+  return asBot(makeBrain(glyphtenderPlug(words, skill.beliefNoise), personality, skill, MODES), onDecision)
 }

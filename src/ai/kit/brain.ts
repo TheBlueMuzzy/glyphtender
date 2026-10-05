@@ -15,7 +15,7 @@
 //   8. Explain— a Decision with a plain-English note (Dev Kit, bug reports — never players).
 // It only ever sees the view it's given. All its randomness comes from the rng it's given (same game → same moves).
 import { nextRandom, randomBetween, shuffle, weightedPick } from './random'
-import type { Context, Decision, GamePlug, Personality, Range, Skill } from './types'
+import type { Context, Decision, GamePlug, Mode, Personality, Range, Skill } from './types'
 
 export interface Brain<View, Action> {
   decide(view: View, seat: number, rng: number): { action: Action; rng: number; decision: Decision<Action> }
@@ -25,8 +25,12 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 const round = (v: number) => Math.round(v * 100) / 100
 
 /** Plain-English problems with a personality for this game ([] = fine). The editor and the brain both use it. */
-export function personalityProblems<View, Action, World>(p: Personality, plug: GamePlug<View, Action, World>): string[] {
+export function personalityProblems<View, Action, World>(p: Personality, plug: GamePlug<View, Action, World>, modes: Mode[] = []): string[] {
   const problems: string[] = []
+  for (const sw of p.switches ?? []) {
+    if (!modes.some((m) => m.id === sw.to)) problems.push(`${p.id}: switches to mode "${sw.to}", which isn't one of the game's modes (${modes.map((m) => m.id).join(', ') || 'none'})`)
+  }
+  for (const m of modes) for (const id of m.goals ?? []) if (!plug.goals.some((g) => g.id === id)) problems.push(`mode ${m.id}: goal "${id}" isn't one of this game's goals`)
   const goalIds = plug.goals.map((g) => g.id)
   for (const id of p.goals) if (!goalIds.includes(id)) problems.push(`${p.id}: goal "${id}" isn't one of this game's goals (${goalIds.join(', ')})`)
   for (const g of plug.goals) {
@@ -43,6 +47,30 @@ export function personalityProblems<View, Action, World>(p: Personality, plug: G
     if (!(v >= 0 && v <= 1)) problems.push(`${p.id}: sight ${goal} ${v} must be 0–1`)
   }
   return problems
+}
+
+/** The mode for this decision: the first switch whose reading matches, else home (null). */
+export function modeFor(p: Personality, readings: Record<string, number>, modes: Mode[]): Mode | null {
+  for (const sw of p.switches ?? []) {
+    const r = readings[sw.reading]
+    if (r === undefined) continue
+    if ((sw.atLeast === undefined || r >= sw.atLeast) && (sw.atMost === undefined || r <= sw.atMost)) return modes.find((m) => m.id === sw.to) ?? null
+  }
+  return null
+}
+
+/** The personality as it plays in a mode: the mode's settings replace its own (traits trait by trait). */
+export function inMode(p: Personality, mode: Mode | null): Personality {
+  if (!mode) return p
+  return {
+    ...p,
+    traits: { ...p.traits, ...(mode.traits ?? {}) },
+    goals: mode.goals ?? p.goals,
+    nudge: mode.nudge ?? p.nudge,
+    focus: mode.focus ?? p.focus,
+    steady: mode.steady ?? p.steady,
+    sight: mode.sight ?? p.sight,
+  }
 }
 
 /** This turn's trait ranges: the personality's, blurred by skill.wobble, moved by the mood shifts. */
@@ -81,8 +109,8 @@ export function rollGoal(goalOrder: string[], traitOf: (goal: string) => string,
   return { goal: goalOrder[0], rolls, rng: pos }
 }
 
-export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, World>, personality: Personality, skill: Skill): Brain<View, Action> {
-  const problems = personalityProblems(personality, plug)
+export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, World>, home: Personality, skill: Skill, modes: Mode[] = []): Brain<View, Action> {
+  const problems = personalityProblems(home, plug, modes)
   if (problems.length) throw new Error(`This personality doesn't fit the game: ${problems.join('; ')}`)
   const goalById = new Map(plug.goals.map((g) => [g.id, g]))
   const traitOf = (goal: string) => goalById.get(goal)!.trait
@@ -92,6 +120,11 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
       let pos = rng
       // 1–2. Feel + lean.
       const readings = plug.readings(view, seat)
+      // 0. Which mode? A switch can put it heavily into another one (the Scholar threatened → Flight).
+      const mode = modeFor(home, readings, modes)
+      const personality = inMode(home, mode)
+      const modeName = mode?.id ?? home.homeMode ?? home.id
+      const modeText = mode ? ` [${mode.id}]` : ''
       const { ranges, shifts } = shiftedRanges(personality, skill, readings)
       const traits: Record<string, number> = {}
       for (const [trait, r] of Object.entries(ranges)) {
@@ -115,11 +148,11 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
         pos = s.rng
         if (s.special) {
           const move = plug.describe(s.special.action, worlds[0])
-          const note = `${personality.id} — ${s.special.goal}: ${move} (${s.special.why})`
+          const note = `${personality.id}${modeText} — ${s.special.goal}: ${move} (${s.special.why})`
           return {
             action: s.special.action,
             rng: pos,
-            decision: { action: s.special.action, goal: s.special.goal, rolls: [], readings, shifts, traits, considered: 1, mainGoalMattered: true, bigMoment: false, chosen: { move, score: 1, why: [s.special.why] }, alternatives: [], note },
+            decision: { action: s.special.action, goal: s.special.goal, rolls: [], readings, shifts, traits, considered: 1, mainGoalMattered: true, bigMoment: false, mode: modeName, chosen: { move, score: 1, why: [s.special.why] }, alternatives: [], note },
           }
         }
       }
@@ -193,7 +226,7 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
       const shiftText = shifts.length ? `; moods: ${shifts.map((s) => `${s.trait} ${s.by > 0 ? '+' : ''}${s.by} (${s.because})`).join(', ')}` : ''
       const flat = scored[0].mattered ? '' : ` (${main.id} saw no difference — the other goals chose)`
       const big = bigMoment && (personality.focus ?? 0) > 0 && main.bigAt !== undefined ? ' Big moment — went for it.' : ''
-      const note = `${personality.id} rolled ${main.id} (${rollText}${shiftText}).${big} ${move}${why.length ? ' — ' + why.join('; ') : ''}${flat}. Looked at ${actions.length}.`
+      const note = `${personality.id}${modeText} rolled ${main.id} (${rollText}${shiftText}).${big} ${move}${why.length ? ' — ' + why.join('; ') : ''}${flat}. Looked at ${actions.length}.`
       return {
         action: actions[chosenIndex],
         rng: pos,
@@ -207,6 +240,7 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
           considered: actions.length,
           mainGoalMattered: scored[0].mattered,
           bigMoment,
+          mode: modeName,
           chosen: { move, score: round(combined[chosenIndex]), why },
           alternatives: order.filter((i) => i !== chosenIndex).slice(0, 3).map((i) => ({ move: plug.describe(actions[i], worlds[0]), score: round(combined[i]) })),
           note,

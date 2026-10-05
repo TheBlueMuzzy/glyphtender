@@ -13,6 +13,8 @@
     "goals": "The goal roll walks this list in order: each goal rolls against its trait; the first to succeed is the turn's main goal (all fail → the first one).",
     "nudge": "0–1. How much the OTHER goals count when scoring a move: each adds up to nudge × its trait ÷ 100. 0 = only the main goal (the original AI); higher = it favours two-birds moves.",
     "focus": "0–1. How single-minded at a BIG MOMENT (its main goal's best move reaches that goal's bar in goals.json): only moves at least this good for the main goal are considered (0 = any move, 1 = only the best); the other goals just break ties — it pounces. On ordinary turns it blends.",
+    "homeMode": "Its home mode's name — its own settings here ARE that mode (Scholar = Focus, Survivor = Flight, Strategist = Fight).",
+    "switches": "When it switches HEAVILY into another mode (content/ai/modes.json): the first switch whose reading is at least / at most the value wins; none → its home mode. Readings: myDanger, rivalDanger, fill, territory, garden (walled garden: hexes only it can reach, 1 point = 2 hexes), behind, ahead, handQuality, endNear.",
     "sight": "0–1 per goal: how clearly it judges that kind of move (missing = 1, sees clearly). Low sight blurs those scores, so it misjudges them — the Scholar can't see a trap closing on it. How many WORDS it knows comes from the skill (Apprentice … Archmage), never the personality.",
     "steady.SCORE": "0–1. How much EVERY move also tries to score, whatever goal it rolled (Muzzy: \"try to score, but also try to bully\"). 0 = only when it rolled SCORE.",
     "shifts": "Mood shifts: when a reading (0–10) climbs from `from` to `full`, the trait's whole range moves by up to `by`. `from` above `full` = it grows as the reading FALLS. Readings: myDanger, rivalDanger, fill (board fill), behind / ahead (believed Magic gap), handQuality (10 = great), territory, endNear.",
@@ -34,6 +36,8 @@
     "nudge": "Two-birds nudge from the other goals (0–1)",
     "focus": "Focus at a big moment (0–1)",
     "steady": "Goals every move also tries for",
+    "homeMode": "Home mode (its own settings)",
+    "switches": "Mode switches",
     "sight": "How clearly it sees each kind of move (0–1)",
     "sight.TRAP": "Sees traps / pincers (0–1)",
     "sight.ESCAPE": "Sees danger to itself (0–1)",
@@ -46,7 +50,7 @@
     "extras.extraWordBonus": "SCORE: bonus per extra word in one cast"
   },
   "_sections": {
-    "AI: who it is": ["id", "goals", "nudge", "focus", "steady", "sight"],
+    "AI: who it is": ["id", "homeMode", "switches", "goals", "nudge", "focus", "steady", "sight"],
     "AI: traits": ["traits"],
     "AI: mood shifts": ["shifts"],
     "AI: banter, nerve & words": ["chattiness", "extras"]
@@ -77,6 +81,8 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 20 },
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -20 }
       ],
+      "homeMode": "Focus",
+      "switches": [{ "reading": "myDanger", "atLeast": 6, "to": "Flight" }],
       "chattiness": 50,
       "extras": { "nerve": 14, "extraWordBonus": 3 }
     },
@@ -104,6 +110,8 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 15 },
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
+      "homeMode": "Flight",
+      "switches": [{ "reading": "myDanger", "atMost": 3, "to": "Focus" }],
       "chattiness": 30,
       "extras": { "nerve": 18, "extraWordBonus": 3 }
     },
@@ -131,6 +139,8 @@
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 15 },
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
       ],
+      "homeMode": "Fight",
+      "switches": [{ "reading": "garden", "atLeast": 5, "to": "Focus" }],
       "chattiness": 70,
       "extras": { "nerve": 6, "extraWordBonus": 3 }
     }
