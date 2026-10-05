@@ -36,8 +36,13 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['score', 'e2e/score-sequence.mjs', 'e2e-shots 5407'],
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
-  ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
+]
+
+// Checks that WRITE game files (the Dev Kit's Save → content/ai/…) reload every other check's dev server, so they run
+// on their own after the others.
+const ALONE = [
+  ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
 ]
 
 const args = process.argv.slice(2)
@@ -46,9 +51,10 @@ const jobsAt = args.indexOf('--jobs')
 const JOBS = jobsAt >= 0 ? Number(args[jobsAt + 1]) : 3
 const only = args.slice(1).filter((a, i, all) => a !== '--jobs' && all[i - 1] !== '--jobs')
 const e2e = only.length ? E2E.filter(([name]) => only.includes(name)) : E2E
-const unknown = only.filter((n) => !E2E.some(([name]) => name === n))
+const alone = only.length ? ALONE.filter(([name]) => only.includes(name)) : ALONE
+const unknown = only.filter((n) => ![...E2E, ...ALONE].some(([name]) => name === n))
 if (unknown.length) {
-  console.log(`Unknown e2e name(s): ${unknown.join(', ')}. Known: ${E2E.map(([n]) => n).join(', ')}`)
+  console.log(`Unknown e2e name(s): ${unknown.join(', ')}. Known: ${[...E2E, ...ALONE].map(([n]) => n).join(', ')}`)
   process.exit(1)
 }
 mkdirSync('e2e-shots/logs', { recursive: true })
@@ -89,8 +95,9 @@ console.log(`Fast checks (${FAST.length}, together):`)
 const results = await pool(FAST, FAST.length)
 if (tier === 'full') {
   if (results.every((r) => r.ok)) {
-    console.log(`\nFull checks (${e2e.length}, ${JOBS} at a time):`)
+    console.log(`\nFull checks (${e2e.length} at ${JOBS} at a time, then ${alone.length} alone):`)
     results.push(...(await pool(e2e.map(([name, script, a]) => [name, `node ${script} ${a}`]), JOBS)))
+    results.push(...(await pool(alone.map(([name, script, a]) => [name, `node ${script} ${a}`]), 1))) // (one at a time, after the rest)
   } else {
     console.log('\nA fast check failed — fix that first (the e2e scripts would only repeat it).')
   }

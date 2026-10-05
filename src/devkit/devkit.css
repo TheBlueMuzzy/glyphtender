@@ -7,7 +7,7 @@
   right: 0;
   bottom: 0;
   z-index: 2147483000; /* above everything in the game */
-  width: min(380px, 46vw);
+  width: min(440px, 46vw); /* 6 tool tabs fit in one row on a desktop (AI tab, 0.6.1) */
   min-width: 300px;
   display: flex;
   flex-direction: column;
@@ -45,7 +45,7 @@
   background: none;
   border: 1px solid transparent;
   border-radius: 6px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   cursor: pointer;
 }
 .devkit-tab[aria-selected='true'] { background: #2c2e3a; border-color: #4a4c5c; }
