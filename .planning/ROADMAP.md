@@ -145,14 +145,14 @@ Goal: play solo or fill any seat (2–4, local or online) with an AI that feels 
   why: Muzzy tunes by eye ("select a personality, tweak the values")
 - ✅ F42 🎮 Play vs AI: New Game seat = Human / AI (personality card + skill, "Surprise me"), thinking cue, human pace + Settings → AI speed, no handoff for bots, background thinking — must:beta · needs: F40, framework F20, framework F21
   why: solo play any time → the primary target (Hunted, but cozy) is reachable alone
-- 🟢 F43 🎮 Online AI: idle takeover plays as the AI (replaces the greedy bot), server-side thinking within its CPU budget; host can add AI seats in the lobby (should — F37) — must:beta · needs: F42
-- ⏳ F44 🎮 Banter bubbles: big moments → a short gentle line by the AI's chip; lines drafted by Claude, tone checked by Muzzy — must:beta · needs: F40, framework F22, ~F37
+- 🟢 F43 🎮 Online AI — NEXT (Muzzy 2026-10-05: "online AI definitely run that — auto mode"): idle takeover plays as the AI (replaces the greedy bot), server-side thinking within its CPU budget; host can add AI seats in the lobby (should — F37) — must:beta · needs: F42
+- ⏳ F44 🎮 AI emotes (was: banter bubbles) — LOW priority, could · needs: framework Emote module (see Later). Muzzy 2026-10-05: banter "should honestly not be part of AI, as it should be an emote module… players send predefined messages like MTG Arena or Hearthstone. The AI would then just tap into that, with specialized triggers and frequency tuning in the AI module" → the AI kit's banter.ts becomes the AI's emote triggers + frequency once the Emote module exists
   why: gentle mischief → Fellowship with a computer; "even the Bully is mischievous, not mean"
 - 🎛️ F45 🎛️ Personality Check pass: tune all 7 until feel targets are green, tell-apart ≥ 70%, everyone wins 35–65% vs Balanced, skill ladder holds; settles vocabulary tiers (GDD §9) — must:beta · needs: F41
   why: proves each personality *feels* like itself, not just that its numbers are set (D72)
 - ⏳ F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45
 - ⏳ F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45
-- 🟢 F48 🎮 Basic audio: placeholder sounds for move, cast, grow, score pops, tangle, reveal; volume in Settings — must:beta
+- (F48 Basic audio moved OUT of the AI milestone — Muzzy 2026-10-05: "that's its own sprint, and a module will come of that as well" → see Later)
   why: the score pops and tangles land harder with sound → Cozy cleverness payoff
 - ⏳ F49 🔧 "What wins?" report for Glyphtender (needs framework F25) — should · needs: F45
 ```mermaid
@@ -174,10 +174,11 @@ flowchart LR
   F45 --> F46[❓ F46 Sims settle §9]
   F45 --> F47[F47 Award re-tune]
   F45 --> F49[F49 What wins?]
-  F48[F48 Basic audio]
 ```
 
 ## Later
+- **Audio milestone (own sprint + a framework Audio module)** — F48 basic audio: move, cast, grow, score pops, tangle, reveal; volume in Settings — must:beta (Muzzy 2026-10-05: its own sprint, a module will come of it)
+- **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
 - **1.0:** tutorial · accessibility pass · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
 - **Should:** board themes · colour preference · random starting player · hint · topiary-grow cast effect
