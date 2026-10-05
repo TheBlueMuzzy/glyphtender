@@ -1,0 +1,1278 @@
+{
+  "_help": "A Dev Kit snapshot: press ` → Snapshots → Restore to jump here.",
+  "name": "first-game-with-AI",
+  "savedAt": "2026-10-05T05:17:43.185Z",
+  "game": "Glyphtender",
+  "version": "0.4.0.0",
+  "summary": "turn 33 · over · winner Blue · 2 tangled",
+  "state": {
+    "game": {
+      "config": {
+        "players": 2,
+        "boardName": "small",
+        "seed": 2061447408,
+        "rules": { "handSize": 8, "minWordLength": 3, "ownershipBonus": 1, "tangleBonus": 3, "tanglesToEnd": 2 }
+      },
+      "phase": "over",
+      "current": 0,
+      "draftOrder": [0, 1, 1, 0],
+      "draftIndex": 4,
+      "glyphlings": [
+        {
+          "id": 0,
+          "seat": 0,
+          "hex": { "q": 5, "r": -2 }
+        },
+        {
+          "id": 2,
+          "seat": 1,
+          "hex": { "q": 6, "r": 0 }
+        },
+        {
+          "id": 3,
+          "seat": 1,
+          "hex": { "q": 6, "r": -7 }
+        },
+        {
+          "id": 1,
+          "seat": 0,
+          "hex": { "q": 8, "r": -3 }
+        }
+      ],
+      "seeds": {
+        "6,-2": { "letter": "O", "id": "seed-78", "seat": 0 },
+        "4,-2": { "letter": "L", "id": "seed-57", "seat": 1 },
+        "4,0": { "letter": "K", "id": "seed-54", "seat": 0 },
+        "3,-1": { "letter": "E", "id": "seed-25", "seat": 1 },
+        "5,-4": { "letter": "W", "id": "seed-114", "seat": 0 },
+        "5,-3": { "letter": "A", "id": "seed-6", "seat": 1 },
+        "6,-4": { "letter": "T", "id": "seed-102", "seat": 0 },
+        "6,-3": { "letter": "O", "id": "seed-74", "seat": 1 },
+        "7,-5": { "letter": "E", "id": "seed-19", "seat": 0 },
+        "5,-1": { "letter": "T", "id": "seed-98", "seat": 1 },
+        "8,-6": { "letter": "S", "id": "seed-94", "seat": 0 },
+        "4,-1": { "letter": "A", "id": "seed-2", "seat": 1 },
+        "2,-1": { "letter": "M", "id": "seed-61", "seat": 0 },
+        "6,-1": { "letter": "S", "id": "seed-89", "seat": 1 },
+        "7,-3": { "letter": "O", "id": "seed-76", "seat": 0 },
+        "7,-4": { "letter": "W", "id": "seed-113", "seat": 1 },
+        "8,-5": { "letter": "D", "id": "seed-17", "seat": 0 },
+        "8,-4": { "letter": "L", "id": "seed-58", "seat": 1 },
+        "10,-5": { "letter": "A", "id": "seed-4", "seat": 0 },
+        "10,-6": { "letter": "O", "id": "seed-79", "seat": 1 },
+        "9,-5": { "letter": "E", "id": "seed-21", "seat": 0 },
+        "8,-2": { "letter": "C", "id": "seed-11", "seat": 1 },
+        "7,-2": { "letter": "R", "id": "seed-87", "seat": 0 },
+        "7,-6": { "letter": "S", "id": "seed-95", "seat": 1 },
+        "9,-7": { "letter": "I", "id": "seed-51", "seat": 0 },
+        "8,-1": { "letter": "I", "id": "seed-48", "seat": 1 },
+        "9,-6": { "letter": "R", "id": "seed-86", "seat": 0 },
+        "9,-8": { "letter": "T", "id": "seed-103", "seat": 1 },
+        "9,-4": { "letter": "D", "id": "seed-14", "seat": 0 },
+        "7,-1": { "letter": "C", "id": "seed-12", "seat": 1 },
+        "9,-2": { "letter": "E", "id": "seed-28", "seat": 0 },
+        "6,-5": { "letter": "L", "id": "seed-60", "seat": 1 },
+        "9,-3": { "letter": "U", "id": "seed-110", "seat": 0 }
+      },
+      "hands": [
+        [
+          { "letter": "A", "id": "seed-3" },
+          { "letter": "M", "id": "seed-62" },
+          { "letter": "N", "id": "seed-65" },
+          { "letter": "E", "id": "seed-24" },
+          { "letter": "X", "id": "seed-115" },
+          { "letter": "E", "id": "seed-20" },
+          { "letter": "L", "id": "seed-59" },
+          { "letter": "S", "id": "seed-92" }
+        ],
+        [
+          { "letter": "E", "id": "seed-23" },
+          { "letter": "A", "id": "seed-1" },
+          { "letter": "G", "id": "seed-37" },
+          { "letter": "D", "id": "seed-16" },
+          { "letter": "E", "id": "seed-32" },
+          { "letter": "P", "id": "seed-80" },
+          { "letter": "Z", "id": "seed-119" },
+          { "letter": "Q", "id": "seed-82" }
+        ]
+      ],
+      "bag": [
+        { "letter": "A", "id": "seed-5" },
+        { "letter": "A", "id": "seed-8" },
+        { "letter": "T", "id": "seed-101" },
+        { "letter": "U", "id": "seed-108" },
+        { "letter": "N", "id": "seed-67" },
+        { "letter": "H", "id": "seed-40" },
+        { "letter": "E", "id": "seed-31" },
+        { "letter": "B", "id": "seed-9" },
+        { "letter": "E", "id": "seed-26" },
+        { "letter": "E", "id": "seed-30" },
+        { "letter": "I", "id": "seed-52" },
+        { "letter": "N", "id": "seed-68" },
+        { "letter": "H", "id": "seed-43" },
+        { "letter": "I", "id": "seed-45" },
+        { "letter": "Y", "id": "seed-118" },
+        { "letter": "O", "id": "seed-75" },
+        { "letter": "N", "id": "seed-64" },
+        { "letter": "G", "id": "seed-36" },
+        { "letter": "W", "id": "seed-112" },
+        { "letter": "R", "id": "seed-83" },
+        { "letter": "T", "id": "seed-104" },
+        { "letter": "Y", "id": "seed-116" },
+        { "letter": "O", "id": "seed-73" },
+        { "letter": "T", "id": "seed-100" },
+        { "letter": "B", "id": "seed-10" },
+        { "letter": "U", "id": "seed-106" },
+        { "letter": "T", "id": "seed-99" },
+        { "letter": "U", "id": "seed-109" },
+        { "letter": "C", "id": "seed-13" },
+        { "letter": "T", "id": "seed-97" },
+        { "letter": "V", "id": "seed-111" },
+        { "letter": "J", "id": "seed-53" },
+        { "letter": "I", "id": "seed-46" },
+        { "letter": "K", "id": "seed-55" },
+        { "letter": "E", "id": "seed-18" },
+        { "letter": "I", "id": "seed-47" },
+        { "letter": "E", "id": "seed-27" },
+        { "letter": "A", "id": "seed-7" },
+        { "letter": "R", "id": "seed-84" },
+        { "letter": "I", "id": "seed-50" },
+        { "letter": "O", "id": "seed-71" },
+        { "letter": "F", "id": "seed-34" },
+        { "letter": "N", "id": "seed-66" },
+        { "letter": "I", "id": "seed-49" },
+        { "letter": "T", "id": "seed-96" },
+        { "letter": "Y", "id": "seed-117" },
+        { "letter": "H", "id": "seed-38" },
+        { "letter": "N", "id": "seed-70" },
+        { "letter": "S", "id": "seed-91" },
+        { "letter": "N", "id": "seed-69" },
+        { "letter": "U", "id": "seed-107" },
+        { "letter": "R", "id": "seed-88" },
+        { "letter": "F", "id": "seed-33" },
+        { "letter": "F", "id": "seed-35" },
+        { "letter": "R", "id": "seed-85" },
+        { "letter": "S", "id": "seed-93" },
+        { "letter": "O", "id": "seed-72" },
+        { "letter": "H", "id": "seed-42" },
+        { "letter": "L", "id": "seed-56" },
+        { "letter": "H", "id": "seed-41" },
+        { "letter": "A", "id": "seed-0" },
+        { "letter": "O", "id": "seed-77" },
+        { "letter": "P", "id": "seed-81" },
+        { "letter": "M", "id": "seed-63" },
+        { "letter": "E", "id": "seed-29" },
+        { "letter": "E", "id": "seed-22" },
+        { "letter": "T", "id": "seed-105" },
+        { "letter": "H", "id": "seed-39" },
+        { "letter": "S", "id": "seed-90" },
+        { "letter": "D", "id": "seed-15" },
+        { "letter": "I", "id": "seed-44" }
+      ],
+      "magic": [62, 64],
+      "tangled": [0, 1],
+      "lastTurn": {
+        "seat": 0,
+        "glyphlingId": 1,
+        "from": { "q": 9, "r": -3 },
+        "to": { "q": 8, "r": -3 },
+        "letter": "U",
+        "target": { "q": 9, "r": -3 },
+        "words": [
+          {
+            "word": "DUE",
+            "hexes": [
+              { "q": 9, "r": -4 },
+              { "q": 9, "r": -3 },
+              { "q": 9, "r": -2 }
+            ],
+            "magic": 6
+          }
+        ],
+        "magic": 6,
+        "drew": 1
+      },
+      "tangleMagic": [0, 21],
+      "winners": [1],
+      "turnCount": 33,
+      "rng": -1680778015,
+      "log": {
+        "turns": [
+          {
+            "turnNo": 1,
+            "round": 1,
+            "seat": 0,
+            "glyphlingId": 0,
+            "from": { "q": 5, "r": -4 },
+            "to": { "q": 5, "r": -2 },
+            "letter": "O",
+            "target": { "q": 6, "r": -2 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 0,
+            "refresh": true,
+            "totalsAfter": [0, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [23, 24, 20, 26],
+              "afterMove": [18, 24, 18, 21],
+              "afterCast": [14, 24, 13, 17]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 2,
+            "round": 1,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 6, "r": -3 },
+            "to": { "q": 5, "r": -3 },
+            "letter": "L",
+            "target": { "q": 4, "r": -2 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 4,
+            "refresh": true,
+            "totalsAfter": [0, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [14, 24, 13, 17],
+              "afterMove": [14, 19, 13, 17],
+              "afterCast": [9, 19, 13, 13]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 3,
+            "round": 2,
+            "seat": 0,
+            "glyphlingId": 0,
+            "from": { "q": 5, "r": -2 },
+            "to": { "q": 4, "r": -1 },
+            "letter": "K",
+            "target": { "q": 4, "r": 0 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 0,
+            "refresh": true,
+            "totalsAfter": [0, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [9, 19, 13, 13],
+              "afterMove": [16, 19, 9, 14],
+              "afterCast": [13, 19, 6, 14]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 4,
+            "round": 2,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 5, "r": -3 },
+            "to": { "q": 6, "r": -4 },
+            "letter": "E",
+            "target": { "q": 3, "r": -1 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [0, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [13, 19, 6, 14],
+              "afterMove": [13, 18, 11, 15],
+              "afterCast": [9, 18, 11, 15]
+            },
+            "castOver": 1,
+            "blocked": null
+          },
+          {
+            "turnNo": 5,
+            "round": 3,
+            "seat": 0,
+            "glyphlingId": 0,
+            "from": { "q": 4, "r": -1 },
+            "to": { "q": 5, "r": -2 },
+            "letter": "W",
+            "target": { "q": 5, "r": -4 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 0,
+            "refresh": true,
+            "totalsAfter": [0, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [9, 18, 11, 15],
+              "afterMove": [14, 18, 6, 15],
+              "afterCast": [10, 18, 6, 10]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 6,
+            "round": 3,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 6, "r": -4 },
+            "to": { "q": 6, "r": -3 },
+            "letter": "A",
+            "target": { "q": 5, "r": -3 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [0, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [10, 18, 6, 10],
+              "afterMove": [5, 20, 6, 17],
+              "afterCast": [4, 19, 6, 12]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 0, "magic": 4, "word": "ELM" }
+          },
+          {
+            "turnNo": 7,
+            "round": 4,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 7, "r": -5 },
+            "to": { "q": 8, "r": -6 },
+            "letter": "T",
+            "target": { "q": 6, "r": -4 },
+            "words": [
+              {
+                "word": "LAT",
+                "letters": ["L", "A", "T"],
+                "owners": [1, 1, 0],
+                "magic": 4,
+                "ownMagic": 1,
+                "hexes": ["4,-2", "5,-3", "6,-4"],
+                "at": 2
+              }
+            ],
+            "magic": 4,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [4, 0],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [4, 19, 6, 12],
+              "afterMove": [4, 17, 6, 12],
+              "afterCast": [4, 16, 6, 7]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 6, "word": "LAT" }
+          },
+          {
+            "turnNo": 8,
+            "round": 4,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 6, "r": -3 },
+            "to": { "q": 8, "r": -5 },
+            "letter": "O",
+            "target": { "q": 6, "r": -3 },
+            "words": [
+              {
+                "word": "TOO",
+                "letters": ["T", "O", "O"],
+                "owners": [0, 1, 0],
+                "magic": 4,
+                "ownMagic": 1,
+                "hexes": ["6,-4", "6,-3", "6,-2"],
+                "at": 1
+              }
+            ],
+            "magic": 4,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [4, 4],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [4, 16, 6, 7],
+              "afterMove": [6, 11, 6, 16],
+              "afterCast": [4, 11, 6, 15]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 0, "magic": 6, "word": "TOO" }
+          },
+          {
+            "turnNo": 9,
+            "round": 5,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 8, "r": -6 },
+            "to": { "q": 9, "r": -7 },
+            "letter": "E",
+            "target": { "q": 7, "r": -5 },
+            "words": [
+              {
+                "word": "ELATE",
+                "letters": ["E", "L", "A", "T", "E"],
+                "owners": [1, 1, 1, 0, 0],
+                "magic": 7,
+                "ownMagic": 2,
+                "hexes": ["3,-1", "4,-2", "5,-3", "6,-4", "7,-5"],
+                "at": 4
+              }
+            ],
+            "magic": 7,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [11, 4],
+            "tangledAfter": [],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [4, 11, 6, 15],
+              "afterMove": [4, 14, 6, 18],
+              "afterCast": [4, 13, 6, 12]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 9, "word": "ELATE" }
+          },
+          {
+            "turnNo": 10,
+            "round": 5,
+            "seat": 1,
+            "glyphlingId": 2,
+            "from": { "q": 5, "r": -1 },
+            "to": { "q": 4, "r": -1 },
+            "letter": "T",
+            "target": { "q": 5, "r": -1 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [11, 4],
+            "tangledAfter": [0],
+            "newlyTangled": [0],
+            "freed": [],
+            "completeTangles": [
+              { "glyphling": 0, "by": null }
+            ],
+            "mobility": {
+              "before": [4, 13, 6, 12],
+              "afterMove": [3, 13, 7, 12],
+              "afterCast": [0, 13, 3, 12]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 11,
+            "round": 6,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -7 },
+            "to": { "q": 9, "r": -6 },
+            "letter": "S",
+            "target": { "q": 8, "r": -6 },
+            "words": [
+              {
+                "word": "ELATES",
+                "letters": ["E", "L", "A", "T", "E", "S"],
+                "owners": [1, 1, 1, 0, 0, 0],
+                "magic": 9,
+                "ownMagic": 3,
+                "hexes": ["3,-1", "4,-2", "5,-3", "6,-4", "7,-5", "8,-6"],
+                "at": 5
+              }
+            ],
+            "magic": 9,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [20, 4],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 13, 3, 12],
+              "afterMove": [0, 14, 3, 10],
+              "afterCast": [0, 8, 3, 7]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 10, "word": "ELATES" }
+          },
+          {
+            "turnNo": 12,
+            "round": 6,
+            "seat": 1,
+            "glyphlingId": 2,
+            "from": { "q": 4, "r": -1 },
+            "to": { "q": 2, "r": 1 },
+            "letter": "A",
+            "target": { "q": 4, "r": -1 },
+            "words": [
+              {
+                "word": "EAT",
+                "letters": ["E", "A", "T"],
+                "owners": [1, 1, 1],
+                "magic": 6,
+                "ownMagic": 3,
+                "hexes": ["3,-1", "4,-1", "5,-1"],
+                "at": 1
+              }
+            ],
+            "magic": 6,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [20, 10],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 8, 3, 7],
+              "afterMove": [2, 8, 16, 7],
+              "afterCast": [0, 8, 15, 7]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 0, "magic": 4, "word": "EAT" }
+          },
+          {
+            "turnNo": 13,
+            "round": 7,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -6 },
+            "to": { "q": 9, "r": -8 },
+            "letter": "M",
+            "target": { "q": 2, "r": -1 },
+            "words": [
+              {
+                "word": "MEAT",
+                "letters": ["M", "E", "A", "T"],
+                "owners": [0, 1, 1, 1],
+                "magic": 5,
+                "ownMagic": 1,
+                "hexes": ["2,-1", "3,-1", "4,-1", "5,-1"],
+                "at": 0
+              }
+            ],
+            "magic": 5,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [25, 10],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 8, 15, 7],
+              "afterMove": [0, 12, 15, 9],
+              "afterCast": [0, 12, 10, 9]
+            },
+            "castOver": 1,
+            "blocked": { "seat": 1, "magic": 8, "word": "TEAT" }
+          },
+          {
+            "turnNo": 14,
+            "round": 7,
+            "seat": 1,
+            "glyphlingId": 2,
+            "from": { "q": 2, "r": 1 },
+            "to": { "q": 4, "r": 1 },
+            "letter": "S",
+            "target": { "q": 6, "r": -1 },
+            "words": [
+              {
+                "word": "MEATS",
+                "letters": ["M", "E", "A", "T", "S"],
+                "owners": [0, 1, 1, 1, 1],
+                "magic": 9,
+                "ownMagic": 4,
+                "hexes": ["2,-1", "3,-1", "4,-1", "5,-1", "6,-1"],
+                "at": 4
+              }
+            ],
+            "magic": 9,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [25, 19],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 12, 10, 9],
+              "afterMove": [0, 12, 14, 9],
+              "afterCast": [0, 12, 9, 9]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 15,
+            "round": 8,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -8 },
+            "to": { "q": 9, "r": -5 },
+            "letter": "O",
+            "target": { "q": 7, "r": -3 },
+            "words": [
+              {
+                "word": "TOO",
+                "letters": ["T", "O", "O"],
+                "owners": [1, 0, 0],
+                "magic": 5,
+                "ownMagic": 2,
+                "hexes": ["5,-1", "6,-2", "7,-3"],
+                "at": 2
+              }
+            ],
+            "magic": 5,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [30, 19],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 12, 9, 9],
+              "afterMove": [0, 10, 9, 7],
+              "afterCast": [0, 9, 9, 7]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 5, "word": "TOE" }
+          },
+          {
+            "turnNo": 16,
+            "round": 8,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 8, "r": -5 },
+            "to": { "q": 9, "r": -6 },
+            "letter": "W",
+            "target": { "q": 7, "r": -4 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 4,
+            "refresh": true,
+            "totalsAfter": [30, 19],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 9, 9, 7],
+              "afterMove": [0, 7, 9, 6],
+              "afterCast": [0, 7, 9, 5]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 0, "magic": 6, "word": "EMO" }
+          },
+          {
+            "turnNo": 17,
+            "round": 9,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -5 },
+            "to": { "q": 10, "r": -5 },
+            "letter": "D",
+            "target": { "q": 8, "r": -5 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 0,
+            "refresh": true,
+            "totalsAfter": [30, 19],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 7, 9, 5],
+              "afterMove": [0, 8, 9, 9],
+              "afterCast": [0, 7, 9, 8]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 6, "word": "OWE" }
+          },
+          {
+            "turnNo": 18,
+            "round": 9,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 9, "r": -6 },
+            "to": { "q": 10, "r": -6 },
+            "letter": "L",
+            "target": { "q": 8, "r": -4 },
+            "words": [
+              {
+                "word": "TOOL",
+                "letters": ["T", "O", "O", "L"],
+                "owners": [1, 0, 0, 1],
+                "magic": 6,
+                "ownMagic": 2,
+                "hexes": ["5,-1", "6,-2", "7,-3", "8,-4"],
+                "at": 3
+              }
+            ],
+            "magic": 6,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [30, 25],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 7, 9, 8],
+              "afterMove": [0, 5, 9, 4],
+              "afterCast": [0, 5, 9, 3]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 19,
+            "round": 10,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 10, "r": -5 },
+            "to": { "q": 9, "r": -5 },
+            "letter": "A",
+            "target": { "q": 10, "r": -5 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 0,
+            "refresh": true,
+            "totalsAfter": [30, 25],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 5, 9, 3],
+              "afterMove": [0, 7, 9, 4],
+              "afterCast": [0, 6, 9, 2]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 20,
+            "round": 10,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 10, "r": -6 },
+            "to": { "q": 9, "r": -6 },
+            "letter": "O",
+            "target": { "q": 10, "r": -6 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [30, 25],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 6, 9, 2],
+              "afterMove": [0, 4, 9, 4],
+              "afterCast": [0, 3, 9, 3]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 21,
+            "round": 11,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -5 },
+            "to": { "q": 9, "r": -3 },
+            "letter": "E",
+            "target": { "q": 9, "r": -5 },
+            "words": [
+              {
+                "word": "OLEO",
+                "letters": ["O", "L", "E", "O"],
+                "owners": [0, 1, 0, 1],
+                "magic": 6,
+                "ownMagic": 2,
+                "hexes": ["7,-3", "8,-4", "9,-5", "10,-6"],
+                "at": 2
+              }
+            ],
+            "magic": 6,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [36, 25],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 3, 9, 3],
+              "afterMove": [0, 10, 9, 5],
+              "afterCast": [0, 9, 9, 3]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 8, "word": "TOOLS" }
+          },
+          {
+            "turnNo": 22,
+            "round": 11,
+            "seat": 1,
+            "glyphlingId": 2,
+            "from": { "q": 4, "r": 1 },
+            "to": { "q": 5, "r": 1 },
+            "letter": "C",
+            "target": { "q": 8, "r": -2 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [36, 25],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 9, 9, 3],
+              "afterMove": [0, 7, 11, 3],
+              "afterCast": [0, 4, 10, 3]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 23,
+            "round": 12,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -3 },
+            "to": { "q": 9, "r": -4 },
+            "letter": "R",
+            "target": { "q": 7, "r": -2 },
+            "words": [
+              {
+                "word": "ORC",
+                "letters": ["O", "R", "C"],
+                "owners": [0, 0, 1],
+                "magic": 5,
+                "ownMagic": 2,
+                "hexes": ["6,-2", "7,-2", "8,-2"],
+                "at": 1
+              }
+            ],
+            "magic": 5,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [41, 25],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 4, 10, 3],
+              "afterMove": [0, 5, 10, 3],
+              "afterCast": [0, 4, 10, 3]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 5, "word": "WOE" }
+          },
+          {
+            "turnNo": 24,
+            "round": 12,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 9, "r": -6 },
+            "to": { "q": 9, "r": -8 },
+            "letter": "S",
+            "target": { "q": 7, "r": -6 },
+            "words": [
+              {
+                "word": "SEW",
+                "letters": ["S", "E", "W"],
+                "owners": [1, 0, 1],
+                "magic": 5,
+                "ownMagic": 2,
+                "hexes": ["7,-6", "7,-5", "7,-4"],
+                "at": 0
+              }
+            ],
+            "magic": 5,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [41, 30],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 4, 10, 3],
+              "afterMove": [0, 4, 10, 8],
+              "afterCast": [0, 4, 10, 6]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 25,
+            "round": 13,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -4 },
+            "to": { "q": 9, "r": -2 },
+            "letter": "I",
+            "target": { "q": 9, "r": -7 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 0,
+            "refresh": true,
+            "totalsAfter": [41, 30],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 4, 10, 6],
+              "afterMove": [0, 5, 10, 6],
+              "afterCast": [0, 5, 10, 4]
+            },
+            "castOver": 1,
+            "blocked": { "seat": 1, "magic": 9, "word": "LATEST" }
+          },
+          {
+            "turnNo": 26,
+            "round": 13,
+            "seat": 1,
+            "glyphlingId": 2,
+            "from": { "q": 5, "r": 1 },
+            "to": { "q": 7, "r": -1 },
+            "letter": "I",
+            "target": { "q": 8, "r": -1 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [41, 30],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 5, 10, 4],
+              "afterMove": [0, 5, 5, 4],
+              "afterCast": [0, 2, 4, 4]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 27,
+            "round": 14,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -2 },
+            "to": { "q": 9, "r": -3 },
+            "letter": "R",
+            "target": { "q": 9, "r": -6 },
+            "words": [
+              {
+                "word": "IRE",
+                "letters": ["I", "R", "E"],
+                "owners": [0, 0, 0],
+                "magic": 6,
+                "ownMagic": 3,
+                "hexes": ["9,-7", "9,-6", "9,-5"],
+                "at": 1
+              }
+            ],
+            "magic": 6,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [47, 30],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 2, 4, 4],
+              "afterMove": [0, 4, 4, 4],
+              "afterCast": [0, 4, 4, 4]
+            },
+            "castOver": 1,
+            "blocked": null
+          },
+          {
+            "turnNo": 28,
+            "round": 14,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 9, "r": -8 },
+            "to": { "q": 8, "r": -7 },
+            "letter": "T",
+            "target": { "q": 9, "r": -8 },
+            "words": [
+              {
+                "word": "TIRE",
+                "letters": ["T", "I", "R", "E"],
+                "owners": [1, 0, 0, 0],
+                "magic": 5,
+                "ownMagic": 1,
+                "hexes": ["9,-8", "9,-7", "9,-6", "9,-5"],
+                "at": 0
+              }
+            ],
+            "magic": 5,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [47, 35],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 4, 4, 4],
+              "afterMove": [0, 4, 4, 6],
+              "afterCast": [0, 4, 4, 5]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 0, "magic": 8, "word": "MIRE" }
+          },
+          {
+            "turnNo": 29,
+            "round": 15,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -3 },
+            "to": { "q": 8, "r": -3 },
+            "letter": "D",
+            "target": { "q": 9, "r": -4 },
+            "words": [
+              {
+                "word": "TIRED",
+                "letters": ["T", "I", "R", "E", "D"],
+                "owners": [1, 0, 0, 0, 0],
+                "magic": 9,
+                "ownMagic": 4,
+                "hexes": ["9,-8", "9,-7", "9,-6", "9,-5", "9,-4"],
+                "at": 4
+              }
+            ],
+            "magic": 9,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [56, 35],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 4, 4, 5],
+              "afterMove": [0, 2, 4, 5],
+              "afterCast": [0, 1, 4, 5]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 30,
+            "round": 15,
+            "seat": 1,
+            "glyphlingId": 2,
+            "from": { "q": 7, "r": -1 },
+            "to": { "q": 6, "r": 0 },
+            "letter": "C",
+            "target": { "q": 7, "r": -1 },
+            "words": [
+              {
+                "word": "ORC",
+                "letters": ["O", "R", "C"],
+                "owners": [0, 0, 1],
+                "magic": 4,
+                "ownMagic": 1,
+                "hexes": ["7,-3", "7,-2", "7,-1"],
+                "at": 2
+              }
+            ],
+            "magic": 4,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [56, 39],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 1, 4, 5],
+              "afterMove": [0, 1, 6, 5],
+              "afterCast": [0, 1, 5, 5]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 31,
+            "round": 16,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 8, "r": -3 },
+            "to": { "q": 9, "r": -3 },
+            "letter": "E",
+            "target": { "q": 9, "r": -2 },
+            "words": [],
+            "magic": 0,
+            "refreshed": 2,
+            "refresh": true,
+            "totalsAfter": [56, 39],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 1, 5, 5],
+              "afterMove": [0, 3, 5, 5],
+              "afterCast": [0, 2, 5, 5]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 32,
+            "round": 16,
+            "seat": 1,
+            "glyphlingId": 3,
+            "from": { "q": 8, "r": -7 },
+            "to": { "q": 6, "r": -7 },
+            "letter": "L",
+            "target": { "q": 6, "r": -5 },
+            "words": [
+              {
+                "word": "LED",
+                "letters": ["L", "E", "D"],
+                "owners": [1, 0, 0],
+                "magic": 4,
+                "ownMagic": 1,
+                "hexes": ["6,-5", "7,-5", "8,-5"],
+                "at": 0
+              }
+            ],
+            "magic": 4,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [56, 43],
+            "tangledAfter": [0],
+            "newlyTangled": [],
+            "freed": [],
+            "completeTangles": [],
+            "mobility": {
+              "before": [0, 2, 5, 5],
+              "afterMove": [0, 2, 5, 14],
+              "afterCast": [0, 2, 5, 13]
+            },
+            "castOver": 0,
+            "blocked": null
+          },
+          {
+            "turnNo": 33,
+            "round": 17,
+            "seat": 0,
+            "glyphlingId": 1,
+            "from": { "q": 9, "r": -3 },
+            "to": { "q": 8, "r": -3 },
+            "letter": "U",
+            "target": { "q": 9, "r": -3 },
+            "words": [
+              {
+                "word": "DUE",
+                "letters": ["D", "U", "E"],
+                "owners": [0, 0, 0],
+                "magic": 6,
+                "ownMagic": 3,
+                "hexes": ["9,-4", "9,-3", "9,-2"],
+                "at": 1
+              }
+            ],
+            "magic": 6,
+            "refreshed": 0,
+            "refresh": false,
+            "totalsAfter": [62, 43],
+            "tangledAfter": [0, 1],
+            "newlyTangled": [1],
+            "freed": [],
+            "completeTangles": [
+              { "glyphling": 1, "by": null }
+            ],
+            "mobility": {
+              "before": [0, 2, 5, 13],
+              "afterMove": [0, 1, 5, 13],
+              "afterCast": [0, 0, 5, 13]
+            },
+            "castOver": 0,
+            "blocked": { "seat": 1, "magic": 5, "word": "EDGE" }
+          }
+        ],
+        "end": {
+          "endedOnTurn": 33,
+          "endedBy": 0,
+          "selfTangle": true,
+          "tangles": [
+            {
+              "glyphling": 0,
+              "owner": 0,
+              "pieces": [0, 5],
+              "bonus": [0, 15]
+            },
+            {
+              "glyphling": 1,
+              "owner": 0,
+              "pieces": [0, 2],
+              "bonus": [0, 6]
+            }
+          ],
+          "tangleMagic": [0, 21],
+          "totals": [62, 64]
+        }
+      },
+      "pendingLog": null
+    },
+    "trayOrder": [
+      ["seed-115", "seed-24", "seed-62", "seed-20", "seed-59", "seed-3", "seed-92", "seed-65"],
+      ["seed-119", "seed-37", "seed-1", "seed-82", "seed-80", "seed-16", "seed-32", "seed-23"]
+    ],
+    "stats": [
+      { "bestTurn": 9, "longestWord": "ELATES", "wordsMade": 10 },
+      { "bestTurn": 9, "longestWord": "MEATS", "wordsMade": 8 }
+    ],
+    "options": { "players": 2, "boardName": "small", "minWordLength": 3, "hideSeeds": false, "wordIndicators": true }
+  }
+}
