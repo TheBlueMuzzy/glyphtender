@@ -20,14 +20,14 @@ Done when: online, an idle / dropped seat is played by the real AI (Survivor at 
 
 ## F51 🔧 Snapshots record the seats
 Done when: a Dev Kit snapshot saves each seat's kind (person / AI) + personality + skill, and loading an old snapshot still works.
-- [ ] 🤖 1. Snapshot save + load carry seats (Dev Kit snapshot plug in src/devkit-game/)
-- [ ] 🤖 2. Test: old snapshot (content/snapshots/first-game-with-ai.json) still loads
+- [x] 🤖 1. Snapshot save + load carry seats (Dev Kit snapshot plug in src/devkit-game/)
+- [x] 🤖 2. Test: old snapshot (content/snapshots/first-game-with-ai.json) still loads
 
 ## Research (no menu changes)
-- [ ] 🤖 R1. How other games set up AI opponents → .planning/research/ai-setup-menus.md (Ideas 2026-10-05)
+- [x] 🤖 R1. How other games set up AI opponents → .planning/research/ai-setup-menus.md (Ideas 2026-10-05)
 
 Check: check:fast (golden SAME) · check:full once after merges · screenshots at 390×844, 360×780, 844×390, 768×343, 1100 wide, 1440×900, 1920×1080.
-Ask Muzzy: (carried) first-time New Game default = you + 1 AI? · F46 / F47 go or skip · F37 confirms.
+Ask Muzzy: F50 — the AI now holds its aim 0.3–0.6 s (Normal) before throwing, so you see where it aims; keep, shorten or drop? (Dev Kit → AI tab → AI: pace → Aim) · (carried) first-time New Game default = you + 1 AI? · F46 / F47 go or skip · F37 confirms.
 Notes:
 - **F50 audit (2026-10-05) — every AI action vs a person's** (local AI, pass-and-play screen; code: store/localBot.ts → gameStore.botPlays):
 
@@ -45,3 +45,4 @@ Notes:
 - **F43 rooms kit change (game copy, src/rooms — port to framework rooms):** add_bot carries an optional `profile`, the public Seat carries it, GameRules gets optional `botProfile(profile) → { profile, name }` (named bots numbered on repeats). Helpers can't touch the framework repo (permission denied) — the lead/Muzzy ports it.
 - **F43 calls:** an AI seat is named after its personality ("The Survivor", repeats "The Survivor 2"); no "Surprise me" online yet (its name would give it away) — Ideas.
 - **F43 lobby:** the host's "Add an AI player" card (next seat's glyphling, personality ◀ ▶ with its bio — sized to the longest bio like New Game — skill, Add AI) sits under the players; an AI row reads "The Survivor / 🤖 First Class" with a ✕ Remove for the host only. UI kit change (game copy, src/ui/kit — port to framework ui-kit): LobbyPlayer `detail` + `bot` (no Ready badge — bots always are), Lobby `onRemove` (the host's ✕ on bots). rooms.json allowBots → true.
+- **F51 (2026-10-05, Claude):** a snapshot's state now carries `seats` (kind + ai {personality, skill}); restoring sets them up on THIS device (store/seats.ts restoredSeats — an AI stays that AI and plays on from the moment; an online game's seats come back as local people/AIs). An older snapshot without seats keeps today's behaviour (seats stay as they are). Muzzy's first-game-with-ai.json still restores (adapter test). Proved: check:fast ALL PASS (golden SAME), devkit-search + devkit-ai PASS, e2e:previews PASS (52 shots; its first run in check:full failed in 1 s at server start — a port clash while the F43 helper ran its servers; alone it passes).
