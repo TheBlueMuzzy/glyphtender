@@ -11,7 +11,17 @@ export function hexSteps(a: Hex, b: Hex): number {
 
 /** How long a glide from A to B takes, in seconds. */
 export function glideSeconds(a: Hex, b: Hex, timing: { moveBase: number; movePerHex: number }): number {
-  return timing.moveBase + timing.movePerHex * hexSteps(a, b)
+  return glideSecondsFor(hexSteps(a, b), timing)
+}
+
+/** How long a glide over this many hex steps takes, in seconds (a step needn't be whole: off the board, e.g. tray → board). */
+export function glideSecondsFor(steps: number, timing: { moveBase: number; movePerHex: number }): number {
+  return timing.moveBase + timing.movePerHex * steps
+}
+
+/** How many hex steps a distance on screen is, for hexes drawn `hexWidth` px wide (flat-top: neighbours are √3/2 × width apart). */
+export function stepsOnScreen(distance: number, hexWidth: number): number {
+  return hexWidth > 0 ? distance / ((Math.sqrt(3) / 2) * hexWidth) : 0
 }
 
 /** A point on screen, relative to where the glyphling is now drawn. */

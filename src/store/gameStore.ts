@@ -115,6 +115,9 @@ export interface GameStore {
   happened: Happened | null
   /** The last piece that said "no" to a tap (it shakes); the count changes every time, so the same piece can shake again. */
   nope: (NopeTarget & { count: number }) | null
+  /** An AI's draft on its way (botPlays with show, F50): its glyphling travels out of the tray to this hex like a person's
+   *  drag (useBotDraft) — nothing can be touched — then landBotDraft places it. null = none travelling. */
+  botDraft: Hex | null
 
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
    *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
@@ -152,13 +155,15 @@ export interface GameStore {
    *  `show` (the AI in a real game): a turn plays out like a person's — the glyphling glides, then the seed flies, and
    *  its landing (Board → finishCast) makes it real. Without it (tests) the turn is made real at once. */
   botPlays: (action: Action, show?: boolean) => void
+  /** An AI's travelling draft glyphling has reached its hex (useBotDraft): place it. */
+  landBotDraft: () => void
   /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known). */
   loadState: (game: GameState, stats?: PlayerStats[]) => void
 }
 
 // Everything about the turn being planned, cleared (a fresh object each time, so nothing is shared)
-const noPlan = (): Pick<GameStore, 'move' | 'cast' | 'selected' | 'setAside' | 'note'> =>
-  ({ move: null, cast: null, selected: null, setAside: [], note: null })
+const noPlan = (): Pick<GameStore, 'move' | 'cast' | 'selected' | 'setAside' | 'note' | 'botDraft'> =>
+  ({ move: null, cast: null, selected: null, setAside: [], note: null, botDraft: null })
 const NO_WORDS: WordList = new Map() // the draft and refresh never read words
 const anim = liveTuning('anim', animFile) // the refresh's timings (read when a refresh starts)
 const SCORE_BEAT_MS = 120 // the score sequence's timer waits this much past the fade (see startScoring)
@@ -529,7 +534,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     botPlays: (action, show = false) => {
       const { game, seats, online } = get()
       if (!game || online || !isLocalBot(seats[game.current]) || isBusy(get())) return
-      if (action.type === 'draft') return draftAt(action.hex)
+      // A draft shown like a person's drag: the glyphling travels out of the tray first (useBotDraft → landBotDraft)
+      if (action.type === 'draft') return show && !reduceMotion() ? set({ botDraft: action.hex }) : draftAt(action.hex)
       if (action.type === 'refresh') return refreshNow(action.setAside)
       // A turn: its plan, then the landing — as if the bot had planned it on the board and its seed had flown
       const move = { glyphling: action.glyphling, to: action.to }
@@ -549,6 +555,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
         if (cast) set({ cast, flying: true })
         else get().finishCast()
       }, reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000)
+    },
+
+    landBotDraft: () => {
+      const { botDraft, game, seats } = get()
+      if (!botDraft) return
+      if (game && isLocalBot(seats[game.current])) draftAt(botDraft) // (it clears botDraft with the rest of the plan)
+      if (get().botDraft) set({ botDraft: null }) // (refused, or the game moved on meanwhile)
     },
 
     refuseTap: (tap) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { glideFrames, glideSeconds, hexSteps, offsetBetween } from './glide'
+import { glideFrames, glideSeconds, glideSecondsFor, hexSteps, offsetBetween, stepsOnScreen } from './glide'
 
 const timing = { moveBase: 0.15, movePerHex: 0.04 }
 
@@ -14,6 +14,13 @@ describe('move glide (F15)', () => {
   it('takes moveBase + movePerHex × hexes', () => {
     expect(glideSeconds({ q: 0, r: 0 }, { q: 0, r: 1 }, timing)).toBeCloseTo(0.19)
     expect(glideSeconds({ q: 0, r: 0 }, { q: 5, r: -5 }, timing)).toBeCloseTo(0.35)
+  })
+
+  it('times an off-board travel (an AI draft from the tray, F50) by the same rule, in screen hex steps', () => {
+    const width = 40 // px: neighbours are √3/2 × 40 ≈ 34.6 px apart
+    expect(stepsOnScreen((Math.sqrt(3) / 2) * width * 3, width)).toBeCloseTo(3)
+    expect(glideSecondsFor(stepsOnScreen((Math.sqrt(3) / 2) * width * 5, width), timing)).toBeCloseTo(glideSeconds({ q: 0, r: 0 }, { q: 5, r: -5 }, timing))
+    expect(stepsOnScreen(100, 0)).toBe(0) // (not measured yet)
   })
 
   it('starts at A and ends exactly on B', () => {

@@ -27,6 +27,7 @@ import { RevealPanel } from './Reveal'
 import { PromptLine } from './PromptLine'
 import { SeedTray } from './SeedTray'
 import { TurnBar } from './TurnBar'
+import { useBotDraft } from './useBotDraft'
 import { useNopeShake } from './useNopeShake'
 import { usePieceInput } from './usePieceInput'
 import { useGardenTuning, useLayoutTuning } from './useTuning'
@@ -107,7 +108,9 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   // Taps and drags for board + tray; the dragged piece floats in its own layer on top
   const dragLayer = useRef<SVGSVGElement>(null)
   const dragImage = useRef<SVGImageElement>(null)
-  const input = usePieceInput({ layer: dragLayer, image: dragImage }, layout, Math.max(tray.tile, hexPx) * 1.2)
+  const dragSize = Math.max(tray.tile, hexPx) * 1.2
+  const input = usePieceInput({ layer: dragLayer, image: dragImage }, layout, dragSize)
+  useBotDraft({ layer: dragLayer, image: dragImage }, dragSize, hexPx) // an AI's draft travels out of the tray the same way (F50)
   useNopeShake() // a tapped piece that can't be touched shakes "no"
 
   // When the garden tangles, the Magic reveal takes the tray's place (Reveal.tsx) and then opens the end table.

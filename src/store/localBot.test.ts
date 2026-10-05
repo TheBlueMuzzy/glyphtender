@@ -94,13 +94,19 @@ describe('a bot on this device', () => {
 })
 
 // The AI (F42): driveLocalBots thinks through the thinker (no Web Worker in tests: right here), waits its moment at
-// the AI speed, and plays through the store — a turn glides, then throws (the screen calls finishCast on the landing).
+// the AI speed, and plays through the store — a turn glides, then throws (the screen calls finishCast on the landing);
+// a draft travels out of the tray first (F50: the screen calls landBotDraft when it arrives).
 describe('the AI on this device (driveLocalBots)', () => {
   afterEach(() => setAiSpeedOverride(null))
 
   /** Lets time pass for the AI: its promise answers, its moment's timer, the glide's timer — and the landing. */
   async function aiTime(ms: number) {
     await vi.advanceTimersByTimeAsync(ms)
+    screenLands()
+  }
+  /** What the screen does when an AI's piece arrives: its draft glyphling reaches its hex, its thrown seed lands. */
+  function screenLands() {
+    if (store().botDraft) store().landBotDraft()
     if (store().flying && store().seats[store().game!.current].kind === 'bot') store().finishCast()
   }
 
@@ -113,6 +119,14 @@ describe('the AI on this device (driveLocalBots)', () => {
       await vi.advanceTimersByTimeAsync(300) // shorter than any draft think (pace.json draft.min 0.6 s)
       expect(store().game!.glyphlings).toHaveLength(0)
       await vi.advanceTimersByTimeAsync(5_000)
+      // F50: it doesn't pop in — its glyphling is on its way from the tray (busy: nothing can be touched) until it arrives
+      expect(store().botDraft).not.toBeNull()
+      expect(isBusy(store())).toBe(true)
+      expect(store().game!.glyphlings).toHaveLength(0)
+      await vi.advanceTimersByTimeAsync(5_000) // (no second decision while it travels)
+      expect(store().botDraft).not.toBeNull()
+      screenLands()
+      expect(store().botDraft).toBeNull()
       expect(store().game!.glyphlings).toHaveLength(1) // the AI placed, then waits for the person
       expect(store().game!.current).toBe(1)
     } finally {
@@ -128,7 +142,7 @@ describe('the AI on this device (driveLocalBots)', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const stop = driveLocalBots()
     try {
-      await vi.advanceTimersByTimeAsync(5_000)
+      await aiTime(5_000)
       expect(store().game!.glyphlings).toHaveLength(1) // it placed anyway (the simple fallback move)
       expect(warn).toHaveBeenCalled()
     } finally {
@@ -156,6 +170,22 @@ describe('the AI on this device (driveLocalBots)', () => {
     } finally {
       stop()
       unhear()
+    }
+  })
+
+  it('an AI draft still on its way when the game is left or restarted is never placed (F50)', async () => {
+    setAiSpeedOverride('instant')
+    store().startGame({ players: 2, seed: 3, hideSeeds: false, bots: [0] })
+    const stop = driveLocalBots()
+    try {
+      await vi.advanceTimersByTimeAsync(5_000)
+      expect(store().botDraft).not.toBeNull()
+      store().startGame({ players: 2, seed: 4, hideSeeds: false, bots: [1] }) // now seat 0 is a person
+      expect(store().botDraft).toBeNull()
+      store().landBotDraft() // (a travel finishing late does nothing)
+      expect(store().game!.glyphlings).toHaveLength(0)
+    } finally {
+      stop()
     }
   })
 
