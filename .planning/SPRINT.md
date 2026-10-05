@@ -27,7 +27,7 @@ Done when: a Dev Kit snapshot saves each seat's kind (person / AI) + personality
 - [x] 🤖 R1. How other games set up AI opponents → .planning/research/ai-setup-menus.md (Ideas 2026-10-05)
 
 Check: check:fast (golden SAME) · check:full once after merges · screenshots at 390×844, 360×780, 844×390, 768×343, 1100 wide, 1440×900, 1920×1080.
-Ask Muzzy: F50 — the AI now holds its aim 0.3–0.6 s (Normal) before throwing, so you see where it aims; keep, shorten or drop? (Dev Kit → AI tab → AI: pace → Aim) · (carried) first-time New Game default = you + 1 AI? · F46 / F47 go or skip · F37 confirms.
+Ask Muzzy: F43 — online AI seats named after the personality ("The Survivor") OK? · no "Surprise me" online (name gives it away) OK for now? · R1 — which AI-setup direction (A / B / C, research/ai-setup-menus.md; rec. B)? · F50 — the AI now holds its aim 0.3–0.6 s (Normal) before throwing, so you see where it aims; keep, shorten or drop? (Dev Kit → AI tab → AI: pace → Aim) · (carried) first-time New Game default = you + 1 AI? · F46 / F47 go or skip · F37 confirms.
 Notes:
 - **F50 audit (2026-10-05) — every AI action vs a person's** (local AI, pass-and-play screen; code: store/localBot.ts → gameStore.botPlays):
 
