@@ -76,8 +76,14 @@ describe('AI seats (F42)', () => {
   })
 
   it('a saved seat with an unknown personality or skill falls back (a renamed personality, an old save)', () => {
-    const odd = memory({ 'glyphtender:new-game': JSON.stringify({ players: 2, seats: [{ ai: true, personality: 'Gone', skill: 'Wizard' }] }) })
-    expect(loadChoices(odd).seats[0]).toEqual({ ai: true, personality: SURPRISE, skill: 'FirstClass' })
-    expect(loadChoices(odd).seats[1].ai).toBe(false)
+    const odd = memory({ 'glyphtender:new-game': JSON.stringify({ players: 2, seats: [{ ai: false }, { ai: true, personality: 'Gone', skill: 'Wizard' }] }) })
+    expect(loadChoices(odd).seats[1]).toEqual({ ai: true, personality: SURPRISE, skill: 'FirstClass' })
+    expect(loadChoices(odd).seats[2].ai).toBe(false)
+  })
+
+  it('the first seat is always you: an older save with an AI there comes back as a person', () => {
+    const old = memory({ 'glyphtender:new-game': JSON.stringify({ players: 2, seats: [{ ai: true, personality: 'Scholar', skill: 'Archmage' }, { ai: true }] }) })
+    expect(loadChoices(old).seats[0].ai).toBe(false)
+    expect(loadChoices(old).seats[1].ai).toBe(true)
   })
 })

@@ -1,5 +1,5 @@
 // NEW GAME — the table options before a game on this device: players 2–4, who plays each seat (a person, or the
-// AI — F42), garden size (defaults to the size boards.json names for that many players), 2-letter words on/off,
+// AI — F42; the first seat is always you, so it has no row — Muzzy: "I'm always going to be a player"), garden size (defaults to the size boards.json names for that many players), 2-letter words on/off,
 // hide seeds between turns on/off, word indicators on/off → Start.
 // An AI seat opens a card under its row: the seat's glyphling as its portrait, the personality's name and bio
 // (en.json ai.personality — or "Surprise me": a random one picked at Start), ◀ personality ▶, and its skill.
@@ -19,7 +19,6 @@ import './newGame.css'
 
 const w = text.newGame
 const boardLabel = (name: string) => (w.boards as Record<string, string>)[name] ?? name
-const players = text.game.players as Record<string, string>
 
 // Personalities and skills as players read them (en.json → ai), "Surprise me" first
 const aiWords = text.ai.personality as Record<string, { name: string; bio: string }>
@@ -44,8 +43,8 @@ export function NewGameScreen() {
           <ListRow label={w.players}>
             <Stepper label={w.players} value={choices.players} min={2} max={4} onChange={(count) => setChoices(withPlayers(choices, count))} />
           </ListRow>
-          {seats.map((seat, i) => (
-            <SeatRows key={i} index={i} seat={seat} onChange={(part) => setChoices(withSeat(choices, i, part))} />
+          {seats.slice(1).map((seat, i) => (
+            <SeatRows key={i + 1} index={i + 1} seat={seat} onChange={(part) => setChoices(withSeat(choices, i + 1, part))} />
           ))}
           <ListRow label={w.board} detail={w.boardDetail}>
             <Selector label={w.board} options={boards.map(boardLabel)} value={boardLabel(choices.boardName)}
@@ -69,10 +68,10 @@ export function NewGameScreen() {
   )
 }
 
-/** One seat: its colour + Person / AI — and, for the AI, the personality card. */
+/** One seat after yours: "Player 2" + Person / AI — and, for the AI, the personality card. */
 function SeatRows({ index, seat, onChange }: { index: number; seat: SeatChoice; onChange: (part: Partial<SeatChoice>) => void }) {
   const colours = useGardenTuning()
-  const name = players[colourOf(index)]
+  const name = w.playerN.replace('{n}', String(index + 1))
   const kinds = [w.person, w.ai]
   const shown = personalityWords(seat.personality)
   return (

@@ -86,16 +86,16 @@ try {
     await page.keyboard.press('Escape')
     // New game: Blue = AI → its card (Surprise me at First Class) → the Strategist, Apprentice
     await page.getByRole('button', { name: 'Play', exact: true }).click()
-    await page.getByRole('button', { name: 'Next Blue', exact: true }).click()
+    await page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
     h.check('Blue switched to AI shows its personality card', (await page.locator('.kit-card').count()) === 1)
     h.check('a new AI seat starts as "Surprise me" at First Class',
       (await page.locator('.kit-card .kit-picker-value', { hasText: 'Surprise me' }).count()) === 1
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
     // Step through the personalities until the Strategist shows (the list is data — don't count on its order)
     for (let i = 0; i < 6 && (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 0; i++) {
-      await page.getByRole('button', { name: 'Next Blue: Personality' }).click()
+      await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
     }
-    await page.getByRole('button', { name: 'Previous Blue: Skill' }).click()
+    await page.getByRole('button', { name: 'Previous Player 2: Skill' }).click()
     h.check('picked the Strategist at Apprentice', (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 1
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
     await page.getByRole('button', { name: 'Start' }).click()
@@ -125,8 +125,8 @@ try {
     await page.goto(URL_)
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     for (let n = 2; n < 4; n++) await page.getByRole('button', { name: 'Next Players' }).click()
-    await page.getByRole('button', { name: 'Next Blue', exact: true }).click()
-    await page.getByRole('button', { name: 'Next Pink', exact: true }).click()
+    await page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
+    await page.getByRole('button', { name: 'Next Player 4', exact: true }).click()
     await page.getByRole('switch', { name: 'Hide seeds between turns' }).click()
     await page.getByRole('button', { name: 'Start' }).click()
     await h.ready()
@@ -163,7 +163,7 @@ try {
     const sizes = new Set()
     for (let i = 0; i < 8; i++) {
       sizes.add(await cardSize())
-      await page.getByRole('button', { name: 'Next Blue: Personality' }).click()
+      await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
     }
     h.check(`the AI cards keep one size through every personality (${[...sizes].join(' | ')})`, sizes.size === 1)
     // scroll to the bottom of the options (the Pink card) for a second look

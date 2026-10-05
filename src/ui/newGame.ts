@@ -106,7 +106,8 @@ export function loadChoices(storage: Storage | null = browserStorage()): NewGame
       twoLetterWords: typeof saved.twoLetterWords === 'boolean' ? saved.twoLetterWords : fallback.twoLetterWords,
       hideSeeds: typeof saved.hideSeeds === 'boolean' ? saved.hideSeeds : fallback.hideSeeds,
       wordIndicators: typeof saved.wordIndicators === 'boolean' ? saved.wordIndicators : fallback.wordIndicators,
-      seats: fallback.seats.map((seat, i) => (Array.isArray(saved.seats) ? seatFrom(saved.seats[i]) : seat)),
+      // the first seat is always you (New Game has no row for it) — an older save with an AI there comes back as a person
+      seats: fallback.seats.map((seat, i) => (Array.isArray(saved.seats) ? seatFrom(saved.seats[i]) : seat)).map((seat, i) => (i === 0 ? { ...seat, ai: false } : seat)),
     }
   } catch {
     return fallback

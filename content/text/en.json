@@ -251,6 +251,7 @@
   "newGame": {
     "title": "New game",
     "players": "Players",
+    "playerN": "Player {n}",
     "board": "Garden",
     "boards": {
       "small": "Small",
