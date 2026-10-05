@@ -15,8 +15,8 @@ Done when: online, an idle / dropped seat is played by the real AI (Survivor at 
 - [x] 🤖 1. Server thinking: party/ runs the AI brain for a bot seat on viewFor(game, seat) only, with a time budget + the never-freeze fallback
 - [x] 🤖 2. Idle takeover uses it (replaces greedyBot); human pace on the server (pace.json)
 - [x] 🤖 3. Lobby: host can add / remove AI seats (personality + skill) — game-ui kit parts only
-- [ ] 🤖 4. Tests: server.test (AI seat sees only its view, never the log), e2e:online with an AI seat
-- [ ] 🤖 5. GDD / TDD (server AI, CPU budget)
+- [x] 🤖 4. Tests: server.test (AI seat sees only its view, never the log), e2e:online with an AI seat
+- [x] 🤖 5. GDD / TDD (server AI, CPU budget)
 
 ## F51 🔧 Snapshots record the seats
 Done when: a Dev Kit snapshot saves each seat's kind (person / AI) + personality + skill, and loading an old snapshot still works.

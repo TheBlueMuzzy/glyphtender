@@ -8,7 +8,7 @@
 // Turns the server plays: the real AI (F43) — the seat's own (a host-added AI seat carries "<personality>/<skill>",
 // aiSeats.ts) or the default AI (Survivor at First Class, store/seats.ts defaultAi) for a seat a bot took over.
 // It decides from that seat's VIEW only (rules.viewFor), never the whole game (F36). It thinks right here in the room
-// (a Durable Object: up to 30 s of CPU per event; a decision takes ~0.05–0.3 s at First Class — TDD D81, measured by
+// (a Durable Object: up to 30 s of CPU per event; a decision takes ~0.05–0.3 s at First Class — TDD D79, measured by
 // npm run ai:server-timing against pace.json serverBudgetMs). If the AI ever fails, or names a move the rules refuse,
 // the greedy bot plays that one action instead ("keep all" on a refresh), so a game never freezes.
 import paceFile from '../content/ai/pace.json'
