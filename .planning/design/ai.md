@@ -45,7 +45,10 @@ New vs the original: **territory** (Amazons-style "who reaches each hex first") 
 | Vocabulary (Zipf ≥, + personality modifier) | 3.0 (~22k words) | 2.0 (~44k) | 0 (all 63k) |
 Vocabulary = the words it can *aim for*; the rules still count any word it makes by accident. Whether tiers should be 4/3/0 (~5k/~20k/all, the old design's intent) is settled by the skill-ladder check (GDD §9).
 
-## The 7 personalities — feel targets (checked by the Personality Check)
+## Three personalities — rock-paper-scissors (Muzzy, 2026-10-04: "we should only have 3 AI personalities")
+**Bully = Hunter** (beats the Speller: hems it in) · **Scholar = Speller** (beats the Turtle: out-scores it) · **Survivor = Turtle** (beats the Hunter: can't be caught). Each has a real weakness. Measured 2026-10-04 (2p, First Class, 50 games): Speller > Turtle 86% ✅ · Turtle > Hunter 84% ✅ · Hunter > Speller 11% ❌ (being worked on — F45). The other four below stay in the data for the Dev Kit but aren't offered to players.
+
+## The original 7 personalities — feel targets (checked by the Personality Check)
 Trait ranges + priority from the original (digest §2). Each feel target is **behaviour** measured by a meter over ≥ 300 mixed games at First Class; thresholds are starting guesses, tuned in the check.
 | Personality | Bio seed | Feel ("players say") | Feel targets (meters) |
 |---|---|---|---|
