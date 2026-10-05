@@ -271,7 +271,7 @@
     "ai": "AI",
     "personality": "Personality",
     "skill": "Skill",
-    "surprise": { "name": "Surprise me", "bio": "A random personality — you'll find out who by how it plays." },
+    "surprise": { "name": "Surprise me", "bio": "Random AI Personality" },
     "needPerson": "At least one seat must be a person"
   },
   "online": {

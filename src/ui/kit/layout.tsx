@@ -14,8 +14,8 @@ type ScreenProps = {
   label?: string // what a screen reader calls this screen
   dialog?: boolean // dims what's underneath; for a small question on top of another screen
   // The whole screen scrolls when its contents are taller than it — drag, wheel or keys, with no scroll bar showing.
-  // The centre starts at the top and grows as tall as it needs (no ScrollArea inside), so a section opening further
-  // down pushes things down, never up, and the panel's own buttons (Start, Save) scroll with it, always reachable.
+  // The centre sits in the middle while it fits and grows as tall as it needs (no ScrollArea inside); once it's taller
+  // than the window it starts at the top, and the panel's own buttons (Start, Save) scroll with it, always reachable.
   scroll?: boolean
 }
 export function Screen({ children, label, dialog, scroll, ...slots }: ScreenProps) {
