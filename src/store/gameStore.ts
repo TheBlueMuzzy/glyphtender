@@ -159,8 +159,9 @@ export interface GameStore {
   botPlays: (action: Action, show?: boolean, aimMs?: number) => void
   /** An AI's travelling draft glyphling has reached its hex (useBotDraft): place it. */
   landBotDraft: () => void
-  /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known). */
-  loadState: (game: GameState, stats?: PlayerStats[]) => void
+  /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known,
+   *  and who sat where — else the seats stay as they are, or become people if the player count changed). */
+  loadState: (game: GameState, stats?: PlayerStats[], seats?: Seat[]) => void
 }
 
 // Everything about the turn being planned, cleared (a fresh object each time, so nothing is shared)
@@ -579,11 +580,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       return target !== null
     },
 
-    loadState: (saved, stats) => {
+    loadState: (saved, stats, savedSeats) => {
       const game = migrateGame(saved) // an older save brought up to date (the old "Qu" seed → "Q")
       stopRefreshFx()
       stopScoring()
-      const seats = get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players)
+      const seats = savedSeats?.length === game.config.players ? savedSeats
+        : get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players)
       set({
         ...noPlan(), game, flying: false, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, // a jump, not a change: nothing "just happened"

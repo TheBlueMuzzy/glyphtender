@@ -1,6 +1,7 @@
 // GLYPHTENDER'S DEV KIT ADAPTER — lets the Dev Kit's Snapshots and Bug capture tabs see the game.
 // Registered in src/devkit-game/tabs.ts, which only loads with the Dev Kit (so none of this ships at 1.0).
 //   getState:   the engine's GameState + the tray order the screen shows + the end table's stats + the table options
+//               + the seats (person / AI, which personality + skill — F51; an AI seat plays on after a restore)
 //               (everything else is the planned turn)
 //   setState:   jumps the store to that game — the planned move / cast / flying seed are cleared (store.loadState),
 //               and any open menu (end table, Pause) is closed. Older snapshots without stats / options still restore
@@ -11,6 +12,7 @@
 //               moves: no events) are read from the game itself
 // Reads and writes the store only through its public getState / setState / subscribe / loadState.
 import versionFile from '../../version.json'
+import text from '../../content/text/en.json'
 import type { DevKitGame } from '../devkit/devkitGame'
 import { getBoard } from '../engine/boards'
 import type { Hex } from '../engine/hex'
@@ -20,6 +22,7 @@ import { eventOf, startedTurn, turnOf } from '../store/happened'
 import { popsTotal, scorePops } from '../store/wordMarks'
 import { useGameStore, type GameOptions, type GameStore } from '../store/gameStore'
 import { TRAY_GAP } from '../store/turnPlan'
+import { restoredSeats, type Seat } from '../store/seats'
 import type { PlayerStats } from '../store/stats'
 import { closeAllScreens } from '../ui/newGame'
 
@@ -32,6 +35,8 @@ export interface GlyphtenderMoment {
   stats?: PlayerStats[]
   /** The table options the game started with (word indicators, hide seeds…). Missing in older snapshots. */
   options?: GameOptions | null
+  /** Who sat in each seat — person or AI, and which AI (personality + skill) (F51). Missing in older snapshots. */
+  seats?: Seat[]
 }
 
 const seatName = (seat: number) => {
@@ -140,8 +145,8 @@ export const glyphtenderAdapter: DevKitGame = {
   version: `${versionFile.version}.${versionFile.build}`,
 
   getState: (): GlyphtenderMoment => {
-    const { game, trayOrder, stats, options } = useGameStore.getState()
-    return { game, trayOrder, stats, options }
+    const { game, trayOrder, stats, options, seats } = useGameStore.getState()
+    return { game, trayOrder, stats, options, seats }
   },
 
   setState: (state) => {
@@ -150,7 +155,8 @@ export const glyphtenderAdapter: DevKitGame = {
     closeAllScreens() // a menu from the moment we're leaving (the end table, Pause) would sit on top, stuck
     if (!state.game) return store.leaveGame()
     const stats = state.stats?.length === state.game.config.players ? state.stats : undefined
-    store.loadState(state.game, stats) // clears the planned move / cast / flying seed; brings an older save up to date (engine/migrate.ts)
+    const seats = restoredSeats(state.seats, state.game.config.players, text.game.players) ?? undefined // AIs play on from here
+    store.loadState(state.game, stats, seats) // clears the planned move / cast / flying seed; brings an older save up to date (engine/migrate.ts)
     // Keep the tray order the snapshot had — empty places too (B018) — if it still fits the hands (loadState reset it to hand order)
     const trayOrder = savedTrayOrder(state.trayOrder, useGameStore.getState().game!.hands)
     useGameStore.setState({ landed: null, ...(trayOrder ? { trayOrder } : {}), ...(state.options ? { options: state.options } : {}) })

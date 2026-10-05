@@ -42,6 +42,21 @@ type RoomSeat = { kind: 'human' | 'bot'; connected: boolean }
 
 /** Online: my seat is a person on this device; every other seat is somewhere else — a person or a bot, connected or
  *  not, as the room says (`room` in game seat order; not known yet → a connected person). */
+/**
+ * Seats from a saved moment (Dev Kit snapshot, F51), set up on THIS device: a saved AI stays an AI with its
+ * personality + skill (a missing pick → defaultAi); everyone else is a person here (an online game restores offline).
+ * null if they don't fit (an older snapshot has no seats, or a different player count) — then the seats stay as they are.
+ */
+export function restoredSeats(saved: unknown, players: number, names: Record<SeatColour, string>): Seat[] | null {
+  if (!Array.isArray(saved) || saved.length !== players) return null
+  return localSeats(players, names).map((seat, i): Seat => {
+    const was = saved[i] as Partial<Seat> | null
+    if (was?.kind !== 'bot') return seat
+    const ai = typeof was.ai?.personality === 'string' && typeof was.ai?.skill === 'string' ? was.ai : defaultAi()
+    return { ...seat, kind: 'bot', ai }
+  })
+}
+
 export function onlineSeats(names: readonly string[], mySeat: number, room: readonly RoomSeat[] = []): Seat[] {
   return names.map((name, seat) => {
     const colour = SEAT_COLOURS[seat]
