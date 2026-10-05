@@ -121,7 +121,7 @@ describe('pace.json', () => {
 })
 
 describe('modes.json (fight · flight · focus)', () => {
-  const modes = modesFile.modes as { id: string; goals: string[]; traits: Record<string, { min: number; max: number }>; sight?: Record<string, number>; steady?: Record<string, number>; focus?: number }[]
+  const modes = modesFile.modes as unknown as { id: string; goals: string[]; traits: Record<string, { min: number; max: number }>; sight?: Record<string, number>; steady?: Record<string, number>; focus?: number }[]
   it('has Fight, Flight and Focus, each a full goal order with sane ranges', () => {
     expect(modes.map((m) => m.id)).toEqual(['Fight', 'Flight', 'Focus'])
     for (const m of modes) {
