@@ -16,7 +16,7 @@ describe('the AI thinker', () => {
     const thinker = makeGameThinker(words)
     for (let i = 0; i < 6; i++) { // the 4 draft placements, then the first turns
       const seat = game.current
-      const request = { view: viewFor(game, seat), seat, rng: 100 + i, personalityId: 'Bully', skillId: 'Apprentice' }
+      const request = { view: viewFor(game, seat), seat, rng: 100 + i, personalityId: 'Strategist', skillId: 'Apprentice' }
       const answer = await thinker.think(request)
       expect(rules.check(game, seat, answer.action)).toBeNull()
       expect(answer.rng).not.toBe(request.rng)
@@ -25,10 +25,10 @@ describe('the AI thinker', () => {
       game = rules.apply(game, seat, answer.action).state
     }
     thinker.stop()
-    await expect(thinker.think({ view: viewFor(game, 0), seat: 0, rng: 1, personalityId: 'Bully', skillId: 'Apprentice' })).rejects.toThrow()
+    await expect(thinker.think({ view: viewFor(game, 0), seat: 0, rng: 1, personalityId: 'Strategist', skillId: 'Apprentice' })).rejects.toThrow()
   })
 
-  it('an unknown personality or skill plays as Balanced at First Class (never crashes)', () => {
+  it('an unknown personality or skill plays as the Survivor at First Class (never crashes)', () => {
     const rules = glyphtenderRules(words)
     const game = rules.setup({ players: 2, boardName: 'small', seed: 3 })
     const answer = seatThinking(words)({ view: viewFor(game, 0), seat: 0, rng: 5, personalityId: 'Nobody', skillId: 'Nope' })

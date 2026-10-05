@@ -21,7 +21,7 @@ describe("Glyphtender's AI tab plug", () => {
   })
 
   it('bios point at en.json → ai.personality.<id>.bio', () => {
-    const [a, b, id, c] = glyphtenderAi.bios!.at('Bully')
+    const [a, b, id, c] = glyphtenderAi.bios!.at('Strategist')
     const en = glyphtenderAi.bios!.data as { ai: { personality: Record<string, { bio: string }> } }
     expect(en[a as 'ai'][b as 'personality'][id][c as 'bio']).toMatch(/\w/)
   })

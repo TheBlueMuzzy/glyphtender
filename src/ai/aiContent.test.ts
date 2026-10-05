@@ -11,7 +11,7 @@ import { meterNames } from './meters'
 const GOALS = ['TRAP', 'SCORE', 'DENY', 'ESCAPE', 'BUILD', 'STEAL', 'DUMP']
 const TRAITS = ['aggression', 'greed', 'spite', 'caution', 'patience', 'opportunism', 'pragmatism']
 const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead']
-const IDS = ['Bully', 'Scholar', 'Builder', 'Vulture', 'Survivor', 'Strategist', 'Balanced']
+const IDS = ['Scholar', 'Survivor', 'Strategist'] // the rock-paper-scissors three (Muzzy, 2026-10-04)
 
 const personalities: Personality[] = personalitiesFile.personalities
 const skills: Skill[] = skillsFile.skills
@@ -27,7 +27,7 @@ const labelled = (labels: Record<string, string>, path: string) =>
   path.split('.').some((_, i, parts) => labels[parts.slice(0, parts.length - i).join('.')] !== undefined)
 
 describe('personalities.json', () => {
-  it('has the 7 personalities, each with all 7 traits, all 7 goals once, and sane numbers', () => {
+  it('has the 3 personalities, each with all 7 traits, all 7 goals once, and sane numbers', () => {
     expect(personalities.map((p) => p.id)).toEqual(IDS)
     for (const p of personalities) {
       expect(Object.keys(p.traits).sort()).toEqual([...TRAITS].sort())
@@ -36,7 +36,7 @@ describe('personalities.json', () => {
       expect(p.nudge).toBeGreaterThanOrEqual(0)
       expect(p.nudge).toBeLessThanOrEqual(1)
       expect(p.extras?.nerve).toBeGreaterThan(0)
-      expect(typeof p.extras?.vocabulary).toBe('number')
+      expect(p.extras?.vocabulary).toBeUndefined() // words known come from the skill only
       for (const s of p.shifts) {
         expect(READINGS).toContain(s.reading)
         expect(TRAITS).toContain(s.trait)
@@ -46,7 +46,7 @@ describe('personalities.json', () => {
   })
   it('its main trait is its highest (the goal roll leans its way)', () => {
     const traitOf: Record<string, string> = { TRAP: 'aggression', SCORE: 'greed', DENY: 'spite', ESCAPE: 'caution', BUILD: 'patience', STEAL: 'opportunism', DUMP: 'pragmatism' }
-    for (const p of personalities.filter((x) => x.id !== 'Balanced')) {
+    for (const p of personalities) {
       const main = p.traits[traitOf[p.goals[0]]]
       for (const r of Object.values(p.traits)) expect(r.max).toBeLessThanOrEqual(main.max)
     }
@@ -97,11 +97,12 @@ describe('feel-targets.json', () => {
       expect(targets.length).toBeGreaterThan(0)
       for (const t of targets as { meter: string; op: string; value?: number }[]) {
         if (t.meter !== '*') expect(meters).toContain(t.meter)
-        expect(['>=', '<=', 'tableBest', 'tableWorst', 'nearAverage', 'neverExtreme']).toContain(t.op)
-        if (['>=', '<=', 'nearAverage'].includes(t.op)) expect(typeof t.value).toBe('number')
+        expect(['>=', '<=', 'tableBest', 'tableWorst', 'nearAverage', 'neverExtreme', 'beats']).toContain(t.op)
+        if (['>=', '<=', 'nearAverage', 'beats'].includes(t.op)) expect(typeof t.value).toBe('number')
+        if (t.op === 'beats') expect(IDS).toContain((t as { against?: string }).against)
       }
     }
-    expect(feelFile.all.map((c) => c.check)).toEqual(['winRateVsBalanced', 'tellApart', 'skillLadder', 'callsIt', 'callsItWrong'])
+    expect(feelFile.all.map((c) => c.check)).toEqual(['tellApart', 'skillLadder', 'callsIt', 'callsItWrong'])
   })
 })
 

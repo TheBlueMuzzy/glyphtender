@@ -25,11 +25,14 @@ export interface GameResult {
 /** A feel target as watchable behaviour. '>=' / '<=' compare the personality's average with `value`;
  *  'tableBest' / 'tableWorst' = its average beats every other personality's average; 'nearAverage' = within `value`
  *  of the average of all personalities' averages; 'neverExtreme' (meter "*") = not the highest or lowest personality
- *  on any meter (measured = how many meters it IS extreme on). */
+ *  on any meter (measured = how many meters it IS extreme on); 'beats' (with `against`) = its share of the wins in
+ *  games with that rival is at least `value` (rock-paper-scissors edges). */
 export interface FeelTarget {
   meter: string
-  op: '>=' | '<=' | 'tableBest' | 'tableWorst' | 'nearAverage' | 'neverExtreme'
+  op: '>=' | '<=' | 'tableBest' | 'tableWorst' | 'nearAverage' | 'neverExtreme' | 'beats'
   value?: number
+  /** 'beats': the rival personality — passes when its share of the wins between the two is at least `value`. */
+  against?: string
   label: string
 }
 
@@ -69,6 +72,11 @@ export function checkFeelTargets(results: GameResult[], targets: Record<string, 
     out[personality] = list.map((t) => {
       const avg = t.meter === '*' ? new Map<string, number>() : averages(results, t.meter, skill)
       const measured = round(avg.get(personality) ?? NaN)
+      if (t.op === 'beats') {
+        const share = winRates(results, skill).headToHead[personality]?.[t.against ?? '']
+        const measured = share === undefined ? NaN : round(share)
+        return { ...t, measured, pass: Number.isFinite(measured) && measured >= (t.value ?? 0.5), rival: t.against ? { personality: t.against, measured: Number.isFinite(measured) ? round(1 - measured) : NaN } : undefined }
+      }
       if (t.op === 'neverExtreme') {
         if (!seatsBy(results, skill).has(personality)) return { ...t, measured: NaN, pass: false, extremes: [] }
         const meters = [...new Set(results.flatMap((g) => g.seats.flatMap((s) => Object.keys(s.meters))))]

@@ -39,7 +39,7 @@ describe('the arena', () => {
     const games = [4, 5].map((seed) => playArenaGame(seats, 'small', seed, words, greedy))
     const report = personalityCheck(
       games,
-      { personalities: { Bully: [{ meter: 'tanglesCaused', op: '>=', value: 0, label: 'tangles' }] }, all: [{ check: 'winRateVsBalanced', min: 0, max: 1, label: 'wins sometimes' }] },
+      { personalities: { Bully: [{ meter: 'tanglesCaused', op: '>=', value: 0, label: 'tangles' }] }, all: [{ check: 'tellApart', min: 0, label: 'told apart' }] },
       ['Apprentice', 'FirstClass', 'Archmage'],
       ['tanglesCaused', 'avgWordLength'],
       '2 games',

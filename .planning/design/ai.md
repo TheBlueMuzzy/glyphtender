@@ -45,10 +45,16 @@ New vs the original: **territory** (Amazons-style "who reaches each hex first") 
 | Vocabulary (Zipf ≥, + personality modifier) | 3.0 (~22k words) | 2.0 (~44k) | 0 (all 63k) |
 Vocabulary = the words it can *aim for*; the rules still count any word it makes by accident. Whether tiers should be 4/3/0 (~5k/~20k/all, the old design's intent) is settled by the skill-ladder check (GDD §9).
 
-## Three personalities — rock-paper-scissors (Muzzy, 2026-10-04: "we should only have 3 AI personalities")
-**Bully = Hunter** (beats the Speller: hems it in) · **Scholar = Speller** (beats the Turtle: out-scores it) · **Survivor = Turtle** (beats the Hunter: can't be caught). Each has a real weakness. Measured 2026-10-04 (2p, First Class, 50 games): Speller > Turtle 86% ✅ · Turtle > Hunter 84% ✅ · Hunter > Speller 11% ❌ (being worked on — F45). The other four below stay in the data for the Dev Kit but aren't offered to players.
+## Three personalities — rock-paper-scissors (Muzzy, 2026-10-04)
+"We should only have 3 AI personalities" · "Let's call the Bully the Strategist so they all start with S" · **Scholar > Survivor > Strategist > Scholar**. How many words any AI knows comes from the SKILL (Apprentice … Archmage), never the personality; personalities differ in what they WANT (traits, goal order, steady SCORE, focus) and what they can SEE (sight per goal).
+| | Sees words | Board sight | Priority | Beats — because | Loses to — because |
+|---|---|---|---|---|---|
+| **Scholar** (Speller) | sharp | **poor** (sight TRAP 0.3 · ESCAPE 0.2 · DENY 0.3): can't see a trap closing | the biggest word | Survivor — out-spells a player who spends turns running | Strategist — walks into its hems |
+| **Survivor** (Turtle) | good | sharp | safety first, then the best word | Strategist — sees every pincer coming | Scholar — plays too safe to keep up |
+| **Strategist** (Hunter + planner; was "the Bully") | good | sharp, plans ahead: **frames** (B _ G that its own vowels finish) + **siege** (its pieces round cornered glyphlings, so even a self-tangle pays it) | a strong pincer when it sees one; else a frame that also hems | Scholar — hems the speller, collects the tangle bonus | Survivor — can't catch it |
+Target per edge ≈ 60–65% (a real edge, not a lock), checked by 'beats' feel targets in content/ai/feel-targets.json. Online idle takeover plays the Survivor (the gentlest).
 
-## The original 7 personalities — feel targets (checked by the Personality Check)
+## The original 7 personalities (2026-10-04, replaced by the three above — kept here for the record)
 Trait ranges + priority from the original (digest §2). Each feel target is **behaviour** measured by a meter over ≥ 300 mixed games at First Class; thresholds are starting guesses, tuned in the check.
 | Personality | Bio seed | Feel ("players say") | Feel targets (meters) |
 |---|---|---|---|

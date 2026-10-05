@@ -236,10 +236,11 @@ export const castReachAfter = (state: GameState, action: TurnAction, words: Word
 
 // ── Words ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** The lowest Zipf score a word needs for this bot to AIM for it: the skill's vocabulary + the personality's
- *  modifier (Zipf = how common a word is; 0 = rare/unknown). Any word still scores by the rules if it happens. */
-export function vocabularyOf(skillExtras?: Record<string, number>, personalityExtras?: Record<string, number>): number {
-  return (skillExtras?.zipf ?? 0) + (personalityExtras?.vocabulary ?? 0)
+/** The lowest Zipf score a word needs for this bot to AIM for it — set by the SKILL only (Muzzy, 2026-10-04: "amount
+ *  of words is dictated by difficulty"; Zipf = how common a word is, 0 = rare/unknown). Any word still scores by the
+ *  rules if it happens. */
+export function vocabularyOf(skillExtras?: Record<string, number>): number {
+  return skillExtras?.zipf ?? 0
 }
 
 /** Does this bot know the word well enough to aim for it? */

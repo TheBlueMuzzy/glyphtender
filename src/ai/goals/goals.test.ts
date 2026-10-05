@@ -14,7 +14,7 @@ import { dumpGoal } from './dump'
 import { escapeGoal } from './escape'
 import { scoreGoal } from './score'
 import { stealGoal } from './steal'
-import { trapGoal } from './trap'
+import { TRAP_WEIGHTS, trapGoal } from './trap'
 import type { GlyphGoal } from './shared'
 
 const words = officialWords()
@@ -43,6 +43,24 @@ describe('TRAP', () => {
     const { actions, why } = favourites(trapGoal(words), game)
     for (const a of actions) expect(mobility(outcomeOf(game, a, words).after)[2]).toBe(0)
     expect(why).toBe("tangled Blue's glyphling")
+  })
+})
+
+describe('TRAP siege', () => {
+  it('values its own pieces packed round a cornered rival glyphling (a self-tangle there would pay it)', () => {
+    // Blue's glyphling 2 on C6-5, cornered by Yellow's seeds except C6-6 (a Yellow seed on C6-8 stops the slide:
+    // 2 moves). Yellow casts into C6-6, right next to it.
+    const game = position({ glyphlings: { 0: 'C6-9', 1: 'C2-3', 2: 'C6-5', 3: 'C10-3' }, seeds: [{ ...ringExcept('C6-5', ['C6-6']), 'C6-8': 'S' }], hands: [['E', 'A'], ['T']] })
+    expect(mobility(game)[2]).toBeLessThanOrEqual(3)
+    const into = legalActions(game, 0).find((a) => a.type === 'turn' && a.target && sameHex(a.target, hexAt('C6-6'))) as TurnAction
+    expect(into).toBeDefined()
+    const score = () => trapGoal(words).score(into, contextFor(game)).value
+    const withSiege = score()
+    const saved = TRAP_WEIGHTS.perSiegePiece
+    TRAP_WEIGHTS.perSiegePiece = 0
+    const without = score()
+    TRAP_WEIGHTS.perSiegePiece = saved
+    expect(withSiege - without).toBe(saved) // one more Yellow piece next to it
   })
 })
 
@@ -100,6 +118,16 @@ describe('DUMP', () => {
 })
 
 describe('BUILD', () => {
+  it('frames a word from the outside in: B _ G, with vowels in hand that only it holds', () => {
+    // Yellow owns B on C6-3; hand G + A + I (rival Blue holds only T). Casting G on C6-5 leaves B_G: A → BAG, I → BIG.
+    const game = position({ glyphlings: { 0: 'C6-9', 1: 'C2-3', 2: 'C9-3', 3: 'C10-5' }, seeds: [{ 'C6-3': 'B' }], hands: [['G', 'A', 'I'], ['T']] })
+    const { actions, why } = favourites(buildGoal(words), game)
+    expect(why).toMatch(/^framed (B_G|G_B) \((A\/I|I\/A)\) for next turn$/)
+    // (G two hexes from the B either way: B_G → BAG / BIG, or G_B → GAB / GIB)
+    for (const a of actions) expect(hexDistance(a.target!, hexAt('C6-3')) === 2 && outcomeOf(game, a, words).letter === 'G').toBe(true)
+    expect(actions.some((a) => sameHex(a.target!, hexAt('C6-5')))).toBe(true)
+  })
+
   it('sets up a word next to its own seed', () => {
     const game = position({ glyphlings: { 0: 'C6-9', 1: 'C2-3', 2: 'C9-3', 3: 'C10-5' }, seeds: [{ 'C6-3': 'C' }], hands: [['A', 'T', 'X'], ['T']] })
     const { actions, why } = favourites(buildGoal(words), game)

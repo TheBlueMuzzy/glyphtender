@@ -2,7 +2,10 @@
 //   every move it takes from a rival glyphling ×5 · a tangle +50, +3 per own piece next to it ("plan the kill") ·
 //   a rival glyphling newly down to ≤ 2 moves +15 · territory taken: hexes rivals no longer reach first ×2.
 // Cast spots taken (F45): the empty hexes rivals could cast into next turn — a speller's room to score. Measured
-// 2026-10-04 (Bully vs Scholar, 60 games): weight 1 → 8% wins, 0 → 9% — no help on its own, so off (0) for now.
+// 2026-10-04 (Bully — now the Strategist — vs Scholar, 60 games): weight 1 → 8% wins, 0 → 9% — no help on its own, so off (0) for now.
+// SIEGE (F45): its own pieces next to rival glyphlings that are running out of room (≤ 3 moves). Any tangle of that
+// glyphling — even its owner's own self-tangle to end the game — pays every OTHER player +tangleBonus per piece next
+// to it, so a siege turns a speller's escape hatch into its payday. +4 per piece added around such a glyphling.
 // Timing (F45): tangles end the game. A tangle that ENDS it, or leaves it one tangle from the end, while it believes
 // it's behind just hands the leader the win ("call it") — so then the tangle is worth nothing, and ending it is bad.
 import { getBoard } from '../../engine/boards'
@@ -11,7 +14,7 @@ import type { WordList } from '../../engine/types'
 import { castReachAfter, castReachNow, mobilityAfter, mobilityNow, outcomeOf, seatName, territoryAfter, territoryNow } from '../look'
 import { NOTHING, asTurn, rivalsOf, type GlyphGoal } from './shared'
 
-export const TRAP_WEIGHTS = { perMoveCut: 5, tangle: 50, perOwnPieceNear: 3, nearlyTrapped: 15, perHexTaken: 2, perCastSpotTaken: 0, endWhileBehind: -100 }
+export const TRAP_WEIGHTS = { perMoveCut: 5, tangle: 50, perOwnPieceNear: 3, nearlyTrapped: 15, perHexTaken: 2, perCastSpotTaken: 0, perSiegePiece: 4, endWhileBehind: -100 }
 
 export function trapGoal(words: WordList): GlyphGoal {
   return {
@@ -31,6 +34,19 @@ export function trapGoal(words: WordList): GlyphGoal {
       const need = ctx.world.config.rules.tanglesToEnd
       const tangledAfter = ctx.world.glyphlings.filter((g) => after[g.id] === 0).length
       const nearsTheEnd = tangledAfter >= need - 1
+      // Siege: own pieces next to rival glyphlings with ≤ 3 moves, before vs after this turn.
+      const siegeOf = (state: typeof board, moves: number[]) => {
+        const shape = getBoard(state.config.boardName)
+        let pieces = 0
+        for (const g of state.glyphlings) {
+          if (g.seat === ctx.seat || moves[g.id] > 3) continue
+          pieces += neighbours(shape, g.hex).filter((n) =>
+            state.seeds[hexKey(n)]?.seat === ctx.seat || state.glyphlings.some((x) => x.seat === ctx.seat && hexKey(x.hex) === hexKey(n))).length
+        }
+        return pieces
+      }
+      const siegeAdded = siegeOf(board, after) - siegeOf(ctx.world, before)
+      if (siegeAdded > 0) value += W.perSiegePiece * siegeAdded
       let biggest: { seat: number; from: number; to: number } | null = null
       let tangled: number | null = null
       for (const g of ctx.world.glyphlings) {
@@ -55,6 +71,7 @@ export function trapGoal(words: WordList): GlyphGoal {
       if (behind && tangledAfter >= need) value += W.endWhileBehind
       let why: string | undefined
       if (tangled !== null) why = `tangled ${seatName(tangled)}'s glyphling`
+      else if (siegeAdded >= 2) why = `laid siege: ${siegeAdded} more pieces round a cornered glyphling`
       else if (biggest) why = `cut ${seatName(biggest.seat)}'s glyphling ${biggest.from} → ${biggest.to}`
       else if (spotsTaken >= 5) why = `took ${spotsTaken} of rivals' casting spots`
       else if (taken > 0) why = `took ${taken} hexes of rivals' ground`

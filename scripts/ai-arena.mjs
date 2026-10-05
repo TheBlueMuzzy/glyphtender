@@ -3,7 +3,7 @@
 // Options:
 //   --games 60          mixed tables (2–4 players, personalities shuffled) at the main skill
 //   --skill FirstClass  the main skill
-//   --seats Bully,Scholar   play only these, every game (instead of mixed tables)
+//   --seats Strategist,Scholar   play only these, every game (instead of mixed tables)
 //   --ladder 6          for each personality, N two-player games of its Archmage vs its Apprentice (skill ladder); 0 = skip
 //   --board auto        small for 2 players, large for 3–4 (as the game's default); or small / large
 //   --notes             print every decision note of the first game

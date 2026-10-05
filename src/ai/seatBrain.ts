@@ -15,7 +15,7 @@ export interface ThinkRequest {
   view: SeatView
   seat: number
   rng: number
-  /** An id from content/ai/personalities.json, e.g. "Bully". */
+  /** An id from content/ai/personalities.json, e.g. "Strategist". */
   personalityId: string
   /** An id from content/ai/skills.json, e.g. "FirstClass". */
   skillId: string

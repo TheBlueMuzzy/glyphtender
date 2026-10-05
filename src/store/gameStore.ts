@@ -117,7 +117,7 @@ export interface GameStore {
   nope: (NopeTarget & { count: number }) | null
 
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
-   *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays Balanced at First Class. */
+   *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
   startGame: (options: Partial<GameOptions> & { players: number; seed: number; bots?: number[]; ai?: Record<number, AiPick> }) => void
   leaveGame: () => void
   /** The next player has the device: show their seeds. */

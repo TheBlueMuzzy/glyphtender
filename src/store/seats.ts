@@ -20,8 +20,9 @@ export interface AiPick {
   custom?: { personality: Personality; skill: Skill }
 }
 
-/** The AI for a seat nobody chose for (tests, the Dev Kit): Balanced at First Class. */
-export const defaultAi = (): AiPick => ({ personality: 'Balanced', skill: 'FirstClass' })
+/** The AI for a seat nobody chose for (an online player who went idle, tests, the Dev Kit): the Survivor — the
+ *  gentlest of the three — at First Class. */
+export const defaultAi = (): AiPick => ({ personality: 'Survivor', skill: 'FirstClass' })
 
 export interface Seat extends TableSeat {
   /** What players read, e.g. "Blue". */

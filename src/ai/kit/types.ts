@@ -42,6 +42,9 @@ export interface Personality {
   /** Goals EVERY move also tries for, whatever the roll, with a weight 0–1 (Glyphtender: { SCORE: 0.6 } — "try to
    *  score, but also try to bully"). Missing = none. */
   steady?: Record<string, number>
+  /** How clearly it sees each kind of move, 0–1 per goal (missing = 1, sees clearly). Low sight blurs that goal's
+   *  scores, so it misjudges those moves — Glyphtender's Scholar can't see a trap closing on it. */
+  sight?: Record<string, number>
   shifts: Shift[]
   /** 0–100: how likely it is to say something at a banter moment. */
   chattiness: number

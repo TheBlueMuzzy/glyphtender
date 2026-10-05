@@ -113,7 +113,7 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 - Online rooms (Roll Better): create/join, 2–4, rejoin, host leaves, rematch
 - Grow animation (basic), Dev Kit tuning, GitHub Pages + PWA
 
-**Must — beta (AI)** — framework AI module (brain, fuzzy beliefs, pace + background thinking, banter) · Dev Kit personality editor + Personality Check · 3 personalities in a rock-paper-scissors — Bully (Hunter) · Scholar (Speller) · Survivor (Turtle) — with bios and gentle banter, each passing its feel targets (Muzzy, 2026-10-04: "we should only have 3") · AI in any seat, 2–4 players, personality + skill picked in New Game · online idle takeover by the AI · AI at human pace (speed setting) · basic audio · AI-vs-AI sims settle §9 + re-tune the award thresholds
+**Must — beta (AI)** — framework AI module (brain, fuzzy beliefs, pace + background thinking, banter) · Dev Kit personality editor + Personality Check · 3 personalities in a rock-paper-scissors — Scholar (Speller) > Survivor (Turtle) > Strategist (Hunter + planner) > Scholar; words known come from the difficulty, not the personality — with bios and gentle banter, each passing its feel targets (Muzzy, 2026-10-04: "we should only have 3") · AI in any seat, 2–4 players, personality + skill picked in New Game · online idle takeover by the AI · AI at human pace (speed setting) · basic audio · AI-vs-AI sims settle §9 + re-tune the award thresholds
 
 **Must — 1.0** — tutorial (progressive, first game) · accessibility pass (colour-blind glyphling marks, 200% text, reduce motion) · final art + audio · stats screen + radar · credits, privacy
 

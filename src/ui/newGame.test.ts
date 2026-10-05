@@ -56,17 +56,17 @@ describe('AI seats (F42)', () => {
     const storage = memory()
     const ai = withSeat(withPlayers(defaultChoices(), 3), 1, { ai: true })
     expect(ai.seats[1]).toEqual({ ai: true, personality: SURPRISE, skill: 'FirstClass' })
-    const picked = withSeat(ai, 2, { ai: true, personality: 'Bully', skill: 'Archmage' })
+    const picked = withSeat(ai, 2, { ai: true, personality: 'Strategist', skill: 'Archmage' })
     saveChoices(picked, storage)
     expect(loadChoices(storage)).toEqual(picked)
   })
 
   it('Start turns the AI seats into bots: "Surprise me" picks a real personality; seats past the player count stay out', () => {
     let choices = withSeat(defaultChoices(), 1, { ai: true }) // you + 1 AI (Surprise me)
-    choices = withSeat(choices, 3, { ai: true, personality: 'Bully' }) // (seat 4, but only 2 players)
+    choices = withSeat(choices, 3, { ai: true, personality: 'Strategist' }) // (seat 4, but only 2 players)
     const { bots, ai } = aiSeatsOf(choices, () => 0) // (the "random" pick: the first personality)
     expect(bots).toEqual([1])
-    expect(ai).toEqual({ 1: { personality: 'Bully', skill: 'FirstClass' } })
+    expect(ai).toEqual({ 1: { personality: 'Scholar', skill: 'FirstClass' } }) // the first of content/ai/personalities.json
   })
 
   it('at least one seat must be a person', () => {

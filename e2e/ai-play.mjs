@@ -1,5 +1,5 @@
 // PLAY AGAINST THE AI THROUGH THE REAL SCREEN (F42).
-//   1. Solo vs 1 AI, to the end (phone 390×844): New game → Blue = AI (the Bully, Apprentice) → Settings → AI speed
+//   1. Solo vs 1 AI, to the end (phone 390×844): New game → Blue = AI (the Strategist, Apprentice) → Settings → AI speed
 //      Instant → Start. The person's turns are tapped like e2e:pass does; the AI thinks in its Web Worker and plays by
 //      itself (its prompt says "… is thinking…", a robot badge on the turn bar). No handoff ever (one person). The end
 //      screen opens; its Results and Story pages still work after an AI game.
@@ -80,7 +80,7 @@ try {
     for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Next AI speed' }).click()
     h.check('Settings → AI speed is Instant', (await page.locator('.kit-picker-value', { hasText: 'Instant' }).count()) === 1)
     await page.keyboard.press('Escape')
-    // New game: Blue = AI → its card (Surprise me at First Class) → the Bully, Apprentice
+    // New game: Blue = AI → its card (Surprise me at First Class) → the Strategist, Apprentice
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Next Blue', exact: true }).click()
     h.check('Blue switched to AI shows its personality card', (await page.locator('.kit-card').count()) === 1)
@@ -89,11 +89,11 @@ try {
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
     await page.getByRole('button', { name: 'Next Blue: Personality' }).click()
     await page.getByRole('button', { name: 'Previous Blue: Skill' }).click()
-    h.check('picked the Bully at Apprentice', (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Bully' }).count()) === 1
+    h.check('picked the Strategist at Apprentice', (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 1
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
     await page.getByRole('button', { name: 'Start' }).click()
     await h.ready()
-    h.check('Blue is the AI: the Bully at Apprentice', await h.store((s) => s.seats[1].kind === 'bot' && s.seats[1].ai.personality === 'Bully' && s.seats[1].ai.skill === 'Apprentice'))
+    h.check('Blue is the AI: the Strategist at Apprentice', await h.store((s) => s.seats[1].kind === 'bot' && s.seats[1].ai.personality === 'Strategist' && s.seats[1].ai.skill === 'Apprentice'))
     const seen = await h.playToTheEnd({ maxHandoffs: 0 })
     h.check('the AI said it was thinking on its turn', seen.thinking > 0)
     h.check('the robot badge showed on the AI\'s turn', seen.badge > 0)
@@ -102,8 +102,8 @@ try {
     // New game remembers the AI seat and its picks
     await page.getByRole('dialog', { name: /Grand Glyphtender/ }).getByRole('button', { name: 'New game' }).click()
     await page.getByRole('button', { name: 'Start' }).waitFor({ timeout: 3000 })
-    h.check('New game remembers Blue = AI, the Bully, Apprentice',
-      (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Bully' }).count()) === 1
+    h.check('New game remembers Blue = AI, the Strategist, Apprentice',
+      (await page.locator('.kit-card .kit-picker-value', { hasText: 'the Strategist' }).count()) === 1
       && (await page.locator('.kit-card .kit-picker-value', { hasText: 'Apprentice' }).count()) === 1)
     if (errors.length) fail(`solo: console errors: ${errors.join(' | ')}`)
     await page.close()

@@ -21,7 +21,7 @@ export type MakeBot = (seat: ArenaSeat, onNote: (note: string) => void) => (view
 export interface ArenaGame {
   seats: ArenaSeat[]
   game: GameState
-  /** Every decision's note, in order, with the seat in front ("2 Bully rolled TRAP…"). */
+  /** Every decision's note, in order, with the seat in front ("2 Strategist rolled TRAP…"). */
   notes: string[]
   /** How long each decision took, in ms (this machine). */
   decisionMs: number[]
@@ -82,8 +82,7 @@ export function personalityCheck(games: ArenaGame[], targets: FeelTargetsFile, s
   const calledItRight = averages(results, 'calledItRight', mainSkill)
   const all = targets.all.map((t) => {
     const per: [string, number | undefined][] =
-      t.check === 'winRateVsBalanced' ? names.filter((n) => n !== 'Balanced').map((n) => [n, wins.headToHead[n]?.Balanced])
-      : t.check === 'tellApart' ? names.map((n) => [n, tell.accuracy[n]])
+      t.check === 'tellApart' ? names.map((n) => [n, tell.accuracy[n]])
       : t.check === 'skillLadder' ? names.map((n) => [n, ladder[n]])
       : t.check === 'callsIt' ? names.map((n) => [n, calledIt.get(n)])
       : t.check === 'callsItWrong' ? names.map((n) => [n, (calledIt.get(n) ?? 0) - (calledItRight.get(n) ?? 0)])

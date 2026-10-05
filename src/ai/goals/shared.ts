@@ -13,7 +13,7 @@ export type GlyphGoal = Goal<SeatView, Action, GameState>
 export const asTurn = (action: Action): TurnAction | null => (action.type === 'turn' ? action : null)
 
 /** The lowest Zipf a word needs for this bot to aim for it (skill vocabulary + personality modifier). */
-export const vocabulary = (ctx: GlyphContext) => vocabularyOf(ctx.skill.extras, ctx.personality.extras)
+export const vocabulary = (ctx: GlyphContext) => vocabularyOf(ctx.skill.extras)
 
 /** The rival seats (everyone but the bot). */
 export const rivalsOf = (ctx: GlyphContext) => Array.from({ length: ctx.world.config.players }, (_, s) => s).filter((s) => s !== ctx.seat)

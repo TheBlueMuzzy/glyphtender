@@ -1,6 +1,6 @@
 // BEHAVIOUR METERS — what ONE seat did in a finished game, as numbers (src/ai, F38). Pure: no React, no store.
 // The Personality Check averages them over many games and tests them against content/ai/feel-targets.json
-// ("the Bully tangles a rival in ≥ 60% of games"). They read the same log facts as the end-screen awards and reuse
+// ("the Strategist tangles a rival in ≥ 60% of games"). They read the same log facts as the end-screen awards and reuse
 // the award detectors (src/game/stats.ts), so "what the AI does" and "what players get awarded for" are measured
 // the same way. Every meter works for a human seat too.
 import { DIRECTIONS, addHex, hexKey, type Hex } from '../engine/hex'

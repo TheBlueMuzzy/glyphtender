@@ -38,6 +38,10 @@ export function personalityProblems<View, Action, World>(p: Personality, plug: G
   }
   if (!(p.nudge >= 0 && p.nudge <= 1)) problems.push(`${p.id}: nudge ${p.nudge} must be 0–1`)
   if (p.focus !== undefined && !(p.focus >= 0 && p.focus <= 1)) problems.push(`${p.id}: focus ${p.focus} must be 0–1`)
+  for (const [goal, v] of Object.entries(p.sight ?? {})) {
+    if (!goalIds.includes(goal)) problems.push(`${p.id}: sight for "${goal}" isn't one of this game's goals`)
+    if (!(v >= 0 && v <= 1)) problems.push(`${p.id}: sight ${goal} ${v} must be 0–1`)
+  }
   return problems
 }
 
@@ -134,8 +138,18 @@ export function makeBrain<View, Action, World>(plug: GamePlug<View, Action, Worl
       // 6. Score: every goal that counts, averaged over the imagined worlds, then 0–1 within this decision.
       const steady = personality.steady ?? {}
       const others = plug.goals.filter((g) => g !== main && (personality.nudge > 0 || (steady[g.id] ?? 0) > 0))
+      const sightOf = (goalId: string) => Math.min(1, Math.max(0, personality.sight?.[goalId] ?? 1))
       const scored = [main, ...others].map((goal) => {
-        const values = actions.map((a) => contexts.reduce((sum, ctx) => sum + goal.score(a, ctx).value, 0) / contexts.length)
+        const clear = actions.map((a) => contexts.reduce((sum, ctx) => sum + goal.score(a, ctx).value, 0) / contexts.length)
+        // Poor sight: each move's score for this goal is misjudged by up to (1 − sight) × the spread of this turn's
+        // scores — it can't tell a closing trap from a safe spot as well as someone who sees it.
+        const blur = (1 - sightOf(goal.id)) * (Math.max(...clear) - Math.min(...clear))
+        const values = clear.map((v) => {
+          if (blur <= 0) return v
+          const r = nextRandom(pos)
+          pos = r.rng
+          return v + (r.value * 2 - 1) * blur
+        })
         const lo = Math.min(...values)
         const hi = Math.max(...values)
         return { goal, values, norm: values.map((v) => (hi > lo ? (v - lo) / (hi - lo) : 0)), mattered: hi > lo }

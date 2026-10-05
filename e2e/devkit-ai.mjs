@@ -1,14 +1,14 @@
 // DEV KIT AI TAB (F41, framework Dev Kit 0.6.0) — Muzzy: "I want to be able to tweak these in the Dev Kit. select a
 // personality, tweak the values etc." and "test the expectation of a personality against lots of games".
 // Over a real game, at phone 390×844, phone landscape 844×390 and desktop 1440×900:
-//   ` → AI tab → pick Bully → open "AI: traits" → move the aggression low handle (keyboard, like a drag) → Save →
+//   ` → AI tab → pick Strategist → open "AI: traits" → move the aggression low handle (keyboard, like a drag) → Save →
 //   reload → the saved value is still there (first size only; content/ai/personalities.json is put back afterwards,
 //   whatever happens) → ▶ Watch: an all-AI game starts on the board, decision notes and belief bars appear → ■ Stop.
 //   Desktop also: Run check (6 games, in a Web Worker) → the report link opens a page with the Personality Check,
 //   and the search box finds AI settings ("nerve").
 // F41 follow-ups (first size): focus 0.8 → 0.55 and goals.json's TRAP big-moment bar 55 → 60 → Save → each file
 //   differs from the hand-written one in exactly that ONE line (Save keeps the layout) → reload → both kept.
-//   Copy to new "Brute" → Save → en.json gains ai.personality.Brute { name: "the Brute", bio: Bully's bio }.
+//   Copy to new "Brute" → Save → en.json gains ai.personality.Brute { name: "the Brute", bio: the Strategist's bio }.
 //   Every AI file (personalities, goals, pace, en.json) is put back afterwards, whatever happens.
 // Every size: nothing in the AI tab sticks out of the panel, nothing scrolls sideways, no console errors.
 // Starts its OWN dev server (default port 5415 — never Muzzy's) and closes only that one.
@@ -90,7 +90,7 @@ try {
       const lastPage = panel.locator('.devkit-tabs .dk-carousel-dot').last()
       if (await lastPage.count()) await lastPage.click()
       await tab.click()
-      await page.getByLabel('Personality', { exact: true }).selectOption('Bully')
+      await page.getByLabel('Personality', { exact: true }).selectOption('Strategist')
     }
 
     // A real game underneath
@@ -117,7 +117,7 @@ try {
       await page.getByRole('button', { name: 'Save', exact: true }).click()
       await page.getByRole('status').filter({ hasText: 'Saved' }).waitFor({ timeout: 5000 })
       const onDisk = JSON.parse(readFileSync(FILE, 'utf8'))
-      if (onDisk.personalities.find((p) => p.id === 'Bully').traits.aggression.min !== moved) fail('the file on disk does not hold the new value')
+      if (onDisk.personalities.find((p) => p.id === 'Strategist').traits.aggression.min !== moved) fail('the file on disk does not hold the new value')
       if (!onDisk._help || !onDisk._labels || !onDisk._sections) fail('Save lost the file\'s _help / _labels / _sections')
       await page.reload()
       await page.waitForFunction(() => window.__glyphtender !== undefined)
@@ -163,7 +163,7 @@ try {
       await page.getByRole('button', { name: 'Save', exact: true }).click()
       await page.getByRole('status').filter({ hasText: 'Saved' }).waitFor({ timeout: 5000 })
       const texts = JSON.parse(readFileSync(TEXT, 'utf8')).ai.personality
-      if (texts.Brute?.name !== 'the Brute' || texts.Brute?.bio !== texts.Bully.bio) fail(`en.json Brute = ${JSON.stringify(texts.Brute)}`)
+      if (texts.Brute?.name !== 'the Brute' || texts.Brute?.bio !== texts.Strategist.bio) fail(`en.json Brute = ${JSON.stringify(texts.Brute)}`)
       else console.log(`  ok   Copy to new: en.json has Brute = ${JSON.stringify(texts.Brute)}`)
       putBack()
       await page.waitForTimeout(800)

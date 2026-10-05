@@ -1,4 +1,4 @@
-// npm run ai:diagnose -- --a Bully --b Scholar --games 30 — head-to-head facts for tuning (F45).
+// npm run ai:diagnose -- --a Strategist --b Scholar --games 30 — head-to-head facts for tuning (F45).
 // Per personality: final Magic (words vs tangle bonus), goals chosen, how often the chosen goal saw no difference,
 // how games end. Prints a table; no files written.
 import { readFileSync } from 'node:fs'
@@ -13,7 +13,7 @@ const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import
 const pers = Object.fromEntries(json('personalities.json').personalities.map((p) => [p.id, p]))
 if (arg('nudge', '')) for (const p of Object.values(pers)) p.nudge = Number(arg('nudge')) // experiment: everyone's nudge
 const skill = json('skills.json').skills.find((s) => s.id === arg('skill', 'FirstClass'))
-const names = [arg('a', 'Bully'), arg('b', 'Scholar'), ...(arg('c', '') ? [arg('c')] : [])]
+const names = [arg('a', 'Strategist'), arg('b', 'Scholar'), ...(arg('c', '') ? [arg('c')] : [])]
 const games = Number(arg('games', 30))
 const stats = Object.fromEntries(names.map((n) => [n, { wins: 0, words: 0, tangle: 0, goals: {}, flat: 0, decisions: 0, ended: 0, selfEnded: 0 }]))
 let turns = 0

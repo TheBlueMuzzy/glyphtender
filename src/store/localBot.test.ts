@@ -106,8 +106,8 @@ describe('the AI on this device (driveLocalBots)', () => {
 
   it('waits its think time (Normal speed), then places; nothing before that', async () => {
     setAiSpeedOverride('normal')
-    store().startGame({ players: 2, seed: 3, hideSeeds: false, bots: [0], ai: { 0: { personality: 'Bully', skill: 'Apprentice' } } })
-    expect(store().seats[0].ai).toEqual({ personality: 'Bully', skill: 'Apprentice' })
+    store().startGame({ players: 2, seed: 3, hideSeeds: false, bots: [0], ai: { 0: { personality: 'Strategist', skill: 'Apprentice' } } })
+    expect(store().seats[0].ai).toEqual({ personality: 'Strategist', skill: 'Apprentice' })
     const stop = driveLocalBots()
     try {
       await vi.advanceTimersByTimeAsync(300) // shorter than any draft think (pace.json draft.min 0.6 s)
