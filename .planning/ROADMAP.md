@@ -145,7 +145,7 @@ Goal: play solo or fill any seat (2–4, local or online) with an AI that feels 
   why: Muzzy tunes by eye ("select a personality, tweak the values")
 - ✅ F42 🎮 Play vs AI: New Game seat = Human / AI (personality card + skill, "Surprise me"), thinking cue, human pace + Settings → AI speed, no handoff for bots, background thinking — must:beta · needs: F40, framework F20, framework F21
   why: solo play any time → the primary target (Hunted, but cozy) is reachable alone
-- ⏳ F43 🎮 Online AI: idle takeover plays as the AI (replaces the greedy bot), server-side thinking within its CPU budget; host can add AI seats in the lobby (should — F37) — must:beta · needs: F42
+- 🟢 F43 🎮 Online AI: idle takeover plays as the AI (replaces the greedy bot), server-side thinking within its CPU budget; host can add AI seats in the lobby (should — F37) — must:beta · needs: F42
 - ⏳ F44 🎮 Banter bubbles: big moments → a short gentle line by the AI's chip; lines drafted by Claude, tone checked by Muzzy — must:beta · needs: F40, framework F22, ~F37
   why: gentle mischief → Fellowship with a computer; "even the Bully is mischievous, not mean"
 - 🎛️ F45 🎛️ Personality Check pass: tune all 7 until feel targets are green, tell-apart ≥ 70%, everyone wins 35–65% vs Balanced, skill ladder holds; settles vocabulary tiers (GDD §9) — must:beta · needs: F41
