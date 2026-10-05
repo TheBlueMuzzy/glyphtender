@@ -9,6 +9,9 @@
 //      (4 players, Blue + Pink AI, their personality cards) and a game during an AI's turn (AI speed Slow, "is thinking…").
 //      Each is checked: no sideways scroll, nothing past a screen edge, nothing touching the inside edge of an AI card,
 //      and every AI card the same size whichever personality it shows.
+//      F50 "AI looks human" — frame check: the AI's draft glyphling TRAVELS out of the tray to its hex (the person's drag
+//      piece, on the glide's path) instead of popping in: recorded every frame in the page, from the tray slot to the hex,
+//      not placed until it arrives; a shot mid-travel (4-ai-draft-travel).
 // Starts its OWN dev server (default port 5431 — never Muzzy's 5180) and closes only that one at the end.
 //   node e2e/ai-play.mjs [outDir] [port]          (npm run e2e:ai)
 import { mkdirSync } from 'node:fs'
@@ -168,10 +171,16 @@ try {
     // Start with Yellow first: once Yellow places, Blue (AI, Slow) thinks — the shot is taken during its thinking
     await page.getByRole('button', { name: 'Start' }).click()
     await h.ready()
+    await page.evaluate(recordAiDraft) // (every frame of the AI's coming draft, recorded in the page)
     await h.tap(page.locator('[data-option="move"] circle').nth(5))
     await page.waitForFunction(() => document.querySelector('.game-prompt')?.textContent.includes('is thinking…'), null, { timeout: 5000 })
     h.check('the robot badge is on the turn bar', (await page.locator('[data-seat-status="ai"]').count()) === 1)
     await h.shot('3-ai-thinking', 100)
+    await page.waitForFunction(() => window.__glyphtender.store.getState().botDraft !== null, null, { timeout: 10000, polling: 'raf' })
+    await page.screenshot({ path: `${OUT}/ai-${size.name}-4-ai-draft-travel.png` })
+    await page.waitForFunction(() => window.__f50?.done, null, { timeout: 5000 })
+    const travel = await page.evaluate(() => window.__f50)
+    checkTravel(h, travel)
     if (errors.length) fail(`${size.name}: console errors: ${errors.join(' | ')}`)
     await page.close()
   }
@@ -185,6 +194,45 @@ console.log(failures ? `\n${failures} problem(s)` : '\nAll AI checks passed')
 process.exit(failures ? 1 : 0)
 
 // ─── helpers ───
+
+/** In the page: records the AI's next draft every frame — where the tray's waiting glyphling and the target hex are, where
+ *  the floating piece is, and whether the glyphling is on the board yet — into window.__f50. */
+function recordAiDraft() {
+  const store = window.__glyphtender.store
+  const centre = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } }
+  const rec = { frames: [], done: false }
+  window.__f50 = rec
+  const stop = store.subscribe((s) => {
+    if (!s.botDraft || rec.from) return
+    stop()
+    const key = `${s.botDraft.q},${s.botDraft.r}`
+    rec.from = centre(document.querySelector('[data-draft="next"]'))
+    rec.to = centre(document.querySelector(`.game-garden [data-hex="${key}"]`))
+    rec.hexWidth = document.querySelector(`.game-garden [data-hex="${key}"]`).getBoundingClientRect().width
+    rec.placedBefore = s.game.glyphlings.length
+    const step = () => {
+      const now = store.getState()
+      const img = document.querySelector('.game-drag-layer image')
+      rec.frames.push({ shown: img.getAttribute('visibility') === 'visible', ...centre(img), placed: now.game.glyphlings.length, travelling: now.botDraft !== null })
+      if (now.botDraft) return requestAnimationFrame(step)
+      rec.landedAt = now.game.glyphlings.find((g) => `${g.hex.q},${g.hex.r}` === key) ? key : null
+      rec.done = true
+    }
+    requestAnimationFrame(step)
+  })
+}
+
+/** The AI's draft travelled: shown from the tray slot to its hex over several frames, placed only once it arrived. */
+function checkTravel(h, t) {
+  const moving = t.frames.filter((f) => f.travelling && f.shown)
+  const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) <= t.hexWidth * 0.75
+  const spots = new Set(moving.map((f) => `${Math.round(f.x)},${Math.round(f.y)}`))
+  h.check(`the AI's draft travels over several frames (${moving.length} frames, ${spots.size} spots)`, moving.length >= 5 && spots.size >= 4)
+  h.check("it leaves from the tray's waiting glyphling", moving.length > 0 && near(moving[0], t.from))
+  h.check('it arrives on its hex', moving.length > 0 && near(moving[moving.length - 1], t.to))
+  h.check('it is not on the board until it arrives (no pop)', t.frames.filter((f) => f.travelling).every((f) => f.placed === t.placedBefore))
+  h.check('then it is placed on that hex, and the floating piece is gone', t.landedAt !== null && !t.frames[t.frames.length - 1].shown)
+}
 
 function watchErrors(page) {
   const errors = []

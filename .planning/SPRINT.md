@@ -8,7 +8,7 @@ Done when: every AI action (draft, move, cast, refresh, call-it, aim) plays the 
 - [x] 🤖 2. Draft: the AI's glyphling leaves the tray (SeedTray draft) and travels to its hex like a person's drop (src/store/gameStore.ts draftAt, localBot.ts)
 - [x] 🤖 3. Fix any other mismatch the audit finds (same timings — reuse the existing animation, never a second one)
 - [x] 🤖 4. Framework `design/ai.md`: the "AI looks human" standard; TDD Decisions
-- [ ] 🤖 5. e2e: an AI draft shows the travel (frame check) + screenshots at every size
+- [x] 🤖 5. e2e: an AI draft shows the travel (frame check) + screenshots at every size
 
 ## F43 🎮 Online AI
 Done when: online, an idle / dropped seat is played by the real AI (Survivor at First Class = seats.ts defaultAi) instead of greedyBot, thinking inside the room within its CPU budget; the host can add AI seats in the lobby; no secret leaks; e2e:online / online4 green.
