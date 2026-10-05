@@ -94,13 +94,13 @@ describe('STEAL', () => {
 })
 
 describe('DENY', () => {
-  it("blocks the spot where the rival would spell (from the hand it imagines)", () => {
+  it("junks the spot where the rival could spell (from the letters it hasn't seen)", () => {
     // Blue owns C, A on C6-2, C6-3 and holds a T: CAT on C6-4 next turn. Yellow can cast there.
     const game = position({ glyphlings: { 0: 'C4-6', 1: 'C2-3', 2: 'C6-9', 3: 'C10-5' }, seeds: [{}, { 'C6-2': 'C', 'C6-3': 'A' }], hands: [['E'], ['T']] })
     const { actions, why } = favourites(denyGoal(words), game)
     expect(actions.length).toBeGreaterThan(0)
     for (const a of actions) expect(label(a.target!)).toBe('C6-4')
-    expect(why).toBe("blocked Blue's CAT spot (6)")
+    expect(why).toMatch(/^junked Blue's CAT spot \(≈[\d.]+\)$/)
   })
 })
 

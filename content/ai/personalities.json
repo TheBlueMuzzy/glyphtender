@@ -112,13 +112,13 @@
       "traits": {
         "aggression": { "min": 80, "max": 95 },
         "greed": { "min": 30, "max": 50 },
-        "spite": { "min": 60, "max": 80 },
+        "spite": { "min": 70, "max": 85 },
         "caution": { "min": 20, "max": 40 },
-        "patience": { "min": 50, "max": 70 },
-        "opportunism": { "min": 40, "max": 60 },
+        "patience": { "min": 10, "max": 30 },
+        "opportunism": { "min": 60, "max": 75 },
         "pragmatism": { "min": 20, "max": 40 }
       },
-      "goals": ["TRAP", "BUILD", "DENY", "SCORE", "STEAL", "ESCAPE", "DUMP"],
+      "goals": ["TRAP", "DENY", "STEAL", "SCORE", "ESCAPE", "BUILD", "DUMP"],
       "nudge": 0.3,
       "focus": 0.8,
       "steady": { "SCORE": 0.6 },
