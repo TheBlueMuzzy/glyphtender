@@ -29,3 +29,15 @@ Done when: a Dev Kit snapshot saves each seat's kind (person / AI) + personality
 Check: check:fast (golden SAME) · check:full once after merges · screenshots at 390×844, 360×780, 844×390, 768×343, 1100 wide, 1440×900, 1920×1080.
 Ask Muzzy: (carried) first-time New Game default = you + 1 AI? · F46 / F47 go or skip · F37 confirms.
 Notes:
+- **F50 audit (2026-10-05) — every AI action vs a person's** (local AI, pass-and-play screen; code: store/localBot.ts → gameStore.botPlays):
+
+  | Action | A person here | The AI (before F50) | Verdict |
+  |---|---|---|---|
+  | Draft | the tray shows the drafter's waiting glyphlings; they DRAG one out (it floats in the drag layer under the finger) and drop it on a lit hex (a tap on a lit hex also places it) | tray kept showing the person's glyphlings; after its think pause the AI's glyphling POPPED onto its hex | ❌ fix (task 2) |
+  | Move (incl. call-it / self-tangle, a move-only End turn) | tap or drag a glyphling → it GLIDES (useGlide: moveBase + movePerHex × hexes, moveSettle bounce), ghost at its old hex, pulsing halo, dotted plan trail | botPlays sets the same `move` → the same useGlide, ghost, halo and plan trail; a move-only turn ends after the glide | ✅ same |
+  | Aim + cast | pick a tray seed, aim it (planned seed on the hex, word spotlight), Cast → hop + arc flight (useThrow), grow, score sequence | after the glide: cast + flying together → the same hop, flight, grow and score sequence (its tray isn't shown — its seeds are secret) | ✅ same motion · no aim beat (the aimed seed / word light shows only during the flight) → Ask Muzzy |
+  | Refresh | set-aside seeds ringed, Refresh → shrink → grow on their tray, then play passes on | same refreshNow, same shrink + grow time before play passes on — on its own tray, which the screen doesn't show (secret seeds) | ✅ same timing; unseen on purpose |
+  | Tray reorder / shuffle | cosmetic, the person's own tray | not needed (its tray is never shown) | n/a |
+  | Turn pulse | the person's glyphlings breathe on their turn (a "your turn" cue to the person holding the device) | none (TurnBar robot badge + "… is thinking…" instead) | by design |
+  | Handoff box | between people when seeds are hidden | never | by design |
+  | Online (another device's draft, a server bot) | — | a remote seat's draft still pops in (onlinePlay: "draft placements are simply shown") | out of F50 (local); note for F43: reuse useBotDraft for a replayed draft |
