@@ -3,7 +3,8 @@
 // Play online → Ada creates a room → in the lobby she adds an AI (the Scholar at Archmage), removes it, adds the
 // Strategist at Apprentice → lobby shots at 390×844, 360×780, 844×390 and 1440×900 (the add-AI card, 🤖 + skill on the AI's
 // row) → Bo joins, sees the AI (no Remove for him), gets ready → Start (3 seats: Ada, Bo, the Strategist) → the AI
-// places and plays on the server: its turns GLIDE on Ada's screen like any player's (a [data-glide] animation), the
+// places and plays on the server: its draft placement TRAVELS out of the tray to its hex on Ada's screen like a
+// person's drag (frame check, e2e/draft-travel.mjs — F50's, never a pop), its turns GLIDE like any player's (a [data-glide] animation), the
 // turn bar shows 🤖 on its turn → Bo LEAVES mid-game: the default AI (Survivor) plays his seat from then on →
 // Ada plays to the end against two AIs → the end table has all three names.
 // Every WebSocket frame each browser receives is recorded: the run FAILS if one ever holds another player's seeds,
@@ -13,6 +14,7 @@
 // Shots: e2e-shots/online-ai-<size>-<step>.png
 //   npm run e2e:online-ai [outDir] [vitePort] [partyPort]
 import { mkdirSync } from 'node:fs'
+import { checkTravel, recordAiDraft } from './draft-travel.mjs'
 import { makePlayer, secretsIn, startServers } from './online-kit.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
@@ -152,6 +154,12 @@ try {
       if (document.querySelector('.game-turn-bar [data-seat-status="bot"]')) window.__aiSeen.robot++
     }, 50)
   })
+  // Ada places first; the AI's placement (seat 1) is the next one her screen plays: it must travel from the tray
+  await ada.page.evaluate(recordAiDraft)
+  await playUntil([ada, bo], async () => (await ada.page.evaluate(() => !!window.__f50?.from || window.__glyphtender.store.getState().botDraft !== null)), 30)
+  await shot(ada, '2-ai-draft-travel', 0)
+  await ada.page.waitForFunction(() => window.__f50?.done, null, { timeout: 10000 }).catch(() => fail("the AI's draft never landed on Ada's screen"))
+  checkTravel({ check }, await ada.page.evaluate(() => window.__f50))
   await playUntil([ada, bo], async () => (await ada.store((s) => s.game.phase !== 'draft')))
   check('6 glyphlings placed (the AI placed its own)', await ada.store((s) => s.game.glyphlings.filter((g) => g.seat === 1).length === 2))
   await playUntil([ada, bo], async () => (await ada.store((s) => s.game.turnCount >= 6)), 180)
