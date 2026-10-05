@@ -1,5 +1,6 @@
 // The shared "◀ value ▶" shape behind Selector and Stepper.
-// It is ONE focus stop: ← / → (keyboard, or a gamepad d-pad sent as arrow keys) step the value.
+// It is ONE focus stop: ← / → (keyboard, or a gamepad d-pad sent as arrow keys) step the value — also after a
+// click on ◀ or ▶ (the key reaches the picker from the arrow). ↑ / ↓ move on to the next control (arrowKeys.ts).
 import type { KeyboardEvent, ReactNode } from 'react'
 import { Button } from './Button'
 
@@ -9,11 +10,12 @@ type ArrowPickerProps = {
 }
 
 export function ArrowPicker({ label, display, onStep, canPrev, canNext, prevIcon, nextIcon, kind }: ArrowPickerProps) {
+  // (At an end the key still belongs to the picker: nothing happens, rather than the page scrolling sideways)
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key === 'ArrowLeft' && canPrev) onStep(-1)
-    else if (e.key === 'ArrowRight' && canNext) onStep(1)
-    else return
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
     e.preventDefault()
+    if (e.key === 'ArrowLeft' && canPrev) onStep(-1)
+    if (e.key === 'ArrowRight' && canNext) onStep(1)
   }
   return (
     <div className={`kit-picker kit-${kind}`} role="group" aria-label={label} tabIndex={0} onKeyDown={onKeyDown}>

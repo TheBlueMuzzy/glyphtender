@@ -4,13 +4,14 @@
 // An AI seat opens a card under its row (Muzzy 2026-10-05): AI Type ◀ personality ▶ · its bio · Skill ◀ skill ▶ — the
 // two selectors right-aligned, the same width (newGame.css). "Surprise me" = a random personality picked at Start.
 // The card never changes size as you flip through personalities: an invisible copy of every bio, piled in one spot,
-// holds it as tall as the longest. The panel is pinned to the top (newGame.css), so opening a card pushes the rows
-// below DOWN and the Person / AI button you tapped stays under your finger.
+// holds it as tall as the longest. The whole screen scrolls (kit <Screen scroll>, no scroll bar — Muzzy: "when it
+// expands down, they just drag and the entire screen moves"): the menu starts at the top, so opening an AI seat pushes
+// the rows below DOWN, the Person / AI button you tapped stays under your finger, and Start scrolls with the rest.
 // Built like the kit's Settings screen: Panel, a title row with Back, rows (ListRow + Stepper / Selector /
-// Toggle) that scroll on short screens, and the Start button. Words: content/text/en.json → newGame, ai.
+// Toggle), and the Start button. Words: content/text/en.json → newGame, ai.
 import { useState } from 'react'
 import text from '../../content/text/en.json'
-import { Button, ListRow, Panel, Row, Screen, ScrollArea, Selector, Stepper, Text, Toggle, screens } from './kit'
+import { Button, ListRow, Panel, Row, Screen, Selector, Stepper, Text, Toggle, screens } from './kit'
 import {
   SURPRISE, boardNames, hasPerson, loadChoices, personalityIds, skillIds, startNewGame, withPlayers, withSeat, type NewGameChoices, type SeatChoice,
 } from './newGame'
@@ -34,13 +35,13 @@ export function NewGameScreen() {
   const seats = choices.seats.slice(0, choices.players)
 
   return (
-    <Screen label={w.title}>
+    <Screen label={w.title} scroll>
       <Panel depth={2} gap="m" className="kit-modal new-game-panel">
         <Row gap="s" justify="between">
           <Text kind="title">{w.title}</Text>
           <Button variant="secondary" onClick={() => screens.pop()}>{w.back}</Button>
         </Row>
-        <ScrollArea label={w.title}>
+        <div>
           <ListRow label={w.players}>
             <Stepper label={w.players} value={choices.players} min={2} max={4} onChange={(count) => setChoices(withPlayers(choices, count))} />
           </ListRow>
@@ -60,7 +61,7 @@ export function NewGameScreen() {
           <ListRow label={w.wordIndicators} detail={w.wordIndicatorsDetail}>
             <Toggle label={w.wordIndicators} on={choices.wordIndicators} onChange={(on) => change({ wordIndicators: on })} />
           </ListRow>
-        </ScrollArea>
+        </div>
         {hasPerson(choices)
           ? <Button onClick={() => startNewGame(choices)}>{w.start}</Button>
           : <Button disabled>{w.needPerson}</Button>}

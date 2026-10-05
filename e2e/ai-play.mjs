@@ -41,7 +41,7 @@ const browser = await chromium.launch()
 let failures = 0
 const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
 
-/** What's wrong on screen: sideways scroll, things past an edge (outside scroll boxes), things touching an AI card's edge. */
+/** What's wrong on screen: sideways scroll, things past an edge (outside scroll boxes), a whole-screen scroll (kit <Screen scroll>) counts as a scroll box. */
 function problems() {
   const out = []
   if (document.documentElement.scrollWidth > innerWidth + 0.5) out.push(`sideways scroll (${document.documentElement.scrollWidth} > ${innerWidth})`)
@@ -49,7 +49,7 @@ function problems() {
     const r = el.getBoundingClientRect()
     if (!r.width || !r.height) continue
     const name = (el.textContent || el.getAttribute('class') || '').trim().slice(0, 30)
-    const scroll = el.closest('.kit-scroll')
+    const scroll = el.closest('.kit-scroll, .kit-screen[data-scroll]')
     const box = scroll ? scroll.getBoundingClientRect() : { left: 0, right: innerWidth, top: 0, bottom: innerHeight }
     // in a scroll box only left/right count (it scrolls up and down on purpose)
     if (r.left < box.left - 0.5 || r.right > box.right + 0.5) out.push(`clipped sideways: ${name}`)
@@ -158,7 +158,7 @@ try {
     }
     h.check(`the AI cards keep one size through every personality (${[...sizes].join(' | ')})`, sizes.size === 1)
     // scroll to the bottom of the options (the Pink card) for a second look
-    await page.locator('.kit-scroll').evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    await page.locator('.kit-screen[data-scroll]').evaluate((el) => el.scrollTo(0, el.scrollHeight))
     await h.shot('2-new-game-ai-scrolled')
     // Start with Yellow first: once Yellow places, Blue (AI, Slow) thinks — the shot is taken during its thinking
     await page.getByRole('button', { name: 'Start' }).click()

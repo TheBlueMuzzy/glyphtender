@@ -2,8 +2,6 @@
    every bio is piled in one spot (invisible copies), so the bio space is as tall as the longest bio and the real one
    sits at the top of it (NewGameScreen.tsx). */
 @layer game {
-  /* pinned to the top, not centred: a card opening grows the panel DOWNWARDS only (nothing above it moves) */
-  .kit-screen > [data-slot="center"]:has(> .new-game-panel) { align-self: start; }
   /* an AI seat's rows: label | selector — labels keep their width, both selectors fill the rest (same width, right edges aligned), the bio across both */
   .new-game-ai { display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: var(--gap-s); }
   .new-game-ai > .kit-selector, .new-game-ai > * > .kit-selector { justify-self: stretch; }

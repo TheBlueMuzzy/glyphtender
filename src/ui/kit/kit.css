@@ -19,6 +19,12 @@
 
   /* Accessibility floor: visible focus ring for keyboard + gamepad */
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) :focus-visible { outline: 0.1875rem solid var(--focus); outline-offset: 0.125rem; }
+  /* No blinking text caret anywhere but in a box you type in. With Chrome's caret browsing on (F7 — easy to switch on
+     by accident) the browser draws a caret in whatever has focus, buttons and pickers included; transparent hides it.
+     Boxes to type in get their caret back (.kit-input paints it the primary colour). */
+  :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope, .kit-overlay) { caret-color: transparent; }
+  :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope, .kit-overlay) :where(textarea, [contenteditable]:not([contenteditable="false"]),
+    input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="color"], [type="file"])) { caret-color: auto; }
 
   /* Accessibility floor: every control is at least 44px to tap */
   .kit-target { min-block-size: var(--target-min); min-inline-size: var(--target-min); }
@@ -50,6 +56,14 @@
   .kit-screen > [data-slot="bottom-left"] { grid-area: bottom-left; justify-self: start; }
   .kit-screen > [data-slot="bottom"] { grid-area: bottom; }
   .kit-screen > [data-slot="bottom-right"] { grid-area: bottom-right; justify-self: end; }
+  /* <Screen scroll>: the screen itself scrolls (drag anywhere on it, wheel, keys), with no scroll bar. The middle row
+     grows to fit (minmax(min-content, 1fr): the whole centre, so the end padding and shadow scroll into view too) and the centre sits at the top at its natural height, so a section opening
+     pushes things down and nothing above it moves. The screen's padding keeps the safe areas and room for shadows.
+     It catches drags on its empty space too (a menu, not a HUD: taps there don't reach the game). */
+  .kit-screen[data-scroll] { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none;
+    grid-template-rows: auto minmax(min-content, 1fr) auto; pointer-events: auto; }
+  .kit-screen[data-scroll]::-webkit-scrollbar { display: none; }
+  .kit-screen[data-scroll] > [data-slot="center"] { align-self: start; max-block-size: none; }
   /* Screen stack layers: no box of their own, they only carry "inert" for the screens inside */
   .kit-layer { display: contents; }
   /* An open screen with another one on top is hidden (ScreenStack sets data-covered): only the top screen shows.
