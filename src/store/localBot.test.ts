@@ -6,6 +6,8 @@ import { readFileSync } from 'node:fs'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { legalDraftHexes } from '../engine/engine'
 import { randomAction } from '../engine/sim'
+import animFile from '../../content/tuning/anim.json'
+import { glideSeconds } from '../game/glide'
 import { parseWordList } from '../engine/words'
 import type { WordList } from '../engine/types'
 import { useGameStore } from './gameStore'
@@ -187,6 +189,24 @@ describe('the AI on this device (driveLocalBots)', () => {
     } finally {
       stop()
     }
+  })
+
+  it('a shown AI turn glides, holds its aim (the planned seed on its hex), then throws (F50)', () => {
+    store().startGame({ players: 2, seed: 7, hideSeeds: false, bots: [0, 1] })
+    while (store().game!.phase === 'draft') store().botPlays({ type: 'draft', hex: legalDraftHexes(store().game!)[0] })
+    let rng = 1
+    let pick = randomAction(store().game!, rng).action
+    while (pick.type !== 'turn' || pick.seed === null) pick = randomAction(store().game!, ++rng).action
+    const from = store().game!.glyphlings.find((g) => g.id === pick.glyphling)!.hex
+    const glideMs = glideSeconds(from, pick.to, animFile) * 1000
+    store().botPlays(pick, true, 500)
+    expect(store().move).not.toBeNull() // gliding
+    expect(store().cast).toBeNull()
+    vi.advanceTimersByTime(glideMs + 1)
+    expect(store().cast).not.toBeNull() // aimed: the seed sits on its target…
+    expect(store().flying).toBe(false) // …and hasn't been thrown yet
+    vi.advanceTimersByTime(500)
+    expect(store().flying).toBe(true) // thrown
   })
 
   it('a new game drops the thinking in progress (the old answer is never played)', async () => {

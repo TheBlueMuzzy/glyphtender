@@ -6,7 +6,7 @@ Muzzy will see: an AI's draft glyphling travels out of the tray onto the board t
 Done when: every AI action (draft, move, cast, refresh, call-it, aim) plays the same motion, speed and path as a person's doing the same thing — first case: draft placements travel from the tray instead of popping in; the rule is written into the framework AI module's design.
 - [x] 🤖 1. Audit: list every AI action vs the person's version (motion, timing, path, sounds/pops) → SPRINT Notes
 - [x] 🤖 2. Draft: the AI's glyphling leaves the tray (SeedTray draft) and travels to its hex like a person's drop (src/store/gameStore.ts draftAt, localBot.ts)
-- [ ] 🤖 3. Fix any other mismatch the audit finds (same timings — reuse the existing animation, never a second one)
+- [x] 🤖 3. Fix any other mismatch the audit finds (same timings — reuse the existing animation, never a second one)
 - [ ] 🤖 4. Framework `design/ai.md`: the "AI looks human" standard; TDD Decisions
 - [ ] 🤖 5. e2e: an AI draft shows the travel (frame check) + screenshots at every size
 
@@ -35,7 +35,7 @@ Notes:
   |---|---|---|---|
   | Draft | the tray shows the drafter's waiting glyphlings; they DRAG one out (it floats in the drag layer under the finger) and drop it on a lit hex (a tap on a lit hex also places it) | tray kept showing the person's glyphlings; after its think pause the AI's glyphling POPPED onto its hex | ❌ fix (task 2) |
   | Move (incl. call-it / self-tangle, a move-only End turn) | tap or drag a glyphling → it GLIDES (useGlide: moveBase + movePerHex × hexes, moveSettle bounce), ghost at its old hex, pulsing halo, dotted plan trail | botPlays sets the same `move` → the same useGlide, ghost, halo and plan trail; a move-only turn ends after the glide | ✅ same |
-  | Aim + cast | pick a tray seed, aim it (planned seed on the hex, word spotlight), Cast → hop + arc flight (useThrow), grow, score sequence | after the glide: cast + flying together → the same hop, flight, grow and score sequence (its tray isn't shown — its seeds are secret) | ✅ same motion · no aim beat (the aimed seed / word light shows only during the flight) → Ask Muzzy |
+  | Aim + cast | pick a tray seed, aim it (planned seed on the hex, word spotlight), Cast → hop + arc flight (useThrow), grow, score sequence | after the glide: cast + flying together → the same hop, flight, grow and score sequence (its tray isn't shown — its seeds are secret) | ✅ same motion · it had no aim beat (threw the moment the glide ended) → fixed in task 3: it holds its aim 0.3–0.6 s at Normal (pace.json thinkSeconds.aim, Dev Kit AI tab → AI: pace; 0 at Instant) |
   | Refresh | set-aside seeds ringed, Refresh → shrink → grow on their tray, then play passes on | same refreshNow, same shrink + grow time before play passes on — on its own tray, which the screen doesn't show (secret seeds) | ✅ same timing; unseen on purpose |
   | Tray reorder / shuffle | cosmetic, the person's own tray | not needed (its tray is never shown) | n/a |
   | Turn pulse | the person's glyphlings breathe on their turn (a "your turn" cue to the person holding the device) | none (TurnBar robot badge + "… is thinking…" instead) | by design |

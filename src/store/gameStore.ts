@@ -152,9 +152,11 @@ export interface GameStore {
   refuseTap: (tap: Tap) => boolean
   /** A bot on this device plays its seat's whole action (localBot.ts) — through the same rules door and the same
    *  follow-ups (tray, handoff, score, refresh) as a person's taps, without the taps.
-   *  `show` (the AI in a real game): a turn plays out like a person's — the glyphling glides, then the seed flies, and
-   *  its landing (Board → finishCast) makes it real. Without it (tests) the turn is made real at once. */
-  botPlays: (action: Action, show?: boolean) => void
+   *  `show` (the AI in a real game): a turn plays out like a person's — the glyphling glides, its seed is aimed (held
+   *  `aimMs`, like a person looking at their aim before Cast: the planned seed + word light show), then the seed flies,
+   *  and its landing (Board → finishCast) makes it real; a draft travels out of the tray first (botDraft). Without it
+   *  (tests) the action is made real at once. */
+  botPlays: (action: Action, show?: boolean, aimMs?: number) => void
   /** An AI's travelling draft glyphling has reached its hex (useBotDraft): place it. */
   landBotDraft: () => void
   /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known). */
@@ -531,7 +533,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ trayOrder: order })
     },
 
-    botPlays: (action, show = false) => {
+    botPlays: (action, show = false, aimMs = 0) => {
       const { game, seats, online } = get()
       if (!game || online || !isLocalBot(seats[game.current]) || isBusy(get())) return
       // A draft shown like a person's drag: the glyphling travels out of the tray first (useBotDraft → landBotDraft)
@@ -544,16 +546,23 @@ export const useGameStore = create<GameStore>()((set, get) => {
         set({ ...noPlan(), move, cast })
         return get().finishCast()
       }
-      // Shown like a person's turn: the plan's move first (the glyphling glides there, useGlide), then the throw
-      // (flying: the Board flies the seed and calls finishCast when it lands). A move-only turn ends after the glide.
+      // Shown like a person's turn: the plan's move first (the glyphling glides there, useGlide), then the aim (the
+      // planned seed on its hex, F50), then the throw (flying: the Board flies the seed and calls finishCast when it
+      // lands). A move-only turn ends after the glide.
       const from = game.glyphlings.find((g) => g.id === action.glyphling)?.hex ?? action.to
       set({ ...noPlan(), move })
       stopBotTurn()
+      const throwNow = () => {
+        botTimer = null
+        if (get().game === game) set({ cast, flying: true }) // (unless the game moved on or was left meanwhile)
+      }
       botTimer = setTimeout(() => {
         botTimer = null
         if (get().game !== game) return // (the game moved on or was left meanwhile)
-        if (cast) set({ cast, flying: true })
-        else get().finishCast()
+        if (!cast) return get().finishCast()
+        if (aimMs <= 0) return throwNow()
+        set({ cast })
+        botTimer = setTimeout(throwNow, aimMs)
       }, reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000)
     },
 
