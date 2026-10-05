@@ -5,7 +5,8 @@
 // (rules.viewFor — never the other seeds or the bag). It then takes a person-like moment (src/ai/kit/pace.ts:
 // thinkDelay for that kind of action at Settings → AI speed, content/ai/pace.json; the time it really spent thinking
 // counts toward it) and plays through the store (botPlays: the same rules door and follow-ups as a person's taps,
-// and a turn glides and throws like a person's).
+// and it LOOKS like a person playing — F50: a draft glyphling travels out of the tray, a turn glides, holds its aim a
+// moment (pace.json thinkSeconds.aim), then throws).
 // Its picks are repeatable: each seat has its own random position from the game's seed (botSeed), moved on only by
 // the actions it really plays. A new game, leaving the game or the game moving on drops any thinking in progress.
 // It never gets a handoff screen: there's nobody to hide the seeds from (seats.ts needsHandoff).
@@ -29,6 +30,13 @@ const store = () => useGameStore.getState()
 
 /** content/ai/pace.json in the kit's Pace shape: think times per kind of action — draft, moveCast (a turn), refresh. */
 const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, timeBudgetMs: paceFile.timeBudgetMs }
+
+/** How long an AI holds its aim before the throw, like a person looking at their aim before Cast (pace.json
+ *  thinkSeconds.aim at the AI speed; 0 = none — a turn with no seed to throw, or Instant). */
+function aimPause(action: Action, rng: number): { ms: number; rng: number } {
+  if (action.type !== 'turn' || action.seed === null) return { ms: 0, rng }
+  return thinkDelay(pace, 'aim', aiSpeed(), rng)
+}
 
 /** The kind of action (pace.json thinkSeconds) for the step the game is at. */
 const paceKind = (game: GameState) => (game.phase === 'draft' ? 'draft' : game.phase === 'refresh' ? 'refresh' : 'moveCast')
@@ -117,7 +125,9 @@ export function driveLocalBots(): () => void {
           if (mine.dropped || store().game !== mine.game) return check()
           rngs[seat] = answer.rng
           for (const listener of decisionListeners) listener(seat, answer.decision)
-          store().botPlays(answer.action, true)
+          const aim = aimPause(answer.action, paceRng)
+          paceRng = aim.rng
+          store().botPlays(answer.action, true, aim.ms)
         }, waitLeft(delay.ms, performance.now() - started))
       })
       .catch((error) => {
@@ -130,7 +140,9 @@ export function driveLocalBots(): () => void {
         if (!s.words || s.game !== mine.game) return check()
         const fallback = greedyBot(s.words)(viewFor(mine.game, seat), seat, rngs[seat])
         rngs[seat] = fallback.rng
-        s.botPlays(fallback.action, true)
+        const aim = aimPause(fallback.action, paceRng)
+        paceRng = aim.rng
+        s.botPlays(fallback.action, true, aim.ms)
       })
   }
 

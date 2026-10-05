@@ -7,6 +7,8 @@
     "thinkSeconds.moveCast.max": "Longest pause before its move + cast. Try 1–2.",
     "thinkSeconds.refresh.min": "Shortest pause before it refreshes seeds, in seconds. Try 0.3–0.8.",
     "thinkSeconds.refresh.max": "Longest pause before it refreshes seeds. Try 0.6–1.2.",
+    "thinkSeconds.aim.min": "After its glide, the AI holds its aim (the seed sits on its target, the words light up) before it throws — like a person looking at their aim before Cast. Shortest hold, in seconds (at Normal speed). 0 = it throws the moment the glide ends. Try 0.2–0.6.",
+    "thinkSeconds.aim.max": "Longest hold on its aim before the throw. Try 0.4–1.",
     "speeds.slow": "Settings → AI speed: Slow. Pauses are divided by this (0.5 = twice as long).",
     "speeds.normal": "Settings → AI speed: Normal (1 = the pauses above as they are).",
     "speeds.fast": "Settings → AI speed: Fast (2 = half as long).",
@@ -21,6 +23,8 @@
     "thinkSeconds.moveCast.max": "Move + cast: longest think (s)",
     "thinkSeconds.refresh.min": "Refresh: shortest think (s)",
     "thinkSeconds.refresh.max": "Refresh: longest think (s)",
+    "thinkSeconds.aim.min": "Aim: shortest hold before the throw (s)",
+    "thinkSeconds.aim.max": "Aim: longest hold before the throw (s)",
     "speeds.slow": "AI speed Slow (×)",
     "speeds.normal": "AI speed Normal (×)",
     "speeds.fast": "AI speed Fast (×)",
@@ -38,6 +42,8 @@
     "thinkSeconds.moveCast.max": [0, 3, 0.1],
     "thinkSeconds.refresh.min": [0, 3, 0.1],
     "thinkSeconds.refresh.max": [0, 3, 0.1],
+    "thinkSeconds.aim.min": [0, 2, 0.05],
+    "thinkSeconds.aim.max": [0, 2, 0.05],
     "speeds.slow": [0.1, 1, 0.05],
     "speeds.normal": [0.5, 2, 0.05],
     "speeds.fast": [1, 5, 0.1],
@@ -47,7 +53,8 @@
   "thinkSeconds": {
     "draft": { "min": 0.6, "max": 1.2 },
     "moveCast": { "min": 0.8, "max": 1.6 },
-    "refresh": { "min": 0.5, "max": 1.0 }
+    "refresh": { "min": 0.5, "max": 1.0 },
+    "aim": { "min": 0.3, "max": 0.6 }
   },
   "speeds": { "slow": 0.5, "normal": 1, "fast": 2, "instant": 0 },
   "timeBudgetMs": 300,
