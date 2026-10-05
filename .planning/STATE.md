@@ -10,7 +10,7 @@ Moved out of the AI milestone: basic audio → its own milestone + framework Aud
 Muzzy: older open calls — phones on their side: Results 13–45 px, Scorecard 291 px scroll. Open bugs: B019, B017, B009, B004, B001.
 
 ## Where we are
-Stage: develop · Milestone: v0.7 AI opponents (→ beta) · Sprint: 15 (F42 + fw F21 · F41 + fw F23 · F45) · Doing: sprint 15 done (Muzzy played: good) — next: AI-looks-human + F43 online AI, when Muzzy says go · Branch: main (next work branch made by /develop) · Version: 0.4.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.4.0, online)
+Stage: develop · Milestone: v0.7 AI opponents (→ beta) · Sprint: 16 (F50 · F43 · F51 + AI-setup research) · Doing: sprint 16 — autonomous overnight run · Branch: dev/beta · Version: 0.4.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.4.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
