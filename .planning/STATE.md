@@ -8,6 +8,7 @@ Framework (dev/ai): rooms 0.3.0 (bot profiles) + ui-kit 0.3.1 (Lobby bot rows) p
 **Ask Muzzy (new):** (a) keep / shorten / drop the AI's aim hold (Dev Kit → AI tab → AI: pace → Aim) · (b) online AI seats are named after the personality ("The Survivor") — OK? · (c) no "Surprise me" online (the name would give it away) — fine for now? · (d) which AI-setup direction (A / B / C in the research doc)?
 **Try:** solo vs 1–3 AIs — watch the AI's draft travel out of the tray; online — host a room, Add an AI player, start, and go idle to see the AI take over.
 **Still waiting on Muzzy (carried):** F46 sims (board size per player count, bag run-out, first-player edge) go or skip · F47 award re-tune go or skip · F37 confirms · first-time New Game default = you + 1 AI? · phones on their side: Results 13–45 px, Scorecard 291 px scroll. Open bugs: B019, B017, B009, B004, B001.
+Also 2026-10-05 (with Muzzy): New Game polish — Player 2/3/4 rows, AI Type · bio · Skill, whole-screen scroll (UI kit 0.3.3), arrow-key menus; he approved the scrolling ("feels good"). Dev servers: game 5180 + online 1997 were left running.
 Next after his OK: `/develop` approval → F43/F50/F51 ✅ → `/sprint` (F46/F47/F49 by his call) or `/deliver` beta pieces.
 
 ## Where we are
