@@ -569,7 +569,7 @@ describe('online server — side doors: events, the log, the bot', () => {
       conn.views().forEach(expectNoSecrets)
       for (const text of beforeTheEnd(conn)) expect(holdsNumber(text, server.game!.botRng)).toBe(false)
     }
-  })
+  }, 30_000) // a whole game played by the real AI (F43): ~2 s here, 5+ s on the GitHub build machine
 })
 
 // ─── The AI plays bot seats (F43) ───────────────────────────────────
