@@ -70,12 +70,15 @@ export function ScreenStack({ screens, children, overlay }: ScreenStackProps) {
     last.current = { depth, top }
   }, [depth, top])
 
-  // ↑ / ↓ on the top screen. After the controls' own key handlers (they can claim a key with preventDefault)
+  // ↑ / ↓ on the top screen. After the controls' own key handlers (they can claim a key with preventDefault).
+  // Only when the focus is on that screen (or nowhere yet): a tool beside the stack (the Dev Kit's sliders) keeps its arrows
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      const focused = document.activeElement
       const scope = depth > 0
         ? layers.current[depth]
-        : document.activeElement?.closest('.kit-panel') // no screen open: only inside a menu Panel in the game
+        : focused?.closest('.kit-panel') // no screen open: only inside a menu Panel in the game
+      if (depth > 0 && scope && focused && focused !== document.body && !scope.contains(focused)) return
       if (scope && (depth > 0 || layers.current[0]?.contains(scope))) moveFocus(e, scope)
     }
     window.addEventListener('keydown', onKeyDown)
@@ -97,7 +100,7 @@ export function ScreenStack({ screens, children, overlay }: ScreenStackProps) {
       <div className="kit-layer" ref={(el) => { layers.current[0] = el }}>{children}</div>
       {overlay
         ? <div className="kit-overlay" data-open={depth > 0 || undefined}
-            onClick={(e) => { if (e.target === e.currentTarget || (e.target as Element).matches('.kit-screen[data-scroll]')) store.pop() }}>{open}</div>
+            onClick={(e) => { if (e.target === e.currentTarget) store.pop() }}>{open}</div>
         : open}
     </>
   )
