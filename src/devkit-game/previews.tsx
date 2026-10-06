@@ -136,13 +136,14 @@ export const previews: DevKitPreview[] = [
     },
   },
   {
-    id: 'lobby', label: 'Online lobby', group: 'Online', note: 'A room with friends in it — the host sees the table options',
+    id: 'lobby', label: 'Online lobby', group: 'Online', note: 'A room with friends in it — the host sees the table options and can add AI seats (F43)',
     variants: [{ id: 'host2', label: 'Host, 2 seats' }, { id: 'host4', label: 'Host, 4 seats' }, { id: 'guest4', label: 'Guest, 4 seats' }],
     show({ variant }) {
       const four = variant !== 'host2'
+      const ai = (i: number, name: string, profile: string) => roomSeat(i, { kind: 'bot', name, profile, connected: false })
       const seats = four
-        ? [roomSeat(0), roomSeat(1), roomSeat(2, { ready: false }), roomSeat(3, { kind: 'bot', name: 'Bot' })]
-        : [roomSeat(0), roomSeat(1, { ready: false })]
+        ? [roomSeat(0), roomSeat(1), roomSeat(2, { ready: false }), ai(3, 'The Survivor', 'Survivor/FirstClass')]
+        : [roomSeat(0), ai(1, 'The Scholar', 'Scholar/Archmage')]
       const me = variant === 'guest4' ? 2 : 0
       useOnline.setState({ code: 'BAKU', name: ONLINE_NAMES[me], room: fakeRoom(seats, 'lobby', me) })
       return <PreviewApp />

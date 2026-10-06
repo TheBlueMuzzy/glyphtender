@@ -24,7 +24,8 @@ import {
   isCurrents, mayMoveOnly, TRAY_GAP, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
 import { NEW_GLYPHLING, onHex, playReferee, type Piece } from './referee'
-import { isLocalBot, localSeats, needsHandoff, type Seat } from './seats'
+import { defaultAi, isLocalBot, localSeats, needsHandoff, type AiPick, type Seat } from './seats'
+import { glideSeconds } from '../game/glide'
 import { firstViewer, viewerOf } from './viewer'
 import { canPlayNow, isBusy } from './myTurn'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
@@ -114,9 +115,13 @@ export interface GameStore {
   happened: Happened | null
   /** The last piece that said "no" to a tap (it shakes); the count changes every time, so the same piece can shake again. */
   nope: (NopeTarget & { count: number }) | null
+  /** An AI's draft on its way (botPlays with show, F50): its glyphling travels out of the tray to this hex like a person's
+   *  drag (useBotDraft) — nothing can be touched — then landBotDraft places it. null = none travelling. */
+  botDraft: Hex | null
 
-  /** `bots`: seats a bot plays on this device (store/localBot.ts) — tests and the Dev Kit only, no menu. */
-  startGame: (options: Partial<GameOptions> & { players: number; seed: number; bots?: number[] }) => void
+  /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
+   *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
+  startGame: (options: Partial<GameOptions> & { players: number; seed: number; bots?: number[]; ai?: Record<number, AiPick> }) => void
   leaveGame: () => void
   /** The next player has the device: show their seeds. */
   showSeeds: () => void
@@ -146,15 +151,22 @@ export interface GameStore {
   /** Before a tap or drag does its thing: if the piece can't be touched it shakes "no" (nope.ts). True = refused. */
   refuseTap: (tap: Tap) => boolean
   /** A bot on this device plays its seat's whole action (localBot.ts) — through the same rules door and the same
-   *  follow-ups (tray, handoff, score, refresh) as a person's taps, without the taps. */
-  botPlays: (action: Action) => void
-  /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known). */
-  loadState: (game: GameState, stats?: PlayerStats[]) => void
+   *  follow-ups (tray, handoff, score, refresh) as a person's taps, without the taps.
+   *  `show` (the AI in a real game): a turn plays out like a person's — the glyphling glides, its seed is aimed (held
+   *  `aimMs`, like a person looking at their aim before Cast: the planned seed + word light show), then the seed flies,
+   *  and its landing (Board → finishCast) makes it real; a draft travels out of the tray first (botDraft). Without it
+   *  (tests) the action is made real at once. */
+  botPlays: (action: Action, show?: boolean, aimMs?: number) => void
+  /** An AI's travelling draft glyphling has reached its hex (useBotDraft): place it. */
+  landBotDraft: () => void
+  /** Dev and e2e only: jump straight to a game state (with the end table's numbers so far, if known,
+   *  and who sat where — else the seats stay as they are, or become people if the player count changed). */
+  loadState: (game: GameState, stats?: PlayerStats[], seats?: Seat[]) => void
 }
 
 // Everything about the turn being planned, cleared (a fresh object each time, so nothing is shared)
-const noPlan = (): Pick<GameStore, 'move' | 'cast' | 'selected' | 'setAside' | 'note'> =>
-  ({ move: null, cast: null, selected: null, setAside: [], note: null })
+const noPlan = (): Pick<GameStore, 'move' | 'cast' | 'selected' | 'setAside' | 'note' | 'botDraft'> =>
+  ({ move: null, cast: null, selected: null, setAside: [], note: null, botDraft: null })
 const NO_WORDS: WordList = new Map() // the draft and refresh never read words
 const anim = liveTuning('anim', animFile) // the refresh's timings (read when a refresh starts)
 const SCORE_BEAT_MS = 120 // the score sequence's timer waits this much past the fade (see startScoring)
@@ -227,6 +239,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
   const stopRefreshFx = () => {
     if (refreshTimer) clearTimeout(refreshTimer)
     refreshTimer = null
+    stopBotTurn() // (every place that stops the refresh — a new game, leaving, a jump — stops a bot's glide too)
+  }
+
+  // A bot's turn playing out (botPlays with show): the wait between its glide and its throw
+  let botTimer: ReturnType<typeof setTimeout> | null = null
+  const stopBotTurn = () => {
+    if (botTimer) clearTimeout(botTimer)
+    botTimer = null
   }
   // Stage "in": the new seeds grow into their slots, then `done` (pass-and-play: play passes on)
   const growIn = (fx: RefreshFx, done: () => void) => {
@@ -310,7 +330,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     scoring: null,
     happened: null,
 
-    startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators, bots = [] }) => {
+    startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {} }) => {
       const game = setupGame({ players, seed, boardName, rules: minWordLength ? { minWordLength } : undefined })
       const options: GameOptions = {
         players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: hideSeeds ?? true,
@@ -318,7 +338,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       }
       stopRefreshFx()
       stopScoring()
-      const seats = localSeats(players, text.game.players).map((seat, i): Seat => (bots.includes(i) ? { ...seat, kind: 'bot' } : seat))
+      const seats = localSeats(players, text.game.players).map((seat, i): Seat => (bots.includes(i) ? { ...seat, kind: 'bot', ai: ai[i] ?? defaultAi() } : seat))
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players),
@@ -514,15 +534,46 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ trayOrder: order })
     },
 
-    botPlays: (action) => {
+    botPlays: (action, show = false, aimMs = 0) => {
       const { game, seats, online } = get()
       if (!game || online || !isLocalBot(seats[game.current]) || isBusy(get())) return
-      if (action.type === 'draft') return draftAt(action.hex)
+      // A draft shown like a person's drag: the glyphling travels out of the tray first (useBotDraft → landBotDraft)
+      if (action.type === 'draft') return show && !reduceMotion() ? set({ botDraft: action.hex }) : draftAt(action.hex)
       if (action.type === 'refresh') return refreshNow(action.setAside)
       // A turn: its plan, then the landing — as if the bot had planned it on the board and its seed had flown
+      const move = { glyphling: action.glyphling, to: action.to }
       const cast = action.seed !== null && action.target ? { seed: action.seed, target: action.target } : null
-      set({ ...noPlan(), move: { glyphling: action.glyphling, to: action.to }, cast })
-      get().finishCast()
+      if (!show) {
+        set({ ...noPlan(), move, cast })
+        return get().finishCast()
+      }
+      // Shown like a person's turn: the plan's move first (the glyphling glides there, useGlide), then the aim (the
+      // planned seed on its hex, F50), then the throw (flying: the Board flies the seed and calls finishCast when it
+      // lands). A move-only turn ends after the glide.
+      const from = game.glyphlings.find((g) => g.id === action.glyphling)?.hex ?? action.to
+      set({ ...noPlan(), move })
+      stopBotTurn()
+      const throwNow = () => {
+        botTimer = null
+        if (get().game === game) set({ cast, flying: true }) // (unless the game moved on or was left meanwhile)
+      }
+      botTimer = setTimeout(() => {
+        botTimer = null
+        if (get().game !== game) return // (the game moved on or was left meanwhile)
+        if (!cast) return get().finishCast()
+        if (aimMs <= 0) return throwNow()
+        set({ cast })
+        botTimer = setTimeout(throwNow, aimMs)
+      }, reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000)
+    },
+
+    landBotDraft: () => {
+      const { botDraft, game, seats, online } = get()
+      if (!botDraft) return
+      // Online: another seat's draft (onlinePlay.ts) has travelled — the replay shows its change now (F43)
+      if (online) return void (set({ botDraft: null }), online.landed())
+      if (game && isLocalBot(seats[game.current])) draftAt(botDraft) // (it clears botDraft with the rest of the plan)
+      if (get().botDraft) set({ botDraft: null }) // (refused, or the game moved on meanwhile)
     },
 
     refuseTap: (tap) => {
@@ -531,11 +582,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       return target !== null
     },
 
-    loadState: (saved, stats) => {
+    loadState: (saved, stats, savedSeats) => {
       const game = migrateGame(saved) // an older save brought up to date (the old "Qu" seed → "Q")
       stopRefreshFx()
       stopScoring()
-      const seats = get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players)
+      const seats = savedSeats?.length === game.config.players ? savedSeats
+        : get().seats.length === game.config.players ? get().seats : localSeats(game.config.players, text.game.players)
       set({
         ...noPlan(), game, flying: false, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, // a jump, not a change: nothing "just happened"

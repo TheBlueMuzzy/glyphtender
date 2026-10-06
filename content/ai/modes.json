@@ -1,0 +1,72 @@
+{
+  "_help": {
+    "_file": "The three MODES an AI can be in (Muzzy, 2026-10-05): fight · flight · focus. A personality has a HOME mode (its own settings in personalities.json) and SWITCHES that put it heavily into one of these when a reading crosses a line — the Scholar is Focus until threatened, then Flight. While switched, the mode's goals, traits, sight and steady goals replace the personality's own.",
+    "id": "The mode's name (personalities' switches use it).",
+    "goals": "Goal priority in this mode — the goal roll walks this list.",
+    "traits": "Trait ranges in this mode (0–100). The main goal's trait decides how often it wins the roll.",
+    "sight": "How clearly it sees each kind of move in this mode (0–1). Flight is 'dumber' at seeing good casts; Focus is blind to traps.",
+    "steady": "Goals every move also tries for in this mode, 0–1.",
+    "focus": "How single-minded at a big moment (0–1)."
+  },
+  "_labels": {
+    "id": "Mode",
+    "goals": "Goal order",
+    "traits": "Traits (range 0–100)",
+    "sight": "Sight (0–1)",
+    "steady": "Always also tries (0–1)",
+    "focus": "Focus at a big moment (0–1)"
+  },
+  "_sections": {
+    "AI: modes": ["id", "goals", "traits", "sight", "steady", "focus"]
+  },
+  "modes": [
+    {
+      "id": "Fight",
+      "goals": ["TRAP", "DENY", "STEAL", "SCORE", "ESCAPE", "BUILD", "DUMP"],
+      "traits": {
+        "aggression": { "min": 75, "max": 90 },
+        "spite": { "min": 70, "max": 85 },
+        "opportunism": { "min": 60, "max": 75 },
+        "greed": { "min": 30, "max": 50 },
+        "caution": { "min": 20, "max": 40 },
+        "patience": { "min": 10, "max": 30 },
+        "pragmatism": { "min": 20, "max": 40 }
+      },
+      "sight": { "SCORE": 0.8 },
+      "steady": { "SCORE": 0.6 },
+      "focus": 0.8
+    },
+    {
+      "id": "Flight",
+      "goals": ["ESCAPE", "SCORE", "DENY", "BUILD", "DUMP", "STEAL", "TRAP"],
+      "traits": {
+        "caution": { "min": 90, "max": 100 },
+        "greed": { "min": 30, "max": 50 },
+        "spite": { "min": 10, "max": 30 },
+        "patience": { "min": 10, "max": 30 },
+        "pragmatism": { "min": 20, "max": 40 },
+        "opportunism": { "min": 10, "max": 30 },
+        "aggression": { "min": 0, "max": 10 }
+      },
+      "sight": { "SCORE": 0.4, "BUILD": 0.4, "STEAL": 0.4 },
+      "steady": { "SCORE": 0.3 },
+      "focus": 0.9
+    },
+    {
+      "id": "Focus",
+      "goals": ["SCORE", "BUILD", "STEAL", "DUMP", "DENY", "ESCAPE", "TRAP"],
+      "traits": {
+        "greed": { "min": 85, "max": 100 },
+        "patience": { "min": 60, "max": 80 },
+        "opportunism": { "min": 30, "max": 50 },
+        "pragmatism": { "min": 40, "max": 60 },
+        "spite": { "min": 20, "max": 40 },
+        "caution": { "min": 20, "max": 40 },
+        "aggression": { "min": 5, "max": 20 }
+      },
+      "sight": { "TRAP": 0.3, "ESCAPE": 0.3, "DENY": 0.3 },
+      "steady": {},
+      "focus": 0.8
+    }
+  ]
+}

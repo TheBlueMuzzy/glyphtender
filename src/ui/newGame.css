@@ -1,0 +1,15 @@
+/* NEW GAME — layout only (the look is the kit's). An AI seat's rows hold one size whatever personality is showing:
+   every bio is piled in one spot (invisible copies), so the bio space is as tall as the longest bio and the real one
+   sits at the top of it (NewGameScreen.tsx). */
+@layer game {
+  /* an AI seat's rows: label | selector — labels keep their width, both selectors fill the rest (same width, right edges aligned), the bio across both */
+  .new-game-ai { display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: var(--gap-s); }
+  .new-game-ai > .kit-selector, .new-game-ai > * > .kit-selector { justify-self: stretch; }
+  .new-game-ai > .new-game-bio { grid-column: 1 / -1; }
+  .new-game-ai .kit-picker-value { white-space: nowrap; } /* "the Strategist" on one line */
+  .new-game-ai { padding-block: var(--gap-s); }
+  .new-game-ai + .kit-listrow { border-block-start: var(--border-width) solid var(--border); } /* the kit's row divider after the section */
+  .new-game-bio { display: grid; }
+  .new-game-bio > * { grid-area: 1 / 1; }
+  .new-game-bio-sizer { visibility: hidden; }
+}

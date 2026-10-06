@@ -98,6 +98,29 @@ describe('glyphtenderAdapter', () => {
     expect(store().stats).toHaveLength(2)
   })
 
+  it('F51: a snapshot says who sat where — a person or an AI, and which personality + skill — and restores it', () => {
+    store().startGame({ players: 3, seed: 7, bots: [1, 2], ai: { 1: { personality: 'Scholar', skill: 'Archmage' } } })
+    const saved = JSON.parse(JSON.stringify(glyphtenderAdapter.getState())) as GlyphtenderMoment
+    expect(saved.seats?.map((seat) => [seat.kind, seat.ai?.personality, seat.ai?.skill])).toEqual([
+      ['human', undefined, undefined], ['bot', 'Scholar', 'Archmage'], ['bot', 'Survivor', 'FirstClass'],
+    ])
+
+    store().startGame({ players: 3, seed: 99 }) // everyone a person now
+    glyphtenderAdapter.setState(saved)
+    expect(store().seats.map((seat) => [seat.kind, seat.where, seat.ai?.personality])).toEqual([
+      ['human', 'local', undefined], ['bot', 'local', 'Scholar'], ['bot', 'local', 'Survivor'],
+    ])
+  })
+
+  it('F51: Muzzy\'s first game vs the AI (saved before snapshots had seats) still restores', async () => {
+    const { default: old } = await import('../../content/snapshots/first-game-with-ai.json')
+    const moment = ((old as { state?: unknown }).state ?? old) as GlyphtenderMoment
+    expect(moment.seats).toBeUndefined()
+    glyphtenderAdapter.setState(moment)
+    expect(store().game?.phase).toBe(moment.game?.phase)
+    expect(store().seats).toHaveLength(moment.game!.config.players)
+  })
+
   it('F24: a snapshot saved with the old "Qu" seed loads it as a plain "Q" (hand, bag, board, last turn)', () => {
     const game = position({
       glyphlings: { 0: 'C6-7', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' },

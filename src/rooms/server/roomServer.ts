@@ -116,7 +116,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
       case 'ready': return this.handleReady(seat, message.ready)
       case 'start': return this.handleStart(sender, seat, message.options)
       case 'kick': return this.handleKick(sender, seat, message.seatId)
-      case 'add_bot': return this.handleAddBot(sender, seat)
+      case 'add_bot': return this.handleAddBot(sender, seat, message.profile)
       case 'back_to_lobby': return this.handleBackToLobby(sender, seat)
       case 'action': return this.handleAction(sender, seat, message.action)
     }
@@ -256,9 +256,17 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     this.afterSeatsChanged()
   }
 
-  private handleAddBot(connection: PartyConnection, seat: SeatRecord): void {
+  private handleAddBot(connection: PartyConnection, seat: SeatRecord, profile?: string): void {
     if (!seat.isHost) return this.sendError(connection, 'not_host', 'Only the host can add bots.')
-    if (!addBot(this.data, this.settings)) {
+    let described: { profile: string; name: string } | undefined
+    if (profile !== undefined && this.rules.botProfile) {
+      try {
+        described = this.rules.botProfile(profile)
+      } catch (error) {
+        return this.sendError(connection, 'bad_action', reasonOf(error))
+      }
+    }
+    if (!addBot(this.data, this.settings, described)) {
       return this.sendError(connection, 'not_now', this.settings.allowBots ? 'No room for another seat.' : 'This game has no bots.')
     }
     this.sendRoomToEveryone()

@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { newGame } from '../src/engine/engine'
-import { glyphtenderRules } from '../src/engine/rules'
+import { glyphtenderRules, viewFor } from '../src/engine/rules'
 import { replay } from '../src/table/core'
 import { randomAction } from '../src/engine/sim'
 import { shuffle } from '../src/engine/rng'
@@ -19,6 +19,29 @@ import { makeRules } from './glyphtenderRules'
 import { HIDDEN, type GameView, type OnlineAction, type OnlineOptions } from './protocol'
 import type { ServerGame } from './serverGame'
 import { viewOf } from './views'
+import pace from '../content/ai/pace.json'
+import type { ThinkRequest } from '../src/ai/seatBrain'
+
+// Every decision the server's AI makes passes through here (the real thinking — this only listens, F43), so a test
+// can see exactly what the AI was given, or make it fail
+const aiSpy = vi.hoisted(() => ({ requests: [] as { request: ThinkRequest }[], fail: false }))
+vi.mock('../src/ai/seatBrain', async (original) => {
+  const real = await original<typeof import('../src/ai/seatBrain')>()
+  return {
+    ...real,
+    seatThinking: (words: WordList) => {
+      const think = real.seatThinking(words)
+      return (request: ThinkRequest) => {
+        aiSpy.requests.push({ request })
+        if (aiSpy.fail) throw new Error('a broken personality (test)')
+        return think(request)
+      }
+    },
+  }
+})
+
+/** Long enough for any AI pause before a bot seat's action (pace.json: the longest think, at Normal speed). */
+const BOT_WAIT = Math.max(...Object.values(pace.thinkSeconds).map((t) => t.max)) * 1000
 
 let words: WordList
 beforeAll(() => { words = parseWordList(readFileSync('public/words/words.csv', 'utf8')) })
@@ -229,7 +252,7 @@ describe('online server — the move record (setup with its secret numbers + eve
         const pick = randomAction(view.game, rng)
         rng = pick.rng
         send(server, conns[0], { kind: 'play', action: pick.action, version: view.version })
-      } else vi.advanceTimersByTime(settings.botTurnDelayMs)
+      } else vi.advanceTimersByTime(BOT_WAIT)
     }
     expect(server.game!.game.phase).toBe('over')
     expect(server.game!.record.moves.some((m) => m.seat === 1)).toBe(true)
@@ -246,7 +269,7 @@ describe('online server — the move record (setup with its secret numbers + eve
         expect(conn.received.length).toBeGreaterThan(10)
         for (const message of conn.received) {
           const text = JSON.stringify(message)
-          expect(text).not.toMatch(/"record"|"moves"|"bagSeed"|"rngSeed"|"botRng"/)
+          expect(text).not.toMatch(/"record"|"moves"|"bagSeed"|"rngSeed"|"botRng"|"paceRng"/)
           expect(holdsNumber(text, setup.bagSeed!)).toBe(false) // the bag's second shuffle: never, not even at the end
           const over = message.type === 'view' && (message as { view?: GameView }).view?.game.phase === 'over'
           if (over) continue // the end reveals the game's seed and rng position (D47) — never the bag's second number
@@ -397,7 +420,7 @@ describe('online server — the turn timer and idle players', () => {
     vi.advanceTimersByTime(60_000) // Blue's again (snake draft)
     expect(server.data.seats[1].kind).toBe('bot')
     // A bot plays at once (after botTurnDelayMs), without waiting for a timer
-    vi.advanceTimersByTime(60_000 + settings.botTurnDelayMs * 10)
+    vi.advanceTimersByTime(60_000 + BOT_WAIT * 10)
     expect(server.game!.version).toBeGreaterThan(4)
     conns.forEach((conn) => conn.views().forEach(expectNoSecrets))
   })
@@ -426,7 +449,7 @@ describe('online server — the turn timer and idle players', () => {
         const pick = randomAction(view.game, rng)
         rng = pick.rng
         send(server, conns[0], { kind: 'play', action: pick.action, version: view.version })
-      } else vi.advanceTimersByTime(settings.botTurnDelayMs)
+      } else vi.advanceTimersByTime(BOT_WAIT)
     }
     expect(server.game!.game.phase).toBe('over')
     conns[0].views().forEach(expectNoSecrets)
@@ -534,7 +557,7 @@ describe('online server — side doors: events, the log, the bot', () => {
     let rng = 9
     for (let i = 0; i < 3000 && server.game!.game.phase !== 'over'; i++) {
       const seat = server.game!.game.current
-      if (seat === 2) { vi.advanceTimersByTime(settings.botTurnDelayMs); continue }
+      if (seat === 2) { vi.advanceTimersByTime(BOT_WAIT); continue }
       const view = conns[seat].lastView()!
       const pick = randomAction(view.game, rng)
       rng = pick.rng
@@ -546,5 +569,175 @@ describe('online server — side doors: events, the log, the bot', () => {
       conn.views().forEach(expectNoSecrets)
       for (const text of beforeTheEnd(conn)) expect(holdsNumber(text, server.game!.botRng)).toBe(false)
     }
+  })
+})
+
+// ─── The AI plays bot seats (F43) ───────────────────────────────────
+
+/** A room: `humans` players (the first is host) + the host's AI seats (`profiles`, e.g. "Scholar/Archmage"), started. */
+function startRoomWithAi(humans: number, profiles: string[], seed = 7) {
+  let n = seed
+  const rules = makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647) })
+  const party = new FakeParty()
+  const server: Server = new RoomServer(party, rules, { ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0 })
+  const logs: string[] = []
+  server.log = (line) => { logs.push(line) }
+  const conns = Array.from({ length: humans }, (_, i) => {
+    const conn = new FakeConnection(`tab-${i}`)
+    party.live.set(conn.id, conn)
+    server.onMessage(JSON.stringify({ type: 'join', name: `P${i}`, persistentId: `player-id-${i}`, create: i === 0 }), conn)
+    return conn
+  })
+  for (const profile of profiles) server.onMessage(JSON.stringify({ type: 'add_bot', profile }), conns[0])
+  conns.slice(1).forEach((conn) => server.onMessage(JSON.stringify({ type: 'ready', ready: true }), conn))
+  server.onMessage(JSON.stringify({ type: 'start', options: {} }), conns[0])
+  return { server, conns, logs }
+}
+
+/** Plays until `done` (default: the end): people play random moves from their own views; bot seats get time to think. */
+function playWithBots(server: Server, conns: FakeConnection[], rngStart: number, done = () => server.game!.game.phase === 'over') {
+  let rng = rngStart
+  for (let i = 0; i < 4000 && !done(); i++) {
+    const seat = server.game!.game.current
+    if (server.data.seats[seat].kind === 'bot') { vi.advanceTimersByTime(BOT_WAIT); continue }
+    const view = conns[seat].lastView()!
+    const pick = randomAction(view.game, rng)
+    rng = pick.rng
+    send(server, conns[seat], { kind: 'play', action: pick.action, version: view.version })
+  }
+  expect(done()).toBe(true)
+}
+
+const fallbacks = (logs: string[]) => logs.filter((line) => line.includes('could not decide'))
+
+describe('online server — the AI plays bot seats (F43)', () => {
+  afterEach(() => {
+    aiSpy.requests = []
+    aiSpy.fail = false
+  })
+
+  it('a seat a bot took over is played by the real AI (default: the Survivor at First Class), from that seat’s view only — never the log', () => {
+    vi.useFakeTimers()
+    const { server, conns, logs } = startRoomWithAi(3, [], 9)
+    server.onMessage(JSON.stringify({ type: 'leave' }), conns[2]) // a bot takes seat 2
+    const seen: GameState[] = []
+    let rng = 9
+    for (let i = 0; i < 4000 && server.game!.game.phase !== 'over'; i++) {
+      const seat = server.game!.game.current
+      if (seat === 2) {
+        const game = server.game!.game // (each request is checked against the game as it was when the AI was asked)
+        const asked = aiSpy.requests.length
+        vi.advanceTimersByTime(BOT_WAIT)
+        for (const { request } of aiSpy.requests.slice(asked)) {
+          expect(request.seat).toBe(2)
+          expect(request.view).toEqual(viewFor(game, 2)) // exactly its own seat's view, nothing more
+          seen.push(request.view)
+        }
+        continue
+      }
+      const view = conns[seat].lastView()!
+      const pick = randomAction(view.game, rng)
+      rng = pick.rng
+      send(server, conns[seat], { kind: 'play', action: pick.action, version: view.version })
+    }
+    expect(server.game!.game.phase).toBe('over')
+    expect(seen.length).toBeGreaterThan(5)
+    for (const view of seen) {
+      expect(view.hands.every((hand, s) => s === 2 || hand.every((seed) => seed.id === HIDDEN))).toBe(true)
+      expect(view.bag.every((seed) => seed.id === HIDDEN)).toBe(true)
+      expect(view.log ?? { turns: [], end: null }).toEqual({ turns: [], end: null }) // never the log
+      expect(view.pendingLog ?? null).toBeNull()
+      expect([...view.magic, ...view.tangleMagic].every((m) => m === 0)).toBe(true)
+    }
+    expect(aiSpy.requests.every(({ request }) => request.personalityId === 'Survivor' && request.skillId === 'FirstClass')).toBe(true)
+    expect(fallbacks(logs)).toEqual([]) // (the AI itself played, not the fallback)
+    expect(replay(glyphtenderRules(words), server.game!.record).state).toEqual(server.game!.game)
+    conns.slice(0, 2).forEach((conn) => conn.views().forEach(expectNoSecrets))
+  })
+
+  it('the host adds AI seats in the lobby: named after the personality, each played by its own personality + skill', () => {
+    vi.useFakeTimers()
+    const { server, conns, logs } = startRoomWithAi(1, ['Scholar/Archmage', 'Strategist/Apprentice', 'Scholar/FirstClass'], 3)
+    expect(server.data.seats.map((s) => [s.name, s.kind, s.profile])).toEqual([
+      ['P0', 'human', undefined],
+      ['The Scholar', 'bot', 'Scholar/Archmage'],
+      ['The Strategist', 'bot', 'Strategist/Apprentice'],
+      ['The Scholar 2', 'bot', 'Scholar/FirstClass'],
+    ])
+    expect(server.game!.names).toEqual(['P0', 'The Scholar', 'The Strategist', 'The Scholar 2'])
+    playWithBots(server, conns, 3)
+    const asked = (seat: number) => [...new Set(aiSpy.requests.filter(({ request }) => request.seat === seat).map(({ request }) => `${request.personalityId}/${request.skillId}`))]
+    expect([asked(1), asked(2), asked(3)]).toEqual([['Scholar/Archmage'], ['Strategist/Apprentice'], ['Scholar/FirstClass']])
+    expect(fallbacks(logs)).toEqual([])
+    expect(conns[0].errors()).toEqual([])
+    conns[0].views().forEach(expectNoSecrets)
+  }, 30_000)
+
+  it('adding an AI: host only, a real personality + skill, and the host can remove it again before the start', () => {
+    const party = new FakeParty()
+    const server: Server = new RoomServer(party, makeRules({ words: () => words }), settings)
+    server.log = () => {}
+    const [host, guest] = [0, 1].map((i) => {
+      const conn = new FakeConnection(`tab-${i}`)
+      party.live.set(conn.id, conn)
+      server.onMessage(JSON.stringify({ type: 'join', name: `P${i}`, persistentId: `player-id-${i}`, create: i === 0 }), conn)
+      return conn
+    })
+    server.onMessage(JSON.stringify({ type: 'add_bot', profile: 'Survivor/FirstClass' }), guest)
+    server.onMessage(JSON.stringify({ type: 'add_bot', profile: 'Nobody/FirstClass' }), host)
+    server.onMessage(JSON.stringify({ type: 'add_bot', profile: 'Survivor/Grandmaster' }), host)
+    server.onMessage(JSON.stringify({ type: 'add_bot', profile: 'x'.repeat(200) }), host)
+    expect(server.data.seats.length).toBe(2) // none of those added a seat
+    const codes = (conn: FakeConnection) => conn.errors().map((e) => (e as { code: string }).code)
+    expect(codes(guest)).toEqual(['not_host'])
+    expect(codes(host)).toEqual(['bad_action', 'bad_action', 'bad_message'])
+    server.onMessage(JSON.stringify({ type: 'add_bot', profile: 'Survivor/FirstClass' }), host)
+    const ai = server.data.seats[2]
+    expect([ai.name, ai.kind, ai.ready]).toEqual(['The Survivor', 'bot', true])
+    // what every player sees of the seat: who plays it, never an owner id
+    const room = guest.received.filter((m) => m.type === 'room').at(-1) as { room: { seats: unknown[] } }
+    expect(room.room.seats[2]).toEqual({ id: ai.id, name: 'The Survivor', kind: 'bot', isHost: false, connected: false, ready: true, missedTurns: 0, profile: 'Survivor/FirstClass' })
+    server.onMessage(JSON.stringify({ type: 'kick', seatId: ai.id }), host)
+    expect(server.data.seats.map((s) => s.name)).toEqual(['P0', 'P1'])
+  })
+
+  it('the AI takes a person-like moment before each action (pace.json, Normal speed) — and its refresh is a step of its own', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoomWithAi(1, ['Survivor/FirstClass'], 5)
+    // Yellow (the person) places first; then the AI's first placement waits at least the shortest draft think
+    const first = conns[0].lastView()!
+    send(server, conns[0], { kind: 'play', action: randomAction(first.game, 1).action, version: first.version })
+    expect(server.game!.game.current).toBe(1)
+    const version = server.game!.version
+    vi.advanceTimersByTime(pace.thinkSeconds.draft.min * 1000 - 1)
+    expect(server.game!.version).toBe(version) // still "thinking"
+    vi.advanceTimersByTime(BOT_WAIT)
+    expect(server.game!.version).toBe(version + 1)
+    // Later: its turn, then (if it may refresh) its refresh — two changes, each after its own pause
+    for (let tries = 0; tries < 20; tries++) {
+      playWithBots(server, conns, tries, () => server.game!.game.phase === 'play' && server.game!.game.current === 1)
+      const atTurn = server.game!.version
+      vi.advanceTimersByTime(pace.thinkSeconds.moveCast.min * 1000 - 1)
+      expect(server.game!.version).toBe(atTurn)
+      vi.advanceTimersToNextTimer() // (only its turn — not the refresh's pause too)
+      expect([server.game!.version, server.game!.change]).toEqual([atTurn + 1, 'turn'])
+      if (server.game!.game.phase !== 'refresh') continue
+      vi.advanceTimersByTime(pace.thinkSeconds.refresh.min * 1000 - 1)
+      expect(server.game!.version).toBe(atTurn + 1)
+      vi.advanceTimersToNextTimer()
+      expect([server.game!.version, server.game!.change]).toEqual([atTurn + 2, 'refresh'])
+      return
+    }
+    throw new Error('the AI never refreshed')
+  })
+
+  it('never freezes: if the AI fails, a simple legal move is played instead and the game carries on', () => {
+    vi.useFakeTimers()
+    const { server, conns, logs } = startRoomWithAi(1, ['Scholar/FirstClass'], 11)
+    aiSpy.fail = true
+    playWithBots(server, conns, 11)
+    expect(fallbacks(logs).length).toBeGreaterThan(5)
+    expect(server.game!.record.moves.filter((m) => m.seat === 1).length).toBeGreaterThan(5)
+    conns[0].views().forEach(expectNoSecrets)
   })
 })

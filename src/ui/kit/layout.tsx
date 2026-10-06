@@ -13,11 +13,15 @@ type ScreenProps = {
   children?: ReactNode // goes in the centre
   label?: string // what a screen reader calls this screen
   dialog?: boolean // dims what's underneath; for a small question on top of another screen
+  // The whole screen scrolls when its contents are taller than it — drag, wheel or keys, with no scroll bar showing.
+  // The centre sits in the middle while it fits and grows as tall as it needs (no ScrollArea inside); once it's taller
+  // than the window it starts at the top, and the panel's own buttons (Start, Save) scroll with it, always reachable.
+  scroll?: boolean
 }
-export function Screen({ children, label, dialog, ...slots }: ScreenProps) {
+export function Screen({ children, label, dialog, scroll, ...slots }: ScreenProps) {
   const slotNames = { topLeft: 'top-left', top: 'top', topRight: 'top-right', bottomLeft: 'bottom-left', bottom: 'bottom', bottomRight: 'bottom-right' }
   return (
-    <section className="kit-screen" aria-label={label} data-dialog={dialog || undefined}
+    <section className="kit-screen" aria-label={label} data-dialog={dialog || undefined} data-scroll={scroll || undefined}
       role={dialog ? 'dialog' : undefined} aria-modal={dialog || undefined}>
       {Object.entries(slotNames).map(([prop, slot]) => {
         const content = slots[prop as keyof typeof slots]

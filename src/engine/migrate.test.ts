@@ -72,8 +72,10 @@ describe('the Dev Kit snapshots in content/snapshots/ (saved before F33) still l
       const loaded = migrateGame(snapshot.state.game)
       expect(everyId(loaded)).toHaveLength(120)
       expect(idsAreUnique(loaded.bag, ...loaded.hands, Object.values(loaded.seeds))).toBe(true)
-      expect(loaded.hands.map(lettersOf)).toEqual(snapshot.state.game.hands)
-      expect(playsOn(loaded).turnCount).toBeGreaterThan(loaded.turnCount)
+      // (a snapshot saved since F33 already names its seeds: compare letters either way)
+      const savedLetters = snapshot.state.game.hands.map((hand: (string | { letter: string })[]) => hand.map((s) => (typeof s === 'string' ? s : s.letter)))
+      expect(loaded.hands.map(lettersOf)).toEqual(savedLetters)
+      if (loaded.phase !== 'over') expect(playsOn(loaded).turnCount).toBeGreaterThan(loaded.turnCount) // (a finished game can't play on)
     })
   }
 })

@@ -1,0 +1,62 @@
+{
+  "_help": {
+    "_file": "How long the AI seems to think, so players can follow what it did. The real thinking is quick (timeBudgetMs); the rest is a pause for people.",
+    "thinkSeconds.draft.min": "Shortest pause before it places a glyphling in the draft, in seconds (at Normal speed). Try 0.4–1.",
+    "thinkSeconds.draft.max": "Longest pause before it places a glyphling. Each pause is picked between min and max. Try 0.8–1.6.",
+    "thinkSeconds.moveCast.min": "Shortest pause before its move + cast, in seconds (at Normal speed). Try 0.5–1.2.",
+    "thinkSeconds.moveCast.max": "Longest pause before its move + cast. Try 1–2.",
+    "thinkSeconds.refresh.min": "Shortest pause before it refreshes seeds, in seconds. Try 0.3–0.8.",
+    "thinkSeconds.refresh.max": "Longest pause before it refreshes seeds. Try 0.6–1.2.",
+    "thinkSeconds.aim.min": "After its glide, the AI holds its aim (the seed sits on its target, the words light up) before it throws — like a person looking at their aim before Cast. Shortest hold, in seconds (at Normal speed). 0 = it throws the moment the glide ends. Try 0.2–0.6.",
+    "thinkSeconds.aim.max": "Longest hold on its aim before the throw. Try 0.4–1.",
+    "speeds.slow": "Settings → AI speed: Slow. Pauses are divided by this (0.5 = twice as long).",
+    "speeds.normal": "Settings → AI speed: Normal (1 = the pauses above as they are).",
+    "speeds.fast": "Settings → AI speed: Fast (2 = half as long).",
+    "speeds.instant": "Settings → AI speed: Instant. 0 = no pause at all (the moves still animate).",
+    "timeBudgetMs": "The most time one decision may take on a phone, in milliseconds. The skill's candidate count is chosen to fit inside it.",
+    "serverBudgetMs": "Online: the most time one decision may take in the room on the server, in milliseconds (the room waits while it thinks). npm run ai:server-timing checks every skill against it. The online AI's pauses are the Normal-speed ones above."
+  },
+  "_labels": {
+    "thinkSeconds.draft.min": "Draft: shortest think (s)",
+    "thinkSeconds.draft.max": "Draft: longest think (s)",
+    "thinkSeconds.moveCast.min": "Move + cast: shortest think (s)",
+    "thinkSeconds.moveCast.max": "Move + cast: longest think (s)",
+    "thinkSeconds.refresh.min": "Refresh: shortest think (s)",
+    "thinkSeconds.refresh.max": "Refresh: longest think (s)",
+    "thinkSeconds.aim.min": "Aim: shortest hold before the throw (s)",
+    "thinkSeconds.aim.max": "Aim: longest hold before the throw (s)",
+    "speeds.slow": "AI speed Slow (×)",
+    "speeds.normal": "AI speed Normal (×)",
+    "speeds.fast": "AI speed Fast (×)",
+    "speeds.instant": "AI speed Instant (0 = no pause)",
+    "timeBudgetMs": "Thinking budget per decision on a phone (ms)",
+    "serverBudgetMs": "Thinking budget per decision online, on the server (ms)"
+  },
+  "_sections": {
+    "AI: pace": ["thinkSeconds", "speeds", "timeBudgetMs", "serverBudgetMs"]
+  },
+  "_ranges": {
+    "thinkSeconds.draft.min": [0, 3, 0.1],
+    "thinkSeconds.draft.max": [0, 3, 0.1],
+    "thinkSeconds.moveCast.min": [0, 3, 0.1],
+    "thinkSeconds.moveCast.max": [0, 3, 0.1],
+    "thinkSeconds.refresh.min": [0, 3, 0.1],
+    "thinkSeconds.refresh.max": [0, 3, 0.1],
+    "thinkSeconds.aim.min": [0, 2, 0.05],
+    "thinkSeconds.aim.max": [0, 2, 0.05],
+    "speeds.slow": [0.1, 1, 0.05],
+    "speeds.normal": [0.5, 2, 0.05],
+    "speeds.fast": [1, 5, 0.1],
+    "timeBudgetMs": [50, 1000, 10],
+    "serverBudgetMs": [100, 3000, 50]
+  },
+  "thinkSeconds": {
+    "draft": { "min": 0.6, "max": 1.2 },
+    "moveCast": { "min": 0.8, "max": 1.6 },
+    "refresh": { "min": 0.5, "max": 1.0 },
+    "aim": { "min": 0.3, "max": 0.6 }
+  },
+  "speeds": { "slow": 0.5, "normal": 1, "fast": 2, "instant": 0 },
+  "timeBudgetMs": 300,
+  "serverBudgetMs": 1000
+}

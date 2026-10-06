@@ -35,8 +35,10 @@
       "othersTurn": "{player} is playing…",
       "othersDraft": "{player} is placing a glyphling…",
       "othersRefresh": "{player} is refreshing seeds…",
-      "waitingHost": "Waiting for the host to start the next game…"
+      "waitingHost": "Waiting for the host to start the next game…",
+      "aiThinking": "{player} is thinking…"
     },
+    "aiSeat": "{name}: the AI plays this seat",
     "notes": {
       "moveFirst": "Move a glyphling first",
       "notYours": "That one isn't yours",
@@ -249,6 +251,8 @@
   "newGame": {
     "title": "New game",
     "players": "Players",
+    "playerN": "Player {n}",
+    "aiType": "AI Type",
     "board": "Garden",
     "boards": {
       "small": "Small",
@@ -262,7 +266,13 @@
     "wordIndicators": "Word indicators",
     "wordIndicatorsDetail": "Off: no word borders, no Magic numbers",
     "start": "Start",
-    "back": "Main menu"
+    "back": "Main menu",
+    "person": "Person",
+    "ai": "AI",
+    "personality": "Personality",
+    "skill": "Skill",
+    "surprise": { "name": "Surprise me", "bio": "Random AI Personality" },
+    "needPerson": "At least one seat must be a person"
   },
   "online": {
     "lobby": {
@@ -285,7 +295,11 @@
       "copied": "Code copied!",
       "waitingHost": "Waiting for the host to start…",
       "needPlayers": "Need at least {n} players",
-      "waitingReady": "Waiting for everyone to be ready"
+      "waitingReady": "Waiting for everyone to be ready",
+      "remove": "Remove",
+      "addAiTitle": "Add an AI player",
+      "addAi": "Add AI",
+      "aiDetail": "🤖 {skill}"
     },
     "options": {
       "board": "Garden",
@@ -329,6 +343,19 @@
       "botLeft": "{name} left — a bot is playing for them",
       "botIdle": "{name} is idle — a bot is playing for them",
       "back": "{name} is back"
+    }
+  },
+  "ai": {
+    "_help": "The AI opponents' names and one-line bios (stand-in text — Muzzy reviews the tone). Gentle and cozy: even the Bully is mischievous, not mean. Bios grew from the original game's flavour lines.",
+    "personality": {
+      "Scholar": {"name": "the Scholar", "type": "Scholar", "bio": "It eats words for breakfast."},
+      "Survivor": {"name": "the Survivor", "type": "Survivor", "bio": "Head on a swivel like an owl."},
+      "Strategist": {"name": "the Strategist", "type": "Strategist", "bio": "Always two moves ahead."}
+    },
+    "skill": {
+      "Apprentice": "Apprentice",
+      "FirstClass": "First Class",
+      "Archmage": "Archmage"
     }
   }
 }

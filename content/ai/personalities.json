@@ -1,0 +1,148 @@
+{
+  "_help": {
+    "_file": "The 3 AI personalities — a rock-paper-scissors (Muzzy, 2026-10-04): Scholar beats Survivor, Survivor beats Strategist, Strategist beats Scholar. WHAT each one wants and what it can SEE. (How well it plays is the skill — skills.json.) Starting values from the original game's festive-booth AI (research/original-digest.md §2); the Personality Check (feel-targets.json) tunes them. Notes are keyed by the setting's name inside ONE personality, so they fit every personality in the list.",
+    "id": "The personality's name in code. Its name and bio for players live in content/text/en.json → ai.personality.<id>.",
+    "traits": "Seven traits, each a range 0–100. Every turn it picks a value inside each range, so it leans the same way but never plays exactly alike twice. A higher trait = its goal wins the goal roll more often.",
+    "traits.aggression": "TRAP — hem rival glyphlings in, cut their moves, tangle them, take territory.",
+    "traits.greed": "SCORE — make the most Magic this turn.",
+    "traits.spite": "DENY — block a rival's lines and near-words; toss a weed where a rival would score.",
+    "traits.caution": "ESCAPE — keep its own glyphlings roomy and safe; keep pockets only it can reach.",
+    "traits.patience": "BUILD — set up its own future words (gaps, extensions, crossings).",
+    "traits.opportunism": "STEAL — grow a rival's word into one it owns most of.",
+    "traits.pragmatism": "DUMP — shed junk letters, far from every glyphling.",
+    "goals": "The goal roll walks this list in order: each goal rolls against its trait; the first to succeed is the turn's main goal (all fail → the first one).",
+    "nudge": "0–1. How much the OTHER goals count when scoring a move: each adds up to nudge × its trait ÷ 100. 0 = only the main goal (the original AI); higher = it favours two-birds moves.",
+    "focus": "0–1. How single-minded at a BIG MOMENT (its main goal's best move reaches that goal's bar in goals.json): only moves at least this good for the main goal are considered (0 = any move, 1 = only the best); the other goals just break ties — it pounces. On ordinary turns it blends.",
+    "homeMode": "Its home mode's name — its own settings here ARE that mode (Scholar = Focus, Survivor = Flight, Strategist = Fight).",
+    "switches": "When it switches HEAVILY into another mode (content/ai/modes.json): the first switch whose reading is at least / at most the value wins; none → its home mode. Readings: myDanger, rivalDanger, fill, territory, garden (walled garden: hexes only it can reach, 1 point = 2 hexes), behind, ahead, handQuality, endNear.",
+    "sight": "0–1 per goal: how clearly it judges that kind of move (missing = 1, sees clearly). Low sight blurs those scores, so it misjudges them — the Scholar can't see a trap closing on it. How many WORDS it knows comes from the skill (Apprentice … Archmage), never the personality.",
+    "steady.SCORE": "0–1. How much EVERY move also tries to score, whatever goal it rolled (Muzzy: \"try to score, but also try to bully\"). 0 = only when it rolled SCORE.",
+    "shifts": "Mood shifts: when a reading (0–10) climbs from `from` to `full`, the trait's whole range moves by up to `by`. `from` above `full` = it grows as the reading FALLS. Readings: myDanger, rivalDanger, fill (board fill), behind / ahead (believed Magic gap), handQuality (10 = great), territory, endNear.",
+    "chattiness": "0–100: how likely it is to say something at a banter moment (big moments only).",
+    "extras.nerve": "How far ahead (in believed Magic) it must think it is before it ends the game itself (\"calls it\"). Lower = bolder, calls it wrong more often.",
+    "extras.extraWordBonus": "SCORE goal: bonus per extra word made in one cast (the original: 3). The Strategist — the two-words-one-move specialist — gets more."
+  },
+  "_labels": {
+    "id": "Name (code)",
+    "traits": "Traits (range 0–100)",
+    "traits.aggression": "Aggression → TRAP",
+    "traits.greed": "Greed → SCORE",
+    "traits.spite": "Spite → DENY",
+    "traits.caution": "Caution → ESCAPE",
+    "traits.patience": "Patience → BUILD",
+    "traits.opportunism": "Opportunism → STEAL",
+    "traits.pragmatism": "Pragmatism → DUMP",
+    "goals": "Goal order (first = tried first)",
+    "nudge": "Two-birds nudge from the other goals (0–1)",
+    "focus": "Focus at a big moment (0–1)",
+    "steady": "Goals every move also tries for",
+    "homeMode": "Home mode (its own settings)",
+    "switches": "Mode switches",
+    "sight": "How clearly it sees each kind of move (0–1)",
+    "sight.TRAP": "Sees traps / pincers (0–1)",
+    "sight.ESCAPE": "Sees danger to itself (0–1)",
+    "sight.DENY": "Sees rivals' good spots (0–1)",
+    "steady.SCORE": "Always tries to score too (0–1)",
+    "shifts": "Mood shifts",
+    "chattiness": "Banter: how chatty (0–100)",
+    "extras": "Glyphtender extras (nerve, multi-word bonus)",
+    "extras.nerve": "Calls it when it thinks it's this far ahead (Magic)",
+    "extras.extraWordBonus": "SCORE: bonus per extra word in one cast"
+  },
+  "_sections": {
+    "AI: who it is": ["id", "homeMode", "switches", "goals", "nudge", "focus", "steady", "sight"],
+    "AI: traits": ["traits"],
+    "AI: mood shifts": ["shifts"],
+    "AI: banter, nerve & words": ["chattiness", "extras"]
+  },
+  "personalities": [
+    {
+      "id": "Scholar",
+      "traits": {
+        "aggression": { "min": 10, "max": 25 },
+        "greed": { "min": 85, "max": 100 },
+        "spite": { "min": 30, "max": 50 },
+        "caution": { "min": 40, "max": 60 },
+        "patience": { "min": 60, "max": 80 },
+        "opportunism": { "min": 20, "max": 40 },
+        "pragmatism": { "min": 50, "max": 70 }
+      },
+      "goals": ["SCORE", "BUILD", "DENY", "DUMP", "ESCAPE", "STEAL", "TRAP"],
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
+      "sight": { "TRAP": 0.3, "ESCAPE": 0.2, "DENY": 0.3 },
+      "shifts": [
+        { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
+        { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
+        { "reading": "rivalDanger", "from": 5, "full": 10, "trait": "aggression", "by": 20 },
+        { "reading": "rivalDanger", "from": 5, "full": 10, "trait": "opportunism", "by": 20 },
+        { "reading": "behind", "from": 2, "full": 10, "trait": "greed", "by": -20 },
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 20 },
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -20 }
+      ],
+      "homeMode": "Focus",
+      "switches": [{ "reading": "myDanger", "atLeast": 6.5, "to": "Flight" }],
+      "chattiness": 50,
+      "extras": { "nerve": 14, "extraWordBonus": 3 }
+    },
+    {
+      "id": "Survivor",
+      "traits": {
+        "aggression": { "min": 5, "max": 20 },
+        "greed": { "min": 40, "max": 60 },
+        "spite": { "min": 20, "max": 40 },
+        "caution": { "min": 85, "max": 100 },
+        "patience": { "min": 60, "max": 80 },
+        "opportunism": { "min": 20, "max": 40 },
+        "pragmatism": { "min": 40, "max": 60 }
+      },
+      "goals": ["ESCAPE", "BUILD", "SCORE", "DENY", "DUMP", "STEAL", "TRAP"],
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.3 },
+      "shifts": [
+        { "reading": "myDanger", "from": 4, "full": 9, "trait": "caution", "by": 30 },
+        { "reading": "myDanger", "from": 4, "full": 9, "trait": "aggression", "by": -20 },
+        { "reading": "rivalDanger", "from": 5, "full": 10, "trait": "aggression", "by": 20 },
+        { "reading": "rivalDanger", "from": 5, "full": 10, "trait": "opportunism", "by": 20 },
+        { "reading": "behind", "from": 2, "full": 10, "trait": "aggression", "by": 25 },
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 15 },
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
+      ],
+      "homeMode": "Flight",
+      "switches": [],
+      "chattiness": 30,
+      "extras": { "nerve": 18, "extraWordBonus": 3 }
+    },
+    {
+      "id": "Strategist",
+      "traits": {
+        "aggression": { "min": 80, "max": 95 },
+        "greed": { "min": 30, "max": 50 },
+        "spite": { "min": 70, "max": 85 },
+        "caution": { "min": 20, "max": 40 },
+        "patience": { "min": 10, "max": 30 },
+        "opportunism": { "min": 60, "max": 75 },
+        "pragmatism": { "min": 20, "max": 40 }
+      },
+      "goals": ["TRAP", "DENY", "STEAL", "SCORE", "ESCAPE", "BUILD", "DUMP"],
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.6 },
+      "shifts": [
+        { "reading": "myDanger", "from": 5, "full": 10, "trait": "caution", "by": 20 },
+        { "reading": "myDanger", "from": 5, "full": 10, "trait": "aggression", "by": -15 },
+        { "reading": "rivalDanger", "from": 5, "full": 10, "trait": "aggression", "by": 20 },
+        { "reading": "rivalDanger", "from": 5, "full": 10, "trait": "opportunism", "by": 20 },
+        { "reading": "fill", "from": 4, "full": 8, "trait": "aggression", "by": 20 },
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 15 },
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "greed", "by": -15 }
+      ],
+      "homeMode": "Fight",
+      "switches": [{ "reading": "garden", "atLeast": 5, "to": "Focus" }],
+      "chattiness": 70,
+      "extras": { "nerve": 6, "extraWordBonus": 3 }
+    }
+  ]
+}

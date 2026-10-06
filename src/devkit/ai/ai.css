@@ -1,0 +1,171 @@
+/* AI tool (AiTab.tsx). Plain developer-tool styling like the Tuning tab (it reuses tuning.css's rows). */
+
+.ai-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid #25262f;
+}
+.ai-pick-row { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.ai-pick-skill { width: 100%; font-size: 12px; color: #9a9bab; }
+.ai-new { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-select, .ai-text, .ai-num, .ai-bio {
+  box-sizing: border-box;
+  background: #0f1015;
+  border: 1px solid #3a3c4a;
+  border-radius: 5px;
+  padding: 4px 6px;
+  min-height: 30px;
+}
+.ai-text { width: 9em; }
+.ai-num { width: 100%; min-width: 0; font: 12px ui-monospace, Consolas, monospace !important; }
+.ai-bio { width: 100%; resize: vertical; }
+.ai-id { font: 12px ui-monospace, Consolas, monospace; color: #c9cad6; overflow-wrap: anywhere; }
+
+.ai-problems {
+  margin: 8px 0 0;
+  padding: 6px 8px 6px 24px;
+  border-radius: 6px;
+  background: #3a2024;
+  color: #ffb3b3;
+  font-size: 12px;
+}
+
+/* one setting: name line, control, help line */
+.ai-row { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-bottom: 1px solid #25262f; }
+.ai .dk-section-body > .ai-row:last-child { border-bottom: none; }
+
+/* the number boxes beside a slider */
+.ai-number { display: grid; grid-template-columns: 76px; gap: 6px; align-items: center; }
+.ai-number-ranged { grid-template-columns: 1fr 76px; }
+
+/* two-handled range: [low] [track with two handles] [high] */
+.ai-range { display: grid; grid-template-columns: 52px 1fr 52px; gap: 8px; align-items: center; }
+.ai-range-track { position: relative; height: 30px; isolation: isolate; } /* its handles never float over the sticky footer */
+.ai-range-track::before { /* the whole 0–100 track */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 13px;
+  height: 4px;
+  border-radius: 2px;
+  background: #3a3c4a;
+}
+.ai-range-fill { position: absolute; top: 13px; height: 4px; border-radius: 2px; background: #2f6fed; }
+.ai-range.is-changed .ai-range-fill { background: #ffb020; }
+.ai-range-track input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 30px;
+  margin: 0;
+  background: none;
+  pointer-events: none; /* only the handles take touches, so both can be dragged */
+  appearance: none;
+  -webkit-appearance: none;
+}
+.ai-range-track input[type='range']::-webkit-slider-runnable-track { background: none; height: 30px; }
+.ai-range-track input[type='range']::-moz-range-track { background: none; }
+.ai-range-track input[type='range']::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #e8e8ee;
+  border: 2px solid #2f6fed;
+  cursor: grab;
+}
+.ai-range-track input[type='range']::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e8e8ee;
+  border: 2px solid #2f6fed;
+  cursor: grab;
+}
+.ai-range-track input[type='range']:focus-visible::-webkit-slider-thumb { outline: 2px solid #ffd98a; }
+
+/* goal order */
+.ai-goals { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ai-goal {
+  display: grid;
+  grid-template-columns: 18px 1fr 30px 30px;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  background: #1d1e26;
+  border: 1px solid #34353f;
+  border-radius: 6px;
+  cursor: grab;
+}
+.ai-goal.is-dragging { opacity: 0.5; }
+.ai-grip { color: #7d7f92; }
+.ai-goal-name { font-weight: 600; }
+
+/* mood shifts: wraps onto two lines on a narrow panel */
+.ai-shifts { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.ai-shift {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: #1d1e26;
+  border: 1px solid #34353f;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 12px;
+  color: #9a9bab;
+}
+.ai-shift .ai-num { width: 46px; }
+.ai-shift .ai-select { max-width: 8.5em; }
+
+/* steady goals: one row per goal, laid out like a Tuning row — [● goal] on top, then [slider] [box] [✕], its help
+   line under it; unset rows dimmed */
+.ai-steady { display: flex; flex-direction: column; gap: 6px; }
+.ai-steady-row {
+  display: grid;
+  grid-template-columns: 1fr 76px 30px;
+  align-items: center;
+  gap: 2px 6px;
+}
+.ai-steady-row .ai-steady-goal, .ai-steady-row .tt-row-help { grid-column: 1 / -1; }
+.ai-steady-goal { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #c9cad6; overflow-wrap: anywhere; }
+.ai-steady-row.is-unset .ai-steady-goal, .ai-steady-row.is-unset .tt-slider { opacity: 0.5; }
+
+/* watching + checking */
+.ai-watch, .ai-check { padding: 4px 0 8px; display: flex; flex-direction: column; gap: 6px; }
+.ai-watch-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ai-watch-bar select { background: #0f1015; border: 1px solid #3a3c4a; border-radius: 5px; padding: 3px 4px; }
+.ai-beliefs { display: flex; flex-direction: column; gap: 6px; }
+.ai-belief-seat { padding: 4px 6px; background: #1d1e26; border: 1px solid #34353f; border-radius: 6px; }
+.ai-belief-who { font-weight: 600; margin-bottom: 2px; }
+.ai-belief-who small { font-weight: 400; color: #9a9bab; }
+.ai-belief { display: grid; grid-template-columns: minmax(0, 6.5em) 1fr 3em 40px 3em; gap: 4px; align-items: center; font-size: 12px; }
+.ai-belief-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c9cad6; }
+.ai-belief-num { font: 11px ui-monospace, Consolas, monospace; color: #9a9bab; text-align: right; }
+.ai-bar { display: block; height: 8px; border-radius: 4px; background: #2c2e3a; overflow: hidden; }
+.ai-bar-fill { display: block; height: 100%; background: #2f6fed; transition: width 0.3s ease; }
+.ai-bar-sure .ai-bar-fill { background: #3fa86b; }
+.ai-bar-progress { height: 10px; }
+.ai-notes {
+  margin: 0;
+  list-style: none;
+  padding: 4px 8px;
+  max-height: 40vh;
+  overflow-y: auto;
+  background: #0f1015;
+  border: 1px solid #34353f;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.ai-note { padding: 2px 0; overflow-wrap: anywhere; }
+.ai-link { color: #8fb4ff; }
+@media (prefers-reduced-motion: reduce) { .ai-bar-fill { transition: none; } }

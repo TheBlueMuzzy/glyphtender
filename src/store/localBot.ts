@@ -1,32 +1,173 @@
-// A BOT ON THIS DEVICE (F36) — plumbing for tests and the Dev Kit only: no menu offers it yet, and it isn't the AI
-// (the beta AI comes later). A seat started as a bot (startGame's `bots`) is { kind: 'bot', where: 'local' }.
-// When it's that seat's turn and the screen isn't in a quiet moment (a seed flying, a score or a refresh playing
-// out), the bot picks from its OWN seat's view only (rules.viewFor — never the other seeds or the bag) and plays it
-// through the store (botPlays: the same rules door and the same follow-ups as a person's taps).
+// THE AI ON THIS DEVICE (F42) — plays the bot seats of a game on this device (New Game's AI seats; tests; the Dev
+// Kit). A bot seat is { kind: 'bot', where: 'local', ai: { personality, skill } } (startGame's `bots` + `ai`).
+// When it's an AI seat's turn and the screen is in a quiet moment (no seed flying, no score or refresh playing out),
+// the AI starts thinking — in the background (src/ai/thinker.ts: a Web Worker), from its OWN seat's view only
+// (rules.viewFor — never the other seeds or the bag). It then takes a person-like moment (src/ai/kit/pace.ts:
+// thinkDelay for that kind of action at Settings → AI speed, content/ai/pace.json; the time it really spent thinking
+// counts toward it) and plays through the store (botPlays: the same rules door and follow-ups as a person's taps,
+// and it LOOKS like a person playing — F50: a draft glyphling travels out of the tray, a turn glides, holds its aim a
+// moment (pace.json thinkSeconds.aim), then throws).
+// Its picks are repeatable: each seat has its own random position from the game's seed (botSeed), moved on only by
+// the actions it really plays. A new game, leaving the game or the game moving on drops any thinking in progress.
 // It never gets a handoff screen: there's nobody to hide the seeds from (seats.ts needsHandoff).
-import roomsJson from '../../content/rooms.json'
+// playLocalBot (below) is the old instant greedy bot — tests only. If thinking ever fails, the greedy bot plays that
+// one move instead, so a game never freezes.
+import paceFile from '../../content/ai/pace.json'
+import { thinkDelay, waitLeft, type Pace } from '../ai/kit/pace'
+import { botSeed } from '../ai/kit/brain'
+import type { Decision } from '../ai/kit/types'
+import { makeGameThinker, type AiThinker } from '../ai/thinker'
 import { greedyBot } from '../engine/bot'
 import { flowOf, viewFor } from '../engine/rules'
+import type { Action, GameState } from '../engine/types'
 import { seatToAct } from '../table/flow'
+import { useGameSettings, type AiSpeed } from '../ui/gameSettings'
 import { useGameStore } from './gameStore'
 import { isBusy } from './myTurn'
-import { isLocalBot } from './seats'
+import { defaultAi, isLocalBot } from './seats'
 
 const store = () => useGameStore.getState()
 
-/** The bots' own random position (their picks are repeatable: the same game, the same moves), for the game it
- *  belongs to (a new game starts it again, like the server's: the game's seed ^ 0x5eed). */
+/** content/ai/pace.json in the kit's Pace shape: think times per kind of action — draft, moveCast (a turn), refresh. */
+const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, timeBudgetMs: paceFile.timeBudgetMs }
+
+/** How long an AI holds its aim before the throw, like a person looking at their aim before Cast (pace.json
+ *  thinkSeconds.aim at the AI speed; 0 = none — a turn with no seed to throw, or Instant). */
+function aimPause(action: Action, rng: number): { ms: number; rng: number } {
+  if (action.type !== 'turn' || action.seed === null) return { ms: 0, rng }
+  return thinkDelay(pace, 'aim', aiSpeed(), rng)
+}
+
+/** The kind of action (pace.json thinkSeconds) for the step the game is at. */
+const paceKind = (game: GameState) => (game.phase === 'draft' ? 'draft' : game.phase === 'refresh' ? 'refresh' : 'moveCast')
+
+// ─── Hooks for the Dev Kit's AI tab ───
+
+const decisionListeners = new Set<(seat: number, decision: Decision<Action>) => void>()
+
+/** Hear every decision an AI on this device plays (its note, readings, goal rolls…). Gives back "stop listening". */
+export function onAiDecision(listener: (seat: number, decision: Decision<Action>) => void): () => void {
+  decisionListeners.add(listener)
+  return () => { decisionListeners.delete(listener) }
+}
+
+let speedOverride: AiSpeed | null = null
+/** Play the AIs at this speed instead of Settings → AI speed (the Dev Kit's watch); null = back to the setting. */
+export function setAiSpeedOverride(speed: AiSpeed | null) {
+  speedOverride = speed
+}
+const aiSpeed = () => speedOverride ?? useGameSettings.getState().aiSpeed
+
+// ─── The driver ───
+
+/** One AI decision on its way, for this game state and seat (dropped = forget its answer). */
+interface Job {
+  game: GameState
+  seat: number
+  dropped: boolean
+}
+
+/** Lets the AIs on this device play by themselves whenever it's their turn (GameScreen runs it while a game is on
+ *  screen). Gives back "stop" (thinking in progress is dropped, the worker is closed). */
+export function driveLocalBots(): () => void {
+  let thinker: AiThinker | null = null
+  let forGame: object | null = null // the game's config (a new game makes a new one; every change keeps it)
+  let rngs: number[] = []
+  let paceRng = 1
+  let job: Job | null = null
+  let timer: ReturnType<typeof setTimeout> | null = null
+
+  const dropJob = () => {
+    if (job) job.dropped = true
+    job = null
+    if (timer) clearTimeout(timer)
+    timer = null
+  }
+  const closeThinker = () => {
+    dropJob()
+    thinker?.stop()
+    thinker = null
+    forGame = null
+  }
+
+  const check = () => {
+    const s = store()
+    const game = s.game
+    if (!game || s.online) return closeThinker() // no game here (left, or online: the server plays its bots)
+    if (game.config !== forGame) { // a new game: fresh random positions, a fresh thinker
+      closeThinker()
+      forGame = game.config
+      rngs = s.seats.map((_, seat) => botSeed(game.config.seed, seat))
+      paceRng = game.config.seed ^ 0xface
+    }
+    if (job) {
+      if (job.game === game) return // still thinking / waiting its moment
+      dropJob() // the game moved on without it (an undo in the Dev Kit, a jump)
+    }
+    if (!s.words || isBusy(s)) return // its turn starts in a quiet moment
+    if (s.move) return // (its turn is already playing out: the glide before the throw)
+    const seat = seatToAct(flowOf(game))
+    if (seat === null || !isLocalBot(s.seats[seat])) return
+    thinker ??= makeGameThinker(s.words)
+    const ai = s.seats[seat].ai ?? defaultAi()
+    const mine: Job = { game, seat, dropped: false }
+    job = mine
+    const started = performance.now()
+    const delay = thinkDelay(pace, paceKind(game), aiSpeed(), paceRng)
+    paceRng = delay.rng
+    thinker
+      .think({ view: viewFor(game, seat), seat, rng: rngs[seat], personalityId: ai.personality, skillId: ai.skill, custom: ai.custom })
+      .then((answer) => {
+        if (mine.dropped) return
+        timer = setTimeout(() => {
+          timer = null
+          job = null
+          if (mine.dropped || store().game !== mine.game) return check()
+          rngs[seat] = answer.rng
+          for (const listener of decisionListeners) listener(seat, answer.decision)
+          const aim = aimPause(answer.action, paceRng)
+          paceRng = aim.rng
+          store().botPlays(answer.action, true, aim.ms)
+        }, waitLeft(delay.ms, performance.now() - started))
+      })
+      .catch((error) => {
+        if (mine.dropped) return
+        // Never freeze the game: say what went wrong, then play a safe legal move instead (the simple greedy bot,
+        // from the same seat's view) — a broken personality in the Dev Kit can't stall an all-AI table.
+        console.warn('The AI could not decide — playing a simple move instead', error)
+        job = null
+        const s = store()
+        if (!s.words || s.game !== mine.game) return check()
+        const fallback = greedyBot(s.words)(viewFor(mine.game, seat), seat, rngs[seat])
+        rngs[seat] = fallback.rng
+        const aim = aimPause(fallback.action, paceRng)
+        paceRng = aim.rng
+        s.botPlays(fallback.action, true, aim.ms)
+      })
+  }
+
+  const unsubscribe = useGameStore.subscribe(check)
+  check()
+  return () => {
+    unsubscribe()
+    closeThinker()
+  }
+}
+
+// ─── Tests only: the instant greedy bot ───
+
+/** The greedy bots' random position, for the game it belongs to (the game's seed ^ 0x5eed). */
 let botRng = 0
 let botGame: object | null = null
 
-/** If a bot on this device is to act now, it plays its one action and says true; otherwise false. */
+/** Tests: if a bot on this device is to act now, the greedy bot plays its one action at once and says true. */
 export function playLocalBot(): boolean {
   const s = store()
   const game = s.game
   if (!game || s.online || !s.words || isBusy(s)) return false
   const seat = seatToAct(flowOf(game))
   if (seat === null || !isLocalBot(s.seats[seat])) return false
-  if (botGame !== game.config) { // (a new game makes a new config; every change keeps it)
+  if (botGame !== game.config) {
     botGame = game.config
     botRng = game.config.seed ^ 0x5eed
   }
@@ -34,23 +175,4 @@ export function playLocalBot(): boolean {
   botRng = picked.rng
   s.botPlays(picked.action)
   return true
-}
-
-/** Lets the bots on this device play by themselves, a short beat after each change (the same think time as the
- *  server's bots, content/rooms.json botTurnDelayMs) so a person can watch. Gives back "stop". */
-export function driveLocalBots(): () => void {
-  let timer: ReturnType<typeof setTimeout> | null = null
-  const check = () => {
-    if (timer) return
-    timer = setTimeout(() => {
-      timer = null
-      if (playLocalBot()) check()
-    }, roomsJson.botTurnDelayMs)
-  }
-  const stop = useGameStore.subscribe(check)
-  check()
-  return () => {
-    stop()
-    if (timer) clearTimeout(timer)
-  }
 }

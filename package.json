@@ -26,6 +26,7 @@
     "party:deploy": "wrangler deploy",
     "e2e:online": "node e2e/online-shots.mjs",
     "e2e:online4": "node e2e/online-four.mjs",
+    "e2e:online-ai": "node e2e/online-ai.mjs",
     "e2e:update": "node e2e/sw-update.mjs",
     "e2e:portrait": "node e2e/portrait-layout.mjs",
     "e2e:spotlight": "node e2e/word-spotlight.mjs",
@@ -36,9 +37,13 @@
     "e2e:trails": "node e2e/trail-shots.mjs",
     "fixtures:end": "node scripts/end-fixtures.mjs",
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
+    "e2e:devkit-ai": "node e2e/devkit-ai.mjs",
     "e2e:fullscreen": "node e2e/fullscreen.mjs",
+    "e2e:ai": "node e2e/ai-play.mjs",
     "shots:record": "node e2e/shots.mjs record",
-    "check:shots": "node e2e/shots.mjs check"
+    "check:shots": "node e2e/shots.mjs check",
+    "ai:arena": "node scripts/ai-arena.mjs",
+    "ai:server-timing": "node scripts/ai-server-timing.mjs"
   },
   "dependencies": {
     "partyserver": "^0.5.10",

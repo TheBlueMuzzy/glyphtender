@@ -10,11 +10,15 @@
 //      Safety: only .json files inside content/ — nothing else in the project can be written — plus one
 //      exception: bug captures (the Bug capture tab) go in .planning/bugs/, where /bug keeps them.
 //      A missing folder is refused, except the two the Dev Kit's own tools fill (MADE_ON_FIRST_SAVE).
-//      Files are written pretty-printed (2 spaces) with a trailing newline, and a "_help" note already
+//      Files are written like hand-written JSON (formatJson.ts: 2 spaces, short objects / lists on one line), and a "_help" note already
 //      in the file is kept even if the tool didn't send it.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve, sep } from 'node:path'
 import type { Plugin } from 'vite'
+import { formatJson } from './formatJson'
+
+// How files are written (one-line short objects and lists, like hand-written files): formatJson.ts
+export { formatJson }
 
 export const SAVE_URL = '/__devkit/save'
 
@@ -51,19 +55,6 @@ export function keepHelp(existing: unknown, incoming: Record<string, unknown>): 
   const help = (existing as Record<string, unknown> | null)?._help
   if (help === undefined || '_help' in incoming) return incoming
   return { _help: help, ...incoming }
-}
-
-// A list of plain numbers / true / false / null that JSON.stringify spread over lines. It must start with
-// "[" + a line break, which never happens inside a text value (there a line break is written as \n).
-const SHORT_LIST = /\[\n\s*((?:[-\d.eE+]+|true|false|null)(?:,\n\s*(?:[-\d.eE+]+|true|false|null))*)\n\s*\]/g
-
-/**
- * How every Dev Kit file is written: 2-space JSON + a newline at the end (like a hand-edited file).
- * Lists of plain numbers / true / false stay on one line — [8, 6, 4, 2, 1] — the way people write them.
- */
-export function formatJson(data: unknown): string {
-  const pretty = JSON.stringify(data, null, 2)
-  return pretty.replace(SHORT_LIST, (_, items: string) => `[${items.split(/,\s*/).join(', ')}]`) + '\n'
 }
 
 // Same file, same key — whatever slashes or drive-letter case the path came with (Windows)
@@ -125,9 +116,11 @@ export function devkit(): Plugin {
               mkdirSync(dirname(file), { recursive: true })
             }
 
-            const existing = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null
+            // The file as it is now: its _help note is kept, and so is its layout (formatJson.ts)
+            const oldText = existsSync(file) ? readFileSync(file, 'utf8') : undefined
+            const existing = oldText === undefined ? null : JSON.parse(oldText)
             justWrote.set(fileKey(file), Date.now())
-            writeFileSync(file, formatJson(keepHelp(existing, data)))
+            writeFileSync(file, formatJson(keepHelp(existing, data), oldText))
             server.config.logger.info(`[devkit] saved ${path}`, { timestamp: true })
             reply(200, { ok: true, path })
           } catch (e) {

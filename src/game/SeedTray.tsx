@@ -4,7 +4,9 @@
 // the seed / glyphling art and the rings. Sizes come from content/tuning/layout.json, colours from garden.json.
 // Same piece-state look as the board: held = solid ring (lifted a little) · planned (aimed at the board) =
 // an empty slot with a pulsing halo · waiting (move first) = dimmed. In refresh mode, set-aside seeds look held.
-// During the draft it shows the glyphlings still waiting to be placed instead. While the device is being
+// During the draft it shows the glyphlings still waiting to be placed instead — while an AI on this device, or online
+// another player (person or AI), drafts, THEIR waiting glyphlings (no secret), so their glyphling leaves the tray like
+// a person's (F50 / F43, useBotDraft). While the device is being
 // passed on (handoff) it shows empty slots: nobody sees the next player's seeds until they tap.
 // It shows the VIEWER's seeds (store/viewer.ts): online always THIS device's (dimmed while it's someone else's turn),
 // pass-and-play the player to move (it switches when the handoff is passed).
@@ -17,6 +19,7 @@
 import { hexCorners } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
+import { isLocalHuman } from '../store/seats'
 import { viewerOf } from '../store/viewer'
 import { letterIn, TRAY_GAP } from '../store/turnPlan'
 import { HandView, type HandPlace, type RackLayout } from '../ui/kit'
@@ -41,7 +44,11 @@ export function SeedTray({ layout, boxWidth }: Props) {
   const refreshFx = useGameStore((s) => s.refreshFx)
   const colours = useGardenTuning()
   const timing = useAnimTuning()
-  const seat = useGameStore(viewerOf)
+  // (an AI here, or online another player, drafting: their glyphlings — the draft's tray shows whoever is placing, like
+  // pass-and-play between people)
+  const aiDrafting = useGameStore((s) => s.game?.phase === 'draft' && !isLocalHuman(s.seats[s.game.current]))
+  const viewer = useGameStore(viewerOf)
+  const seat = aiDrafting ? game.current : viewer
   const refreshing = refreshFx?.seat === seat ? refreshFx : null
   const stage = refreshing?.stage
   const myTurn = useGameStore(isMyTurn) // online, the plan on the board may be another player's replay
@@ -70,7 +77,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
     const placed = game.glyphlings.filter((g) => g.seat === seat).length
     places = Array.from({ length: 2 - placed }, (_, pos) => ({
       key: `draft-${pos}`,
-      piece: { kind: 'glyphling', next: pos === 0 && myTurn },
+      piece: { kind: 'glyphling', next: pos === 0 && (myTurn || aiDrafting) },
       attrs: { 'data-draft': pos === 0 ? 'next' : undefined },
     }))
   } else {

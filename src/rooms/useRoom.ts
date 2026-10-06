@@ -53,8 +53,8 @@ export interface OnlineRoom<View, Action, Options> {
   start: (options: Options) => void
   /** Host: remove a player or bot. */
   kick: (seatId: string) => void
-  /** Host, lobby: add a bot seat (if the game allows bots). */
-  addBot: () => void
+  /** Host, lobby: add a bot seat (if the game allows bots). `profile` = which bot, in the game's words (its botProfile checks it). */
+  addBot: (profile?: string) => void
   /** Host, after a game: everyone back to the lobby. */
   backToLobby: () => void
   /** Give up your seat and disconnect. */
@@ -191,7 +191,7 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
     setReady: useCallback((ready: boolean) => void sendMessage({ type: 'ready', ready }), [sendMessage]),
     start: useCallback((startOptions: Options) => void sendMessage({ type: 'start', options: startOptions }), [sendMessage]),
     kick: useCallback((seatId: string) => void sendMessage({ type: 'kick', seatId }), [sendMessage]),
-    addBot: useCallback(() => void sendMessage({ type: 'add_bot' }), [sendMessage]),
+    addBot: useCallback((profile?: string) => void sendMessage(profile === undefined ? { type: 'add_bot' } : { type: 'add_bot', profile }), [sendMessage]),
     backToLobby: useCallback(() => void sendMessage({ type: 'back_to_lobby' }), [sendMessage]),
     leave,
     clearError: useCallback(() => setSaved((before) => ({ ...before, error: null })), []),

@@ -11,6 +11,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import text from '../../content/text/en.json'
 import { getBoard } from '../engine/boards'
 import { useGameStore } from '../store/gameStore'
+import { driveLocalBots } from '../store/localBot'
 import { revealSteps } from '../store/revealPlan'
 import { rackLayout, toast, useScreens } from '../ui/kit'
 import { useGameSettings } from '../ui/gameSettings'
@@ -26,6 +27,7 @@ import { RevealPanel } from './Reveal'
 import { PromptLine } from './PromptLine'
 import { SeedTray } from './SeedTray'
 import { TurnBar } from './TurnBar'
+import { useBotDraft } from './useBotDraft'
 import { useNopeShake } from './useNopeShake'
 import { usePieceInput } from './usePieceInput'
 import { useGardenTuning, useLayoutTuning } from './useTuning'
@@ -42,6 +44,8 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const colours = useGardenTuning()
 
   useEffect(() => { loadWords(wordListUrl()) }, [loadWords])
+  // The AI seats on this device play by themselves while the game is on screen (store/localBot.ts)
+  useEffect(() => driveLocalBots(), [])
   // Couldn't load the words (a first visit on a bad connection): say so — the Cast button becomes Retry
   useEffect(() => {
     if (wordsStatus === 'failed') toast(text.game.notes.wordsFailed, { variant: 'danger', dismissible: true })
@@ -104,7 +108,9 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   // Taps and drags for board + tray; the dragged piece floats in its own layer on top
   const dragLayer = useRef<SVGSVGElement>(null)
   const dragImage = useRef<SVGImageElement>(null)
-  const input = usePieceInput({ layer: dragLayer, image: dragImage }, layout, Math.max(tray.tile, hexPx) * 1.2)
+  const dragSize = Math.max(tray.tile, hexPx) * 1.2
+  const input = usePieceInput({ layer: dragLayer, image: dragImage }, layout, dragSize)
+  useBotDraft({ layer: dragLayer, image: dragImage }, dragSize, hexPx) // an AI's draft travels out of the tray the same way (F50)
   useNopeShake() // a tapped piece that can't be touched shakes "no"
 
   // When the garden tangles, the Magic reveal takes the tray's place (Reveal.tsx) and then opens the end table.
