@@ -1,7 +1,7 @@
 {
   "name": "Glyphtender",
-  "version": "0.4.0",
-  "build": 1,
+  "version": "0.4.1",
+  "build": 0,
   "history": [
     {
       "version": "0.0.0",
@@ -27,6 +27,11 @@
       "version": "0.4.0",
       "date": "2026-10-04",
       "summary": "Rebuilt on the framework Table (plays and looks the same — ready for AI); Pincer is now a hunt; online: your server-played turn glides, no false lost-move note, nothing missed when catching up"
+    },
+    {
+      "version": "0.4.1",
+      "date": "2026-10-05",
+      "summary": "Play against the computer: 3 AI personalities and 3 skills that move like people; online, the AI fills in for idle players and hosts can add AI seats; a simpler New Game that scrolls, with arrow-key menus"
     }
   ]
 }
