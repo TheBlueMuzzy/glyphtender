@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-10-05 — **Released v0.4.1** (update): play vs AI (3 personalities × 3 skills, AI looks human), online AI (idle takeover + host adds AI seats in the lobby), Dev Kit snapshot seats, New Game redo (Player 2/3/4 rows, AI Type · bio · Skill, whole-screen scroll, arrow-key menus — UI kit 0.3.4). Server + site deployed. Beta musts 16/18 — left: F46 sims, F47 award re-tune (both wait on Muzzy: go or skip).
-**Ask Muzzy (open):** keep / shorten / drop the AI's aim hold (Dev Kit → AI tab → AI: pace → Aim) · online AI named after the personality OK? · no "Surprise me" online OK? · AI setup direction — mostly settled by today's New Game redo (research/ai-setup-menus.md) · first-time New Game default = you + 1 AI? · F46 / F47 go or skip · F37 confirms.
-Next: `/sprint` (F46 / F47 / F49 by Muzzy's call) → beta.
+2026-10-07 — **Sprint 17 started (auto mode — Muzzy: "go into auto mode")**: F46 sims with real AIs settle GDD §9 + F47 award re-tune — the last two beta musts. Muzzy said "Go — both". Plan + ticks in SPRINT.md.
+**Ask Muzzy (open):** keep / shorten / drop the AI's aim hold (Dev Kit → AI tab → AI: pace → Aim) · online AI named after the personality OK? · no "Surprise me" online OK? · first-time New Game default = you + 1 AI? · F37 confirms · (coming) F46 three §9 calls · F47 new thresholds.
+Next: `/develop` continues SPRINT.md (F46 task 1).
 
 ## Where we are
-Stage: deliver · Milestone: v0.7 AI opponents (→ beta) · Sprint: none (16 done) · Doing: released v0.4.1 — next: /sprint · Branch: main · Version: 0.4.1.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.4.1, online)
+Stage: develop · Milestone: v0.7 AI opponents (→ beta) · Sprint: 17 — Settled by real AI games · Doing: F46 + F47 · Branch: main · Version: 0.4.1.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (alpha v0.4.1, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

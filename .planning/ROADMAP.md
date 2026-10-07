@@ -153,11 +153,11 @@ Goal: play solo or fill any seat (2–4, local or online) with an AI that feels 
 - ✅ F50 🎮 AI looks human — sprint 16 · released v0.4.1 2026-10-05 (Muzzy 2026-10-05: "when possible, the AI should visually come across as human. If a human would drag, they should too… at least the same animation speeds"): every AI action plays the same motion a person's does (first: draft placements travel from the tray instead of popping in); a standard of the framework AI module — must:beta · needs: F42
   why: an AI that moves like a person → Feels like a person at the table
 - ✅ F51 🔧 Dev Kit snapshots record the seats · released v0.4.1 2026-10-05 (who is AI, personality + skill) — sprint 16 (Muzzy's first AI game couldn't say which personality Yellow was) — should · needs: F42
-- ⏳ F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45
-- ⏳ F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45
+- 🔨 F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45
+- 🔨 F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45
 - (F48 Basic audio moved OUT of the AI milestone — Muzzy 2026-10-05: "that's its own sprint, and a module will come of that as well" → see Later)
   why: the score pops and tangles land harder with sound → Cozy cleverness payoff
-- ⏳ F49 🔧 "What wins?" report for Glyphtender (needs framework F25) — should · needs: F45
+- ⏳ F49 🔧 "What wins?" report for Glyphtender (needs framework F25 — not built yet) — should · needs: F45
 ```mermaid
 flowchart LR
   FW19[fw F19 Brain] --> F38[F38 AI plug]
