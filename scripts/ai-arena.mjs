@@ -51,7 +51,8 @@ const played = []
 const started = Date.now()
 for (let g = 0; g < games; g++) {
   const n = only.length || 2 + (g % 3)
-  const table = only.length ? only : shuffled(personalities).slice(0, n)
+  // n seats: every personality once, then repeats (there are 3 personalities, so a 4-player table has one twice)
+  const table = only.length ? only : shuffled(Array.from({ length: n }, (_, i) => personalities[i % personalities.length]))
   const seats = table.map((p) => ({ personality: p, skill: skillById[mainSkill] }))
   played.push(arena.playArenaGame(seats, boardFor(n), 1000 + g, words, makeBot))
   process.stdout.write(`\rmixed games ${g + 1}/${games}`)
