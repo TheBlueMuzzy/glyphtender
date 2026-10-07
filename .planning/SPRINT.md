@@ -32,3 +32,4 @@ Ask Muzzy: (after F46 3) the three §9 calls · (after F47 2) the new thresholds
 - Fixed: ai-arena "4-player" tables only seated 3 (slice of 3 personalities) — now one personality sits twice.
 - To Ideas: Power Play / Bridge rule shape · RPS broken leg (Scholar > Strategist) · bag-empty notice.
 - Code review (low, 0794b44..2aa762a): award-rates/ai-arena/ai-diagnose/Dev Kit AI check hard-coded "Large for 3–4" → now read boards.json; re-measured awards on 3p Small (324 games) → pincer from 12, weed 6. ai-balance progress dots fixed.
+- 2026-10-07 morning — Muzzy OK'd 3 players on Small ("ok 3 on small is okay"). Still open: random first player, the F47 numbers, Pincer.
