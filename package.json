@@ -43,6 +43,7 @@
     "shots:record": "node e2e/shots.mjs record",
     "check:shots": "node e2e/shots.mjs check",
     "ai:arena": "node scripts/ai-arena.mjs",
+    "ai:balance": "node scripts/ai-balance.mjs",
     "ai:server-timing": "node scripts/ai-server-timing.mjs"
   },
   "dependencies": {
