@@ -7,6 +7,6 @@
     "balanceReady": "AI ready for balance sims (Muzzy's sign-off)",
     "signedOff": "Signed off (date + why)"
   },
-  "balanceReady": false,
-  "signedOff": ""
+  "balanceReady": true,
+  "signedOff": "2026-10-07 — Muzzy: \"I was already okay with the AI as it was. So this is just an improvement in the end. I can see AI being tweaked over time, but right now I'm not concerned.\" (the AI F46/F47 were measured on)"
 }

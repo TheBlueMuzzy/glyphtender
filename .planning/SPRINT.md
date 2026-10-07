@@ -7,14 +7,14 @@ Done when: hundreds of AI-vs-AI games per row (2/3/4 players × Small/Large, mix
 - [x] 🤖 1. Arena records per game: board, seat order, winner seat, bag left / ran out, turns, score margin (scripts/ai-arena.mjs)
 - [x] 🤖 2. Run it: 2/3/4 × Small/Large → .planning/research/sims-ai.md (tables + what they mean)
 - [x] 🤖 3. One recommendation per question with the numbers behind it (→ Ask Muzzy)
-- [~] 🙋 4. (Claude decided overnight — Muzzy confirms; D80) Muzzy decides: board per player count · bag run-out rule · first player (Yellow or random)
+- [x] 🙋 4. (Muzzy OK'd 3p Small + chose a shuffled turn order, 2026-10-07) Muzzy decides: board per player count · bag run-out rule · first player (Yellow or random)
 - [x] 🤖 5. Apply the calls (content/ defaults, engine if the bag rule changes) + GDD §9 settled + TDD Decisions
 
 ## F47 ✨ Re-tune the 14 award thresholds
 Done when: award rates come from real AI personalities (not random/greedy bots), each award lands in its target band (research/sims.md), positional personalities earn the positional awards, and the new thresholds are in content/tuning/endscreen.json.
 - [x] 🤖 1. sim:awards can play real AI personalities (scripts/award-rates.mjs `--players ai`), rates per personality
 - [x] 🤖 2. Propose new thresholds per award (content/tuning/endscreen.json) → table in research/awards-ai.md
-- [~] 🙋 3. (Claude applied a softened set overnight — Muzzy confirms; D81) Muzzy OKs them (Dev Kit edits endscreen.json)
+- [x] 🙋 3. (Muzzy 2026-10-07: "happy enough with the numbers" — Pincer + Power Play/Bridge still open) Muzzy OKs them (Dev Kit edits endscreen.json)
 - [x] 🤖 4. (tuning) Apply + check:fast (golden) + award tests
 
 Check: check:fast after each feature · check:full once at the end.
@@ -36,3 +36,4 @@ Ask Muzzy: (after F46 3) the three §9 calls · (after F47 2) the new thresholds
 - 2026-10-07 day — Muzzy: "shuffle the whole order" (not just the first seat) → built (D82): GameState.turnOrder, draft + turns follow it; online e2e green with real shuffles.
 - Muzzy: "ai:balance can only be called after proper AI have been implemented and feel at a satisfactory development level" → content/ai/signoff.json lock (balanceReady false) on ai:balance + sim:awards --players ai. F46/F47 numbers → re-run after sign-off.
 - Lessons → BMUZ skills (develop: tools read content/, fixed mode for random setup; ai-opponent: sign-off before balance sims; multiplayer-setup: generated-file EBUSY, server-side random setup) + CLAUDE.md standing rule; sprint reports open with number + goal + built vs measured.
+- 2026-10-07 — Muzzy signed the AI off as it is ("I was already okay with the AI as it was… right now I'm not concerned") → signoff.json balanceReady true; F46/F47 were measured on this same AI, so no re-run. F46 ✅. F47 numbers OK; open: Pincer, Power Play/Bridge rule shape.
