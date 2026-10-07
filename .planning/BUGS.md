@@ -1,7 +1,7 @@
 # Glyphtender — Bugs
 Open: 6 (P0 0 · P1 0 · P2 2 · P3 4)
 ## Open
-### B025 · P3 · open · found 2026-10-07 by check:full (sprint 17) · v0.4.1 + F46 · e2e:online (test, not the game as far as known)
+### B023 · P3 · open · found 2026-10-07 by check:full (sprint 17) · v0.4.1 + F46 · e2e:online (test, not the game as far as known)
 e2e:online sometimes stops with "Cannot read properties of null (reading 'lastTurn')" — a store read with no game
 Steps: `node e2e/online-shots.mjs` (or check:full) · Expected: passes · Actual: failed 1 of 3 runs alone (that one while shots:record loaded the PC; also "gave up waiting" in check:full beside online4/online-ai when wrangler hit EBUSY copying words.gen.txt). Reads `s.game.lastTurn` (e2e/online-shots.mjs ~159) where game can be null. Since F46 the first player online is random — the test plays whoever's turn it is, so it shouldn't care, but that's not proven. Also: two wranglers starting at once lock party/words.gen.txt (EBUSY) — check-all could start them a few seconds apart.
 ### B019 · P2 · open · found 2026-10-04 by the F29 screenshot helper (e2e/shots.mjs) · v0.3.0 · short browser window 768×343
