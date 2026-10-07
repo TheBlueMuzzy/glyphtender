@@ -1,4 +1,5 @@
 - 2026-09-30 — Alpha release prep: live online host set, returning-player update check, credits; all checks green. Delivering v0.1.0.
+- 2026-10-04 — Overnight (autonomous): v0.6 Rebuilt on the Table — all 8 built (safety net, one rules door, events drive the screen, turn flow, seed ids, drag referee, Hand view tray, seats + per-seat views); framework Table 0.6.0 / ui-kit 0.3.0 / rooms 0.2.0. Looks and plays the same: golden + screenshots SAME every slice, 468 tests, 0 online leaks. Waiting on Muzzy's play check.
 - 2026-10-04 — Defined v0.6 Rebuilt on the Table (F29–F36, D59) after a BMUZ review: mission, framework = lattice of foundations + feature modules, Muzzy's BlokParty Table model, research (UI rules, modules, Oink Games, table foundation). Cleanup made standard (cleanup.sh in /save, /deliver, /develop).
 - 2026-10-03 — Released v0.3.0 (alpha): v0.5 Polish ✅. Reviews: security clean; code review found 1 bug (Esc + open Settings re-saved Full screen on) — fixed + e2e. All 18 checks green. Framework v0.3.1.
 - 2026-10-03 — Post-approval round: Pincer halving rule (D57), reveal +3s fly into totals (D56), full screen on tap (D58), pulse split, UI kit 0.2.12.
