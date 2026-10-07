@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './engine'
-import { legalDraftHexes } from './draft'
+import { applyDraft, legalDraftHexes } from './draft'
 import { getBoard } from './boards'
 import { isEdge, neighbours, sameHex } from './hex'
 import { nextRandom, shuffle } from './rng'
@@ -172,7 +172,7 @@ describe('who goes first (GDD §9, F46)', () => {
     let game = newGame({ players: 3, seed: 5, firstSeat: 1 })
     expect(game.current).toBe(1)
     expect(game.draftOrder).toEqual([1, 2, 0, 0, 2, 1])
-    while (game.phase === 'draft') game = applyAction(game, { type: 'draft', hex: legalDraftHexes(game)[0] })
+    while (game.phase === 'draft') game = applyDraft(game, legalDraftHexes(game)[0])
     expect(game.current).toBe(1)
     // same bag either way: who goes first never changes the shuffle
     expect(game.hands.flat()).toEqual(newGame({ players: 3, seed: 5 }).bag.slice(0, 24))
