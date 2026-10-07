@@ -33,3 +33,6 @@ Ask Muzzy: (after F46 3) the three §9 calls · (after F47 2) the new thresholds
 - To Ideas: Power Play / Bridge rule shape · RPS broken leg (Scholar > Strategist) · bag-empty notice.
 - Code review (low, 0794b44..2aa762a): award-rates/ai-arena/ai-diagnose/Dev Kit AI check hard-coded "Large for 3–4" → now read boards.json; re-measured awards on 3p Small (324 games) → pincer from 12, weed 6. ai-balance progress dots fixed.
 - 2026-10-07 morning — Muzzy OK'd 3 players on Small ("ok 3 on small is okay"). Still open: random first player, the F47 numbers, Pincer.
+- 2026-10-07 day — Muzzy: "shuffle the whole order" (not just the first seat) → built (D82): GameState.turnOrder, draft + turns follow it; online e2e green with real shuffles.
+- Muzzy: "ai:balance can only be called after proper AI have been implemented and feel at a satisfactory development level" → content/ai/signoff.json lock (balanceReady false) on ai:balance + sim:awards --players ai. F46/F47 numbers → re-run after sign-off.
+- Lessons → BMUZ skills (develop: tools read content/, fixed mode for random setup; ai-opponent: sign-off before balance sims; multiplayer-setup: generated-file EBUSY, server-side random setup) + CLAUDE.md standing rule; sprint reports open with number + goal + built vs measured.

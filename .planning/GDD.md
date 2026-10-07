@@ -127,9 +127,9 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 - **Success looks like:** friends ask to play again; Muzzy prefers it to the Unity version; a 4-player game on one phone never needs a zoom.
 
 ## 9. Open questions
-- ✅ **Board size per player count** (F46, 2026-10-07 — Claude's call overnight, Muzzy to confirm): 2 players Small · **3 players Small** (was Large: closer, tenser games — same ~16 turns each as 4 on Large) · 4 players Large. Any board can still be picked in New Game. research/sims-ai.md.
+- ✅ **Board size per player count** (F46, 2026-10-07 — Muzzy OK'd): 2 players Small · **3 players Small** (was Large: closer, tenser games — same ~16 turns each as 4 on Large) · 4 players Large. Any board can still be picked in New Game. research/sims-ai.md.
 - ✅ **Bag run-out** (F46): it never runs out on Small; on Large in 1–6% of games, only for the last 1–3 turns → keep "stop drawing" (no draw, no refresh, empty hand = move only).
-- ✅ **Starting player** (F46, Claude's call, Muzzy to confirm): **random each game** — Yellow wins 53% of 2-player games when Yellow always starts; random spreads that. Switch: rules.json randomFirstPlayer (Dev Kit).
+- ✅ **Turn order** (F46, Muzzy 2026-10-07: "shuffle the whole order"): **a new random turn order every game** — who goes first AND who follows whom; the snake draft follows it. (Sims: Yellow-always-first won 53% of 2-player games; the last of 4 won ~22%.) Switch: rules.json randomTurnOrder (Dev Kit).
 - ❓ **AI vocabulary tiers** — code thresholds (Zipf 3/2/0) give ~22k/~44k/63k words; the design said ~5k/~20k/all (would be 4/3/0). Settled by the Personality Check's skill ladder (beta).
 - ❓ **AI calls for Muzzy (F37)** — Strategist (multi-word, rec.) · banter amount (big moments, rec.) · host adds AI online (rec. yes) · names/portraits (personality names + seat glyphling for beta, rec.). Defaults are in place.
 - **Risks:** ~~board unreadable on phones~~ (F01: hexes 36–42 px on phones, both boards) · ~~undo flow feels wrong~~ (F01: approved) · AI too slow in a browser → background thinking + a time budget, timed in F38 · personalities that look different on paper but play the same → the tell-apart check.
