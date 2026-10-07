@@ -13,7 +13,7 @@ Done when: hundreds of AI-vs-AI games per row (2/3/4 players × Small/Large, mix
 ## F47 ✨ Re-tune the 14 award thresholds
 Done when: award rates come from real AI personalities (not random/greedy bots), each award lands in its target band (research/sims.md), positional personalities earn the positional awards, and the new thresholds are in content/tuning/endscreen.json.
 - [ ] 🤖 1. sim:awards can play real AI personalities (scripts/award-rates.mjs `--players ai`), rates per personality
-- [ ] 🤖 2. Propose new thresholds per award (content/tuning/endscreen.json) → table in research/sims-ai.md
+- [ ] 🤖 2. Propose new thresholds per award (content/tuning/endscreen.json) → table in research/awards-ai.md
 - [ ] 🙋 3. Muzzy OKs them (Dev Kit edits endscreen.json)
 - [ ] 🤖 4. (tuning) Apply + check:fast (golden) + award tests
 
@@ -23,3 +23,4 @@ Ask Muzzy: (after F46 3) the three §9 calls · (after F47 2) the new thresholds
 ## Notes
 - F49 "What wins?" left out: needs framework F25 (not built) — should, later.
 - No open P0/P1 bugs (BUGS.md 2026-10-07).
+- 2026-10-07 auto mode: work branch dev/beta (re-made from main). F46 1–3 and F47 1–2 run as two parallel helpers (worktrees) — F46 owns scripts/ai-balance.mjs + research/sims-ai.md, F47 owns scripts/award-rates.mjs + research/awards-ai.md.
