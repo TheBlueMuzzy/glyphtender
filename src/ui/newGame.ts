@@ -6,6 +6,7 @@ import personalitiesFile from '../../content/ai/personalities.json'
 import skillsFile from '../../content/ai/skills.json'
 import rulesJson from '../../content/tuning/rules.json'
 import { boardNames, defaultBoardFor } from '../engine/boards'
+import { pickFirstSeat } from '../engine/setup'
 import { useGameStore } from '../store/gameStore'
 import type { AiPick } from '../store/seats'
 import { screens } from './kit'
@@ -145,7 +146,7 @@ export function startNewGame(choices: NewGameChoices) {
   saveChoices(choices)
   closeAllScreens()
   useGameStore.getState().startGame({
-    players: choices.players, boardName: choices.boardName, seed: randomSeed(),
+    players: choices.players, boardName: choices.boardName, seed: randomSeed(), firstSeat: pickFirstSeat(choices.players, randomSeed()),
     minWordLength: choices.twoLetterWords ? 2 : 3, hideSeeds: choices.hideSeeds, wordIndicators: choices.wordIndicators,
     ...aiSeatsOf(choices),
   })

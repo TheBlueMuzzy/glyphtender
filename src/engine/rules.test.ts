@@ -64,7 +64,7 @@ describe('setup', () => {
   it('without the online numbers it is exactly newGame', () => {
     const plain = rules.setup({ players: 3, seed: 77 })
     expect(plain.bag).toEqual(setupGame({ players: 3, seed: 77, boardName: 'large' }).bag)
-    expect(plain.config.boardName).toBe('large')
+    expect(plain.config.boardName).toBe('small')
   })
 
   it('online: the bag is shuffled again and the rng starts where the server says', () => {

@@ -1,5 +1,6 @@
 // Starting a new game: the shuffled bag and the snake draft order.
 import bagJson from '../../content/data/bag.json'
+import rulesJson from '../../content/tuning/rules.json'
 import { defaultBoardFor, defaultRules, getBoard } from './boards'
 import { emptyLog } from './log'
 import { shuffle } from './rng'
@@ -45,12 +46,21 @@ export interface NewGameOptions {
   boardName?: string
   /** Change any rule numbers (e.g. minWordLength 3); the rest come from content/tuning/rules.json. */
   rules?: Partial<RuleNumbers>
+  /** The seat that drafts first and takes the first turn (default 0 = Yellow). Real games pick it with pickFirstSeat. */
+  firstSeat?: number
+}
+
+/** Who goes first in a new game: any seat at random when content/tuning/rules.json "randomFirstPlayer" is 1,
+ *  else Yellow (seat 0). `randomNumber`: any whole number (a fresh random seed). GDD §9 — F46 sims, 2026-10-07. */
+export function pickFirstSeat(players: number, randomNumber: number): number {
+  return rulesJson.randomFirstPlayer ? Math.abs(Math.floor(randomNumber)) % players : 0
 }
 
 /** A fresh game in the draft phase: shuffled bag, nobody placed yet, no hands dealt. */
 export function newGame(options: NewGameOptions): GameState {
-  const { players, seed } = options
+  const { players, seed, firstSeat = 0 } = options
   if (!Number.isInteger(players) || players < 2 || players > 4) throw new Error(`Players must be 2–4, got ${players}`)
+  if (!Number.isInteger(firstSeat) || firstSeat < 0 || firstSeat >= players) throw new Error(`First seat must be 0–${players - 1}, got ${firstSeat}`)
   const boardName = options.boardName ?? defaultBoardFor(players)
   getBoard(boardName) // throws if the board doesn't exist
   const config: GameConfig = { players, boardName, seed, rules: { ...defaultRules(), ...options.rules } }
@@ -59,8 +69,9 @@ export function newGame(options: NewGameOptions): GameState {
   return {
     config,
     phase: 'draft',
-    current: 0,
-    draftOrder: snakeOrder(players, 2), // the Table flow's snake draft: 1-2-2-1, 1-2-3-3-2-1, 1-2-3-4-4-3-2-1
+    current: firstSeat,
+    // The Table flow's snake draft: 1-2-2-1, 1-2-3-3-2-1, 1-2-3-4-4-3-2-1 — turned so the first seat starts (2-3-3-2…)
+    draftOrder: snakeOrder(players, 2).map((seat) => (seat + firstSeat) % players),
     draftIndex: 0,
     glyphlings: [],
     seeds: {},

@@ -4,7 +4,7 @@ import { legalDraftHexes } from './draft'
 import { getBoard } from './boards'
 import { isEdge, neighbours, sameHex } from './hex'
 import { nextRandom, shuffle } from './rng'
-import { fullBag, newGame, seedIdGiver } from './setup'
+import { fullBag, newGame, pickFirstSeat, seedIdGiver } from './setup'
 import { hexAt, wordsOf } from './testkit'
 import type { GameState } from './types'
 
@@ -84,7 +84,7 @@ describe('seedIdGiver (letters from a test or an old save → ids)', () => {
 describe('new game', () => {
   it('starts in the draft with the board for the player count', () => {
     expect(newGame({ players: 2, seed: 1 }).config.boardName).toBe('small')
-    expect(newGame({ players: 3, seed: 1 }).config.boardName).toBe('large')
+    expect(newGame({ players: 3, seed: 1 }).config.boardName).toBe('small')
     const g = newGame({ players: 4, seed: 1 })
     expect(g.phase).toBe('draft')
     expect(g.hands).toEqual([[], [], [], []])
@@ -158,5 +158,32 @@ describe('snake draft (GDD §4.2)', () => {
   it('refuses draft actions once play has started', () => {
     const s = draftAll(newGame({ players: 2, seed: 3 }))
     expect(() => applyAction(s, { type: 'draft', hex: hexAt('C6-5') }, words)).toThrow(/draft is over/)
+  })
+})
+
+describe('who goes first (GDD §9, F46)', () => {
+  it('Yellow (seat 0) goes first unless the game picks another seat', () => {
+    const game = newGame({ players: 3, seed: 5 })
+    expect(game.current).toBe(0)
+    expect(game.draftOrder).toEqual([0, 1, 2, 2, 1, 0])
+  })
+
+  it('a picked first seat drafts first, the snake turns with it, and it takes the first turn', () => {
+    let game = newGame({ players: 3, seed: 5, firstSeat: 1 })
+    expect(game.current).toBe(1)
+    expect(game.draftOrder).toEqual([1, 2, 0, 0, 2, 1])
+    while (game.phase === 'draft') game = applyAction(game, { type: 'draft', hex: legalDraftHexes(game)[0] })
+    expect(game.current).toBe(1)
+    // same bag either way: who goes first never changes the shuffle
+    expect(game.hands.flat()).toEqual(newGame({ players: 3, seed: 5 }).bag.slice(0, 24))
+  })
+
+  it('a first seat outside the table is refused', () => {
+    expect(() => newGame({ players: 2, seed: 1, firstSeat: 2 })).toThrow()
+  })
+
+  it('pickFirstSeat lands on every seat (rules.json randomFirstPlayer is on)', () => {
+    const seen = new Set(Array.from({ length: 40 }, (_, i) => pickFirstSeat(4, i * 7919)))
+    expect([...seen].sort()).toEqual([0, 1, 2, 3])
   })
 })

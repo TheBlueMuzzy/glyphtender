@@ -20,8 +20,9 @@ describe('new game choices', () => {
   })
 
   it('changing the player count picks that count\'s default garden', () => {
-    expect(withPlayers(defaultChoices(), 3).boardName).toBe('large')
+    expect(withPlayers(defaultChoices(), 4).boardName).toBe('large')
     expect(withPlayers(defaultChoices(), 2).boardName).toBe('small')
+    expect(withPlayers(defaultChoices(), 3).boardName).toBe('small') // F46: 3 players play the Small garden
   })
 
   it('the last choices are remembered', () => {

@@ -1,6 +1,7 @@
 {
   "_help": {
     "handSize": "How many seeds each player holds; hands refill up to this. More = more choice each turn. Takes effect from the next new game (Save, then refresh).",
+    "randomFirstPlayer": "1 = a random player goes first each game (drafts first and takes the first turn); 0 = Yellow always goes first. Sims (research/sims-ai.md): in 2-player games whoever starts wins ~53%, so random spreads that edge around. Takes effect from the next new game (Save, then refresh).",
     "minWordLength": "2 = normal; 3 = the \"2-letter words off\" table option. Higher = harder to score. Takes effect from the next new game (Save, then refresh).",
     "ownershipBonus": "Each of YOUR seeds in a word you make adds this much extra Magic (a word = its seeds + this per seed you own). Higher = using your own seeds matters more. Takes effect from the next new game (Save, then refresh).",
     "tangleBonus": "At the end, for each tangled glyphling, every OTHER player gets this much Magic per seed or glyphling of theirs next to it. Higher = tangling rivals pays more. Takes effect from the next new game (Save, then refresh).",
@@ -8,6 +9,7 @@
   },
   "_labels": {
     "handSize": "Seeds in each player's hand",
+    "randomFirstPlayer": "Random first player (1 = on, 0 = Yellow always)",
     "minWordLength": "Shortest word that scores (letters)",
     "ownershipBonus": "Bonus Magic per own seed in a word",
     "tangleBonus": "Tangle bonus Magic at the end (per neighbouring piece)",
@@ -19,7 +21,8 @@
       "minWordLength",
       "ownershipBonus",
       "tangleBonus",
-      "tanglesToEnd"
+      "tanglesToEnd",
+      "randomFirstPlayer"
     ]
   },
   "_ranges": {
@@ -27,11 +30,13 @@
     "minWordLength": [2, 4, 1],
     "ownershipBonus": [0, 3, 1],
     "tangleBonus": [0, 6, 1],
-    "tanglesToEnd": [1, 4, 1]
+    "tanglesToEnd": [1, 4, 1],
+    "randomFirstPlayer": [0, 1, 1]
   },
   "handSize": 8,
   "minWordLength": 2,
   "ownershipBonus": 1,
   "tangleBonus": 3,
-  "tanglesToEnd": 2
+  "tanglesToEnd": 2,
+  "randomFirstPlayer": 1
 }
