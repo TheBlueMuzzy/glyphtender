@@ -7,6 +7,7 @@ import { averages, checkFeelTargets, skillLadder, tellApart, winRates, type Feel
 import type { CheckReport } from './kit/report'
 import type { Personality, Skill } from './kit/types'
 import { allMeters } from './meters'
+import { getBoard } from '../engine/boards'
 import { glyphtenderRules, viewFor } from '../engine/rules'
 import type { Action, GameState, WordList } from '../engine/types'
 
@@ -25,6 +26,56 @@ export interface ArenaGame {
   notes: string[]
   /** How long each decision took, in ms (this machine). */
   decisionMs: number[]
+  /** The game's shape for the balance sims (F46, scripts/ai-balance.mjs): board, bag, length, scores. */
+  facts: ArenaFacts
+}
+
+/** One finished game's shape. Seat 0 always plays first (Yellow). */
+export interface ArenaFacts {
+  boardName: string
+  players: number
+  /** Completed turns, all players together (draft placements not counted). */
+  turns: number
+  /** Seeds still in the bag when the game ended. */
+  bagLeft: number
+  /** The turn after which the bag was first empty, or null if it never ran out. */
+  bagEmptyOnTurn: number | null
+  /** Final Magic per seat (tangle bonus included). */
+  scores: number[]
+  /** Seats with the most Magic (ties share the win). */
+  winners: number[]
+  /** Winner's Magic minus the best other seat's (0 on a shared win). */
+  margin: number
+  /** Glyphlings tangled at the end. */
+  tangled: number
+  /** Did the turn that ended the game tangle the ender's own glyphling? */
+  selfTangle: boolean
+  /** Share of the board's hexes taken (seeds + glyphlings) at the end (0–1). */
+  boardFill: number
+  /** Share of turns that made Magic. */
+  scoringTurns: number
+}
+
+/** The facts of one finished game. `bagEmptyOnTurn` comes from watching the game being played. */
+export function arenaFacts(game: GameState, bagEmptyOnTurn: number | null): ArenaFacts {
+  const scores = [...game.magic]
+  const best = Math.max(...scores)
+  const others = scores.filter((_, seat) => !game.winners.includes(seat))
+  const turns = game.log?.turns ?? []
+  return {
+    boardName: game.config.boardName,
+    players: game.config.players,
+    turns: game.turnCount,
+    bagLeft: game.bag.length,
+    bagEmptyOnTurn,
+    scores,
+    winners: [...game.winners],
+    margin: game.winners.length > 1 || others.length === 0 ? 0 : best - Math.max(...others),
+    tangled: game.tangled.length,
+    selfTangle: game.log?.end?.selfTangle ?? false,
+    boardFill: (Object.keys(game.seeds).length + game.glyphlings.length) / getBoard(game.config.boardName).cells.length,
+    scoringTurns: turns.length ? turns.filter((t) => t.magic > 0).length / turns.length : 0,
+  }
 }
 
 /** One whole game. Bots get their own random start per seat, from the game's seed. */
@@ -35,6 +86,7 @@ export function playArenaGame(seats: ArenaSeat[], boardName: string, seed: numbe
   const decisionMs: number[] = []
   const bots = seats.map((s, i) => makeBot(s, (note) => notes.push(`${i} ${note}`)))
   const rngs = seats.map((_, i) => (seed ^ 0x5eed) + i * 7919)
+  let bagEmptyOnTurn: number | null = null
   while (state.phase !== 'over') {
     if (state.turnCount > maxTurns) throw new Error(`Arena game did not end within ${maxTurns} turns (seed ${seed})`)
     const seat = state.current
@@ -43,8 +95,9 @@ export function playArenaGame(seats: ArenaSeat[], boardName: string, seed: numbe
     decisionMs.push(performance.now() - started)
     rngs[seat] = picked.rng
     state = rules.apply(state, seat, picked.action).state
+    if (bagEmptyOnTurn === null && state.phase !== 'draft' && state.bag.length === 0) bagEmptyOnTurn = state.turnCount
   }
-  return { seats, game: state, notes, decisionMs }
+  return { seats, game: state, notes, decisionMs, facts: arenaFacts(state, bagEmptyOnTurn) }
 }
 
 /** Each finished game as rows for the Personality Check: who sat where, their meters, their share of the win. */
