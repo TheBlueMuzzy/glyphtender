@@ -177,6 +177,9 @@ export interface GameState {
   phase: Phase
   /** Whose turn it is (in the draft: who is placing). */
   current: number
+  /** The order seats take turns, e.g. [2,0,1] (F46: shuffled each game). Missing in games saved before F46 = 0,1,2,…
+   *  Read it with turnOrderOf (setup.ts). */
+  turnOrder?: number[]
   /** The snake draft order, e.g. [0,1,1,0], and how far through it we are. */
   draftOrder: number[]
   draftIndex: number

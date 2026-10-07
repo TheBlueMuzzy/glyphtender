@@ -46,21 +46,30 @@ export interface NewGameOptions {
   boardName?: string
   /** Change any rule numbers (e.g. minWordLength 3); the rest come from content/tuning/rules.json. */
   rules?: Partial<RuleNumbers>
-  /** The seat that drafts first and takes the first turn (default 0 = Yellow). Real games pick it with pickFirstSeat. */
-  firstSeat?: number
+  /** The order seats take turns, e.g. [2,0,3,1] (default 0,1,2,3 — Yellow, Blue, Purple, Pink). The first drafts
+   *  first and plays first. Real games pick it with pickTurnOrder. */
+  turnOrder?: number[]
 }
 
-/** Who goes first in a new game: any seat at random when content/tuning/rules.json "randomFirstPlayer" is 1,
- *  else Yellow (seat 0). `randomNumber`: any whole number (a fresh random seed). GDD §9 — F46 sims, 2026-10-07. */
-export function pickFirstSeat(players: number, randomNumber: number): number {
-  return rulesJson.randomFirstPlayer ? Math.abs(Math.floor(randomNumber)) % players : 0
+/** The turn order for a new game: all seats shuffled when content/tuning/rules.json "randomTurnOrder" is 1
+ *  (Muzzy 2026-10-07: "shuffle the whole order" — a new order every game), else 0,1,2,3.
+ *  `randomNumber`: any whole number (a fresh random seed). GDD §9 — F46. */
+export function pickTurnOrder(players: number, randomNumber: number): number[] {
+  const seats = Array.from({ length: players }, (_, seat) => seat)
+  return rulesJson.randomTurnOrder ? shuffle(Math.abs(Math.floor(randomNumber)), seats).items : seats
+}
+
+/** The order seats take turns in this game (games saved before F46 have none: 0,1,2,3). */
+export function turnOrderOf(state: GameState): number[] {
+  return state.turnOrder ?? Array.from({ length: state.config.players }, (_, seat) => seat)
 }
 
 /** A fresh game in the draft phase: shuffled bag, nobody placed yet, no hands dealt. */
 export function newGame(options: NewGameOptions): GameState {
-  const { players, seed, firstSeat = 0 } = options
+  const { players, seed } = options
   if (!Number.isInteger(players) || players < 2 || players > 4) throw new Error(`Players must be 2–4, got ${players}`)
-  if (!Number.isInteger(firstSeat) || firstSeat < 0 || firstSeat >= players) throw new Error(`First seat must be 0–${players - 1}, got ${firstSeat}`)
+  const turnOrder = options.turnOrder ?? Array.from({ length: players }, (_, seat) => seat)
+  if (turnOrder.length !== players || [...turnOrder].sort().some((seat, i) => seat !== i)) throw new Error(`The turn order must name every seat once, got ${turnOrder}`)
   const boardName = options.boardName ?? defaultBoardFor(players)
   getBoard(boardName) // throws if the board doesn't exist
   const config: GameConfig = { players, boardName, seed, rules: { ...defaultRules(), ...options.rules } }
@@ -69,9 +78,10 @@ export function newGame(options: NewGameOptions): GameState {
   return {
     config,
     phase: 'draft',
-    current: firstSeat,
-    // The Table flow's snake draft: 1-2-2-1, 1-2-3-3-2-1, 1-2-3-4-4-3-2-1 — turned so the first seat starts (2-3-3-2…)
-    draftOrder: snakeOrder(players, 2).map((seat) => (seat + firstSeat) % players),
+    current: turnOrder[0],
+    turnOrder,
+    // The Table flow's snake draft (1-2-2-1, 1-2-3-3-2-1, 1-2-3-4-4-3-2-1) in this game's turn order
+    draftOrder: snakeOrder(players, 2).map((place) => turnOrder[place]),
     draftIndex: 0,
     glyphlings: [],
     seeds: {},

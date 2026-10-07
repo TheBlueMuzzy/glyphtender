@@ -7,7 +7,7 @@
 // Design: .planning/design/online.md.
 import roomsJson from '../content/rooms.json'
 import { boardNames, defaultBoardFor } from '../src/engine/boards'
-import { pickFirstSeat } from '../src/engine/setup'
+import { pickTurnOrder } from '../src/engine/setup'
 import { flowOf, glyphtenderRules, type GameSetup } from '../src/engine/rules'
 import { mayAct } from '../src/table/flow'
 import type { Action, WordList } from '../src/engine/types'
@@ -26,8 +26,8 @@ export type Rules = GameRules<ServerGame, OnlineOptions, OnlineAction, GameView,
 export interface RulesSetup {
   words: () => WordList
   randomSeed?: () => number
-  /** Tests: Yellow always goes first, whatever rules.json "randomFirstPlayer" says. */
-  yellowFirst?: boolean
+  /** Tests: always Yellow, Blue, Purple, Pink, whatever rules.json "randomTurnOrder" says. */
+  plainTurnOrder?: boolean
 }
 
 // Hexes and glyphling ids are small whole numbers; anything bigger is junk.
@@ -65,7 +65,7 @@ function engineActionOf(raw: unknown): Action {
 // numbers can be worked out from earlier ones, and players see some of them (gameId, the seed at game over).
 const randomSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] >>> 1
 
-export function makeRules({ words, randomSeed: seedMaker = randomSeed, yellowFirst = false }: RulesSetup): Rules {
+export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurnOrder = false }: RulesSetup): Rules {
   return {
     checkOptions(raw) {
       const options = mustBeObject(raw ?? {}, 'options')
@@ -98,7 +98,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, yellowFir
       const rngSeed = seedMaker()
       const setup: GameSetup = {
         players, seed,
-        firstSeat: yellowFirst ? 0 : pickFirstSeat(players, bagSeed), // who goes first (GDD §9) — from a secret number already drawn
+        turnOrder: plainTurnOrder ? undefined : pickTurnOrder(players, bagSeed), // the turn order (GDD §9) — from a secret number already drawn
         boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
         rules: { minWordLength: options.minWordLength },
         bagSeed, rngSeed,

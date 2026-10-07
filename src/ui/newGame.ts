@@ -6,7 +6,7 @@ import personalitiesFile from '../../content/ai/personalities.json'
 import skillsFile from '../../content/ai/skills.json'
 import rulesJson from '../../content/tuning/rules.json'
 import { boardNames, defaultBoardFor } from '../engine/boards'
-import { pickFirstSeat } from '../engine/setup'
+import { pickTurnOrder } from '../engine/setup'
 import { useGameStore } from '../store/gameStore'
 import type { AiPick } from '../store/seats'
 import { screens } from './kit'
@@ -124,9 +124,9 @@ export function saveChoices(choices: NewGameChoices, storage: Storage | null = b
 }
 
 const randomSeed = () => Math.floor(Math.random() * 2 ** 31)
-/** DEV ONLY: the e2e checks (a browser driven by Playwright — navigator.webdriver) always start with Yellow, so their
- *  scripted games play the same every run. Muzzy's own play and release builds pick the first player (rules.json). */
-const e2eYellowFirst = import.meta.env.DEV && typeof navigator !== 'undefined' && navigator.webdriver
+/** DEV ONLY: the e2e checks (a browser driven by Playwright — navigator.webdriver) always play Yellow, Blue, Purple,
+ *  Pink, so their scripted games play the same every run. Muzzy's own play and release builds shuffle it (rules.json). */
+const e2ePlainOrder = import.meta.env.DEV && typeof navigator !== 'undefined' && navigator.webdriver
 
 /** The AI seats of a new game: which seats, and who each one is ("Surprise me" is picked now, at random). */
 export function aiSeatsOf(choices: NewGameChoices, random = Math.random): { bots: number[]; ai: Record<number, AiPick> } {
@@ -149,7 +149,7 @@ export function startNewGame(choices: NewGameChoices) {
   saveChoices(choices)
   closeAllScreens()
   useGameStore.getState().startGame({
-    players: choices.players, boardName: choices.boardName, seed: randomSeed(), firstSeat: e2eYellowFirst ? 0 : pickFirstSeat(choices.players, randomSeed()),
+    players: choices.players, boardName: choices.boardName, seed: randomSeed(), turnOrder: e2ePlainOrder ? undefined : pickTurnOrder(choices.players, randomSeed()),
     minWordLength: choices.twoLetterWords ? 2 : 3, hideSeeds: choices.hideSeeds, wordIndicators: choices.wordIndicators,
     ...aiSeatsOf(choices),
   })
