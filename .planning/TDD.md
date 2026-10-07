@@ -147,8 +147,9 @@ flowchart LR
 ## 8. Decisions log
 ```
 D81 · 2026-10-07 · Award thresholds from real AI games, softened where Muzzy's own game is the judge (F47, auto)
-  research/awards-ai.md: 486 AI games (2/3/4p, FirstClass), band 10–25% per award. Applied: lockdownMinDrop 6→7 ·
-  pincerMinFrom 8→10 (pincerMinShare stays 0.75 — D68 kept Muzzy's 75% hunt) · weedMinCut 10→7 · hijackMinFrom 3→4 ·
+  research/awards-ai.md: 486 AI games, then 324 re-measured on the F46 boards (3p Small). Band 10–25% per award.
+  Applied: lockdownMinDrop 6→7 · pincerMinFrom 8→12 (pincerMinShare stays 0.75 — D68 kept Muzzy's 12 → 3 hunt; the AI
+  then earns it in ~51% of games, Ask Muzzy) · weedMinCut 10→6 · hijackMinFrom 3→4 ·
   tricksterMinBehind 10→24 · calledItMinLead 10→24 · closeCallMinAfter 4→3. hedgeMinOver stays 3 (D55). Not by numbers:
   Power Play (4 = 57%, 5 = 5%), Bridge (1 = 83%, 2 = 3%), Walled garden (suits the Scholar, rare at 4p) → Ask Muzzy.
   Why softer than the helper's proposal: awards are for people; a First Class AI hunts harder than a first-time human,

@@ -26,6 +26,7 @@ const playersArg = arg('players', 'mindless')
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
 const load = async (path) => (await runnerImport(path, { root, configFile: false, logLevel: 'error' })).module
 const stats = await load('/src/game/stats.ts')
+const { defaultBoardFor } = await load('/src/engine/boards.ts')
 const words = (await load('/src/engine/words.ts')).parseWordList(readFileSync(new URL('../public/words/words.csv', import.meta.url), 'utf8'))
 const tuning = { ...JSON.parse(readFileSync(new URL('../content/tuning/endscreen.json', import.meta.url), 'utf8')), ...JSON.parse(arg('tune', '{}')) }
 const ids = Object.keys(tuning.awardOrder)
@@ -144,7 +145,6 @@ async function aiRun() {
 /** Loads the AI (the same way as scripts/ai-arena.mjs). */
 async function setupAi(skillId) {
   const arena = await load('/src/ai/arena.ts')
-  const { defaultBoardFor } = await load('/src/engine/boards.ts')
   const bot = await load('/src/engine/bot.ts')
   const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import.meta.url), 'utf8'))
   const personalities = json('personalities.json').personalities

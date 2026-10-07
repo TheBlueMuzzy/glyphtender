@@ -54,3 +54,22 @@ As one `--tune` (paste into the Dev Kit or try with sim:awards):
 
 ## Next
 Muzzy OKs (or changes) the proposed numbers → apply them in content/tuning/endscreen.json (Dev Kit → Tuning) → `npm run check:fast` (golden + award tests). The PROVISIONAL notes in endscreen.json's help text can then say "tuned from 486 AI-vs-AI games (research/awards-ai.md)".
+
+## Applied 2026-10-07 (overnight, Claude — Muzzy to confirm · TDD D81)
+Re-measured on the boards players now get (F46: 3 players play **Small**) — 324 AI games at First Class: 81 × 2p Small, 162 × 3p Small, 81 × 4p Large (`npm run sim:awards -- --players ai --counts N --games 27 --first K --save …`, then `--load` to re-count). The first proposal's 3p rows were on Large (code review caught it: the script hard-coded "Large for 3–4").
+
+| Award | Was | Now | All · 2p · 3p · 4p | Notes |
+|---|---|---|---|---|
+| Lockdown | drop 6 | **7** | 15 · 10 · 14 · 25% | Strategist 15% of seats, others ~1% |
+| Pincer | 0.75 from 8 | **0.75 from 12** | 51 · 38 · 53 · 62% | ⚠ above band — any number that keeps Muzzy's own 12 → 3 hunt (D68) gives the AI ≥ 52%. **Ask Muzzy:** keep his game's Pincer, or 0.9 from 12 (~25%) and his game loses it |
+| Weed toss | cut 10 | **6** | 18 · 15 · 13 · 32% | Strategist 15%, others ~2–3% |
+| Walled garden | 30 in ≤ 10 | 30 in ≤ 10 | 19 · 36 · 17 · 7% | suits the Scholar — design question (ROADMAP Ideas) |
+| Through the hedge | 3 | 3 (D55) | 41 · 57 · 35 · 36% | kept for Muzzy's game; 4 would be ~25% |
+| Power Play | 4 | 4 | 51% | no number fits (5 = ~5%) — rule shape (Ideas) |
+| Long word | 6 | 6 | 14% | |
+| Hijack | from 3 | **4** | 9% | |
+| Bridge | 2 | 2 | 2% | no number fits (1 = ~83%) — rule shape (Ideas) |
+| Trickster's Victory | behind 10 | **24** | 14% | |
+| Called it | lead 10 | **24** | 15% (2p 28%) | |
+| Close call | after 4 | **3** | 14% | |
+Awards per game ≈ 4.1 (was 5.6). Muzzy's first game: its 5 awards + Weed toss.

@@ -27,7 +27,8 @@ Ask Muzzy: (after F46 3) the three §9 calls · (after F47 2) the new thresholds
 - F46 helper: 4,200 games (700/row, 37.9 min, `npm run ai:balance -- --games 700 --jobs 24`). F47 helper: 486 games (`sim:awards --players ai`).
 - Muzzy (2026-10-07, going to bed): "you shouldn't ask me questions or wait for me to confirm things… you need to continue yourself" → his two 🙋 calls made by Claude, all in content/ (one number each to undo):
   - F46 (D80): 3 players → Small (boards.json defaultForPlayers "3") · random first player (rules.json randomFirstPlayer 1; 0 = Yellow) · bag run-out unchanged.
-  - F47 (D81): lockdown 7 · pincer from 10 (share 0.75 kept for Muzzy's game, D68) · weed cut 7 · hijack 4 · trickster 24 · called it 24 · close call 3 · hedge stays 3 (D55). Muzzy's first game: same 5 awards + Weed toss.
+  - F47 (D81): lockdown 7 · pincer from 12 (share 0.75 kept for Muzzy's game, D68 — AI ~51%, Ask Muzzy) · weed cut 6 · hijack 4 · trickster 24 · called it 24 · close call 3 · hedge stays 3 (D55). Muzzy's first game: same 5 awards + Weed toss.
 - Engine: newGame firstSeat (default 0 → tests/golden/sims Yellow-first); online picks it from bagSeed (no extra draw); test servers pass makeRules yellowFirst. Code-only golden SAME before re-record.
 - Fixed: ai-arena "4-player" tables only seated 3 (slice of 3 personalities) — now one personality sits twice.
 - To Ideas: Power Play / Bridge rule shape · RPS broken leg (Scholar > Strategist) · bag-empty notice.
+- Code review (low, 0794b44..2aa762a): award-rates/ai-arena/ai-diagnose/Dev Kit AI check hard-coded "Large for 3–4" → now read boards.json; re-measured awards on 3p Small (324 games) → pincer from 12, weed 6. ai-balance progress dots fixed.
