@@ -5,7 +5,7 @@
 //   --skill FirstClass  the main skill
 //   --seats Strategist,Scholar   play only these, every game (instead of mixed tables)
 //   --ladder 6          for each personality, N two-player games of its Archmage vs its Apprentice (skill ladder); 0 = skip
-//   --board auto        small for 2 players, large for 3–4 (as the game's default); or small / large
+//   --board auto        the game's default board for that many players (content/data/boards.json); or small / large
 //   --notes             print every decision note of the first game
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { runnerImport } from 'vite'
@@ -23,6 +23,7 @@ const boardArg = arg('board', 'auto')
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
 const load = async (path) => (await runnerImport(path, { root, configFile: false, logLevel: 'error' })).module
 const arena = await load('/src/ai/arena.ts')
+const { defaultBoardFor } = await load('/src/engine/boards.ts')
 const bot = await load('/src/engine/bot.ts')
 const words = (await load('/src/engine/words.ts')).parseWordList(readFileSync(new URL('../public/words/words.csv', import.meta.url), 'utf8'))
 const { reportHtml } = await load('/src/ai/kit/report.ts')
@@ -40,7 +41,7 @@ const only = arg('seats', '')
   .filter(Boolean)
   .map((id) => personalities.find((p) => p.id.toLowerCase() === id.toLowerCase()) ?? (() => { throw new Error(`No personality "${id}"`) })())
 const makeBot = (s, onNote) => bot.aiBot(s.personality, s.skill, words, (d) => onNote(d.note))
-const boardFor = (n) => (boardArg === 'auto' ? (n === 2 ? 'small' : 'large') : boardArg)
+const boardFor = (n) => (boardArg === 'auto' ? defaultBoardFor(n) : boardArg)
 
 // A small seeded shuffle so the same run always seats the same tables.
 let pos = 12345

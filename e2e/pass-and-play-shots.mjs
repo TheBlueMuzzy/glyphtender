@@ -1,5 +1,5 @@
 // A 3-PLAYER (or 2/4: the third argument) PASS-AND-PLAY GAME THROUGH THE REAL SCREEN — at phone-tall 390×844, phone-wide 844×390, desktop 1440×900:
-// menu → Play → New game (3 players → the Large garden) → Start → draft 6 → "Pass to Yellow" → a few turns, passing the
+// menu → Play → New game (3 players → the Small garden since F46) → Start → draft 6 → "Pass to Yellow" → a few turns, passing the
 // device each time (the tray stays hidden until "Show my seeds") → a glyphling with 1 move left shows its warning ring
 // (the dev hook fast-forwards to one) → fast-forward to the end → the Magic reveal plays by itself (mid + end shots)
 // → the end table → New game (the new-game screen remembers 3 players) → Start → Menu → Rules → Leave.
@@ -31,7 +31,7 @@ const SIZES = [
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 const PLAYERS = ['Yellow', 'Blue', 'Purple', 'Pink'].slice(0, COUNT)
-const BOARD = COUNT === 2 ? 'small' : 'large' // content/data/boards.json → defaultForPlayers
+const BOARD = COUNT === 4 ? 'large' : 'small' // content/data/boards.json → defaultForPlayers
 mkdirSync(OUT, { recursive: true })
 
 // Everything visible must be inside the screen, and buttons big enough for a finger
@@ -141,7 +141,7 @@ try {
       check('Show my seeds shows the seeds', (await traySeeds()) > 0)
     }
 
-    // ---- menu → Play → New game: COUNT players (3 and 4 → the Large garden) ----
+    // ---- menu → Play → New game: COUNT players (2–3 → Small, 4 → Large) ----
     await page.goto(`http://127.0.0.1:${PORT}/`)
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     for (let n = 2; n < COUNT; n++) await page.getByRole('button', { name: 'Next Players' }).click()

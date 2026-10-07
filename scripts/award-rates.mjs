@@ -3,7 +3,7 @@
 //   --players mindless (default) — random / greedy sim bots (2026-10-02). They don't position or block on purpose, so
 //       this is a FLOOR check: an award these players earn often is too easy — earned by accident.
 //   --players ai — the real AI personalities (content/ai/personalities.json) playing each other at one skill (F47).
-//       Mixed tables, personalities shuffled per seat (seeded), the game's default boards (Small for 2, Large for 3–4).
+//       Mixed tables, personalities shuffled per seat (seeded), the game's default boards (content/data/boards.json — since F46: Small for 2–3, Large for 4).
 //       Reports each award's rate overall, per player count, and per personality (share of its seats that earned it).
 // Options:
 //   --games 200          per row (mindless) / per player count (ai)
@@ -144,6 +144,7 @@ async function aiRun() {
 /** Loads the AI (the same way as scripts/ai-arena.mjs). */
 async function setupAi(skillId) {
   const arena = await load('/src/ai/arena.ts')
+  const { defaultBoardFor } = await load('/src/engine/boards.ts')
   const bot = await load('/src/engine/bot.ts')
   const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import.meta.url), 'utf8'))
   const personalities = json('personalities.json').personalities
@@ -152,7 +153,7 @@ async function setupAi(skillId) {
   return { arena, bot, personalities, skill }
 }
 
-/** `games` mixed tables per player count, on the game's default board (Small for 2 players, Large for 3–4). */
+/** `games` mixed tables per player count, on the game's default board (content/data/boards.json). */
 function playAiGames({ arena, bot, personalities, skill }) {
   const makeBot = (s) => bot.aiBot(s.personality, s.skill, words)
   const counts = arg('counts', '2,3,4').split(',').map(Number)
@@ -166,7 +167,7 @@ function playAiGames({ arena, bot, personalities, skill }) {
 
   const played = []
   for (const players of counts) {
-    const board = players === 2 ? 'small' : 'large'
+    const board = defaultBoardFor(players) // the board players get (content/data/boards.json)
     for (let g = first; g < first + games; g++) {
       const seed = 7000 + players * 1000 + g
       pos = seed

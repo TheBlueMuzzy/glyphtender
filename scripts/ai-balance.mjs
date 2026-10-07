@@ -84,8 +84,9 @@ const results = await Promise.all(
       let text = ''
       child.stdout.on('data', (d) => (text += d))
       child.stderr.on('data', (d) => {
-        const dots = String(d).split('.').length - 1
-        if (dots && String(d).replace(/\./g, '').trim() === '') {
+        // progress dots (a chunk may also carry other text, e.g. a Vite warning — only whole runs of dots count)
+        const dots = (String(d).match(/^\.+$|(?<=^|\s)\.+(?=\s|$)/gm) ?? []).join('').length
+        if (dots) {
           done += dots
           const mins = (Date.now() - started) / 60000
           process.stdout.write(`\r${done}/${total} games · ${mins.toFixed(1)} min · ~${((mins / done) * (total - done)).toFixed(1)} min left   `)
