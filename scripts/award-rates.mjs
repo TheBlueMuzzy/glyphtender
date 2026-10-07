@@ -16,6 +16,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { runnerImport } from 'vite'
+import { requireAiSignOff } from './ai-signoff.mjs'
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
@@ -91,6 +92,7 @@ async function aiRun() {
   if (loadPath) {
     played = loadPath.split(',').flatMap((file) => JSON.parse(readFileSync(file, 'utf8')))
   } else {
+    requireAiSignOff('npm run sim:awards -- --players ai') // new AI games only once Muzzy has signed the AI off
     played = playAiGames(await setupAi(skillId))
     console.log(`\n${played.length} games played in ${((Date.now() - started) / 1000).toFixed(0)} s`)
     if (savePath) {

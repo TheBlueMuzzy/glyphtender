@@ -3,6 +3,7 @@
 // who's playing. Loads the TypeScript engine + AI through Vite (like npm run ai:arena). Spreads the games over several
 // node processes (each plays every Kth game; the seeds don't depend on that, so the same run always plays the same games).
 // Writes every game's facts to e2e-shots/ai-balance.json and prints the tables.
+// Locked until Muzzy signs the AI off: content/ai/signoff.json "balanceReady" (scripts/ai-signoff.mjs).
 // Options:
 //   --games 150        games per row
 //   --board both       small / large / both
@@ -13,6 +14,9 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { cpus } from 'node:os'
 import { fileURLToPath } from 'node:url'
+import { requireAiSignOff } from './ai-signoff.mjs'
+
+requireAiSignOff('npm run ai:balance') // only once Muzzy has signed the AI off (content/ai/signoff.json)
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
