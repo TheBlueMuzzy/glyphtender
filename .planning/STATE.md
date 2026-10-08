@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-10-08 — **Released v0.5.2** (2-letter words start OFF even for players who'd saved "on" — Muzzy's report). Before that, **v0.5.1** (update, overnight auto): online idle takeover (30 s → a draining bar on your screen, 60 s → a bot plays for you until you tap; the turn timer hands over the same way — framework rooms 0.4.1 + ui-kit 0.4.0), Pause shows "2-letter words: on/off", the lobby's Add-AI rows = New Game's, another player's draft glyphling shakes. Server + site deployed.
-**Ask Muzzy (open):** B024 — does the "left — a bot is playing" toast + 🤖 show for him now when a friend leaves? · idle bar sits in the middle of the board — OK there? · (carried) AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
-Next: beta audits (optimize · accessibility · design + phone test) → /deliver as beta, or /sprint (audio milestone, F49 "What wins?", the Strategist / RPS fix, achievement replay).
+2026-10-08 — **Audio discovery done** (`research/audio.md` + audio-standards.md + audio-tech.md). Muzzy: beta needs sound; audio becomes a framework module, tweakable in the Dev Kit; full Double Diamond — discover → define (decide what should/shouldn't be) → build → deliver, **no code before define is signed off**. Also today: 30 s turn timer choice added · B024 verified by Muzzy · v0.8 done. Released v0.5.2 before that.
+**Ask Muzzy (open):** the 6 questions at the end of research/audio.md (direction A/B/C · beta scope · sound sources · silent switch · sliders · tiers get sounds) · idle bar sits in the middle of the board — OK there? · (carried) AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
+Next: **/define audio** — walk Muzzy through the questions, lock scope, write the framework design doc (framework/.planning/design/audio.md) + features in both ROADMAPs. Then /sprint → /develop → /deliver. Beta audits after audio.
 
 ## Where we are
-Stage: deliver · Milestone: v0.8 Playing online with friends (B024 open) · Sprint: none (18 done) · Doing: released v0.5.2 · Branch: main · Version: 0.5.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
+Stage: discover (audio) · Milestone: v0.9 Audio (to define) · Sprint: none (18 done) · Doing: audio discovery done → /define · Branch: main · Version: 0.5.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
