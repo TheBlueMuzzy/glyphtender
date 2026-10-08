@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — AI (v0.7, defined 2026-10-04) — musts 16/18 (v0.6 8/8 · v0.7 8/10 — left: F46 sims, F47 award re-tune) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -133,7 +133,7 @@ flowchart LR
   F33 --> F36
 ```
 
-## v0.7 — AI opponents  ← current  (→ beta)
+## v0.7 — AI opponents  ✅ released 2026-10-07 (v0.5.0)  (→ beta)
 Goal: play solo or fill any seat (2–4, local or online) with an AI that feels like a person — seven recognisable personalities and three skills, chosen in New Game, at human pace, with a little banter — each personality proven by its behaviour over hundreds of AI-vs-AI games. Design: `design/ai.md` + `../../framework/.planning/design/ai.md`. Framework-first: each framework slice (its F19–F24) is built there and switched on here in the same sprint.
 - 🟢 F37 ❓ AI calls: banter amount (big moments, rec.) · host adds AI online (yes, rec.) · portraits (seat glyphling for beta, rec.) — defaults in place, Muzzy confirms. (Settled 2026-10-05: three personalities — Scholar · Survivor · Strategist — in a rock-paper-scissors with fight · flight · focus modes.)
   why: each one changes how the AI table feels (Fellowship, Hunted-but-cozy)
@@ -154,7 +154,7 @@ Goal: play solo or fill any seat (2–4, local or online) with an AI that feels 
   why: an AI that moves like a person → Feels like a person at the table
 - ✅ F51 🔧 Dev Kit snapshots record the seats · released v0.4.1 2026-10-05 (who is AI, personality + skill) — sprint 16 (Muzzy's first AI game couldn't say which personality Yellow was) — should · needs: F42
 - ✅ F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45 · sprint 17 · built 2026-10-07 (auto): 4,200 AI games (research/sims-ai.md) → Claude's calls (D80): 3p plays Small · random first player · bag rule kept — Muzzy OK'd 3p Small + asked for a SHUFFLED turn order (built). approved 2026-10-07; the AI it measured is the one Muzzy signed off (content/ai/signoff.json) — no re-run needed
-- 🎛️ F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45 · sprint 17 · built 2026-10-07 (auto): 9 of 14 re-tuned (research/awards-ai.md, D81); Pincer vs Muzzy's own game, Power Play / Bridge / Walled garden → Muzzy · Muzzy 2026-10-07: "happy enough with the numbers"; AI signed off as measured
+- ✅ F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45 · sprint 17 · built 2026-10-07 (auto): 9 of 14 re-tuned (research/awards-ai.md, D81); Pincer vs Muzzy's own game, Power Play / Bridge / Walled garden → Muzzy · Muzzy 2026-10-07: "happy enough with the numbers"; AI signed off as measured
 - (F48 Basic audio moved OUT of the AI milestone — Muzzy 2026-10-05: "that's its own sprint, and a module will come of that as well" → see Later)
   why: the score pops and tangles land harder with sound → Cozy cleverness payoff
 - ⏳ F49 🔧 "What wins?" report for Glyphtender (needs framework F25 — not built yet) — should · needs: F45
