@@ -10,7 +10,8 @@ import { juiceFor } from './feel'
 import { useAnimTuning } from './useTuning'
 
 const selectorFor = (target: NopeTarget) =>
-  target.kind === 'glyph' ? `[data-shake="${target.key}"]` : target.kind === 'seed' ? `[data-seed="${target.key}"]` : `[data-hand="${target.key}"]`
+  target.kind === 'glyph' ? `[data-shake="${target.key}"]` : target.kind === 'seed' ? `[data-seed="${target.key}"]`
+    : target.kind === 'draft' ? `[data-draft="${target.key}"]` : `[data-hand="${target.key}"]`
 
 export function useNopeShake() {
   const nope = useGameStore((s) => s.nope)
