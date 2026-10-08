@@ -316,10 +316,12 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
     const longMin = game.config.boardName === 'small' ? t.longWordMinSmall : t.longWordMinLarge
     for (const w of turn.words) {
       if (w.letters.length >= longMin) add('longWord', seat, turn, w.letters.length * 100 + w.magic, { n: w.letters.length, word: w.word })
-      // Bridge / Super Bridge (two levels — Muzzy 2026-10-07): the seed landed INSIDE a word, letters already on both
-      // sides of it, joined into one word. Super Bridge = at least superBridgeMinSide letters on each side.
-      const side = w.at !== undefined && w.at > 0 ? Math.min(w.at, w.letters.length - 1 - w.at) : 0
-      const level = side >= t.superBridgeMinSide ? 'superBridge' : side >= t.bridgeMinSide ? 'bridge' : null
+      // Bridge / Super Bridge (Muzzy 2026-10-07): the seed is a BRIDGE LETTER — any letter but the word's first or last
+      // (chAt) — so it joined letters already on both sides. The word's length sets the level: Bridge from
+      // bridgeMinLength letters (4), Super Bridge from superBridgeMinLength (5+). Rewards planning ahead / seeing the gap.
+      const bridgeLetter = w.at !== undefined && w.at > 0 && w.at < w.letters.length - 1
+      const len = w.letters.length
+      const level = !bridgeLetter ? null : len >= t.superBridgeMinLength ? 'superBridge' : len >= t.bridgeMinLength ? 'bridge' : null
       if (level && w.at !== undefined) {
         add(level, seat, turn, w.letters.length * 100 + w.magic, { word: w.word, letter: w.letters[w.at], left: w.letters.slice(0, w.at).join(''), right: w.letters.slice(w.at + 1).join('') })
       }

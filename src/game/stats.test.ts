@@ -116,7 +116,7 @@ describe('awards (skill, earned only)', () => {
   const T = {
     ...endscreen, lockdownMinDrop: 5, lockdownMaxAfter: 2, pincerMinFrom: 6, pincerMinShare: 0.5, weedMaxMagic: 0, weedMinBlocked: 6,
     weedMinCut: 4, walledMinMagic: 12, walledMaxSize: 40, hedgeMinOver: 2, powerPlayMin: 3, longWordMinSmall: 6, longWordMinLarge: 6,
-    hijackMinFrom: 3, bridgeMinSide: 1, superBridgeMinSide: 2, powerPlayMinLetters: 3, closeCallMinAfter: 4, tricksterMinBehind: 1, calledItMinLead: 1,
+    hijackMinFrom: 3, bridgeMinLength: 4, superBridgeMinLength: 5, powerPlayMinLetters: 3, closeCallMinAfter: 4, tricksterMinBehind: 1, calledItMinLead: 1,
   }
   /** Mobility for 2 players (4 glyphlings): everyone has 8 moves, except the changes asked for (id → [before, afterMove, afterCast]). */
   const mob = (changes: Record<number, [number, number, number]> = {}, count = 4) => {
