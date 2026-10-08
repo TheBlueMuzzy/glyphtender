@@ -170,6 +170,19 @@ try {
 
   // ---- Bo leaves mid-game: the default AI plays his seat ----
   await playUntil([ada, bo], async () => (await myTurn(bo)), 60)
+  // Watch Ada's page from here: the toast that a bot took Bo's seat, and 🤖 by Bo's portrait on his turns
+  // (Muzzy 2026-10-08: his friend left and "it didn't tell me the AI had taken over… didn't show that she was a robot")
+  await ada.page.evaluate(() => {
+    window.__boLeft = { toast: '', robot: 0, turns: 0 }
+    setInterval(() => {
+      const t = [...document.querySelectorAll('.kit-toast')].map((x) => x.textContent).find((x) => /Bo/.test(x ?? ''))
+      if (t) window.__boLeft.toast = t
+      const s = window.__glyphtender.store.getState()
+      if (!s.game || s.game.current !== 2 || s.game.phase === 'over') return
+      window.__boLeft.turns++
+      if (document.querySelector('.game-turn-bar [data-seat-status="bot"]')) window.__boLeft.robot++
+    }, 50)
+  })
   await bo.tap(bo.page.getByRole('button', { name: 'Menu' }))
   await bo.tap(bo.page.getByRole('button', { name: /^Leave/ }).first())
   const confirm = bo.page.getByRole('dialog').getByRole('button', { name: /^Leave/ })
@@ -180,6 +193,9 @@ try {
   const movedOn = `(s) => s.game.phase === 'over' || s.game.turnCount >= ${before + 4}` // (3 seats: 4 turns include Bo's)
   await playUntil([ada], async () => (await ada.store(movedOn)), 60)
   check('Bo\'s seat plays on without him', await ada.store(movedOn))
+  const boLeft = await ada.page.evaluate(() => window.__boLeft)
+  check(`Ada is told a bot took Bo's seat ("${boLeft.toast}")`, /Bo left/.test(boLeft.toast))
+  check(`🤖 by Bo's portrait on his turns after he left (${boLeft.robot} of ${boLeft.turns} frames)`, boLeft.turns > 0 && boLeft.robot > boLeft.turns * 0.5) // (the first moments of his turn still replay the last one)
   await shot(ada, '3-bo-left')
 
   // ---- Ada plays to the end against two AIs ----
