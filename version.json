@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "build": 0,
   "history": [
     {
@@ -42,6 +42,11 @@
       "version": "0.5.1",
       "date": "2026-10-08",
       "summary": "Online, nobody waits: after 30 s of doing nothing a bar warns you, at 60 s a bot plays for you until you tap; Pause shows whether 2-letter words are on; the lobby's AI picker matches New Game; another player's draft glyphling can't be grabbed"
+    },
+    {
+      "version": "0.5.2",
+      "date": "2026-10-08",
+      "summary": "New Game and the online lobby now start with 2-letter words off, even if you'd turned them on before"
     }
   ]
 }
