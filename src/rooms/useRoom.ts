@@ -60,7 +60,21 @@ export interface OnlineRoom<View, Action, Options> {
   /** Give up your seat and disconnect. */
   leave: () => void
   clearError: () => void
+  /** You've done nothing on your turn for a while: a bot takes your seat at `endsAt` (a Date.now() time) unless you
+   *  do something. null = no warning. (Show it with the UI kit's IdleWarning.) */
+  idleWarning: { endsAt: number } | null
+  /** A bot is playing your seat because you went idle (you're still here): any active() gives it straight back. */
+  botPlaysForMe: boolean
+  /**
+   * "I'm here" — call it on any tap or key while it matters (your turn, the warning is up, or botPlaysForMe). It resets
+   * your idle clock on the server. Cheap to call often: it sends at most one ping every few seconds, except straight
+   * away while the warning is up or the bot has your seat.
+   */
+  active: () => void
 }
+
+/** At most one "active" ping this often while nothing's urgent (a player taps a lot; the server only needs a sign of life). */
+export const ACTIVE_PING_EVERY_MS = 5_000
 
 // Everything the hook remembers about ONE room code. If the code changes, it starts blank.
 interface Connection<View> {
@@ -71,10 +85,11 @@ interface Connection<View> {
   view: View | null
   error: { code: ErrorCode; message: string } | null
   closedReason: CloseReason | null
+  idleWarning: { endsAt: number } | null
 }
 
 function blank<View>(code: string | null): Connection<View> {
-  return { code, status: code ? 'connecting' : 'idle', room: null, you: null, view: null, error: null, closedReason: null }
+  return { code, status: code ? 'connecting' : 'idle', room: null, you: null, view: null, error: null, closedReason: null, idleWarning: null }
 }
 
 export function useRoom<View = unknown, Action = unknown, Options = unknown, Event = unknown>(
@@ -119,7 +134,8 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
 
     socket.onclose = () => {
       if (closedOnPurpose) return
-      update({ status: joined ? 'reconnecting' : 'connecting' }) // PartySocket tries again by itself
+      // PartySocket tries again by itself (a dropped connection stops the server's idle clock: no warning while away)
+      update({ status: joined ? 'reconnecting' : 'connecting', idleWarning: null })
     }
 
     socket.onmessage = (event: MessageEvent) => {
@@ -143,7 +159,13 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
           // The server shut us out: stop, and don't let PartySocket reconnect
           closedOnPurpose = true
           socket.close()
-          update({ status: 'closed', closedReason: message.reason })
+          update({ status: 'closed', closedReason: message.reason, idleWarning: null })
+          break
+        case 'idle_warning':
+          update({ idleWarning: { endsAt: Date.now() + message.msLeft } })
+          break
+        case 'idle_warning_off':
+          update({ idleWarning: null })
           break
       }
     }
@@ -167,6 +189,21 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
     sendToRoom(socket, message)
     return true
   }, [])
+
+  // "I'm here": at most one ping every ACTIVE_PING_EVERY_MS — but straight away when it's urgent (the warning is up,
+  // or the bot is playing for me), so a tap always lands in time and gives the seat back at once.
+  const botPlaysForMe = current.room?.phase === 'playing' && mySeat?.kind === 'bot' && mySeat.connected
+  const urgent = current.idleWarning !== null || botPlaysForMe
+  const urgentRef = useRef(urgent)
+  useEffect(() => {
+    urgentRef.current = urgent
+  })
+  const lastPingRef = useRef(-Infinity)
+  const active = useCallback(() => {
+    const now = Date.now()
+    if (!urgentRef.current && now - lastPingRef.current < ACTIVE_PING_EVERY_MS) return
+    if (sendMessage({ type: 'active' })) lastPingRef.current = now
+  }, [sendMessage])
 
   const leave = useCallback(() => {
     const socket = socketRef.current
@@ -195,5 +232,8 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
     backToLobby: useCallback(() => void sendMessage({ type: 'back_to_lobby' }), [sendMessage]),
     leave,
     clearError: useCallback(() => setSaved((before) => ({ ...before, error: null })), []),
+    idleWarning: current.idleWarning,
+    botPlaysForMe,
+    active,
   }
 }

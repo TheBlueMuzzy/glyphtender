@@ -15,15 +15,14 @@ export interface Seat {
   /** Stable for the whole room ("seat-1", "seat-2"…) — use it to tell seats apart. */
   id: string
   name: string
-  /** 'bot' = a bot plays this seat (added by the host, or the player left / went idle). */
+  /** 'bot' = a bot plays this seat (added by the host, or the player left / went idle / stayed away).
+   *  A bot seat that is still `connected` = its player went idle and is still watching: any tap gives it back. */
   kind: SeatKind
   isHost: boolean
   /** false = the player's connection dropped; their seat waits for them. */
   connected: boolean
   /** Lobby only: the player pressed Ready. */
   ready: boolean
-  /** Turns in a row the server had to play for this player (resets when they act). */
-  missedTurns: number
   /** A bot the host added: who plays it, in the game's own words (e.g. "Survivor/FirstClass") — the game's
    *  botProfile() checked it. Missing for players and for bots the game didn't describe. */
   profile?: string
@@ -61,6 +60,9 @@ export type ClientMessage =
   | { type: 'back_to_lobby' }
   /** The game's own move. The server's game rules check it. */
   | { type: 'action'; action: unknown }
+  /** "I'm here" — the player tapped or pressed a key. Resets their idle clock; if a bot holds their seat because they
+   *  went idle, it's theirs again at once. (useRoom's active() sends it at most every few seconds.) */
+  | { type: 'active' }
 
 // ─── Server → player ────────────────────────────────────────────────
 
@@ -94,6 +96,10 @@ export type ServerMessage =
   | { type: 'event'; event: unknown }
   | { type: 'error'; code: ErrorCode; message: string }
   | { type: 'closed'; reason: CloseReason; message: string }
+  /** Only to the idle player: you've done nothing on your turn for a while — a bot takes your seat in `msLeft` unless you do something. */
+  | { type: 'idle_warning'; msLeft: number }
+  /** Only to that player: the warning is over (they did something, their turn moved on, or the bot took over). */
+  | { type: 'idle_warning_off' }
 
 // ─── Checking what arrives ──────────────────────────────────────────
 
@@ -149,6 +155,8 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
       return { type: 'back_to_lobby' }
     case 'action':
       return { type: 'action', action: data.action }
+    case 'active':
+      return { type: 'active' }
     default:
       return null
   }

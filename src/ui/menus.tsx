@@ -58,13 +58,17 @@ export function CreditsScreen() {
   return <Credits people={text.credits.people} assets={credits} />
 }
 
-// PAUSE — the Menu button in the game: back to the garden, the Rules, Settings, or leave (asks first).
+// PAUSE — the Menu button in the game: back to the garden, the Rules, Settings, or leave (asks first). Under the title:
+// "2-letter words: on/off" for this game (F53).
 export function PauseScreen() {
   // Online: the title carries the room code ("Paused · Room BAKU"), so it's always one tap away
   const code = useOnline((s) => s.code)
   const online = useGameStore((s) => s.online !== null)
   const w = online && code ? { ...text.game.pause, title: fill(text.online.pauseTitle, { code }) } : text.game.pause
-  return <Pause words={w} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={leaveToMenu} />
+  // The one setting you can't see while playing (F53 — Muzzy 2026-10-08): are 2-letter words allowed this game?
+  const twoLetter = useGameStore((s) => (s.game ? s.game.config.rules.minWordLength <= 2 : null))
+  const note = twoLetter === null ? undefined : twoLetter ? text.game.pauseNote.twoLetterOn : text.game.pauseNote.twoLetterOff
+  return <Pause words={w} note={note} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={leaveToMenu} />
 }
 
 // RULES — a short how-to-play in three pages (words: en.json → game.rules), opened from Pause.

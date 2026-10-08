@@ -9,7 +9,7 @@
 import { useRef, type PointerEvent, type RefObject } from 'react'
 import type { Hex } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
-import { playReferee, targetsOf, type Piece } from '../store/referee'
+import { NEW_GLYPHLING, playReferee, targetsOf, type Piece } from '../store/referee'
 import { dropKind, letterIn } from '../store/turnPlan'
 import { glyphlingArt, seedArt } from './art'
 import { showDropTarget } from './dropTarget'
@@ -88,7 +88,9 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
       store().grabSeed(p.hand)
       if (liftable({ kind: 'seed', id: p.hand })) art = seedArt(letterIn(game.hands[game.current], p.hand) ?? '', game.current)
     } else if (p.draft) {
-      art = glyphlingArt(game.current)
+      // Not this device's turn to place (online: another player's draft glyphling) → it shakes, never lifts
+      if (store().refuseTap({ draft: true })) return void (p.refused = true)
+      if (liftable(NEW_GLYPHLING)) art = glyphlingArt(game.current)
     }
     if (!art) return
     img.setAttribute('href', art)
@@ -149,6 +151,8 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
     } else if (p.hand !== undefined) {
       store().refuseTap({ hand: p.hand })
       store().tapSeed(p.hand)
+    } else if (p.draft) {
+      store().refuseTap({ draft: true })
     } else if (p.hex) {
       store().refuseTap({ hex: p.hex })
       store().tapHex(p.hex)

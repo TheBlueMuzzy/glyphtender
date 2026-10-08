@@ -17,7 +17,7 @@ import type { ClientMessage, CloseReason, ErrorCode, ServerMessage } from '../pr
 import type { GameRules, RoomTools, SeatChange } from './gameRules'
 import {
   addBot, backToLobby, dropOut, findSeat, findSeatOf, handToBot, joinRoom, kick,
-  missTurn, newRoom, publicRoom, publicSeat, removeSeat, startPlaying, takeBack, whyNotStart,
+  newRoom, publicRoom, publicSeat, removeSeat, startPlaying, takeBack, whyNotStart,
 } from './seats'
 import type { RoomData, SeatRecord } from './seats'
 import { readSettings } from './settings'
@@ -40,6 +40,9 @@ export interface PartyRoom {
 const ROOM_TIMER = 'room:'
 const botTakeoverTimer = (seatId: string) => `${ROOM_TIMER}bot-takes-over:${seatId}`
 const EMPTY_ROOM_TIMER = `${ROOM_TIMER}empty`
+// A seat on the clock that does nothing: first a warning on their screen, then a bot takes over
+const idleWarnTimer = (seatId: string) => `${ROOM_TIMER}idle-warn:${seatId}`
+const idleTakeoverTimer = (seatId: string) => `${ROOM_TIMER}idle-takeover:${seatId}`
 
 export class RoomServer<State, Options, Action, View, Event = never> {
   readonly party: PartyRoom
@@ -54,6 +57,10 @@ export class RoomServer<State, Options, Action, View, Event = never> {
   private sockets = new Map<string, PartyConnection>()
   /** Messages each connection sent this second (connection id → count), for settings.maxMessagesPerSecond. */
   private messageCounts = new Map<string, { second: number; count: number }>()
+  /** Seats the game is waiting for (room.onTheClock). Each connected human among them has an idle clock. */
+  private onClock = new Set<string>()
+  /** Seats whose screen shows the idle warning right now. */
+  private warned = new Set<string>()
   /** true while a game callback runs (so update() can't clash with it). */
   private insideGameCode = false
   private tools: RoomTools<State, Event>
@@ -83,7 +90,8 @@ export class RoomServer<State, Options, Action, View, Event = never> {
           if (event !== null) this.sendToSeat(seat.id, { type: 'event', event })
         })
       },
-      missedTurn: (seatId) => this.missedTurn(seatId),
+      onTheClock: (seatIds) => this.setOnTheClock(seatIds),
+      timedOut: (seatId) => this.botTakesIdleSeat(seatId, 'their turn timer ran out'),
       log: (message) => this.log(message),
     }
   }
@@ -119,6 +127,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
       case 'add_bot': return this.handleAddBot(sender, seat, message.profile)
       case 'back_to_lobby': return this.handleBackToLobby(sender, seat)
       case 'action': return this.handleAction(sender, seat, message.action)
+      case 'active': return this.handleActive(seat)
     }
   }
 
@@ -127,6 +136,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     const seatId = this.seatIdOfClosed(connection)
     if (!seatId) return
     this.sockets.delete(seatId)
+    this.stopIdleClock(seatId) // (a dropped player has the away timer below instead)
     const seat = findSeat(this.data, seatId)
     this.log(`${seat?.name ?? seatId} dropped out`)
     if (dropOut(this.data, seatId) === 'waiting') {
@@ -194,6 +204,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     this.timers.stop(botTakeoverTimer(seat.id))
     this.log(result.cameBack ? `${seat.name} is back (${seat.id})` : `${seat.name} joined (${seat.id})`)
 
+    this.restartIdleClock(seat.id) // (back on their turn: a fresh idle clock)
     if (wasAway) this.seatChanged(seat.id, 'back')
     this.afterSeatsChanged()
     if (this.game !== null) this.sendView(seat)
@@ -202,6 +213,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
   private handleLeave(connection: PartyConnection, seat: SeatRecord): void {
     this.sockets.delete(seat.id)
     this.timers.stop(botTakeoverTimer(seat.id))
+    this.stopIdleClock(seat.id)
     this.log(`${seat.name} left`)
     if (this.data.phase === 'lobby') {
       removeSeat(this.data, seat.id)
@@ -251,6 +263,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     const socket = this.sockets.get(targetId)
     this.sockets.delete(targetId)
     this.timers.stop(botTakeoverTimer(targetId))
+    this.stopIdleClock(targetId)
     if (socket) this.sendClosed(socket, 'kicked')
     if (wasHuman && this.data.phase !== 'lobby') this.seatChanged(targetId, 'bot')
     this.afterSeatsChanged()
@@ -277,6 +290,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     if (this.data.phase !== 'over') return this.sendError(connection, 'not_now', 'The game isn\'t over yet.')
     backToLobby(this.data)
     this.game = null
+    this.clearIdleClocks()
     this.timers.stopAll() // nothing to wait for in the lobby
     this.sendToEveryone({ type: 'view', view: null })
     this.sendRoomToEveryone()
@@ -290,10 +304,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     }
     if (seat.kind === 'bot') {
       // A bot had their seat (they idled) but they're still here and making a move: it's theirs again
-      takeBack(this.data, seat.id)
-      this.log(`${seat.name} took their seat back from the bot`)
-      this.seatChanged(seat.id, 'back')
-      this.afterSeatsChanged()
+      this.takeSeatBack(seat)
       if (this.game === null) return
     }
     let action: Action
@@ -314,12 +325,26 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     // Nothing changed (the game gave back the SAME state, e.g. "send me my view again"): only the sender is answered
     if (state === this.game) return this.sendView(seat)
     this.game = state
-    // A move of their own: they're not idle
-    if (seat.missedTurns > 0) {
-      seat.missedTurns = 0
-      this.sendRoomToEveryone()
-    }
+    // A move of their own: they're not idle (if the game still waits for them — e.g. the second half of a turn — their clock starts again)
+    this.restartIdleClock(seat.id)
     this.afterGameChanged()
+  }
+
+  /** "I'm here" (a tap or a key): a fresh idle clock — and if a bot has their seat because they idled, it's theirs again. */
+  private handleActive(seat: SeatRecord): void {
+    if (this.data.phase !== 'playing') return
+    // (Only an idle player's seat can be taken back like this: Leave and kick close the connection, so no "active" comes.)
+    if (seat.kind === 'bot') this.takeSeatBack(seat)
+    else this.restartIdleClock(seat.id)
+  }
+
+  /** The owner, still connected, is active again while a bot plays their seat: it's theirs again, at once. */
+  private takeSeatBack(seat: SeatRecord): void {
+    takeBack(this.data, seat.id)
+    this.log(`${seat.name} took their seat back from the bot`)
+    this.restartIdleClock(seat.id)
+    this.seatChanged(seat.id, 'back')
+    this.afterSeatsChanged()
   }
 
   /** RoomTools.update — a change from a timer or a bot, not from a player's message. */
@@ -340,13 +365,60 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     this.afterGameChanged()
   }
 
-  /** RoomTools.missedTurn — the server played for an idle player. */
-  private missedTurn(seatId: string): void {
-    if (this.data.phase !== 'playing') return
-    const botTookOver = missTurn(this.data, seatId, this.settings)
+  // ─── Idle players ─────────────────────────────────────────────────
+  // The game says whose move it's waiting for (room.onTheClock). A connected human on the clock who does nothing
+  // (no move, no "active" tap) is warned after idleWarnAfterMs, and a bot plays their seat after idleTakeoverAfterMs —
+  // mid-turn, as if they'd dropped out. Any tap or move from them gives the seat straight back.
+
+  /** RoomTools.onTheClock — the seats the game is waiting for now. A seat that stays on the clock keeps its clock. */
+  private setOnTheClock(seatIds: string[]): void {
+    const before = this.onClock
+    this.onClock = new Set(seatIds)
+    for (const seatId of before) {
+      if (!this.onClock.has(seatId)) this.stopIdleClock(seatId)
+    }
+    for (const seatId of this.onClock) {
+      if (!before.has(seatId)) this.restartIdleClock(seatId)
+    }
+  }
+
+  /** A fresh idle clock for this seat — only if the game waits for it and its player is here (a human, connected). */
+  private restartIdleClock(seatId: string): void {
+    this.stopIdleClock(seatId)
     const seat = findSeat(this.data, seatId)
-    this.log(`${seat?.name ?? seatId} missed a turn${botTookOver ? ' — a bot takes the seat' : ''}`)
-    if (botTookOver) this.seatChanged(seatId, 'bot')
+    const { idleWarnAfterMs, idleTakeoverAfterMs } = this.settings
+    if (!seat || seat.kind !== 'human' || !seat.connected || !this.onClock.has(seatId) || idleTakeoverAfterMs <= 0) return
+    if (idleWarnAfterMs > 0 && idleWarnAfterMs < idleTakeoverAfterMs) {
+      this.timers.start(idleWarnTimer(seatId), idleWarnAfterMs, () => {
+        this.warned.add(seatId)
+        this.sendToSeat(seatId, { type: 'idle_warning', msLeft: this.timers.msLeft(idleTakeoverTimer(seatId)) })
+      })
+    }
+    this.timers.start(idleTakeoverTimer(seatId), idleTakeoverAfterMs, () => this.botTakesIdleSeat(seatId, 'idle too long'))
+  }
+
+  /** Stop this seat's idle clock; if their screen shows the warning, take it away. */
+  private stopIdleClock(seatId: string): void {
+    this.timers.stop(idleWarnTimer(seatId))
+    this.timers.stop(idleTakeoverTimer(seatId))
+    if (this.warned.delete(seatId)) this.sendToSeat(seatId, { type: 'idle_warning_off' })
+  }
+
+  /** No more waiting on anyone (game over, back to the lobby, room cleared). */
+  private clearIdleClocks(): void {
+    for (const seatId of this.onClock) this.stopIdleClock(seatId)
+    this.onClock.clear()
+  }
+
+  /** Idle too long, or the game's turn timer ran out (RoomTools.timedOut): a bot plays the seat until its player is active again. */
+  private botTakesIdleSeat(seatId: string, why: string): void {
+    this.stopIdleClock(seatId)
+    const seat = findSeat(this.data, seatId)
+    if (this.data.phase !== 'playing' || !seat || seat.kind !== 'human') return
+    handToBot(this.data, seatId)
+    this.timers.stop(botTakeoverTimer(seatId)) // (if they'd dropped out as well, the bot already has it)
+    this.log(`a bot took ${seat.name}'s seat (${why})`)
+    this.seatChanged(seatId, 'bot')
     this.afterSeatsChanged()
   }
 
@@ -373,6 +445,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     if (this.data.phase === 'playing' && this.rules.isOver(this.game)) {
       this.data.phase = 'over'
       this.stopGameTimers()
+      this.clearIdleClocks()
       this.log('game over')
       this.sendRoomToEveryone()
     }
@@ -419,6 +492,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     this.log(`room cleared (${why})`)
     for (const socket of this.sockets.values()) this.sendClosed(socket, 'room_closed')
     this.sockets.clear()
+    this.clearIdleClocks()
     this.timers.stopAll()
     this.game = null
     this.data = newRoom(this.party.id)

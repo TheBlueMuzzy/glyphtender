@@ -68,6 +68,13 @@ describe('the "no" shake', () => {
     expect(nope({ hand: 'seed-0' })).toEqual({ kind: 'hand', key: 'seed-0' })
   })
 
+  it('the draft: another player’s glyphling waiting in the tray shakes online — never lifts (Muzzy 2026-10-08); pass-and-play it’s fine', () => {
+    store().startGame({ players: 2, seed: 1 }) // the draft, Yellow placing first
+    expect(nope({ draft: true })).toBeNull() // pass-and-play: whoever holds the device places for Yellow
+    useGameStore.setState({ seats: [{ kind: 'human', where: 'online', connected: true, name: 'Bo', colour: 'yellow' }, { kind: 'human', where: 'local', connected: true, name: 'Me', colour: 'blue' }] })
+    expect(nope({ draft: true })).toEqual({ kind: 'draft', key: 'next' }) // online, Bo's turn: not mine to grab
+  })
+
   it('quiet moments shake nothing: a seed in the air, the device being passed on, the game over', () => {
     yellowToPlay()
     useGameStore.setState({ flying: true })

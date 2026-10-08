@@ -583,7 +583,7 @@ describe('online store — the feed (F31): every change played once, in order', 
     expect(store().online!.version).toBe(newest.version)
     expect(store().game).toEqual(newest.game) // and the screen ends on the server's view
     expect(store().trail).toBeNull()
-  })
+  }, 30_000) // plays several turns on a real room server: ~2–5 s here under load, slower on the GitHub build machine
 
   it('a view that comes again (or an older one) plays nothing', () => {
     myTurnThenRivals()

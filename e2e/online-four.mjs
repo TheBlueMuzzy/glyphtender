@@ -152,9 +152,13 @@ try {
   const cyTurn = await ada.store((s) => s.game.current === 2)
   check('the game reached Cy\'s turn while he was away', cyTurn)
   if (cyTurn) {
-    const away = (p) => p.page.locator('.game-turn-bar [data-seat-status="away"]').count()
-    await ada.page.waitForFunction(() => document.querySelector('.game-turn-bar [data-seat-status="away"]'), null, { timeout: 5000 }).catch(() => {})
-    for (const p of others) check(`${p.name} sees "Away" on Cy's portrait`, (await away(p)) > 0)
+    // "Away" while his seat waits; once the away timer (rooms.json botTakesOverAfterMs, 60 s) has run out a bot plays it
+    // and the badge is 🤖 — which one depends on how long the table took to reach his turn (the turn order is shuffled)
+    const status = (await ada.page.evaluate(() => window.__glyphtender.online.getState().room?.room?.seats?.[2]?.kind)) === 'bot' ? 'bot' : 'away'
+    const shown = (p) => p.page.locator(`.game-turn-bar [data-seat-status="${status}"]`).count()
+    // each screen may still be replaying the turn before his (the shuffled order decides whose), so wait on each one
+    for (const p of others) await p.page.waitForFunction((st) => document.querySelector(`.game-turn-bar [data-seat-status="${st}"]`), status, { timeout: 8000 }).catch(() => {})
+    for (const p of others) check(`${p.name} sees ${status === 'away' ? '"Away"' : '🤖'} on Cy's portrait`, (await shown(p)) > 0)
     for (const p of others) await shot(p, '4-cy-away')
     await wait(1500)
     check('the game waits for Cy (nobody else can play)', !(await myTurn(ada)) && !(await myTurn(bo)) && !(await myTurn(di)))

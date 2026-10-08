@@ -59,7 +59,7 @@ async function endGame(variant: string | undefined): Promise<SampleGame> {
 // Online: names, and a room / link that go nowhere
 const ONLINE_NAMES = ['Muzzy', 'Ada', 'Sam', 'Kit']
 const roomSeat = (i: number, extra: Partial<RoomSeat> = {}): RoomSeat =>
-  ({ id: `seat-${i + 1}`, name: ONLINE_NAMES[i], kind: 'human', isHost: i === 0, connected: true, ready: true, missedTurns: 0, ...extra })
+  ({ id: `seat-${i + 1}`, name: ONLINE_NAMES[i], kind: 'human', isHost: i === 0, connected: true, ready: true, ...extra })
 const nothing = () => {}
 
 /** The session store's room, as useRoom would give it — every action does nothing (a preview never sends). */
@@ -68,6 +68,7 @@ function fakeRoom(seats: RoomSeat[], phase: 'lobby' | 'playing', mySeat: number)
     status: 'open', room: { code: 'BAKU', phase, seats, minSeats: 2, maxSeats: 4 }, mySeat: seats[mySeat], isHost: seats[mySeat].isHost,
     view: null, error: null, closedReason: null, send: () => false,
     setReady: nothing, start: nothing, kick: nothing, addBot: nothing, backToLobby: nothing, leave: nothing, clearError: nothing,
+    idleWarning: null, botPlaysForMe: false, active: nothing,
   }
 }
 

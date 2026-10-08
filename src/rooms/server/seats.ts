@@ -7,7 +7,7 @@
 //   connection, even after a bot took over — and you get your seat back.
 // - Lobby: a player who drops out loses their seat (they rejoin at the end when they're back).
 // - Mid-game: a seat is never removed. Dropping out marks it "not connected"; leaving on purpose,
-//   or missing too many turns, hands it to a bot. The game carries on.
+//   or idling on their turn (RoomServer's idle clock), hands it to a bot. The game carries on.
 // - Host: stays host while connected. If not, the first connected human (in seat order) becomes host.
 import type { CloseReason, RoomPhase, RoomState, Seat } from '../protocol'
 import { cleanName, MAX_NAME_LENGTH } from '../protocol'
@@ -60,7 +60,6 @@ function makeSeat(room: RoomData, persistentId: string, name: string, kind: Seat
     isHost: false,
     connected: kind === 'human', // a bot the host added has no connection
     ready: kind === 'bot',
-    missedTurns: 0,
   }
 }
 
@@ -90,7 +89,6 @@ export function joinRoom(room: RoomData, request: JoinRequest, settings: RoomSet
   if (own) {
     own.kind = 'human'
     own.connected = true
-    own.missedTurns = 0
     chooseHost(room)
     return { ok: true, seat: own, cameBack: true }
   }
@@ -130,7 +128,7 @@ export function dropOut(room: RoomData, seatId: string): 'removed' | 'waiting' {
 
 /**
  * A bot plays this seat from now on. The owner can still come back and take it
- * (by rejoining, or — if they're still watching — just by making a move).
+ * (by rejoining, or — if they went idle and are still watching — by any tap or move).
  * `connected` isn't touched: it says whether the owner's connection is still there.
  */
 export function handToBot(room: RoomData, seatId: string): void {
@@ -141,13 +139,21 @@ export function handToBot(room: RoomData, seatId: string): void {
   chooseHost(room)
 }
 
-/** The owner, still connected, makes a move while a bot has their seat: it's theirs again. */
+/** A game is over: every seat a bot holds for a player who is still connected (they idled — Leave and kick
+ *  disconnect) goes back to them, so back-to-lobby keeps them and a rematch starts with them. (Rooms 0.4.1 — found in
+ *  Glyphtender's F52 review: an idler who didn't tap before the end was dropped from the room, their socket left behind.) */
+export function watchersTakeBack(room: RoomData): void {
+  for (const seat of room.seats) {
+    if (seat.kind === 'bot' && seat.connected && !isAddedBot(seat)) seat.kind = 'human'
+  }
+}
+
+/** The owner, still connected, makes a move or taps while a bot has their seat (they went idle): it's theirs again. */
 export function takeBack(room: RoomData, seatId: string): void {
   const seat = findSeat(room, seatId)
   if (!seat || isAddedBot(seat)) return
   seat.kind = 'human'
   seat.connected = true
-  seat.missedTurns = 0
   chooseHost(room)
 }
 
@@ -181,19 +187,6 @@ export function kick(room: RoomData, seatId: string): SeatRecord | null {
   return seat
 }
 
-/**
- * The server had to play this seat's turn for them (they were idle).
- * true = that was one too many: a bot has taken the seat.
- */
-export function missTurn(room: RoomData, seatId: string, settings: RoomSettings): boolean {
-  const seat = findSeat(room, seatId)
-  if (!seat || seat.kind !== 'human') return false
-  seat.missedTurns += 1
-  if (seat.missedTurns < settings.missedTurnsBeforeBot) return false
-  handToBot(room, seatId)
-  return true
-}
-
 // ─── Host ───────────────────────────────────────────────────────────
 
 /** Keep the host if they're a connected human; otherwise the first connected human is host. */
@@ -218,18 +211,19 @@ export function whyNotStart(room: RoomData, settings: RoomSettings): string | nu
 
 export function startPlaying(room: RoomData): void {
   room.phase = 'playing'
+  watchersTakeBack(room) // a rematch: whoever a bot played for (they idled) but is still here starts as themselves
   for (const seat of room.seats) {
-    seat.missedTurns = 0
     seat.ready = seat.kind === 'bot'
   }
 }
 
-/** After a game: back to the lobby. Players who are gone (or whose seat a bot took) lose their seats. */
+/** After a game: back to the lobby. Players who are gone (left, kicked, dropped out) lose their seats; anyone a bot
+ *  played for because they idled but is still here keeps theirs (watchersTakeBack). */
 export function backToLobby(room: RoomData): void {
   room.phase = 'lobby'
+  watchersTakeBack(room)
   room.seats = room.seats.filter((seat) => (seat.kind === 'human' && seat.connected) || isAddedBot(seat))
   for (const seat of room.seats) {
-    seat.missedTurns = 0
     seat.ready = seat.kind === 'bot'
   }
   chooseHost(room)
@@ -239,8 +233,8 @@ export function backToLobby(room: RoomData): void {
 
 /** A seat without its owner's persistentId. */
 export function publicSeat(seat: SeatRecord): Seat {
-  const { id, name, kind, isHost, connected, ready, missedTurns, profile } = seat
-  return profile === undefined ? { id, name, kind, isHost, connected, ready, missedTurns } : { id, name, kind, isHost, connected, ready, missedTurns, profile }
+  const { id, name, kind, isHost, connected, ready, profile } = seat
+  return profile === undefined ? { id, name, kind, isHost, connected, ready } : { id, name, kind, isHost, connected, ready, profile }
 }
 
 export function publicRoom(room: RoomData, settings: RoomSettings): RoomState {
