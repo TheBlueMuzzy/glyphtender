@@ -130,6 +130,10 @@
           "title": "Hijack",
           "reason": "Turned {other}'s {from} into {word}: +{n}"
         },
+        "superBridge": {
+          "title": "Super Bridge",
+          "reason": "{letter} joined {left} + {right} into {word}"
+        },
         "bridge": {
           "title": "Bridge",
           "reason": "{letter} joined {left} + {right} into {word}"
