@@ -139,6 +139,15 @@ export function handToBot(room: RoomData, seatId: string): void {
   chooseHost(room)
 }
 
+/** A game is over: every seat a bot holds for a player who is still connected (they idled — Leave and kick
+ *  disconnect) goes back to them, so back-to-lobby keeps them and a rematch starts with them. (Rooms 0.4.1 — found in
+ *  Glyphtender's F52 review: an idler who didn't tap before the end was dropped from the room, their socket left behind.) */
+export function watchersTakeBack(room: RoomData): void {
+  for (const seat of room.seats) {
+    if (seat.kind === 'bot' && seat.connected && !isAddedBot(seat)) seat.kind = 'human'
+  }
+}
+
 /** The owner, still connected, makes a move or taps while a bot has their seat (they went idle): it's theirs again. */
 export function takeBack(room: RoomData, seatId: string): void {
   const seat = findSeat(room, seatId)
@@ -202,14 +211,17 @@ export function whyNotStart(room: RoomData, settings: RoomSettings): string | nu
 
 export function startPlaying(room: RoomData): void {
   room.phase = 'playing'
+  watchersTakeBack(room) // a rematch: whoever a bot played for (they idled) but is still here starts as themselves
   for (const seat of room.seats) {
     seat.ready = seat.kind === 'bot'
   }
 }
 
-/** After a game: back to the lobby. Players who are gone (or whose seat a bot took) lose their seats. */
+/** After a game: back to the lobby. Players who are gone (left, kicked, dropped out) lose their seats; anyone a bot
+ *  played for because they idled but is still here keeps theirs (watchersTakeBack). */
 export function backToLobby(room: RoomData): void {
   room.phase = 'lobby'
+  watchersTakeBack(room)
   room.seats = room.seats.filter((seat) => (seat.kind === 'human' && seat.connected) || isAddedBot(seat))
   for (const seat of room.seats) {
     seat.ready = seat.kind === 'bot'
