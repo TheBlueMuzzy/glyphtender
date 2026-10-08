@@ -11,7 +11,7 @@ const SAVE_KEY = 'glyphtender:online-options'
 
 /** First time: the board picked by how many sit down, 2-letter words as rules.json says, the first timer choice (off), word indicators on. */
 export const defaultOnlineOptions = (): OnlineOptions =>
-  ({ boardName: 'auto', minWordLength: rulesJson.minWordLength, turnSeconds: roomsJson.turnTimerChoices[0], wordIndicators: true })
+  ({ boardName: 'auto', minWordLength: rulesJson.twoLetterWordsAtStart === 1 ? 2 : 3, // standard play: 2-letter words off (Muzzy 2026-10-07) turnSeconds: roomsJson.turnTimerChoices[0], wordIndicators: true })
 
 function browserStorage(): Storage | null {
   try {
