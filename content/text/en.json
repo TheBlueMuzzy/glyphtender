@@ -72,6 +72,10 @@
       "quitMessage": "The garden will be lost.",
       "howToPlay": "Rules"
     },
+    "pauseNote": {
+      "twoLetterOn": "2-letter words: on",
+      "twoLetterOff": "2-letter words: off"
+    },
     "gameOver": {
       "label": "The end of the game",
       "tabs": {
