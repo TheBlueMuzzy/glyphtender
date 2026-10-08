@@ -73,3 +73,23 @@ Re-measured on the boards players now get (F46: 3 players play **Small**) — 32
 | Called it | lead 10 | **24** | 15% (2p 28%) | |
 | Close call | after 4 | **3** | 14% | |
 Awards per game ≈ 4.1 (was 5.6). Muzzy's first game: its 5 awards + Weed toss.
+
+## Two-letter words off (standard play — Muzzy 2026-10-07) · Bridge levels · Power Play 3+ letters
+324 AI games at First Class with `--min-word 3` (108 × 2p Small, 3p Small, 4p Large). Muzzy: "achievements aren't just about being rare, they are about indicating to a player that they did something right."
+| Award | Setting | All · 2p · 3p · 4p |
+|---|---|---|
+| Lockdown | 7 | 18 · 9 · 19 · 24% |
+| Pincer | 0.75 from 12 (kept — Muzzy: beating an AI to it "proves they are good players") | 45 · 26 · 50 · 59% |
+| Weed toss | 6 | 22 · 9 · 14 · 42% |
+| Walled garden | 30 in ≤ 10 | 19% |
+| Through the hedge | 3 | 42% |
+| Complete tangle | — | 10% |
+| Power Play | **3 words of 3+ letters** (was 4 words of any length) | 16% (4 words: 0.6%) |
+| Long word | 6 | 20% |
+| Hijack | 4 | 24% (5: 2%) |
+| Super Bridge (new) | 2 letters each side | 2% |
+| Bridge | 1 letter each side | ⚠ 99% — nearly every game with two-letter words off → Ask Muzzy |
+| Biggest comeback | — | 88% |
+| Trickster's Victory | 24 | 14% |
+| Called it | 24 | 11% (2p 29%) |
+| Close call | 3 | 19% |

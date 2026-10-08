@@ -10,6 +10,7 @@
 //   --tune '{"lockdownMinDrop":6}'   try other thresholds without editing content/tuning/endscreen.json
 //   --skill FirstClass   (ai) the skill every seat plays at
 //   --counts 2,3,4       (ai) which player counts to play
+//   --min-word 3         (ai) shortest word that scores — 3 = two-letter words off (standard play, Muzzy 2026-10-07)
 //   --first 0            (ai) the first game number — so several runs side by side can each play a different slice
 //   --save file.json     (ai) keep the finished games, so thresholds can be re-tried in seconds with --load
 //   --load a.json,b.json (ai) re-count saved games instead of playing new ones
@@ -160,6 +161,8 @@ function playAiGames({ arena, bot, personalities, skill }) {
   const makeBot = (s) => bot.aiBot(s.personality, s.skill, words)
   const counts = arg('counts', '2,3,4').split(',').map(Number)
   const first = Number(arg('first', 0))
+  // --min-word 3 = two-letter words off (Muzzy 2026-10-07: standard play); default = content/tuning/rules.json
+  const minWord = Number(arg('min-word', 0))
   // A small seeded shuffle, seeded by the game's own seed, so game N always seats the same table.
   let pos = 0
   const rand = () => (pos = (pos * 1103515245 + 12345) % 2147483648) / 2147483648
@@ -175,7 +178,7 @@ function playAiGames({ arena, bot, personalities, skill }) {
       pos = seed
       const table = tableOf(players)
       const seats = table.map((personality) => ({ personality, skill }))
-      const { game } = arena.playArenaGame(seats, board, seed, words, makeBot)
+      const { game } = arena.playArenaGame(seats, board, seed, words, makeBot, 1000, minWord ? { minWordLength: minWord } : {})
       played.push({ players, board, personalities: table.map((p) => p.id), game })
       process.stdout.write(`\r${players} players: game ${g + 1 - first}/${games}   `)
     }

@@ -9,7 +9,7 @@ import type { Personality, Skill } from './kit/types'
 import { allMeters } from './meters'
 import { getBoard } from '../engine/boards'
 import { glyphtenderRules, viewFor } from '../engine/rules'
-import type { Action, GameState, WordList } from '../engine/types'
+import type { Action, GameState, RuleNumbers, WordList } from '../engine/types'
 
 export interface ArenaSeat {
   personality: Personality
@@ -78,10 +78,11 @@ export function arenaFacts(game: GameState, bagEmptyOnTurn: number | null): Aren
   }
 }
 
-/** One whole game. Bots get their own random start per seat, from the game's seed. */
-export function playArenaGame(seats: ArenaSeat[], boardName: string, seed: number, words: WordList, makeBot: MakeBot, maxTurns = 1000): ArenaGame {
+/** One whole game. Bots get their own random start per seat, from the game's seed. `ruleChanges`: rule numbers to
+ *  play with instead of content/tuning/rules.json's (e.g. { minWordLength: 3 } = two-letter words off). */
+export function playArenaGame(seats: ArenaSeat[], boardName: string, seed: number, words: WordList, makeBot: MakeBot, maxTurns = 1000, ruleChanges: Partial<RuleNumbers> = {}): ArenaGame {
   const rules = glyphtenderRules(words)
-  let state = rules.setup({ players: seats.length, boardName, seed })
+  let state = rules.setup({ players: seats.length, boardName, seed, rules: ruleChanges })
   const notes: string[] = []
   const decisionMs: number[] = []
   const bots = seats.map((s, i) => makeBot(s, (note) => notes.push(`${i} ${note}`)))

@@ -209,7 +209,7 @@
   "walledMinMagic": 30,
   "walledMaxSize": 10,
   "hedgeMinOver": 3,
-  "powerPlayMin": 4,
+  "powerPlayMin": 3,
   "longWordMinSmall": 6,
   "longWordMinLarge": 6,
   "hijackMinFrom": 4,
