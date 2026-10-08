@@ -188,6 +188,7 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.
 - 2026-10-07 — **Power Play + Bridge need a new rule shape, not a number** (F47, research/awards-ai.md): Power Play 4 words = 57% of games, 5 = 5%; Bridge 1 letter each side = 83%, 2 = 3%. Options: Power Play counts only 3+ letter words · Bridge adds "letters around the seed in total, at least" (e.g. ≥ 4). Small code change + a knob each. Walled garden suits the Scholar (Strategist earns it least) and is rare at 4p — AI or design question.
 - 2026-10-07 — **Rock-paper-scissors has a broken leg** (F46 sims, research/sims-ai.md): Scholar > Survivor (~73%), Survivor > Strategist (~61%), but Scholar ALSO beats Strategist (~58%); at 3–4 players the Strategist wins 7–17% (fair 25–33%). Next Personality Check pass (F45 knobs) — see the 3–4p idea below.
 - 2026-10-07 — "Bag empty" notice on Large boards (F46: the bag runs out in 1–6% of Large games; the missing refresh could surprise a player)
