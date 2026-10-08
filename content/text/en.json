@@ -130,6 +130,10 @@
           "title": "Hijack",
           "reason": "Turned {other}'s {from} into {word}: +{n}"
         },
+        "superBridge": {
+          "title": "Super Bridge",
+          "reason": "{letter} joined {left} + {right} into {word}"
+        },
         "bridge": {
           "title": "Bridge",
           "reason": "{letter} joined {left} + {right} into {word}"
@@ -258,7 +262,7 @@
       "small": "Small",
       "large": "Large"
     },
-    "boardDetail": "Small for 2 · Large for 3–4",
+    "boardDetail": "Small for 2–3 · Large for 4",
     "twoLetterWords": "2-letter words",
     "twoLetterDetail": "Off: words need 3+ letters",
     "hideSeeds": "Hide seeds between turns",
@@ -304,7 +308,7 @@
     "options": {
       "board": "Garden",
       "auto": "Auto",
-      "boardDetail": "Auto: Small for 2 · Large for 3–4",
+      "boardDetail": "Auto: Small for 2–3 · Large for 4",
       "twoLetterWords": "2-letter words",
       "twoLetterDetail": "Off: words need 3+ letters",
       "timer": "Turn timer",

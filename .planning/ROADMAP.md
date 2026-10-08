@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — AI (v0.7, defined 2026-10-04) — musts 16/18 (v0.6 8/8 · v0.7 8/10 — left: F46 sims, F47 award re-tune) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -133,7 +133,7 @@ flowchart LR
   F33 --> F36
 ```
 
-## v0.7 — AI opponents  ← current  (→ beta)
+## v0.7 — AI opponents  ✅ released 2026-10-07 (v0.5.0)  (→ beta)
 Goal: play solo or fill any seat (2–4, local or online) with an AI that feels like a person — seven recognisable personalities and three skills, chosen in New Game, at human pace, with a little banter — each personality proven by its behaviour over hundreds of AI-vs-AI games. Design: `design/ai.md` + `../../framework/.planning/design/ai.md`. Framework-first: each framework slice (its F19–F24) is built there and switched on here in the same sprint.
 - 🟢 F37 ❓ AI calls: banter amount (big moments, rec.) · host adds AI online (yes, rec.) · portraits (seat glyphling for beta, rec.) — defaults in place, Muzzy confirms. (Settled 2026-10-05: three personalities — Scholar · Survivor · Strategist — in a rock-paper-scissors with fight · flight · focus modes.)
   why: each one changes how the AI table feels (Fellowship, Hunted-but-cozy)
@@ -153,8 +153,8 @@ Goal: play solo or fill any seat (2–4, local or online) with an AI that feels 
 - ✅ F50 🎮 AI looks human — sprint 16 · released v0.4.1 2026-10-05 (Muzzy 2026-10-05: "when possible, the AI should visually come across as human. If a human would drag, they should too… at least the same animation speeds"): every AI action plays the same motion a person's does (first: draft placements travel from the tray instead of popping in); a standard of the framework AI module — must:beta · needs: F42
   why: an AI that moves like a person → Feels like a person at the table
 - ✅ F51 🔧 Dev Kit snapshots record the seats · released v0.4.1 2026-10-05 (who is AI, personality + skill) — sprint 16 (Muzzy's first AI game couldn't say which personality Yellow was) — should · needs: F42
-- 🔨 F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45
-- 🔨 F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45
+- ✅ F46 ❓ Sims with real AIs settle GDD §9: board size per player count, bag run-out, first-player edge → Muzzy decides — must:beta · needs: F45 · sprint 17 · built 2026-10-07 (auto): 4,200 AI games (research/sims-ai.md) → Claude's calls (D80): 3p plays Small · random first player · bag rule kept — Muzzy OK'd 3p Small + asked for a SHUFFLED turn order (built). approved 2026-10-07; the AI it measured is the one Muzzy signed off (content/ai/signoff.json) — no re-run needed
+- ✅ F47 ✨ Re-tune the 14 award thresholds from AI-vs-AI games (positional personalities earn the positional awards; mindless sims still rarely do) — must:beta · needs: F45 · sprint 17 · built 2026-10-07 (auto): 9 of 14 re-tuned (research/awards-ai.md, D81); Pincer vs Muzzy's own game, Power Play / Bridge / Walled garden → Muzzy · Muzzy 2026-10-07: "happy enough with the numbers"; AI signed off as measured
 - (F48 Basic audio moved OUT of the AI milestone — Muzzy 2026-10-05: "that's its own sprint, and a module will come of that as well" → see Later)
   why: the score pops and tangles land harder with sound → Cozy cleverness payoff
 - ⏳ F49 🔧 "What wins?" report for Glyphtender (needs framework F25 — not built yet) — should · needs: F45
@@ -188,6 +188,10 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.
+- 2026-10-07 — **Power Play + Bridge need a new rule shape, not a number** (F47, research/awards-ai.md): Power Play 4 words = 57% of games, 5 = 5%; Bridge 1 letter each side = 83%, 2 = 3%. Options: Power Play counts only 3+ letter words · Bridge adds "letters around the seed in total, at least" (e.g. ≥ 4). Small code change + a knob each. Walled garden suits the Scholar (Strategist earns it least) and is rare at 4p — AI or design question.
+- 2026-10-07 — **Rock-paper-scissors has a broken leg** (F46 sims, research/sims-ai.md): Scholar > Survivor (~73%), Survivor > Strategist (~61%), but Scholar ALSO beats Strategist (~58%); at 3–4 players the Strategist wins 7–17% (fair 25–33%). Next Personality Check pass (F45 knobs) — see the 3–4p idea below.
+- 2026-10-07 — "Bag empty" notice on Large boards (F46: the bag runs out in 1–6% of Large games; the missing refresh could surprise a player)
 - 2026-10-05 — **"Surprise me" for online AI seats** (F43 left it out): the seat would need a name that doesn't give the personality away (e.g. "Mystery AI") until the end
 - 2026-10-05 — **AI setup menu is cluttered/clunky** (Muzzy, after his first AI game) — redo New Game's AI seat picker later. Research first (overnight-able): how other games set up AI opponents (board-game apps like Ticket to Ride / Catan / Wingspan / Carcassonne, Hearthstone practice, chess apps, Civ, Smash) → research/ai-setup-menus.md. Don't change the menu until Muzzy picks a direction.
 - 2026-10-05 — 3–4 players: the Strategist wins only 9% at a 3-way table (Scholar 48 · Survivor 43) — it fights 91% and the third player collects; it rarely gets a walled garden with two rivals roaming. Knob to try after Muzzy plays: a lower garden switch with more players (per-player-count switch values).

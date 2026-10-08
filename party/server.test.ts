@@ -70,7 +70,7 @@ type Server = RoomServer<ServerGame, OnlineOptions, OnlineAction, GameView, neve
 function startRoom(players: number, options: Partial<OnlineOptions> = {}, seed: number | 'secret' = 7) {
   let n = seed === 'secret' ? 0 : seed
   const randomSeed = seed === 'secret' ? undefined : () => (n = (n * 48271) % 2147483647) // 'secret' = the real server’s random numbers
-  const rules = makeRules({ words: () => words, randomSeed })
+  const rules = makeRules({ words: () => words, randomSeed, plainTurnOrder: true })
   const party = new FakeParty()
   // (no flood limit here: a whole game is played within one real second)
   const server: Server = new RoomServer(party, rules, { ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0 })
@@ -577,7 +577,7 @@ describe('online server — side doors: events, the log, the bot', () => {
 /** A room: `humans` players (the first is host) + the host's AI seats (`profiles`, e.g. "Scholar/Archmage"), started. */
 function startRoomWithAi(humans: number, profiles: string[], seed = 7) {
   let n = seed
-  const rules = makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647) })
+  const rules = makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true })
   const party = new FakeParty()
   const server: Server = new RoomServer(party, rules, { ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0 })
   const logs: string[] = []

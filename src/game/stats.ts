@@ -264,7 +264,6 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
   const found: Award[] = []
   const add = (id: AwardId, holder: number, turn: LogTurn, effect: number, values: Award['values'], seats: number[] = []) =>
     found.push({ id, holder, seats: [...new Set([holder, ...seats])], moment: turn.turnNo, values: { round: turn.round, ...values }, effect })
-  const wordsOf = (turn: LogTurn) => turn.words.map((w) => w.word).join(endWords.and)
   const rivalsOf = (seat: number) => game.glyphlings.filter((g) => g.seat !== seat)
   const totalsBefore = (i: number) => (i > 0 ? turns[i - 1].totalsAfter : game.magic.map(() => 0))
   const everTangled = (id: number) => game.tangled.includes(id) || turns.some((x) => x.tangledAfter.includes(id))
@@ -310,13 +309,21 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
       add('completeTangle', c.by, turn, 1, { other: owner }, [owner])
     }
     // ── Spelling ──
-    if (turn.words.length >= t.powerPlayMin) add('powerPlay', seat, turn, turn.words.length * 100 + turn.magic, { n: turn.words.length, words: wordsOf(turn) })
+    // Power Play: one seed made many words — only words of powerPlayMinLetters+ count (Muzzy 2026-10-07: two-letter
+    // words made "lots of words" too easy)
+    const powerWords = turn.words.filter((w) => w.letters.length >= t.powerPlayMinLetters)
+    if (powerWords.length >= t.powerPlayMin) add('powerPlay', seat, turn, powerWords.length * 100 + turn.magic, { n: powerWords.length, words: powerWords.map((w) => w.word).join(endWords.and) })
     const longMin = game.config.boardName === 'small' ? t.longWordMinSmall : t.longWordMinLarge
     for (const w of turn.words) {
       if (w.letters.length >= longMin) add('longWord', seat, turn, w.letters.length * 100 + w.magic, { n: w.letters.length, word: w.word })
-      // Bridge: the seed landed INSIDE a word — letters already on both sides of it, joined into one word
-      if (w.at !== undefined && w.at > 0 && Math.min(w.at, w.letters.length - 1 - w.at) >= t.bridgeMinSide) {
-        add('bridge', seat, turn, w.letters.length * 100 + w.magic, { word: w.word, letter: w.letters[w.at], left: w.letters.slice(0, w.at).join(''), right: w.letters.slice(w.at + 1).join('') })
+      // Bridge / Super Bridge (Muzzy 2026-10-07): the seed is a BRIDGE LETTER — any letter but the word's first or last
+      // (chAt) — so it joined letters already on both sides. The word's length sets the level: Bridge from
+      // bridgeMinLength letters (4), Super Bridge from superBridgeMinLength (5+). Rewards planning ahead / seeing the gap.
+      const bridgeLetter = w.at !== undefined && w.at > 0 && w.at < w.letters.length - 1
+      const len = w.letters.length
+      const level = !bridgeLetter ? null : len >= t.superBridgeMinLength ? 'superBridge' : len >= t.bridgeMinLength ? 'bridge' : null
+      if (level && w.at !== undefined) {
+        add(level, seat, turn, w.letters.length * 100 + w.magic, { word: w.word, letter: w.letters[w.at], left: w.letters.slice(0, w.at).join(''), right: w.letters.slice(w.at + 1).join('') })
       }
     }
   })
@@ -384,8 +391,15 @@ export function earnedAwards(game: GameState, tuning: EndTuning = endscreenFile)
     const old = best.get(k)
     if (!old || a.effect > old.effect) best.set(k, a)
   }
+  // An award's higher level replaces its lower one for the same player (a Super Bridge, not a Bridge as well)
+  for (const [higher, lower] of AWARD_LEVELS) {
+    for (const a of best.values()) if (a.id === higher) best.delete(`${lower}:${a.holder}`)
+  }
   return [...best.values()].sort((a, b) => order[a.id] - order[b.id] || b.effect - a.effect || a.moment - b.moment)
 }
+
+/** Awards with levels: [higher, lower] — a player who earns the higher one doesn't also get the lower one. */
+const AWARD_LEVELS: [AwardId, AwardId][] = [['superBridge', 'bridge']]
 
 /** The Story chart's spot for an award: on the holder's line, at the round of its turn. */
 export function awardPoint(game: GameState, chart: StoryChart, award: Award): ChartMarker | null {

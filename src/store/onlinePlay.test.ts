@@ -81,7 +81,7 @@ beforeEach(() => {
   roomSeatsChanged([])
   store().setWords(words)
   let n = 42
-  server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647) }), settings)
+  server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true }), settings)
   server.log = () => {}
   me = new Conn('me')
   blue = new Conn('blue')
@@ -510,7 +510,7 @@ describe('online store — the feed (F31): every change played once, in order', 
     store().leaveGame()
     stopOnline()
     let n = 42
-    server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647) }), settings)
+    server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true }), settings)
     server.log = () => {}
     me = new Conn('me')
     blue = new Conn('blue')

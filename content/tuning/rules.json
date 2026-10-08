@@ -1,6 +1,8 @@
 {
   "_help": {
     "handSize": "How many seeds each player holds; hands refill up to this. More = more choice each turn. Takes effect from the next new game (Save, then refresh).",
+    "twoLetterWordsAtStart": "What New Game and the online lobby start with for the 2-letter words option: 0 = off (standard play — Muzzy 2026-10-07), 1 = on. A player's own last choice still wins on their device.",
+    "randomTurnOrder": "1 = a new random turn order every game (who goes first AND who follows whom; the draft follows it too); 0 = always Yellow, Blue, Purple, Pink. Sims (research/sims-ai.md): in 2-player games whoever starts wins ~53%, and in 4 the last seat ~22% — shuffling spreads both around. Takes effect from the next new game (Save, then refresh).",
     "minWordLength": "2 = normal; 3 = the \"2-letter words off\" table option. Higher = harder to score. Takes effect from the next new game (Save, then refresh).",
     "ownershipBonus": "Each of YOUR seeds in a word you make adds this much extra Magic (a word = its seeds + this per seed you own). Higher = using your own seeds matters more. Takes effect from the next new game (Save, then refresh).",
     "tangleBonus": "At the end, for each tangled glyphling, every OTHER player gets this much Magic per seed or glyphling of theirs next to it. Higher = tangling rivals pays more. Takes effect from the next new game (Save, then refresh).",
@@ -8,6 +10,8 @@
   },
   "_labels": {
     "handSize": "Seeds in each player's hand",
+    "twoLetterWordsAtStart": "2-letter words on at the start of New Game (0 = off, 1 = on)",
+    "randomTurnOrder": "Random turn order (1 = shuffled each game, 0 = Yellow, Blue, Purple, Pink)",
     "minWordLength": "Shortest word that scores (letters)",
     "ownershipBonus": "Bonus Magic per own seed in a word",
     "tangleBonus": "Tangle bonus Magic at the end (per neighbouring piece)",
@@ -19,7 +23,9 @@
       "minWordLength",
       "ownershipBonus",
       "tangleBonus",
-      "tanglesToEnd"
+      "tanglesToEnd",
+      "randomTurnOrder",
+      "twoLetterWordsAtStart"
     ]
   },
   "_ranges": {
@@ -27,11 +33,15 @@
     "minWordLength": [2, 4, 1],
     "ownershipBonus": [0, 3, 1],
     "tangleBonus": [0, 6, 1],
-    "tanglesToEnd": [1, 4, 1]
+    "tanglesToEnd": [1, 4, 1],
+    "randomTurnOrder": [0, 1, 1],
+    "twoLetterWordsAtStart": [0, 1, 1]
   },
   "handSize": 8,
   "minWordLength": 2,
   "ownershipBonus": 1,
   "tangleBonus": 3,
-  "tanglesToEnd": 2
+  "tanglesToEnd": 2,
+  "randomTurnOrder": 1,
+  "twoLetterWordsAtStart": 0
 }

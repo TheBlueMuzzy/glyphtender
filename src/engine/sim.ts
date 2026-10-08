@@ -6,7 +6,7 @@ import { previewTurn } from './engine'
 import { legalCasts, legalMoves } from './moves'
 import { randomInt } from './rng'
 import { glyphtenderRules } from './rules'
-import { fullBag } from './setup'
+import { fullBag, turnOrderOf } from './setup'
 import { idsAreUnique } from '../table/zones'
 import type { Action, GameState, WordList } from './types'
 
@@ -96,7 +96,8 @@ export function checkInvariants(before: GameState, action: Action, after: GameSt
   const glyphlingHexes = after.glyphlings.map((g) => hexKey(g.hex))
   if (new Set(glyphlingHexes).size !== glyphlingHexes.length) throw new Error('Two glyphlings share a hex')
   if (glyphlingHexes.some((k) => after.seeds[k])) throw new Error('A glyphling stands on a seed')
-  const next = (before.current + 1) % before.config.players
+  const order = turnOrderOf(before)
+  const next = order[(order.indexOf(before.current) + 1) % order.length]
   if (action.type === 'turn' && after.phase === 'play' && after.current !== next) throw new Error('Turn order broken after a turn')
   if (action.type === 'turn' && after.phase === 'refresh' && after.current !== before.current) throw new Error('Refresh went to the wrong seat')
   if (action.type === 'refresh' && after.phase === 'play' && after.current !== next) throw new Error('Turn order broken after a refresh')

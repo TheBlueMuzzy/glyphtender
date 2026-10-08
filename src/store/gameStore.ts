@@ -121,7 +121,7 @@ export interface GameStore {
 
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
    *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
-  startGame: (options: Partial<GameOptions> & { players: number; seed: number; bots?: number[]; ai?: Record<number, AiPick> }) => void
+  startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick> }) => void
   leaveGame: () => void
   /** The next player has the device: show their seeds. */
   showSeeds: () => void
@@ -330,8 +330,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     scoring: null,
     happened: null,
 
-    startGame: ({ players, seed, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {} }) => {
-      const game = setupGame({ players, seed, boardName, rules: minWordLength ? { minWordLength } : undefined })
+    startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {} }) => {
+      const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined })
       const options: GameOptions = {
         players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: hideSeeds ?? true,
         wordIndicators: wordIndicators ?? true,

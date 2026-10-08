@@ -116,7 +116,7 @@ describe('awards (skill, earned only)', () => {
   const T = {
     ...endscreen, lockdownMinDrop: 5, lockdownMaxAfter: 2, pincerMinFrom: 6, pincerMinShare: 0.5, weedMaxMagic: 0, weedMinBlocked: 6,
     weedMinCut: 4, walledMinMagic: 12, walledMaxSize: 40, hedgeMinOver: 2, powerPlayMin: 3, longWordMinSmall: 6, longWordMinLarge: 6,
-    hijackMinFrom: 3, bridgeMinSide: 2, closeCallMinAfter: 4, tricksterMinBehind: 1, calledItMinLead: 1,
+    hijackMinFrom: 3, bridgeMinLength: 4, superBridgeMinLength: 5, powerPlayMinLetters: 3, closeCallMinAfter: 4, tricksterMinBehind: 1, calledItMinLead: 1,
   }
   /** Mobility for 2 players (4 glyphlings): everyone has 8 moves, except the changes asked for (id → [before, afterMove, afterCast]). */
   const mob = (changes: Record<number, [number, number, number]> = {}, count = 4) => {
@@ -238,10 +238,10 @@ describe('awards (skill, earned only)', () => {
     expect(ids(game(own), { ...T, walledMaxSize: 1 })).not.toContain('walledGarden:0')
   })
 
-  it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its awards: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (a 2-turn hunt 12 → 3 = 75%, D68)', () => {
+  it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its awards: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (a 2-turn hunt 12 → 3 = 75%, D68), and since F47 Weed toss (cut 7) + Yellow’s Bridge (a bridge letter in a 4-letter word)', () => {
     const real = JSON.parse(readFileSync('e2e/fixtures/muzzy-zero-awards.json', 'utf8')).state.game as GameState
     const got = earnedAwards(real)
-    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['comeback:0', 'pincer:0', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0'])
+    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['bridge:0', 'comeback:0', 'pincer:0', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0', 'weedToss:0'])
     expect(got.find((a) => a.id === 'walledGarden')?.values.n).toBe(43)
     expect(got.find((a) => a.id === 'pincer' && a.holder === 0)?.values).toMatchObject({ from: 12, to: 3, turns: 2, pct: 75 })
   })
@@ -258,9 +258,10 @@ describe('awards (skill, earned only)', () => {
     expect(ids(finished(2, [[0, [], { completeTangles: [{ glyphling: 2, by: null }] }]]))).toEqual([])
   })
 
-  it('Power Play: 3+ words from one seed · Long word: 6+ letters', () => {
-    const g = finished(2, [[0, ['AT:00', 'TO:00', 'TA:00']], [1, ['GARDENS:1111111']], [0, ['GARDEN:000000']]])
-    expect(one(g, 'powerPlay')).toMatchObject({ holder: 0, values: { n: 3, words: 'AT + TO + TA' } })
+  it('Power Play: 3+ words of 3+ letters from one seed (two-letter words don\'t count) · Long word: 6+ letters', () => {
+    const g = finished(2, [[0, ['CAT:000', 'ACT:000', 'TAX:000', 'AT:00']], [1, ['GARDENS:1111111']], [0, ['GARDEN:000000']]])
+    expect(one(g, 'powerPlay')).toMatchObject({ holder: 0, values: { n: 3, words: 'CAT + ACT + TAX' } })
+    expect(ids(finished(2, [[0, ['AT:00', 'TO:00', 'TA:00']]])).filter((x) => /powerPlay/.test(x))).toEqual([])
     expect(earnedAwards(g, T).filter((a) => a.id === 'longWord').map((a) => [a.holder, a.values.word])).toEqual([[1, 'GARDENS'], [0, 'GARDEN']])
     expect(ids(finished(2, [[0, ['AT:00', 'TO:00']], [1, ['GARDE:11111']]])).filter((x) => /powerPlay|longWord/.test(x))).toEqual([])
   })
@@ -276,8 +277,14 @@ describe('awards (skill, earned only)', () => {
       [1, [], { words: [words('PARTS', '11011', 0, ['0,-1', ...h(3), '0,3'])], magic: 5 }], // not a bridge: the seed is at the start
       [0, [], { words: [words('ROUND', '00100', 2, h(5))], magic: 5 }],
     ])
-    expect(one(g, 'bridge')).toMatchObject({ holder: 0, values: { letter: 'U', left: 'RO', right: 'ND', word: 'ROUND' } })
-    expect(earnedAwards(g, T).filter((a) => a.id === 'bridge')).toHaveLength(1)
+    // ROUND: a bridge letter (the U — not first or last) in a 5-letter word → Super Bridge (not a Bridge as well)
+    expect(one(g, 'superBridge')).toMatchObject({ holder: 0, values: { letter: 'U', left: 'RO', right: 'ND', word: 'ROUND' } })
+    expect(earnedAwards(g, T).filter((a) => a.id === 'bridge')).toHaveLength(0)
+    // a bridge letter in a 4-letter word (chAt) → Bridge; in a 3-letter word (cAt) → nothing (Muzzy 2026-10-07)
+    const one1 = finished(2, [[0, [], { words: [words('CHAT', '0000', 2, h(4))], magic: 4 }]])
+    expect(one(one1, 'bridge')).toMatchObject({ holder: 0, values: { letter: 'A', left: 'CH', right: 'T', word: 'CHAT' } })
+    expect(earnedAwards(one1, T).filter((a) => a.id === 'superBridge')).toHaveLength(0)
+    expect(ids(finished(2, [[0, [], { words: [words('CAT', '000', 1, h(3))], magic: 3 }]])).filter((x) => /ridge/.test(x))).toEqual([])
     // Blue's PARTS holds Yellow's ART and Blue owns most of it (4 of 5)
     expect(one(g, 'hijack')).toMatchObject({ holder: 1, values: { other: 0, from: 'ART', word: 'PARTS' } })
     // owning only half isn't most; and an old log without hexes can't tell

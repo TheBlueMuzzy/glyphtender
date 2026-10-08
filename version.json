@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "build": 0,
   "history": [
     {
@@ -32,6 +32,11 @@
       "version": "0.4.1",
       "date": "2026-10-05",
       "summary": "Play against the computer: 3 AI personalities and 3 skills that move like people; online, the AI fills in for idle players and hosts can add AI seats; a simpler New Game that scrolls, with arrow-key menus"
+    },
+    {
+      "version": "0.5.0",
+      "date": "2026-10-07",
+      "summary": "A new random turn order every game, 3 players on the Small garden, 2-letter words off to start, and end-of-game awards re-tuned from thousands of AI games — with a new Super Bridge"
     }
   ]
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { greedyAction } from '../engine/sim'
 import { reportHtml } from './kit/report'
 import type { Personality, Skill } from './kit/types'
-import { personalityCheck, playArenaGame, toResults, type MakeBot } from './arena'
+import { arenaFacts, personalityCheck, playArenaGame, toResults, type MakeBot } from './arena'
 
 // Plumbing only: greedy stand-in bots (the real AI is tested in its own files). Small word list keeps it quick.
 const words = new Map(['AT', 'TA', 'AN', 'NA', 'IN', 'IT', 'TO', 'ON', 'NO', 'ES', 'RE', 'ER', 'EAT', 'TEA', 'ATE', 'NET', 'TEN', 'SET', 'RAT', 'TAR', 'ART', 'TEAS', 'RATE', 'STAR', 'NEAT'].map((w) => [w, 1]))
@@ -47,5 +47,17 @@ describe('the arena', () => {
     expect(report.feel.Bully[0].pass).toBe(true)
     expect(report.all[0].pass).toBe(true)
     expect(reportHtml(report)).toContain('Personality Check — Glyphtender')
+  })
+
+  it('records each game shape for the balance sims: board, length, bag, scores, margin', () => {
+    const seats = [{ personality: person('A'), skill }, { personality: person('B'), skill }, { personality: person('C'), skill }]
+    const { game, facts } = playArenaGame(seats, 'small', 7, words, greedy)
+    expect(facts).toMatchObject({ boardName: 'small', players: 3, turns: game.turnCount, bagLeft: game.bag.length, scores: game.magic, winners: game.winners })
+    expect(facts.boardFill).toBeGreaterThan(0)
+    expect(facts.boardFill).toBeLessThanOrEqual(1)
+    // Margin: the winner's lead over the next best; a shared win has none.
+    expect(arenaFacts({ ...game, magic: [30, 22, 25], winners: [0] }, null).margin).toBe(5)
+    expect(arenaFacts({ ...game, magic: [30, 30, 25], winners: [0, 1] }, 12).margin).toBe(0)
+    expect(arenaFacts({ ...game, bag: [] }, 12)).toMatchObject({ bagLeft: 0, bagEmptyOnTurn: 12 })
   })
 })

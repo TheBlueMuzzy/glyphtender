@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './engine'
-import { legalDraftHexes } from './draft'
+import { applyDraft, legalDraftHexes } from './draft'
 import { getBoard } from './boards'
 import { isEdge, neighbours, sameHex } from './hex'
 import { nextRandom, shuffle } from './rng'
-import { fullBag, newGame, seedIdGiver } from './setup'
+import { fullBag, newGame, pickTurnOrder, seedIdGiver, turnOrderOf } from './setup'
+import { endTurn } from './tangle'
 import { hexAt, wordsOf } from './testkit'
 import type { GameState } from './types'
 
@@ -84,7 +85,7 @@ describe('seedIdGiver (letters from a test or an old save → ids)', () => {
 describe('new game', () => {
   it('starts in the draft with the board for the player count', () => {
     expect(newGame({ players: 2, seed: 1 }).config.boardName).toBe('small')
-    expect(newGame({ players: 3, seed: 1 }).config.boardName).toBe('large')
+    expect(newGame({ players: 3, seed: 1 }).config.boardName).toBe('small')
     const g = newGame({ players: 4, seed: 1 })
     expect(g.phase).toBe('draft')
     expect(g.hands).toEqual([[], [], [], []])
@@ -158,5 +159,58 @@ describe('snake draft (GDD §4.2)', () => {
   it('refuses draft actions once play has started', () => {
     const s = draftAll(newGame({ players: 2, seed: 3 }))
     expect(() => applyAction(s, { type: 'draft', hex: hexAt('C6-5') }, words)).toThrow(/draft is over/)
+  })
+})
+
+describe('turn order (GDD §9, F46 — Muzzy: "shuffle the whole order")', () => {
+  it('Yellow, Blue, Purple… unless the game is given another order', () => {
+    const game = newGame({ players: 3, seed: 5 })
+    expect(game.current).toBe(0)
+    expect(game.turnOrder).toEqual([0, 1, 2])
+    expect(game.draftOrder).toEqual([0, 1, 2, 2, 1, 0])
+  })
+
+  it('a shuffled order: the draft snakes through it, the first seat plays first, turns follow it', () => {
+    let game = newGame({ players: 3, seed: 5, turnOrder: [2, 0, 1] })
+    expect(game.current).toBe(2)
+    expect(game.draftOrder).toEqual([2, 0, 1, 1, 0, 2])
+    while (game.phase === 'draft') game = applyDraft(game, legalDraftHexes(game)[0])
+    expect(game.current).toBe(2)
+    // same bag either way: the turn order never changes the shuffle
+    expect(game.hands.flat()).toEqual(newGame({ players: 3, seed: 5 }).bag.slice(0, 24))
+    // play a few turns (no seed cast) and watch the order: 2 → 0 → 1 → 2
+    const seen = [game.current]
+    for (let i = 0; i < 3; i++) {
+      game = endTurn(game)
+      seen.push(game.current)
+    }
+    expect(seen).toEqual([2, 0, 1, 2])
+  })
+
+  it('a seat with every glyphling tangled is skipped — in the turn order', () => {
+    let game = newGame({ players: 3, seed: 5, turnOrder: [2, 0, 1] })
+    while (game.phase === 'draft') game = applyDraft(game, legalDraftHexes(game)[0])
+    const turnOf = (state: GameState) => endTurn(state).current
+    // seat 0 can't move (all its glyphlings tangled, faked by tanglesToEnd 99 so the game goes on): 2 → 1
+    const stuck = { ...game, config: { ...game.config, rules: { ...game.config.rules, tanglesToEnd: 99 } }, glyphlings: game.glyphlings.map((g) => (g.seat === 0 ? { ...g, hex: { q: 99, r: 99 } } : g)) }
+    expect(turnOrderOf(stuck)).toEqual([2, 0, 1])
+    expect(turnOf(stuck)).toBe(1)
+  })
+
+  it('an order that misses or repeats a seat is refused', () => {
+    expect(() => newGame({ players: 3, seed: 1, turnOrder: [0, 1] })).toThrow()
+    expect(() => newGame({ players: 3, seed: 1, turnOrder: [0, 1, 1] })).toThrow()
+  })
+
+  it('games saved before F46 (no turnOrder) play 0, 1, 2, 3', () => {
+    const old: GameState = { ...newGame({ players: 4, seed: 2 }), turnOrder: undefined }
+    expect(turnOrderOf(old)).toEqual([0, 1, 2, 3])
+  })
+
+  it('pickTurnOrder shuffles every seat in (rules.json randomTurnOrder is on), and orders differ game to game', () => {
+    const orders = Array.from({ length: 40 }, (_, i) => pickTurnOrder(4, i * 7919 + 1))
+    for (const o of orders) expect([...o].sort()).toEqual([0, 1, 2, 3])
+    expect(new Set(orders.map((o) => o.join())).size).toBeGreaterThan(10)
+    expect(new Set(orders.map((o) => o[0]))).toEqual(new Set([0, 1, 2, 3]))
   })
 })

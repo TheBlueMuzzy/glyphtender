@@ -94,7 +94,7 @@ flowchart LR
 | `content/data/boards.json` | board shapes (column heights), default board per player count | Obsidian |
 | `content/data/bag.json` | seed counts per letter (a plain `Q` since D47) | Obsidian / Dev Kit → Tuning |
 | `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer: a hunt over your turns took ≥ 75% of a ≥ 8-move glyphling's room (D68), weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
-| `content/tuning/rules.json` | hand size 8, min word 2, tangle bonus 3, tangles to end 2, ownership bonus 1 | Dev Kit → Tuning |
+| `content/tuning/rules.json` | hand size 8, min word 2, tangle bonus 3, tangles to end 2, ownership bonus 1, random turn order on (randomTurnOrder 1; 0 = Yellow, Blue, Purple, Pink — read at New Game / room start, D82) | Dev Kit → Tuning |
 | `content/tuning/layout.json` | stacked/side threshold, tray seed minimum (44) + gap, side panel share, board margin, drag lift + drag start distance | Dev Kit → Tuning |
 | `content/tuning/anim.json` | move glide (moveBase, movePerHex, moveSettle), turn trails (trailLead 0.5, trailHold 0.35), throw (flight, arc, hop), sprout, halo pulse (pulseTime — planned pieces only), handoff/reveal wait after a landing (wordGlowTime 1.4); word spotlight (spotlightHold 0.8, spotlightFade 0.12); reveal timings (revealTangles, tangleBlinkTime — split from pulseTime 2026-10-03, revealBonus, revealCount, revealWinner, revealPopTime); sprint 06: score sequence (scorePopDelay, scoreWordTime, scorePopGap, scorePopTime, scorePopHold, scoreFlyTime, scoreTotalHold, scoreTotalFade, scoreTotalGrow, scoreTotalMaxGrow — D52), turnPulseTime, noShakeTime | Dev Kit → Tuning |
 | `content/tuning/garden.json` | night garden colours (board box background, hexes), 4 player colours (also the move/cast options and turn trails: glowStrength, castRing, castFill, trailWidth, trailStrength, trailFaint) + dropStrength ("drop here"), word border (wordBorder white, wordBorderWidth; grownGlowStrength = the grown words' strength; spotlight label: spotlightLabel on, spotlightLabelSize, spotlightLabelMinPx), ghost + faded-seed strength, flying-seed shine; danger cues (warningWidth, warningDash, vine, vineWidth, tangledDim); reveal "+3" (revealPop, revealPopSize); score pops (scorePop, scorePopSize, scoreTotalSize, scorePopMinPx) | Dev Kit → Tuning |
@@ -146,6 +146,36 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D82 · 2026-10-07 · Shuffled turn order (Muzzy: "shuffle the whole order") + AI sign-off lock on balance sims
+  Replaces D80's random first seat. GameState.turnOrder (optional — saves before F46 read 0,1,2,3 via turnOrderOf);
+  newGame({ turnOrder }) checks it names every seat once; the snake draft = snakeOrder over the order's places;
+  play starts with turnOrder[0]; endTurn walks the order's places with the framework's nextClockwise (stuck seats
+  skipped) — no framework change. pickTurnOrder = shuffle(randomNumber, seats) when rules.json randomTurnOrder = 1.
+  Online: from bagSeed (no extra draw), in the move record's setup. Fixed order for checks: Playwright-driven dev
+  games (navigator.webdriver) and makeRules({ plainTurnOrder }). Options: random start then clockwise (built first)
+  · whole order shuffled (chosen by Muzzy) · seat colours shuffled instead (changes who is Yellow — no).
+  Lock: content/ai/signoff.json "balanceReady" (false) gates ai:balance and sim:awards --players ai
+  (scripts/ai-signoff.mjs) — Muzzy: only "after proper AI have been implemented and feel at a satisfactory
+  development level". F46/F47's numbers came from the unsigned AI → re-run after sign-off.
+D81 · 2026-10-07 · Award thresholds from real AI games, softened where Muzzy's own game is the judge (F47, auto)
+  research/awards-ai.md: 486 AI games, then 324 re-measured on the F46 boards (3p Small). Band 10–25% per award.
+  Applied: lockdownMinDrop 6→7 · pincerMinFrom 8→12 (pincerMinShare stays 0.75 — D68 kept Muzzy's 12 → 3 hunt; the AI
+  then earns it in ~51% of games, Ask Muzzy) · weedMinCut 10→6 · hijackMinFrom 3→4 ·
+  tricksterMinBehind 10→24 · calledItMinLead 10→24 · closeCallMinAfter 4→3. hedgeMinOver stays 3 (D55). Not by numbers:
+  Power Play (4 = 57%, 5 = 5%), Bridge (1 = 83%, 2 = 3%), Walled garden (suits the Scholar, rare at 4p) → Ask Muzzy.
+  Why softer than the helper's proposal: awards are for people; a First Class AI hunts harder than a first-time human,
+  so judging every threshold at the AI's level would take away the awards a person's real game earned. The AI's
+  "steals" meter is the Hijack detector, so it now counts 4+ seed steals only (no feel target uses it).
+D80 · 2026-10-07 · GDD §9 settled by 4,200 real-AI games — Claude's calls overnight, Muzzy to confirm (F46, auto)
+  research/sims-ai.md. Board: 3 players now play Small (boards.json defaultForPlayers) — 16.5 vs 22.7 turns each,
+  median margin 11 vs 18, close finishes 27% vs 15%; 2p Small + 4p Large unchanged. Bag run-out: keep "stop drawing"
+  (never on Small; Large 1–6%, the last 1–3 turns). First player: random each game (rules.json randomFirstPlayer = 1;
+  0 = Yellow always) — 2p Yellow wins 53.3% ±2.6. Built as newGame firstSeat (default 0, so tests, golden games, sims
+  and old saves are Yellow-first); the snake draft turns with it and play starts with the first drafter. Real games
+  pick it: local New Game (pickFirstSeat) and online onStart (from bagSeed — no extra draw, so the secret numbers keep
+  their order; it's in the move record's setup, so replays match). Options for first player: random (chosen —
+  spreads a small edge) · Yellow always (simplest, a known 3-point edge) · last winner goes last (needs memory across
+  games). Code-only golden replay was SAME before re-recording for the new inputs.
 D79 · 2026-10-05 · Online AI thinks inside the room, same brain, budget checked offline (F43, helper)
   The server's bot seats (host-added or taken over) play the real AI: party/turnClock.ts runs src/ai/seatBrain.ts —
   the phone worker's thinking — inside the Durable Object, from viewFor(game, seat) only, the answer checked by the

@@ -1,0 +1,12 @@
+{
+  "_help": {
+    "balanceReady": "Muzzy's sign-off: true once the AI personalities are built AND feel right to him (Personality Check green + his own games). Until then, balance sims made of AI games (npm run ai:balance, npm run sim:awards -- --players ai) refuse to run — tuning the game's rules or awards from an AI that isn't there yet would tune them to the wrong players. Flip it back to false if the AI changes a lot.",
+    "signedOff": "When and why Muzzy signed off (e.g. \"2026-10-20 — RPS fixed, played 5 games, each personality feels like itself\")."
+  },
+  "_labels": {
+    "balanceReady": "AI ready for balance sims (Muzzy's sign-off)",
+    "signedOff": "Signed off (date + why)"
+  },
+  "balanceReady": true,
+  "signedOff": "2026-10-07 — Muzzy: \"I was already okay with the AI as it was. So this is just an improvement in the end. I can see AI being tweaked over time, but right now I'm not concerned.\" (the AI F46/F47 were measured on)"
+}

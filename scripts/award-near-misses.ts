@@ -38,7 +38,7 @@ turns.forEach((turn) => {
   keep('powerPlay: words from one seed', turn.words.length, `${at}: ${turn.words.map((w) => w.word).join(', ')}`)
   for (const w of turn.words) {
     keep('longWord: letters', w.letters.length, `${at}: ${w.word}`)
-    if (w.at !== undefined) keep('bridge: letters on the shorter side of the seed', Math.min(w.at, w.letters.length - 1 - w.at), `${at}: ${w.word}`)
+    if (w.at !== undefined && w.at > 0 && w.at < w.letters.length - 1) keep('bridge: length of a word with a bridge letter (not first or last)', w.letters.length, `${at}: ${w.word}`)
   }
   keep('completeTangle: count', (turn.completeTangles ?? []).filter((c) => c.by !== null).length, at)
 })
@@ -79,7 +79,7 @@ const need: Record<string, string> = {
   'throughHedge: own seeds flown over (scoring cast)': `≥ ${t.hedgeMinOver}`,
   'powerPlay: words from one seed': `≥ ${t.powerPlayMin}`,
   'longWord: letters': `≥ ${game.config.boardName === 'small' ? t.longWordMinSmall : t.longWordMinLarge}`,
-  'bridge: letters on the shorter side of the seed': `≥ ${t.bridgeMinSide}`,
+  'bridge: length of a word with a bridge letter (not first or last)': `≥ ${t.bridgeMinLength} (Super Bridge ≥ ${t.superBridgeMinLength})`,
   'completeTangle: count': '≥ 1',
   'comeback: deficit before a lead-taking turn': 'the biggest, > 0',
   'calledIt / trickster: ender\'s margin when they ended it (+ ahead, − behind)': `≥ +${t.calledItMinLead} & won / ≤ −${t.tricksterMinBehind} & lost`,

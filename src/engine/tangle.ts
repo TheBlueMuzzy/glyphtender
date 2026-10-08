@@ -4,6 +4,7 @@ import { hexKey, neighbours, type Hex } from './hex'
 import { emptyLog, logEnd, logOf, logTurn } from './log'
 import { legalMoves, occupancy } from './moves'
 import { nextClockwise } from '../table/flow'
+import { turnOrderOf } from './setup'
 import type { GameState, LogTangle } from './types'
 
 /** How many legal moves this glyphling has right now (0 = tangled; the danger cues warn at 1). */
@@ -81,10 +82,13 @@ export function endTurn(state: GameState, refreshed: number | null = null, fast 
   const entry = fast ? null : logTurn(state, tangled, refreshed)
   const before = logOf(state)
   const log = entry ? { turns: [...before.turns, entry], end: null } : { ...emptyLog(), ...before }
-  // Who plays next (the Table's flow): clockwise, skipping any seat whose glyphlings are all tangled — it has no move
-  // to make. Nobody left who can move (only possible when tanglesToEnd is set above 2) also ends the game.
+  // Who plays next (the Table's flow): the next seat in this game's turn order, skipping any seat whose glyphlings are
+  // all tangled — it has no move to make. Nobody left who can move (only possible when tanglesToEnd is set above 2)
+  // also ends the game. (Walks the order's places round like seats round a table.)
   const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
-  const next = nextClockwise(state.current, state.config.players, canMove)
+  const order = turnOrderOf(state)
+  const place = nextClockwise(order.indexOf(state.current), order.length, (p) => canMove(order[p]))
+  const next = place === null ? null : order[place]
   if (tangled.length >= state.config.rules.tanglesToEnd || next === null) {
     const tangles = tangleDetails(state, tangled)
     const tangleMagic = tangleBonus(state, tangled)

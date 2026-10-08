@@ -7,6 +7,7 @@
 // Design: .planning/design/online.md.
 import roomsJson from '../content/rooms.json'
 import { boardNames, defaultBoardFor } from '../src/engine/boards'
+import { pickTurnOrder } from '../src/engine/setup'
 import { flowOf, glyphtenderRules, type GameSetup } from '../src/engine/rules'
 import { mayAct } from '../src/table/flow'
 import type { Action, WordList } from '../src/engine/types'
@@ -25,6 +26,8 @@ export type Rules = GameRules<ServerGame, OnlineOptions, OnlineAction, GameView,
 export interface RulesSetup {
   words: () => WordList
   randomSeed?: () => number
+  /** Tests: always Yellow, Blue, Purple, Pink, whatever rules.json "randomTurnOrder" says. */
+  plainTurnOrder?: boolean
 }
 
 // Hexes and glyphling ids are small whole numbers; anything bigger is junk.
@@ -62,7 +65,7 @@ function engineActionOf(raw: unknown): Action {
 // numbers can be worked out from earlier ones, and players see some of them (gameId, the seed at game over).
 const randomSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] >>> 1
 
-export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSetup): Rules {
+export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurnOrder = false }: RulesSetup): Rules {
   return {
     checkOptions(raw) {
       const options = mustBeObject(raw ?? {}, 'options')
@@ -91,12 +94,14 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed }: RulesSe
       // (~30 min on one core) and rebuild every hand and the whole bag. So online the bag is shuffled again with
       // a second secret number, and the rng (where set-aside seeds go back) gets a third — nothing to rebuild.
       // All three are part of the setup, so the move record replays the game exactly (they never leave the server).
+      const bagSeed = seedMaker()
+      const rngSeed = seedMaker()
       const setup: GameSetup = {
         players, seed,
+        turnOrder: plainTurnOrder ? undefined : pickTurnOrder(players, bagSeed), // the turn order (GDD §9) — from a secret number already drawn
         boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
         rules: { minWordLength: options.minWordLength },
-        bagSeed: seedMaker(),
-        rngSeed: seedMaker(),
+        bagSeed, rngSeed,
       }
       const game = glyphtenderRules(words()).setup(setup)
       const state: ServerGame = {

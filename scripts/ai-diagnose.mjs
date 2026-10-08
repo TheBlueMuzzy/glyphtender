@@ -7,6 +7,7 @@ const arg = (n, f) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
 const load = async (p) => (await runnerImport(p, { root, configFile: false, logLevel: 'error' })).module
 const arena = await load('/src/ai/arena.ts')
+const { defaultBoardFor } = await load('/src/engine/boards.ts')
 const bot = await load('/src/engine/bot.ts')
 const words = (await load('/src/engine/words.ts')).parseWordList(readFileSync(new URL('../public/words/words.csv', import.meta.url), 'utf8'))
 const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import.meta.url), 'utf8'))
@@ -27,7 +28,7 @@ for (let g = 0; g < games; g++) {
     st.modes[d.mode] = (st.modes[d.mode] ?? 0) + 1
     if (!d.mainGoalMattered) st.flat++
   })
-  const { game } = arena.playArenaGame(seats, names.length === 2 ? 'small' : 'large', 7000 + g, words, makeBot)
+  const { game } = arena.playArenaGame(seats, defaultBoardFor(names.length), 7000 + g, words, makeBot)
   turns += game.turnCount
   order.forEach((n, i) => {
     const st = stats[n]

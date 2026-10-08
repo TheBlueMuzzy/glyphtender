@@ -7,6 +7,7 @@ import { personalityCheck, playArenaGame, type ArenaGame, type ArenaSeat, type F
 import { reportHtml } from '../ai/kit/report'
 import type { Personality, Skill } from '../ai/kit/types'
 import { meterNames } from '../ai/meters'
+import { defaultBoardFor } from '../engine/boards'
 import { aiBot } from '../engine/bot'
 import type { WordList } from '../engine/types'
 
@@ -32,7 +33,7 @@ export function runPersonalityCheck(request: CheckRequest, wordList: WordList, o
   const skill = (id: string) => skills.find((s) => s.id === id)
   const main = skill(request.mainSkill ?? 'FirstClass') ?? skills[Math.floor(skills.length / 2)]
   const total = totalGames(request.games, personalities.length)
-  const boardFor = (n: number) => (n === 2 ? 'small' : 'large')
+  const boardFor = defaultBoardFor // the board players get for that many (content/data/boards.json)
 
   // A small seeded shuffle so the same check always seats the same tables (as scripts/ai-arena.mjs)
   let pos = 12345

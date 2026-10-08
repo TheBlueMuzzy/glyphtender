@@ -74,10 +74,12 @@ describe('meters: a hand-checked game', () => {
     expect(y.roomToMove).toBeCloseTo(14 / 3)
     expect(b.rivalMovesCut).toBeCloseTo((2 + 1) / 2) // TOE cut g0 5 → 3, NO cut g0 1 → 0
   })
-  it('words: AT + ATOESET → length 4.5, every scoring cast multi-word, 1 steal (TOE), 15 of 18 Magic from words', () => {
+  it('words: AT + ATOESET → length 4.5, every scoring cast multi-word, no steal (TOE grew from 3 — a Hijack needs 4 since F47), 15 of 18 Magic from words', () => {
     expect(y.avgWordLength).toBe(4.5)
     expect(y.multiWordShare).toBe(1)
-    expect(y.steals).toBe(1)
+    expect(y.steals).toBe(0)
+    expect(y.steals).toBe(hijacks(game, 4).filter((h) => h.holder === 0).length)
+    expect(hijacks(game, 3).filter((h) => h.holder === 0)).toHaveLength(1) // TOE, at the old threshold
     expect(b.steals).toBe(0)
     expect(y.wordMagicShare).toBeCloseTo(15 / 18)
     expect(b.multiWordShare).toBe(0)
@@ -96,10 +98,9 @@ describe('meters: a hand-checked game', () => {
     expect([meters(gamble, 0).calledIt, meters(gamble, 0).calledItRight]).toEqual([1, 1])
     expect(meters(gamble, 1).calledIt).toBe(0)
   })
-  it('awards = the end screen’s awards for that seat (Hijack among them)', () => {
+  it('awards = the end screen’s awards for that seat', () => {
     const awards = earnedAwards(game)
     expect(y.awards).toBe(awards.filter((a) => a.holder === 0).length)
-    expect(awards.some((a) => a.id === 'hijack' && a.holder === 0)).toBe(true)
   })
   it('every meter has a plain-English name, and no more', () => {
     expect(Object.keys(y).sort()).toEqual(Object.keys(meterNames).sort())
