@@ -66,7 +66,7 @@ flowchart LR
 - **Room** = the rooms module (`src/rooms/`, framework 0.1.0): codes, join/rejoin by persistentId, host + migration, ready/start, a bot takes a dropped/left/idle seat, empty-room clean-up; its own messages (`join`, `ready`, `start`, `leave`, `back_to_lobby`, `action` → `room`, `view`, `error`, `closed`).
 - **Glyphtender's messages** ride inside it (`party/protocol.ts`): player → `{ kind: 'play', action, version }` or `{ kind: 'sync' }`; server → a `GameView` `{ gameId, version, mySeat, names, change, by, game, turnEndsAt, results }`. `game` is GameState-shaped (the store, board, previews and danger cues work unchanged): other hands and the bag are '?' × count, rng + seed 0, every Magic zeroed until `phase: 'over'`; then `game` is the whole truth and `results.stats` the end table (gathered on the server).
 - **Server checks** (`glyphtenderRules.ts`): shape (the rooms checks helpers) → a seat in this game → its turn → `version` = the server's → the engine's `checkAction` → `applyAction`. Every refusal is a plain-English Error; the state is unchanged.
-- **The server's own turns** (`turnClock.ts`, F43 / D79): the real AI plays them — `aiAction` asks `seatBrain.ts` (the same thinking as the phone's worker) with ONLY `viewFor(game, seat)`, checks the answer with the rules, and falls back to the greedy bot ("keep all" on a refresh) if the AI fails, logged. A bot seat plays one action per paced step (`pace.json` Normal: draft · move + cast · refresh — the refresh is its own step); a timed-out person's turn is played at once. Which AI: a host-added seat's room `profile` ("Scholar/Archmage", `party/aiSeats.ts`), else `defaultAi` (Survivor at First Class). The pauses come from their own secret number (`ServerGame.paceRng`, never sent). The host adds AI seats in the lobby: rooms `add_bot` carries the profile, `botProfile` checks it and names the seat after the personality ("The Survivor", "The Survivor 2"). Tests: server.test (the AI seat's requests = exactly its view, never the log; lobby profiles; pace; fallback) · `npm run e2e:online-ai`.
+- **The server's own turns** (`turnClock.ts`, F43 / D79): the real AI plays them — `aiAction` asks `seatBrain.ts` (the same thinking as the phone's worker) with ONLY `viewFor(game, seat)`, checks the answer with the rules, and falls back to the greedy bot ("keep all" on a refresh) if the AI fails, logged. A bot seat plays one action per paced step (`pace.json` Normal: draft · move + cast · refresh — the refresh is its own step); a timed-out or idle person's seat goes to the bot until they tap (D83). Which AI: a host-added seat's room `profile` ("Scholar/Archmage", `party/aiSeats.ts`), else `defaultAi` (Survivor at First Class). The pauses come from their own secret number (`ServerGame.paceRng`, never sent). The host adds AI seats in the lobby: rooms `add_bot` carries the profile, `botProfile` checks it and names the seat after the personality ("The Survivor", "The Survivor 2"). Tests: server.test (the AI seat's requests = exactly its view, never the log; lobby profiles; pace; fallback) · `npm run e2e:online-ai`.
 - **Word list on the server**: bundled as text. esbuild has no .csv loader, so `scripts/server-words.mjs` copies `public/words/words.csv` → `party/words.gen.txt` (gitignored) before every build (`wrangler.json` → `build.command`; `rules` reads .txt as Text). Server bundle **915 KB minified / 293 KB gzipped** (Workers free limit: 3 MB gzipped).
 - **Device**: my seat plans exactly as pass-and-play; Cast posts at once and the throw flies; the view is applied when the seed lands (if it's late, it asks again every 3 s). Other seats' turns replay on the old view (glide → throw after `glideSeconds` → land → new view + sprout), queued in order. No handoff online. A reload goes straight back to the seat (room code in sessionStorage). Party host = `VITE_PARTY_HOST`, else the page's host + wrangler.json's dev port.
 - **Screens**: main menu → Play online → name + Create / Join (kit Lobby) → lobby (kit Lobby + the host's options: Garden Auto/Small/Large, 2-letter words, Turn timer, Word indicators) → the game → end table (New game = the host takes everyone to the lobby, where the host starts again; a guest's New game says "Waiting for the host…" · Menu = leave). Sprint 06 removed Play again. Connection lost → the kit's Reconnecting box.
@@ -77,8 +77,8 @@ flowchart LR
 | Handoff screen | none (tap to reveal); appears after growTime + wordGlowTime when a seed was thrown — or, if it scored, once its score sequence has faded (store.scoring, D52) | client | turn passes to another local seat (and before turn 1) | — |
 | Grow animation | ~0.8 s (`content/tuning/anim.json`) | client | Cast committed | next turn shown |
 | Reveal steps | tangles 1.4 s · each +3 0.55 s · each count 1.5 s · winner 2.5 s (≈ 8 s for 2 players), skippable | client | game ends, after the last seed grows | next step; after the last → end table |
-| Turn timer (online) | off by default; the host picks 60 / 90 / 120 s (`content/rooms.json` → turnTimerChoices) | server | a seat's turn starts (its refresh is the same turn) | the server's AI plays the turn for them at once (the default AI; its own refresh pick) + 1 missed turn |
-| Idle → bot (online) | 2 missed turns in a row (`missedTurnsBeforeBot`) | server (rooms module) | the first missed turn | a bot takes the seat — played by the AI (Survivor at First Class, F43); a real move takes it back |
+| Turn timer (online) | off by default; the host picks 60 / 90 / 120 s (`content/rooms.json` → turnTimerChoices) | server | a seat's turn starts (its refresh is the same turn) | a bot takes the seat at once (room.timedOut, D83) and plays on at the AI's pace; a tap takes it back |
+| Idle → bot (online) | warning at 30 s (`idleWarnAfterMs`), bot at 60 s (`idleTakeoverAfterMs`) — rooms.json | server (rooms module, D83) | the game waits for that seat (room.onTheClock); any tap/key ("active") or move restarts it | 30 s: a draining bar on their screen only · 60 s: a bot plays their seat mid-turn (the AI, Survivor at First Class); any tap takes it back |
 | Dropped → bot (online) | 60 s (`botTakesOverAfterMs`) | server (rooms module) | a player's connection drops mid-game | a bot takes the seat; rejoining takes it back |
 | Bot turn (online) | the AI's Normal-speed pause per action (`content/ai/pace.json` thinkSeconds: draft 0.6–1.2 s · move + cast 0.8–1.6 s · refresh 0.5–1.0 s) | server | it's a bot seat's turn (its refresh is a step of its own) | the AI thinks (in the room) and plays one action, so the others can watch it |
 | Waiting for my view (online) | 3 s, repeating | client | my action is sent | ask for the view again (`sync`); a same-version answer = the action was lost → the plan comes back |
@@ -146,6 +146,27 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D83 · 2026-10-08 · Idle takeover: a warning bar, then a bot mid-turn, and any tap gives it back (F52, framework rooms 0.4.0)
+  Muzzy: "when a player is absent for 1 minute (no actions), a bot should take over until they are active again…
+  a 30s depleting bar… this is a mid turn takeover, almost as if they had disconnected" · "if there's a timer, then
+  it just makes sense to make a bot take over the turn after the timer runs out". Built in the framework first:
+  the room owns the idle clock — the game only says whose move it waits for (room.onTheClock([seatId]) in
+  turnClock.ts planNextTurn: draft placement, turn and its refresh; a seat that stays on keeps its clock). A
+  connected human on the clock with no move and no "active" ping for idleWarnAfterMs (30 s) gets idle_warning (their
+  screen only: the kit's IdleWarning, a bar draining to the takeover); at idleTakeoverAfterMs (60 s) the seat goes
+  to the bot exactly like a drop-out (kind bot, still connected → the others' "is idle" toast + 🤖), and the
+  existing bot path plays it at the AI's pace. The client pings on pointerdown/keydown while it's its turn, the bar
+  is up, or the bot has its seat (useRoom.active(): ≤ 1 per 5 s, at once when urgent) → the clock restarts / the
+  seat is theirs at once ("is back"). The turn timer running out = room.timedOut(seatId): the same takeover (was:
+  the server played one whole turn at once + missedTurns; 2 in a row → bot). Removed: Seat.missedTurns,
+  missedTurnsBeforeBot, turnClock autoPlay. Leave stays a deliberate bot (no connection, so no tap can take it back
+  — only a rejoin); a dropped player has no idle clock (the 60 s away timer covers them) and still reclaims by
+  reconnecting. Options weighed: keep the missed-turn count and add a timer-off idle clock in the game (two rules
+  for "you weren't there", and every game would rebuild it) · ping on every input unthrottled (flood limit 10/s)
+  · a bot that only plays the rest of the current turn (Muzzy asked "until they are active again"). Bar placed at
+  the centre (at the top it covered the turn bar and ☰; it never catches taps). e2e timings: TEST_IDLE_* wrangler
+  vars on the test server only (party/worker.ts testSettings). Tests: rooms roomServer.test (warn, takeover, ping,
+  ping-back, turn timer, Leave, drop) · server.test · e2e:online-ai.
 D82 · 2026-10-07 · Shuffled turn order (Muzzy: "shuffle the whole order") + AI sign-off lock on balance sims
   Replaces D80's random first seat. GameState.turnOrder (optional — saves before F46 read 0,1,2,3 via turnOrderOf);
   newGame({ turnOrder }) checks it names every seat once; the snake draft = snakeOrder over the order's places;
