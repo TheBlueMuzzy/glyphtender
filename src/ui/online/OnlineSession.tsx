@@ -106,5 +106,6 @@ export function OnlineSession() {
 
   return status === 'reconnecting'
     ? <Reconnecting words={{ title: w.reconnect.title, quit: w.reconnect.quit }} message={w.reconnect.message} onQuit={() => { closeAllScreens(); leaveOnline() }} />
-    : <IdleWarning endsAt={idleWarning?.endsAt ?? null} botPlaying={botPlaysForMe} words={w.idle} />
+    // (centre: at the top it would cover the turn bar and ☰; it never catches taps)
+    : <IdleWarning place="center" endsAt={idleWarning?.endsAt ?? null} botPlaying={botPlaysForMe} words={w.idle} />
 }
