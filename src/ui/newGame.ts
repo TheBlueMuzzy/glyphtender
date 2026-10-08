@@ -57,7 +57,7 @@ const defaultSeats = (): SeatChoice[] => Array.from({ length: MAX_PLAYERS }, () 
 /** First time: 2 players on their default board, 2-letter words as rules.json says, seeds NOT hidden (players opt in),
  *  word indicators on, every seat a person. */
 export const defaultChoices = (): NewGameChoices => ({
-  players: MIN_PLAYERS, boardName: defaultBoardFor(MIN_PLAYERS), twoLetterWords: rulesJson.twoLetterWordsAtStart === 1, // standard play: off (Muzzy 2026-10-07) hideSeeds: false, wordIndicators: true,
+  players: MIN_PLAYERS, boardName: defaultBoardFor(MIN_PLAYERS), twoLetterWords: rulesJson.twoLetterWordsAtStart === 1, hideSeeds: false, wordIndicators: true,
   seats: defaultSeats(),
 })
 
