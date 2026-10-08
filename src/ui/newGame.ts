@@ -94,17 +94,21 @@ function seatFrom(saved: unknown): SeatChoice {
   }
 }
 
+/** Saves from before 2026-10-08 remembered "2-letter words on" back when on was the default. Those saves get the new
+ *  default (off — standard play, Muzzy: "it should default to off") once; a choice saved since then sticks. */
+const TWO_LETTER_SAVES_SINCE = 2
+
 /** The last choices made on this device, or the defaults (anything missing or odd falls back too). */
 export function loadChoices(storage: Storage | null = browserStorage()): NewGameChoices {
   const fallback = defaultChoices()
   try {
-    const saved = JSON.parse(storage?.getItem(SAVE_KEY) ?? 'null') as Partial<NewGameChoices> | null
+    const saved = JSON.parse(storage?.getItem(SAVE_KEY) ?? 'null') as (Partial<NewGameChoices> & { twoLetterSave?: number }) | null
     if (!saved) return fallback
     const players = Number.isInteger(saved.players) && saved.players! >= MIN_PLAYERS && saved.players! <= MAX_PLAYERS ? saved.players! : fallback.players
     const boardName = boardNames().includes(String(saved.boardName)) ? String(saved.boardName) : defaultBoardFor(players)
     return {
       players, boardName,
-      twoLetterWords: typeof saved.twoLetterWords === 'boolean' ? saved.twoLetterWords : fallback.twoLetterWords,
+      twoLetterWords: typeof saved.twoLetterWords === 'boolean' && saved.twoLetterSave === TWO_LETTER_SAVES_SINCE ? saved.twoLetterWords : fallback.twoLetterWords,
       hideSeeds: typeof saved.hideSeeds === 'boolean' ? saved.hideSeeds : fallback.hideSeeds,
       wordIndicators: typeof saved.wordIndicators === 'boolean' ? saved.wordIndicators : fallback.wordIndicators,
       // the first seat is always you (New Game has no row for it) — an older save with an AI there comes back as a person
@@ -117,7 +121,7 @@ export function loadChoices(storage: Storage | null = browserStorage()): NewGame
 
 export function saveChoices(choices: NewGameChoices, storage: Storage | null = browserStorage()) {
   try {
-    storage?.setItem(SAVE_KEY, JSON.stringify(choices))
+    storage?.setItem(SAVE_KEY, JSON.stringify({ ...choices, twoLetterSave: TWO_LETTER_SAVES_SINCE }))
   } catch {
     // Storage full or refused: the game still starts, it just won't remember
   }

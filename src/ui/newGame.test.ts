@@ -32,6 +32,14 @@ describe('new game choices', () => {
     expect(loadChoices(storage)).toEqual(mine)
   })
 
+  it('2-letter words: a save from before the default went off comes back OFF once; a choice saved since then sticks (Muzzy 2026-10-08)', () => {
+    const storage = memory()
+    storage.setItem('glyphtender:new-game', JSON.stringify({ ...defaultChoices(), twoLetterWords: true })) // an old save: no marker
+    expect(loadChoices(storage).twoLetterWords).toBe(false)
+    saveChoices({ ...defaultChoices(), twoLetterWords: true }, storage) // chosen ON since then
+    expect(loadChoices(storage).twoLetterWords).toBe(true)
+  })
+
   it('a player who saved "hide seeds" on keeps it (the default is off)', () => {
     const storage = memory()
     saveChoices({ ...defaultChoices(), hideSeeds: true }, storage)

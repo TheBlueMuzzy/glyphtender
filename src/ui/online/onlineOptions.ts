@@ -21,15 +21,19 @@ function browserStorage(): Storage | null {
   }
 }
 
+/** Saves from before 2026-10-08 remembered "2-letter words on" back when on was the default. Those saves get the new
+ *  default (off — standard play, Muzzy: "it should default to off") once; a choice saved since then sticks. */
+const TWO_LETTER_SAVES_SINCE = 2
+
 /** The host's last options, or the defaults (anything missing or odd falls back too). */
 export function loadOnlineOptions(storage: Storage | null = browserStorage()): OnlineOptions {
   const fallback = defaultOnlineOptions()
   try {
-    const saved = JSON.parse(storage?.getItem(SAVE_KEY) ?? 'null') as Partial<OnlineOptions> | null
+    const saved = JSON.parse(storage?.getItem(SAVE_KEY) ?? 'null') as (Partial<OnlineOptions> & { twoLetterSave?: number }) | null
     if (!saved) return fallback
     return {
       boardName: ['auto', ...boardNames()].includes(String(saved.boardName)) ? String(saved.boardName) : fallback.boardName,
-      minWordLength: saved.minWordLength === 2 || saved.minWordLength === 3 ? saved.minWordLength : fallback.minWordLength,
+      minWordLength: (saved.minWordLength === 2 || saved.minWordLength === 3) && saved.twoLetterSave === TWO_LETTER_SAVES_SINCE ? saved.minWordLength : fallback.minWordLength,
       turnSeconds: roomsJson.turnTimerChoices.includes(Number(saved.turnSeconds)) ? Number(saved.turnSeconds) : fallback.turnSeconds,
       wordIndicators: typeof saved.wordIndicators === 'boolean' ? saved.wordIndicators : fallback.wordIndicators,
     }
@@ -40,7 +44,7 @@ export function loadOnlineOptions(storage: Storage | null = browserStorage()): O
 
 export function saveOnlineOptions(options: OnlineOptions, storage: Storage | null = browserStorage()) {
   try {
-    storage?.setItem(SAVE_KEY, JSON.stringify(options))
+    storage?.setItem(SAVE_KEY, JSON.stringify({ ...options, twoLetterSave: TWO_LETTER_SAVES_SINCE }))
   } catch {
     // Storage full or refused: the game still starts, it just won't remember
   }

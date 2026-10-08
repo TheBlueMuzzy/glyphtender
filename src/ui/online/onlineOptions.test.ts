@@ -22,4 +22,12 @@ describe('the host’s online table options', () => {
     storage.setItem('glyphtender:online-options', 'not json')
     expect(loadOnlineOptions(storage)).toEqual(defaultOnlineOptions())
   })
+
+  it('2-letter words: an old save (from when on was the default) comes back OFF once; a choice saved since sticks', () => {
+    const storage = memory()
+    storage.setItem('glyphtender:online-options', JSON.stringify({ boardName: 'auto', minWordLength: 2, turnSeconds: 0, wordIndicators: true }))
+    expect(loadOnlineOptions(storage).minWordLength).toBe(3)
+    saveOnlineOptions({ boardName: 'auto', minWordLength: 2, turnSeconds: 0, wordIndicators: true }, storage)
+    expect(loadOnlineOptions(storage).minWordLength).toBe(2)
+  })
 })
