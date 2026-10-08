@@ -1,10 +1,9 @@
 ## ▶ RESUME HERE
-2026-10-07 — **Released v0.5.0** (v0.7 AI opponents ✅ — beta musts 18/18): shuffled turn order every game, 3 players on Small, 2-letter words off at start, awards re-tuned from AI games (Power Play = 3 words of 3+ letters; Bridge = a bridge letter in a 4-letter word, Super Bridge = 5+). Server + site deployed. AI signed off by Muzzy (content/ai/signoff.json).
-**Ask Muzzy (open):** (carried) AI aim hold keep/shorten/drop · online AI named after the personality OK? · no "Surprise me" online OK? · first-time New Game = you + 1 AI? · F37 confirms.
-Next: beta label needs the beta audits (optimize · accessibility-check · web-design-guidelines + a phone test) → then `/deliver` as beta. Or `/sprint` (audio milestone, F49 "What wins?", the Strategist / RPS fix, achievement replay idea).
+2026-10-08 — **Sprint 18 (online with friends: nobody waits, everyone knows who's playing): F52 idle takeover with a warning bar (framework rooms first), F53 ⓘ rules & settings.** Branch dev/fixes also holds the v0.5.1 fixes (lobby AI rows = New Game's, another player's draft glyphling shakes). Muzzy: build F52 + F53 before putting the fixes live → then /deliver v0.5.1.
+Next: /develop continues SPRINT.md.
 
 ## Where we are
-Stage: deliver · Milestone: v0.7 AI opponents ✅ (→ beta audits) · Sprint: none (17 done) · Doing: released v0.5.0 — next: beta audits or /sprint · Branch: main · Version: 0.5.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.0, online)
+Stage: develop · Milestone: v0.8 Playing online with friends · Sprint: 18 · Doing: F52 + F53 · Branch: dev/fixes · Version: 0.5.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
