@@ -12,8 +12,8 @@ describe('new game choices', () => {
     expect(boardNames()).toEqual(['small', 'large'])
   })
 
-  it('first time: 2 players on the Small garden, 2-letter words on, seeds NOT hidden (opt in), word indicators on', () => {
-    expect(defaultChoices()).toMatchObject({ players: 2, boardName: 'small', twoLetterWords: true, hideSeeds: false, wordIndicators: true })
+  it('first time: 2 players on the Small garden, 2-letter words OFF (standard play), seeds NOT hidden (opt in), word indicators on', () => {
+    expect(defaultChoices()).toMatchObject({ players: 2, boardName: 'small', twoLetterWords: false, hideSeeds: false, wordIndicators: true })
     expect(defaultChoices().seats.every((seat) => !seat.ai)).toBe(true) // every seat a person
     expect(loadChoices(memory())).toEqual(defaultChoices())
     expect(loadChoices(null)).toEqual(defaultChoices()) // no storage at all

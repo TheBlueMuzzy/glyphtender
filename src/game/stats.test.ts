@@ -238,10 +238,10 @@ describe('awards (skill, earned only)', () => {
     expect(ids(game(own), { ...T, walledMaxSize: 1 })).not.toContain('walledGarden:0')
   })
 
-  it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its awards: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (a 2-turn hunt 12 → 3 = 75%, D68), and since F47 Weed toss (cut 7) + Bridge for both (level 1: 1 letter each side)', () => {
+  it('Muzzy’s real game (2026-10-03, 0 awards before D55) earns its awards: Walled garden by a rival’s wall, hedge ×2, comeback, Pincer (a 2-turn hunt 12 → 3 = 75%, D68), and since F47 Weed toss (cut 7) + Yellow’s Bridge (a bridge letter in a 4-letter word)', () => {
     const real = JSON.parse(readFileSync('e2e/fixtures/muzzy-zero-awards.json', 'utf8')).state.game as GameState
     const got = earnedAwards(real)
-    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['bridge:0', 'bridge:1', 'comeback:0', 'pincer:0', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0', 'weedToss:0'])
+    expect(got.map((a) => `${a.id}:${a.holder}`).sort()).toEqual(['bridge:0', 'comeback:0', 'pincer:0', 'throughHedge:0', 'throughHedge:1', 'walledGarden:0', 'weedToss:0'])
     expect(got.find((a) => a.id === 'walledGarden')?.values.n).toBe(43)
     expect(got.find((a) => a.id === 'pincer' && a.holder === 0)?.values).toMatchObject({ from: 12, to: 3, turns: 2, pct: 75 })
   })
@@ -277,13 +277,14 @@ describe('awards (skill, earned only)', () => {
       [1, [], { words: [words('PARTS', '11011', 0, ['0,-1', ...h(3), '0,3'])], magic: 5 }], // not a bridge: the seed is at the start
       [0, [], { words: [words('ROUND', '00100', 2, h(5))], magic: 5 }],
     ])
-    // ROUND: 2 letters each side of the U → Super Bridge (not a Bridge as well)
+    // ROUND: a bridge letter (the U — not first or last) in a 5-letter word → Super Bridge (not a Bridge as well)
     expect(one(g, 'superBridge')).toMatchObject({ holder: 0, values: { letter: 'U', left: 'RO', right: 'ND', word: 'ROUND' } })
     expect(earnedAwards(g, T).filter((a) => a.id === 'bridge')).toHaveLength(0)
-    // 1 letter each side (C|A|T, the A) → Bridge (level 1)
-    const one1 = finished(2, [[0, [], { words: [words('CAT', '000', 1, h(3))], magic: 3 }]])
-    expect(one(one1, 'bridge')).toMatchObject({ holder: 0, values: { letter: 'A', left: 'C', right: 'T', word: 'CAT' } })
+    // a bridge letter in a 4-letter word (chAt) → Bridge; in a 3-letter word (cAt) → nothing (Muzzy 2026-10-07)
+    const one1 = finished(2, [[0, [], { words: [words('CHAT', '0000', 2, h(4))], magic: 4 }]])
+    expect(one(one1, 'bridge')).toMatchObject({ holder: 0, values: { letter: 'A', left: 'CH', right: 'T', word: 'CHAT' } })
     expect(earnedAwards(one1, T).filter((a) => a.id === 'superBridge')).toHaveLength(0)
+    expect(ids(finished(2, [[0, [], { words: [words('CAT', '000', 1, h(3))], magic: 3 }]])).filter((x) => /ridge/.test(x))).toEqual([])
     // Blue's PARTS holds Yellow's ART and Blue owns most of it (4 of 5)
     expect(one(g, 'hijack')).toMatchObject({ holder: 1, values: { other: 0, from: 'ART', word: 'PARTS' } })
     // owning only half isn't most; and an old log without hexes can't tell
