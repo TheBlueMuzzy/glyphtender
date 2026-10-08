@@ -183,7 +183,7 @@ flowchart LR
 Goal: an online game with friends that never stalls and always says who's playing — from Muzzy's first live games (2026-10-08).
 - 🔨 F52 🎮 Idle takeover with a warning bar — 30 s without doing anything on your turn → a draining bar on your screen; at 60 s a bot plays for you, mid-turn, until you're active again (tap anything). Replaces "missed turns" (rooms.json missedTurnsBeforeBot) and makes the turn timer hand over to the bot too. Framework rooms module (0.4.0) + a UI kit warning piece, then switched on here — must · needs: F43
   why: nobody waits on an absent friend, and nobody is surprised by a bot → Fellowship
-- 🔨 F53 🎮 Rules & settings ⓘ — an ⓘ at the top left during a game → this game's settings (players + turn order, garden, 2-letter words, hide seeds, word indicators, turn timer online) and the How to play pages; tap anywhere to close. Kit parts only — should · needs: —
+- 🔨 F53 🎮 2-letter words shown in the Pause menu (Muzzy 2026-10-08 cut the ⓘ rules/settings pop-up: the only setting you can't see in play is 2-letter words) — one quiet line, kit Pause note — should · needs: —
 - 🐞 B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); re-test once F52 lands — must
 
 ## Later

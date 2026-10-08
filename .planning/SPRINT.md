@@ -10,11 +10,11 @@ Done when: online, a human seat that is on the clock (its turn, or its draft pla
 - [ ] 🤖 4. e2e:online — idle → bar → bot → tap → back; others' toasts + 🤖; re-test B024 (Menu → Leave)
 - [ ] 🤖 5. GDD (online) + TDD decision; framework design note
 
-## F53 🎮 Rules & settings ⓘ (Muzzy 2026-10-08)
-Done when: during any game (local and online) an ⓘ sits at the top left; tapping it opens a modal with this game's settings and the How to play pages (the same words as the menu's, en.json game.rules); a tap anywhere closes it; kit parts only (game-ui); screenshots at all 7 sizes, nothing clipped or touching edges.
-- [ ] 🤖 1. ⓘ button in the turn bar's top left (TurnBar.tsx) — kit Button icon
-- [ ] 🤖 2. The modal: settings list (players + this game's turn order, garden, 2-letter words, hide seeds, word indicators, turn timer online) + the rules pages; tap anywhere closes
-- [ ] 🤖 3. Words in en.json; e2e + screenshots at every size
+## F53 🎮 2-letter words shown in Pause (Muzzy 2026-10-08 — the ⓘ pop-up was cut: "it's not about 'how to play'… namely if 2 letter words are allowed… are there any other settings?… this seems pointless")
+The only setting you can't see while playing is 2-letter words → one quiet line in the ☰ Pause menu, no new button.
+Done when: the Pause menu shows "2-letter words: on/off" for the game in progress (local + online); kit Pause gets an optional note line (framework first — added in F52's kit bump).
+- [ ] 🤖 1. Kit Pause `note` prop (framework ui-kit, in F52's bump — f52 helper)
+- [ ] 🤖 2. src/ui/menus.tsx passes the note from the game's minWordLength; words in en.json; screenshot check
 
 Check: check:fast after each feature · check:full once at the end · then /deliver v0.5.1.
 Ask Muzzy: —
