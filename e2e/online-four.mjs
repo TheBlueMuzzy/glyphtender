@@ -156,7 +156,8 @@ try {
     // and the badge is 🤖 — which one depends on how long the table took to reach his turn (the turn order is shuffled)
     const status = (await ada.page.evaluate(() => window.__glyphtender.online.getState().room?.room?.seats?.[2]?.kind)) === 'bot' ? 'bot' : 'away'
     const shown = (p) => p.page.locator(`.game-turn-bar [data-seat-status="${status}"]`).count()
-    await ada.page.waitForFunction((st) => document.querySelector(`.game-turn-bar [data-seat-status="${st}"]`), status, { timeout: 5000 }).catch(() => {})
+    // each screen may still be replaying the turn before his (the shuffled order decides whose), so wait on each one
+    for (const p of others) await p.page.waitForFunction((st) => document.querySelector(`.game-turn-bar [data-seat-status="${st}"]`), status, { timeout: 8000 }).catch(() => {})
     for (const p of others) check(`${p.name} sees ${status === 'away' ? '"Away"' : '🤖'} on Cy's portrait`, (await shown(p)) > 0)
     for (const p of others) await shot(p, '4-cy-away')
     await wait(1500)
