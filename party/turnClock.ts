@@ -1,10 +1,13 @@
 // THE TURN CLOCK — after every change: whose turn is it, and does the server have to play it?
-//   · a bot has the seat (the host added an AI, or the player left, idled, or stayed away past botTakesOverAfterMs)
+//   · whoever it is, the rooms module's idle clock watches them (room.onTheClock — rooms.json idleWarnAfterMs /
+//     idleTakeoverAfterMs): a person who does nothing gets a draining bar, then a bot plays for them until they tap
+//   · a bot has the seat (the host added an AI, or the player left, idled, ran out of turn time, or stayed away past
+//     botTakesOverAfterMs)
 //     → the AI plays it at a person's pace: it "thinks" for a moment first (content/ai/pace.json at Normal speed —
 //     the same pauses as an AI on a phone), then plays ONE action (a draft placement, a turn, or its refresh), so the
 //     others watch it happen like any player's turn
-//   · the host turned the timer on → the turn (incl. its refresh) must be played in time; if not, the server
-//     plays it for them at once and the rooms module counts a missed turn (2 in a row → a bot takes the seat)
+//   · the host turned the timer on → the turn (incl. its refresh) must be played in time; if not, a bot takes the
+//     seat at once (room.timedOut — the same takeover as idling: a tap gives it back) and plays on at a person's pace
 // Turns the server plays: the real AI (F43) — the seat's own (a host-added AI seat carries "<personality>/<skill>",
 // aiSeats.ts) or the default AI (Survivor at First Class, store/seats.ts defaultAi) for a seat a bot took over.
 // It decides from that seat's VIEW only (rules.viewFor), never the whole game (F36). It thinks right here in the room
@@ -40,9 +43,13 @@ export function planNextTurn(state: ServerGame, room: RoomTools<ServerGame, neve
   room.timers.stop(BOT_TIMER)
   if (game.phase === 'over') {
     room.timers.stop(TURN_TIMER)
+    room.onTheClock([])
     return { ...state, turnEndsAt: null }
   }
   const seatId = state.seatIds[game.current]
+  // The game waits for this seat (a draft placement, a turn, or its refresh): the room's idle clock watches it
+  // (it skips a seat a bot holds, and keeps the clock running when the same seat stays on — e.g. move → refresh)
+  room.onTheClock([seatId])
   const seat = room.seats().find((s) => s.id === seatId)
   if (!seat || seat.kind === 'bot') {
     room.timers.stop(TURN_TIMER)
@@ -55,10 +62,8 @@ export function planNextTurn(state: ServerGame, room: RoomTools<ServerGame, neve
   // The refresh after a turn is still the same turn: its clock keeps running
   if (game.phase === 'refresh' && room.timers.isRunning(TURN_TIMER)) return state
   const ms = state.options.turnSeconds * 1000
-  room.timers.start(TURN_TIMER, ms, () => {
-    room.update((now) => autoPlay(now, room, words))
-    room.missedTurn(seatId)
-  })
+  // Out of time: a bot takes the seat now (onSeatChange 'bot' → it plays on, at a person's pace)
+  room.timers.start(TURN_TIMER, ms, () => room.timedOut(seatId))
   return { ...state, turnEndsAt: Date.now() + ms }
 }
 
@@ -99,21 +104,5 @@ export function botStep(state: ServerGame, room: RoomTools<ServerGame, never>, w
   const seat = state.game.current
   const picked = aiAction(state, room, words())
   const next = { ...play(state, seat, picked.action, words()), botRng: picked.rng }
-  return planNextTurn(next, room, words)
-}
-
-/** A person's turn timer ran out: the AI plays the whole turn for them at once (move + cast, then its refresh). */
-export function autoPlay(state: ServerGame, room: RoomTools<ServerGame, never>, words: () => WordList): ServerGame {
-  const seat = state.game.current
-  let next = state
-  if (next.game.phase !== 'refresh') {
-    const picked = aiAction(next, room, words())
-    next = { ...play(next, seat, picked.action, words()), botRng: picked.rng }
-  }
-  if (next.game.phase === 'refresh' && next.game.current === seat) {
-    const picked = aiAction(next, room, words())
-    next = { ...play(next, seat, picked.action, words()), botRng: picked.rng }
-  }
-  room.log(`the server played a turn for seat ${seat}`)
   return planNextTurn(next, room, words)
 }

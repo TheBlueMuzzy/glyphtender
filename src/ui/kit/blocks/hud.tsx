@@ -9,18 +9,20 @@ import { useCountUp } from './motion'
 import { fill } from './words'
 
 // PAUSE — a dialog over the game. Resume closes it; Quit asks first (turn off with confirmQuit={false}).
+// note: one quiet caption line under the title, above the buttons (e.g. this game's settings: "Small garden · 2-letter words off").
 export const pauseWords = { title: 'Paused', resume: 'Resume', settings: 'Settings', howToPlay: 'How to play', quit: 'Quit', quitTitle: 'Quit this game?', quitMessage: 'Your progress in this round will be lost.' }
 type PauseProps = {
   onResume?: () => void; onSettings?: () => void; onHowToPlay?: () => void; onQuit?: () => void
-  confirmQuit?: boolean; words?: Partial<typeof pauseWords>
+  confirmQuit?: boolean; note?: ReactNode; words?: Partial<typeof pauseWords>
 }
-export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay, onQuit, confirmQuit = true, words }: PauseProps) {
+export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay, onQuit, confirmQuit = true, note, words }: PauseProps) {
   const w = { ...pauseWords, ...words }
   const quit = () => confirmQuit && onQuit
     ? askConfirm({ title: w.quitTitle, message: w.quitMessage, danger: true, onConfirm: onQuit, words: { yes: w.quit } })
     : onQuit?.()
   return (
     <Modal title={w.title}>
+      {note && <Text kind="caption">{note}</Text>}
       <Stack gap="s" className="kit-menu">
         <Button onClick={onResume}>{w.resume}</Button>
         {onSettings && <Button variant="secondary" onClick={onSettings}>{w.settings}</Button>}

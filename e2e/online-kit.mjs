@@ -15,10 +15,12 @@ const portFree = (port) => new Promise((ok) => {
  *  stop() closes only those. The page finds that server through VITE_PARTY_PORT (ui/online/session.ts).
  *  Each run keeps its OWN storage (--persist-to .wrangler/state-e2e-<port>): two wrangler devs sharing
  *  .wrangler/state lock each other (SQLITE_BUSY) and crash — e.g. Muzzy's play server. */
-export async function startServers(vitePort, partyPort, usage) {
+export async function startServers(vitePort, partyPort, usage, vars = {}) {
   if (!(await portFree(partyPort))) throw new Error(`Port ${partyPort} is busy — pass another: ${usage}`)
   if (!(await portFree(vitePort))) throw new Error(`Port ${vitePort} is busy — pass another: ${usage}`)
-  const party = spawn(`npx wrangler dev --port ${partyPort} --ip 127.0.0.1 --inspector-port 0 --persist-to .wrangler/state-e2e-${partyPort}`, { shell: true, cwd: process.cwd() })
+  // vars: test-only server settings, e.g. { TEST_IDLE_TAKEOVER_MS: 8000 } (party/worker.ts testSettings)
+  const varFlags = Object.entries(vars).map(([key, value]) => ` --var ${key}:${value}`).join('')
+  const party = spawn(`npx wrangler dev --port ${partyPort} --ip 127.0.0.1 --inspector-port 0 --persist-to .wrangler/state-e2e-${partyPort}${varFlags}`, { shell: true, cwd: process.cwd() })
   let partyLog = ''
   party.stdout.on('data', (d) => { partyLog += d })
   party.stderr.on('data', (d) => { partyLog += d })

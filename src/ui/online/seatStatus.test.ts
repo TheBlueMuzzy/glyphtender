@@ -4,7 +4,7 @@ import { seatNotices, seatStatus } from './seatStatus'
 
 // B015: when a bot takes a seat mid-game, the other players must be told (badge on the portrait + a toast)
 const seat = (id: string, name: string, part: Partial<Seat> = {}): Seat =>
-  ({ id, name, kind: 'human', isHost: false, connected: true, ready: false, missedTurns: 0, ...part })
+  ({ id, name, kind: 'human', isHost: false, connected: true, ready: false, ...part })
 const room = (seats: Seat[], phase: RoomState['phase'] = 'playing'): RoomState => ({ code: 'BAKU', phase, seats, minSeats: 2, maxSeats: 4 })
 
 describe('seat status (what the portrait shows)', () => {
@@ -29,7 +29,7 @@ describe('seat notices (the toasts)', () => {
   })
 
   it('a bot takes the seat of a player who is still connected but idle', () => {
-    const bot = room([{ ...ada, kind: 'bot', missedTurns: 2 }, bo])
+    const bot = room([{ ...ada, kind: 'bot' }, bo])
     expect(seatNotices(room([ada, bo]), bot, 'seat-2')).toEqual([{ name: 'Ada', kind: 'botIdle' }])
   })
 

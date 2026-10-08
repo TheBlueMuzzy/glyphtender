@@ -142,6 +142,22 @@
     padding: var(--gap-s) var(--gap-m); max-inline-size: min(20rem, calc(100vw - 2 * var(--gap-m))); }
   .kit-tooltip:not(:popover-open) { display: none; } /* Panel's display would otherwise show it */
 
+  /* Idle warning: a popover like the toasts (above everything, on the game picture — out of the letterbox bars),
+     centred sideways, and it never catches taps. A FIXED width, so swapping the line (warning ↔ bot playing) or the
+     bar never resizes it. data-place: top (default), center or bottom. */
+  .kit-idle { --kit-letterbox-h: calc((100dvh - var(--kit-frame-h, 100dvh)) / 2);
+    --kit-letterbox-w: calc((100vw - var(--kit-frame-w, 100vw)) / 2);
+    inset-block: 0 auto; inset-inline: var(--kit-letterbox-w);
+    margin: calc(var(--kit-letterbox-h) + max(var(--gap-m), env(safe-area-inset-top))) auto 0; padding: 0; border: 0; background: none;
+    overflow: visible; display: none; pointer-events: none;
+    inline-size: min(22rem, calc(var(--kit-frame-w, 100vw) - 2 * var(--gap-m))); }
+  .kit-idle[data-place="center"] { inset-block: 0; margin: auto; }
+  .kit-idle[data-place="bottom"] { inset-block: auto 0; margin: 0 auto calc(var(--kit-letterbox-h) + max(var(--gap-m), env(safe-area-inset-bottom))); }
+  .kit-idle:popover-open { display: flex; }
+  .kit-idle-card { inline-size: 100%; align-items: stretch; text-align: center; }
+  .kit-idle-card .kit-number { align-self: center; }
+  .kit-idle-bar { block-size: 0.5rem; }
+
   .kit-empty { align-items: center; text-align: center; padding: var(--gap-l); }
   .kit-spinner-big { display: inline-block; inline-size: 2.5rem; block-size: 2.5rem; border-width: 0.3rem; }
 }
@@ -149,6 +165,8 @@
 /* ───────────── kit-style: paint ───────────── */
 @layer kit-style {
   .kit-toast[data-variant="danger"] { border-color: var(--danger); }
+  /* The idle bar drains from full to empty over the time left (linear: it IS the clock) */
+  .kit-idle-bar .kit-progress-fill { inline-size: 100%; transition: none; animation: kit-idle-drain var(--kit-idle-ms, 30s) linear forwards; }
   .kit-spinner-big { color: var(--primary); }
   .kit-tooltip { animation: kit-fade var(--motion-fast) var(--ease); }
   .kit-pip { background: var(--border); border-radius: var(--radius-control); corner-shape: var(--corner-shape); outline: var(--border-width) solid var(--ink); }
@@ -187,6 +205,9 @@
   .kit-dot[data-status="weak"] { box-shadow: inset 0 0 0 0.1875rem var(--danger); } /* a hollow red dot: half there */
   .kit-dot[data-status="lost"] { background: var(--danger); }
 }
+
+/* The idle warning's bar: full → empty */
+@keyframes kit-idle-drain { from { inline-size: 100%; } to { inline-size: 0%; } }
 
 /* The +N float-up: rises and fades (a style's motion-normal × 4) */
 @keyframes kit-float-up { to { opacity: 0; transform: translateY(-1.75em); } }

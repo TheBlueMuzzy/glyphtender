@@ -5,7 +5,9 @@
 // row) → Bo joins, sees the AI (no Remove for him), gets ready → Start (3 seats: Ada, Bo, the Strategist) → the AI
 // places and plays on the server: its draft placement TRAVELS out of the tray to its hex on Ada's screen like a
 // person's drag (frame check, e2e/draft-travel.mjs — F50's, never a pop), its turns GLIDE like any player's (a [data-glide] animation), the
-// turn bar shows 🤖 on its turn → Bo LEAVES mid-game: the default AI (Survivor) plays his seat from then on →
+// turn bar shows 🤖 on its turn → F52: Ada idles on her turn (short test timings: TEST_IDLE_* vars on this server) →
+// the draining bar on her screen only → a bot plays for her (Bo: "Ada is idle" toast + 🤖) → she taps → seat back
+// (Bo: "Ada is back") → Bo LEAVES mid-game (B024: Ada gets "Bo left" + 🤖): the default AI (Survivor) plays his seat from then on →
 // Ada plays to the end against two AIs → the end table has all three names.
 // Every WebSocket frame each browser receives is recorded: the run FAILS if one ever holds another player's seeds,
 // the bag, the log, the rng, the seed or any Magic before the game is over. Screenshots checked (nothing past an
@@ -27,7 +29,11 @@ const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
 const check = (what, ok) => { if (!ok) fail(what) }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
-const { browser, stop } = await startServers(VITE_PORT, PARTY_PORT, 'npm run e2e:online-ai e2e-shots <vitePort> <partyPort>')
+// F52: short idle timings on THIS test server (rooms.json says 30 s / 60 s) — long enough that nobody who's playing
+// along (each turn is played as soon as the screen allows) is ever taken over by accident
+const IDLE_WARN_MS = 10_000, IDLE_TAKEOVER_MS = 20_000
+const { browser, stop } = await startServers(VITE_PORT, PARTY_PORT, 'npm run e2e:online-ai e2e-shots <vitePort> <partyPort>',
+  { TEST_IDLE_WARN_MS: IDLE_WARN_MS, TEST_IDLE_TAKEOVER_MS: IDLE_TAKEOVER_MS })
 async function context(viewport, mobile) {
   const ctx = await browser.newContext({ viewport, isMobile: mobile, hasTouch: mobile })
   await ctx.addInitScript(() => { // (Full screen off: this check resizes a phone's window)
@@ -167,6 +173,46 @@ try {
   const seen = await ada.page.evaluate(() => window.__aiSeen)
   check(`the AI's moves glide on Ada's screen like anyone's (${seen.glides} glide frames)`, seen.glides > 0)
   check(`🤖 by the AI's portrait on its turn (${seen.robot} frames)`, seen.robot > 0)
+
+  // ---- F52: Ada idles on her turn: a draining bar on HER screen, then a bot plays for her mid-turn (Bo: the toast +
+  // 🤖 by her portrait); any tap gives her seat back (Bo: "Ada is back") ----
+  await playUntil([ada, bo], async () => (await myTurn(ada)), 60)
+  await bo.page.evaluate(() => {
+    window.__adaIdle = { toasts: [], robot: 0 }
+    setInterval(() => {
+      for (const t of document.querySelectorAll('.kit-toast')) {
+        if (/Ada/.test(t.textContent ?? '') && !window.__adaIdle.toasts.includes(t.textContent)) window.__adaIdle.toasts.push(t.textContent)
+      }
+      const s = window.__glyphtender.store.getState()
+      if (s.game?.current === 0 && document.querySelector('.game-turn-bar [data-seat-status="bot"]')) window.__adaIdle.robot++
+    }, 50)
+  })
+  const idleBar = ada.page.locator('.kit-idle .kit-idle-bar')
+  const barShown = await idleBar.waitFor({ timeout: IDLE_WARN_MS + 5000 }).then(() => true, () => false)
+  check('Ada idles on her turn: the draining bar shows on her screen', barShown)
+  check('…and only on hers (not on Bo\'s)', (await bo.page.locator('.kit-idle').count()) === 0)
+  check('the bar\'s one line', (await ada.page.getByText('Still there? A bot plays for you soon').count()) === 1)
+  for (const size of [TALL, WIDE, DESK]) { // (the bar is up for IDLE_TAKEOVER_MS - IDLE_WARN_MS: room for three shots)
+    await ada.page.setViewportSize(size)
+    await shot(ada, '2-idle-warning', 300)
+  }
+  await ada.page.setViewportSize(TALL)
+  const adaIsBot = await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.[0]?.kind === 'bot', null, { timeout: IDLE_TAKEOVER_MS }).then(() => true, () => false)
+  check('a bot took Ada\'s seat when she stayed idle', adaIsBot)
+  const tapLine = ada.page.getByText('A bot is playing for you — tap to play')
+  check('Ada sees "A bot is playing for you — tap to play"', await tapLine.waitFor({ timeout: 5000 }).then(() => true, () => false))
+  check('…and the bar is gone', (await idleBar.count()) === 0)
+  await shot(ada, '2-idle-bot', 300)
+  await bo.page.waitForFunction(() => window.__adaIdle.robot > 0 && window.__adaIdle.toasts.some((t) => /idle/.test(t)), null, { timeout: 8000 }).catch(() => {})
+  await ada.page.mouse.click(8, 300) // any tap (here beside the board) → her seat is hers again
+  const adaBack = await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.[0]?.kind === 'human', null, { timeout: 5000 }).then(() => true, () => false)
+  check('Ada taps: her seat is hers again at once', adaBack)
+  check('…and the "tap to play" line goes', await tapLine.waitFor({ state: 'detached', timeout: 5000 }).then(() => true, () => false))
+  await bo.page.waitForFunction(() => window.__adaIdle.toasts.some((t) => /back/.test(t)), null, { timeout: 5000 }).catch(() => {})
+  const adaIdle = await bo.page.evaluate(() => window.__adaIdle)
+  check(`Bo is told a bot is playing for idle Ada ("${adaIdle.toasts.join('" · "')}")`, adaIdle.toasts.some((t) => /Ada is idle/.test(t)))
+  check(`🤖 by Ada's portrait on Bo's screen while the bot played (${adaIdle.robot} frames)`, adaIdle.robot > 0)
+  check('Bo is told "Ada is back"', adaIdle.toasts.some((t) => /Ada is back/.test(t)))
 
   // ---- Bo leaves mid-game: the default AI plays his seat ----
   await playUntil([ada, bo], async () => (await myTurn(bo)), 60)

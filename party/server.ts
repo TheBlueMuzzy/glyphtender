@@ -6,6 +6,7 @@
 // Server code only: no React, no Dev Kit, nothing that needs a browser.
 import { RoomServer } from '../src/rooms/server/roomServer'
 import type { PartyRoom } from '../src/rooms/server/roomServer'
+import type { RoomSettings } from '../src/rooms/server/settings'
 import settings from '../content/rooms.json'
 import { parseWordList } from '../src/engine/words'
 import type { WordList } from '../src/engine/types'
@@ -22,7 +23,8 @@ const loadWords = () => (words ??= parseWordList(wordsText))
 const rules = makeRules({ words: loadWords })
 
 export default class GlyphtenderServer extends RoomServer<ServerGame, OnlineOptions, OnlineAction, GameView, never> {
-  constructor(party: PartyRoom) {
-    super(party, rules, settings)
+  /** `testSettings`: e2e only — shorter room timings for a test server (worker.ts reads them from wrangler dev --var). */
+  constructor(party: PartyRoom, testSettings: Partial<RoomSettings> = {}) {
+    super(party, rules, { ...settings, ...testSettings })
   }
 }
