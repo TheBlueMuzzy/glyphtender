@@ -12,6 +12,8 @@ import { makeRules } from '../../party/glyphtenderRules'
 import { HIDDEN, type GameView, type OnlineAction, type OnlineOptions } from '../../party/protocol'
 import type { ServerGame } from '../../party/serverGame'
 import settings from '../../content/rooms.json'
+// No idle clock here (F52): a test that jumps the clock would otherwise hand a seat to the bot and the real AI would play it
+const quietSettings = { ...settings, idleWarnAfterMs: 0, idleTakeoverAfterMs: 0 }
 import animJson from '../../content/tuning/anim.json'
 import { glideSeconds } from '../game/glide'
 import { useGameStore } from './gameStore'
@@ -81,7 +83,7 @@ beforeEach(() => {
   roomSeatsChanged([])
   store().setWords(words)
   let n = 42
-  server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true }), settings)
+  server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true }), quietSettings)
   server.log = () => {}
   me = new Conn('me')
   blue = new Conn('blue')
@@ -510,7 +512,7 @@ describe('online store — the feed (F31): every change played once, in order', 
     store().leaveGame()
     stopOnline()
     let n = 42
-    server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true }), settings)
+    server = new RoomServer({ id: 'BAKU', getConnection: () => undefined } as PartyRoom, makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true }), quietSettings)
     server.log = () => {}
     me = new Conn('me')
     blue = new Conn('blue')
@@ -583,7 +585,7 @@ describe('online store — the feed (F31): every change played once, in order', 
     expect(store().online!.version).toBe(newest.version)
     expect(store().game).toEqual(newest.game) // and the screen ends on the server's view
     expect(store().trail).toBeNull()
-  }, 30_000) // plays several turns on a real room server: ~2–5 s here under load, slower on the GitHub build machine
+  })
 
   it('a view that comes again (or an older one) plays nothing', () => {
     myTurnThenRivals()
