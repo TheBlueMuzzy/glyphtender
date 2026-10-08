@@ -18,7 +18,7 @@
   "keepEmptyRoomMs": 300000,
   "allowBots": true,
   "maxMessagesPerSecond": 10,
-  "turnTimerChoices": [0, 60, 90, 120],
+  "turnTimerChoices": [0, 30, 60, 90, 120],
   "_labels": {
     "idleWarnAfterMs": "Idle: the warning bar shows after (ms)",
     "idleTakeoverAfterMs": "Idle: a bot plays for them after (ms)"

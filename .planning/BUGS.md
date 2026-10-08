@@ -1,7 +1,7 @@
 # Glyphtender — Bugs
 Open: 7 (P0 0 · P1 0 · P2 3 · P3 4)
 ## Open
-### B024 · P2 · can't reproduce (e2e covers Leave → toast + 🤖, passes) · found 2026-10-08 by Muzzy (live v0.5.0, online with a friend) · online, a player leaves mid-game
+### B024 · P2 · verified 2026-10-08 by Muzzy (the 🤖 shows when a friend leaves, after F52 · v0.5.1) · found 2026-10-08 by Muzzy (live v0.5.0, online with a friend) · online, a player leaves mid-game
 "it didn't tell me the AI had taken over. it also didn't show that she was a robot for the turns she was gone. she was able to successfully jump back in though and take over!"
 Steps (as reported): 2 people online, one leaves the game, plays on, comes back · Expected: a toast "<name> left — a bot is playing for them" + 🤖 by her portrait on her turns · Actual: neither (rejoin worked). e2e:online-ai now checks both after Menu → Leave (toast ✓, 🤖 on ~80% of her turn frames — the rest is the previous turn's replay) and passes. Not yet known: how she left (Menu → Leave, or closed the tab/app → "Away", and a bot only after missedTurnsBeforeBot 2 / botTakesOverAfterMs) and whether her phone had the old page cached. Muzzy 2026-10-08: she used Menu → Leave on her PC. F52 (v0.5.1) reworked takeovers; re-test live.
 ### B023 · P3 · open · found 2026-10-07 by check:full (sprint 17) · v0.4.1 + F46 · e2e:online (test, not the game as far as known)

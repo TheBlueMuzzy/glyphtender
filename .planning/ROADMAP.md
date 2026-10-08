@@ -179,12 +179,12 @@ flowchart LR
   F45 --> F49[F49 What wins?]
 ```
 
-## v0.8 — Playing online with friends (polish)  ← current
+## v0.8 — Playing online with friends (polish)  ✅ done 2026-10-08 (v0.5.1–v0.5.2)
 Goal: an online game with friends that never stalls and always says who's playing — from Muzzy's first live games (2026-10-08).
 - ✅ F52 🎮 Idle takeover with a warning bar — 30 s without doing anything on your turn → a draining bar on your screen; at 60 s a bot plays for you, mid-turn, until you're active again (tap anything). Replaces "missed turns" (rooms.json missedTurnsBeforeBot) and makes the turn timer hand over to the bot too. Framework rooms module (0.4.0) + a UI kit warning piece, then switched on here — must · needs: F43
   why: nobody waits on an absent friend, and nobody is surprised by a bot → Fellowship
 - ✅ F53 🎮 2-letter words shown in the Pause menu (Muzzy 2026-10-08 cut the ⓘ rules/settings pop-up: the only setting you can't see in play is 2-letter words) — one quiet line, kit Pause note — should · needs: —
-- 🐞 B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); re-test once F52 lands — must
+- ✅ B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); Muzzy re-tested 2026-10-08: the 🤖 shows — must
 
 ## Later
 - **Audio milestone (own sprint + a framework Audio module)** — F48 basic audio: move, cast, grow, score pops, tangle, reveal; volume in Settings — must:beta (Muzzy 2026-10-05: its own sprint, a module will come of it)
