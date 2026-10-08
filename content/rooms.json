@@ -2,7 +2,8 @@
   "_help": {
     "minSeats": "Fewest seats (players + bots) a game can start with.",
     "maxSeats": "Most seats in a room.",
-    "missedTurnsBeforeBot": "Turns in a row the server plays for an idle player before a bot takes their seat (Roll Better: 2).",
+    "idleWarnAfterMs": "Online: a player whose move the game is waiting for (their turn, draft placement or refresh) who does nothing — no tap, no key, no move — for this long (ms) sees a draining bar on their screen: a bot plays for them soon. 0 = no warning.",
+    "idleTakeoverAfterMs": "…and after this long (ms, counted from their last tap) a bot plays their seat, mid-turn, until they tap anything. Everyone else gets \"X is idle — a bot is playing for them\", then \"X is back\". 0 = never. (The host's turn timer running out hands over the same way.) The server reads this file when it starts: restart npm run party:dev after a change.",
     "botTakesOverAfterMs": "A player who drops out mid-game gets a bot after this long, in ms (0 = never). They can still come back.",
     "keepEmptyRoomMs": "Everyone gone mid-game: how long (ms) the room waits for someone to come back before it's cleared.",
     "allowBots": "May the host add bot seats in the lobby? (The game's rules must then play for bots.)",
@@ -11,10 +12,15 @@
   },
   "minSeats": 2,
   "maxSeats": 4,
-  "missedTurnsBeforeBot": 2,
+  "idleWarnAfterMs": 30000,
+  "idleTakeoverAfterMs": 60000,
   "botTakesOverAfterMs": 60000,
   "keepEmptyRoomMs": 300000,
   "allowBots": true,
   "maxMessagesPerSecond": 10,
-  "turnTimerChoices": [0, 60, 90, 120]
+  "turnTimerChoices": [0, 60, 90, 120],
+  "_labels": {
+    "idleWarnAfterMs": "Idle: the warning bar shows after (ms)",
+    "idleTakeoverAfterMs": "Idle: a bot plays for them after (ms)"
+  }
 }

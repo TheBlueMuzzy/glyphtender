@@ -3,7 +3,9 @@
 //   views → the game store (onlinePlay.ts) · refused moves → the store · other problems → a toast
 //   a bot takes another player's seat / they're back → a toast (seatStatus.ts, B015)
 //   shut out (no such room, full, started, kicked…) → back to the menu with the reason in friendly words
-// While the connection is coming back it shows the kit's Reconnecting box.
+//   any tap or key while it matters → "I'm here" (F52 — the room's idle clock)
+// While the connection is coming back it shows the kit's Reconnecting box; otherwise the kit's IdleWarning (F52:
+// my idle bar, or "a bot is playing for you — tap to play").
 import { useEffect, useRef } from 'react'
 import text from '../../../content/text/en.json'
 import type { GameView, OnlineAction, OnlineOptions } from '../../../party/protocol'
@@ -11,7 +13,8 @@ import type { RoomState } from '../../rooms/protocol'
 import { useRoom } from '../../rooms/useRoom'
 import { actionRefused, connectOnline, receiveView, roomSeatsChanged } from '../../store/onlinePlay'
 import { useGameStore } from '../../store/gameStore'
-import { Reconnecting, fill, screens, toast } from '../kit'
+import { isMyTurn } from '../../store/myTurn'
+import { IdleWarning, Reconnecting, fill, screens, toast } from '../kit'
 import { closeAllScreens } from '../newGame'
 import { seatNotices } from './seatStatus'
 import { closedMessage, createRoom, endOnline, leaveOnline, partyHost, useOnline } from './session'
@@ -71,6 +74,26 @@ export function OnlineSession() {
     clearError()
   }, [error, clearError])
 
+  // F52: "I'm here" — any tap or key while the game waits for me, or while the idle bar is up or a bot plays my seat
+  // because I idled, tells the room (useRoom's active(): one ping every few seconds, at once when it's urgent). The
+  // room restarts my idle clock — or gives me my seat back at once.
+  const { active, idleWarning, botPlaysForMe } = room
+  const urgent = idleWarning !== null || botPlaysForMe
+  const urgentRef = useRef(urgent)
+  useEffect(() => { urgentRef.current = urgent })
+  useEffect(() => {
+    if (!code) return
+    const onInput = () => {
+      if (urgentRef.current || isMyTurn(useGameStore.getState())) active()
+    }
+    window.addEventListener('pointerdown', onInput, true)
+    window.addEventListener('keydown', onInput, true)
+    return () => {
+      window.removeEventListener('pointerdown', onInput, true)
+      window.removeEventListener('keydown', onInput, true)
+    }
+  }, [code, active])
+
   // Shut out of the room
   const { status, closedReason } = room
   useEffect(() => {
@@ -83,5 +106,5 @@ export function OnlineSession() {
 
   return status === 'reconnecting'
     ? <Reconnecting words={{ title: w.reconnect.title, quit: w.reconnect.quit }} message={w.reconnect.message} onQuit={() => { closeAllScreens(); leaveOnline() }} />
-    : null
+    : <IdleWarning endsAt={idleWarning?.endsAt ?? null} botPlaying={botPlaysForMe} words={w.idle} />
 }

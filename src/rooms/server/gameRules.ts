@@ -13,8 +13,8 @@ import type { Timers } from './timers'
 /** Why a seat changed mid-game (for onSeatChange). */
 export type SeatChange =
   | 'dropped' // the player's connection dropped — their seat waits for them
-  | 'back' // the player is back (reconnected, or took their seat back from a bot)
-  | 'bot' // a bot plays this seat now (the player left, was kicked, idled or stayed away too long)
+  | 'back' // the player is back (reconnected, or took their seat back from a bot with a tap or a move)
+  | 'bot' // a bot plays this seat now (the player left, was kicked, idled, ran out of turn time or stayed away too long)
 
 /** What the room server hands to the game's rules. */
 export interface RoomTools<State, Event> {
@@ -41,8 +41,16 @@ export interface RoomTools<State, Event> {
    * the others) — the secret never reaches a seat that may not see it. Sent before the views of the same change.
    */
   sendEventPerSeat(eventFor: (seat: Seat, seatIndex: number) => Event | null): void
-  /** The server just played a turn for an idle player. After settings.missedTurnsBeforeBot in a row, a bot takes the seat. */
-  missedTurn(seatId: string): void
+  /**
+   * Whose move the game is waiting for — call it whenever that changes (e.g. after every turn), [] when nobody's.
+   * Each human seat on the clock gets an idle clock: nothing from them for settings.idleWarnAfterMs → their screen is
+   * warned (idle_warning); for settings.idleTakeoverAfterMs → a bot takes their seat, mid-turn ('bot' in onSeatChange).
+   * Any tap or move of theirs restarts it — and gives the seat back if the bot has it. Bot seats are skipped (until a
+   * player takes theirs back). A seat that stays on the clock keeps its running clock (calling again doesn't reset it).
+   */
+  onTheClock(seatIds: string[]): void
+  /** The game's own turn timer ran out for this seat: a bot takes it now, the same way as idling (a tap gives it back). */
+  timedOut(seatId: string): void
   /** A line in the server log (npm run party:dev shows it), marked with the room code. */
   log(message: string): void
 }

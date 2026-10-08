@@ -7,8 +7,11 @@ export interface RoomSettings {
   minSeats: number
   /** Most seats in a room. */
   maxSeats: number
-  /** Turns in a row the server plays for an idle player before a bot takes their seat (Roll Better: 2). */
-  missedTurnsBeforeBot: number
+  /** A player on the clock (the game says whose turn it is — room.onTheClock) who does nothing this long is warned:
+   *  their screen gets a draining bar until the bot takes over. 0 = no warning. */
+  idleWarnAfterMs: number
+  /** A player on the clock who does nothing this long gets a bot, mid-turn — any tap or key gives the seat back. 0 = never. */
+  idleTakeoverAfterMs: number
   /** A player who drops out mid-game gets their seat handed to a bot after this long (0 = never). They can still come back and take it. */
   botTakesOverAfterMs: number
   /** Everyone gone mid-game: the room waits this long for someone to come back, then it's cleared. */
@@ -22,7 +25,8 @@ export interface RoomSettings {
 export const DEFAULT_SETTINGS: RoomSettings = {
   minSeats: 2,
   maxSeats: 4,
-  missedTurnsBeforeBot: 2,
+  idleWarnAfterMs: 30_000,
+  idleTakeoverAfterMs: 60_000,
   botTakesOverAfterMs: 60_000,
   keepEmptyRoomMs: 60_000,
   allowBots: false,

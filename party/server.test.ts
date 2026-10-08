@@ -66,14 +66,17 @@ class FakeConnection implements PartyConnection {
 
 type Server = RoomServer<ServerGame, OnlineOptions, OnlineAction, GameView, never>
 
-/** A room with `players` joined (the first is host), started with `options`. */
-function startRoom(players: number, options: Partial<OnlineOptions> = {}, seed: number | 'secret' = 7) {
+/** A room with `players` joined (the first is host), started with `options`. The idle clock is off unless `idle` is
+ *  true (tests that wait on fake timers would otherwise see bots take idle seats — F52's own tests turn it on). */
+function startRoom(players: number, options: Partial<OnlineOptions> = {}, seed: number | 'secret' = 7, idle = false) {
   let n = seed === 'secret' ? 0 : seed
   const randomSeed = seed === 'secret' ? undefined : () => (n = (n * 48271) % 2147483647) // 'secret' = the real server’s random numbers
   const rules = makeRules({ words: () => words, randomSeed, plainTurnOrder: true })
   const party = new FakeParty()
   // (no flood limit here: a whole game is played within one real second)
-  const server: Server = new RoomServer(party, rules, { ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0 })
+  const server: Server = new RoomServer(party, rules, {
+    ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0, idleTakeoverAfterMs: idle ? settings.idleTakeoverAfterMs : 0,
+  })
   server.log = () => {} // quiet tests
   const conns = Array.from({ length: players }, (_, i) => {
     const conn = new FakeConnection(`tab-${i}`)
@@ -361,7 +364,8 @@ describe('online server — says no, and changes nothing', () => {
     const yellow = conns[0].lastView()!
     send(server, conns[0], { kind: 'play', action: randomAction(yellow.game, 1).action, version: yellow.version })
     expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([1, 0]) // Yellow's placement made change 1; Blue sent nothing
-    vi.advanceTimersByTime(60_000) // Blue's clock runs out: the server places for Blue
+    vi.advanceTimersByTime(60_000) // Blue's clock runs out: a bot takes his seat and places for him (F52)
+    while (server.game!.version < 2) vi.advanceTimersByTime(100) // (after the bot's moment of thought)
     expect(server.game!.version).toBe(2)
     expect(conns.map((c) => c.lastView()!.myLastAction)).toEqual([1, 0]) // not Blue's own action
     const blue = conns[1].lastView()!
@@ -409,19 +413,40 @@ describe('online server — the turn timer and idle players', () => {
     expect(server.game!.turnEndsAt).toBeNull()
   })
 
-  it('timer on: when it runs out the server plays a legal move, and after 2 in a row a bot takes the seat', () => {
+  it('timer on: when it runs out a bot takes the seat at once (F52) and plays on at a person’s pace; a tap gives it back', () => {
     vi.useFakeTimers()
     const { server, conns } = startRoom(2, { turnSeconds: 60 })
     expect(conns[0].lastView()!.turnEndsAt).toBeGreaterThan(Date.now())
     vi.advanceTimersByTime(60_000) // Yellow's first draft placement ran out
-    expect(server.game!.version).toBe(1)
-    expect(server.data.seats[0].missedTurns).toBe(1)
+    expect(server.data.seats[0]).toMatchObject({ kind: 'bot', connected: true })
+    expect(server.game!.version).toBe(0) // (the bot thinks for a moment first, like any AI seat)
+    vi.advanceTimersByTime(BOT_WAIT)
+    expect(server.game!.version).toBe(1) // the bot placed for her
+    // She's still here: a tap ("active") takes her seat straight back
+    server.onMessage(JSON.stringify({ type: 'active' }), conns[0])
+    expect(server.data.seats[0].kind).toBe('human')
     vi.advanceTimersByTime(60_000) // Blue's
-    vi.advanceTimersByTime(60_000) // Blue's again (snake draft)
+    vi.advanceTimersByTime(BOT_WAIT * 4)
     expect(server.data.seats[1].kind).toBe('bot')
-    // A bot plays at once (after botTurnDelayMs), without waiting for a timer
-    vi.advanceTimersByTime(60_000 + BOT_WAIT * 10)
-    expect(server.game!.version).toBeGreaterThan(4)
+    expect(server.game!.version).toBeGreaterThan(1)
+    conns.forEach((conn) => conn.views().forEach(expectNoSecrets))
+  })
+
+  it('idle (F52): 30 s → the warning on HER screen only; 60 s → a bot plays her seat mid-turn; a tap → it is hers again', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoom(2, {}, 7, true) // (turn timer off: only the idle clock)
+    const warnings = (conn: FakeConnection) => conn.received.filter((m) => m.type === 'idle_warning')
+    vi.advanceTimersByTime(settings.idleWarnAfterMs)
+    expect(warnings(conns[0])).toHaveLength(1)
+    expect(warnings(conns[1])).toHaveLength(0) // not Blue's turn: nothing for him
+    vi.advanceTimersByTime(settings.idleTakeoverAfterMs - settings.idleWarnAfterMs)
+    const bluesRoom = conns[1].received.filter((m) => m.type === 'room').at(-1) as Extract<ServerMessage, { type: 'room' }>
+    expect(bluesRoom.room.seats[0]).toMatchObject({ kind: 'bot', connected: true }) // → his "is idle — a bot is playing" toast
+    expect(conns[0].received.some((m) => m.type === 'idle_warning_off')).toBe(true) // her bar goes; "a bot is playing for you" shows
+    vi.advanceTimersByTime(BOT_WAIT)
+    expect(server.game!.version).toBe(1) // the AI placed her glyphling
+    server.onMessage(JSON.stringify({ type: 'active' }), conns[0])
+    expect(server.data.seats[0]).toMatchObject({ kind: 'human', connected: true })
     conns.forEach((conn) => conn.views().forEach(expectNoSecrets))
   })
 
@@ -434,8 +459,7 @@ describe('online server — the turn timer and idle players', () => {
       server.onMessage(JSON.stringify({ type: 'join', name: `P${i}`, persistentId: `player-id-${i}`, create: false }), new FakeConnection(`tab-${i}-again`))
     })
     vi.advanceTimersByTime(10_000)
-    expect(server.game!.version).toBe(1) // her 60 s ran out: the server placed for her
-    expect(server.data.seats[0].missedTurns).toBe(1)
+    expect(server.data.seats[0].kind).toBe('bot') // her 60 s ran out (not restarted by the reconnect): a bot has her seat
   })
 
   it('a player who leaves mid-game is played by a bot, so the others can finish', () => {
@@ -579,7 +603,7 @@ function startRoomWithAi(humans: number, profiles: string[], seed = 7) {
   let n = seed
   const rules = makeRules({ words: () => words, randomSeed: () => (n = (n * 48271) % 2147483647), plainTurnOrder: true })
   const party = new FakeParty()
-  const server: Server = new RoomServer(party, rules, { ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0 })
+  const server: Server = new RoomServer(party, rules, { ...settings, botTakesOverAfterMs: 0, maxMessagesPerSecond: 0, idleTakeoverAfterMs: 0 })
   const logs: string[] = []
   server.log = (line) => { logs.push(line) }
   const conns = Array.from({ length: humans }, (_, i) => {
@@ -696,7 +720,7 @@ describe('online server — the AI plays bot seats (F43)', () => {
     expect([ai.name, ai.kind, ai.ready]).toEqual(['The Survivor', 'bot', true])
     // what every player sees of the seat: who plays it, never an owner id
     const room = guest.received.filter((m) => m.type === 'room').at(-1) as { room: { seats: unknown[] } }
-    expect(room.room.seats[2]).toEqual({ id: ai.id, name: 'The Survivor', kind: 'bot', isHost: false, connected: false, ready: true, missedTurns: 0, profile: 'Survivor/FirstClass' })
+    expect(room.room.seats[2]).toEqual({ id: ai.id, name: 'The Survivor', kind: 'bot', isHost: false, connected: false, ready: true, profile: 'Survivor/FirstClass' })
     server.onMessage(JSON.stringify({ type: 'kick', seatId: ai.id }), host)
     expect(server.data.seats.map((s) => s.name)).toEqual(['P0', 'P1'])
   })
