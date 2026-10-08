@@ -13,20 +13,16 @@ import { useState } from 'react'
 import text from '../../content/text/en.json'
 import { Button, ListRow, Panel, Row, Screen, Selector, Stepper, Text, Toggle, screens } from './kit'
 import {
-  SURPRISE, boardNames, hasPerson, loadChoices, personalityIds, skillIds, startNewGame, withPlayers, withSeat, type NewGameChoices, type SeatChoice,
+  SURPRISE, boardNames, hasPerson, loadChoices, personalityIds, startNewGame, withPlayers, withSeat, type NewGameChoices, type SeatChoice,
 } from './newGame'
 import './newGame.css'
+import { AiPickerRows } from './AiPickerRows'
 
 const w = text.newGame
 const boardLabel = (name: string) => (w.boards as Record<string, string>)[name] ?? name
 
-// Personalities and skills as players read them (en.json → ai), "Surprise me" first
-const aiWords = text.ai.personality as Record<string, { name: string; type?: string; bio: string }>
+// The AI seat's personalities, "Surprise me" first (the rows themselves: AiPickerRows.tsx)
 const personalityOptions = [SURPRISE, ...personalityIds()]
-const personalityWords = (id: string) => (id === SURPRISE ? w.surprise : aiWords[id] ?? { name: id, bio: '' })
-// What the AI Type selector shows: the personality's type ("Strategist"), else its name ("Surprise me")
-const typeName = (id: string): string => { const words: { name: string; type?: string } = personalityWords(id); return words.type || words.name }
-const skillName = (id: string) => (text.ai.skill as Record<string, string>)[id] ?? id
 
 export function NewGameScreen() {
   const [choices, setChoices] = useState<NewGameChoices>(loadChoices)
@@ -74,25 +70,14 @@ export function NewGameScreen() {
 function SeatRows({ index, seat, onChange }: { index: number; seat: SeatChoice; onChange: (part: Partial<SeatChoice>) => void }) {
   const name = w.playerN.replace('{n}', String(index + 1))
   const kinds = [w.person, w.ai]
-  const shown = personalityWords(seat.personality)
   return (
     <>
       <ListRow label={name}>
         <Selector label={name} options={kinds} value={seat.ai ? w.ai : w.person} onChange={(kind) => onChange({ ai: kind === w.ai })} />
       </ListRow>
       {seat.ai && (
-        <div className="new-game-ai" data-seat={index}>
-            <Text kind="label">{w.aiType}</Text>
-            <Selector label={`${name}: ${w.personality}`} options={personalityOptions.map(typeName)} value={typeName(seat.personality)}
-              onChange={(label) => onChange({ personality: personalityOptions.find((id) => typeName(id) === label) ?? seat.personality })} />
-            <span className="new-game-bio">
-              {personalityOptions.map((id) => <span key={id} className="new-game-bio-sizer" aria-hidden="true"><Text kind="caption">{personalityWords(id).bio}</Text></span>)}
-              <span><Text kind="caption">{shown.bio}</Text></span>
-            </span>
-            <Text kind="label">{w.skill}</Text>
-            <Selector label={`${name}: ${w.skill}`} options={skillIds().map(skillName)} value={skillName(seat.skill)}
-              onChange={(label) => onChange({ skill: skillIds().find((id) => skillName(id) === label) ?? seat.skill })} />
-        </div>
+        <AiPickerRows personalities={personalityOptions} personality={seat.personality} skill={seat.skill} onChange={onChange}
+          name={name} attrs={{ 'data-seat': index }} />
       )}
     </>
   )

@@ -1,6 +1,6 @@
 // ONLINE AI SEATS (F43) THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — two browsers: Ada (host, phone 390×844)
 // and Bo (desktop 1440×900).
-// Play online → Ada creates a room → in the lobby she adds an AI (the Scholar at Archmage), removes it, adds the
+// Play online → Ada creates a room → in the lobby she adds an AI (Scholar at Archmage — the same AI Type · Skill rows as New Game), removes it, adds the
 // Strategist at Apprentice → lobby shots at 390×844, 360×780, 844×390 and 1440×900 (the add-AI card, 🤖 + skill on the AI's
 // row) → Bo joins, sees the AI (no Remove for him), gets ready → Start (3 seats: Ada, Bo, the Strategist) → the AI
 // places and plays on the server: its draft placement TRAVELS out of the tray to its hex on Ada's screen like a
@@ -104,7 +104,7 @@ try {
   const code = await ada.room((s) => s.code)
   console.log(`     room ${code}`)
   await shot(ada, '1-lobby-alone')
-  await choose(ada, 'Personality', 'the Scholar')
+  await choose(ada, 'Personality', 'Scholar')
   await choose(ada, 'Skill', 'Archmage')
   await ada.tap(ada.page.getByRole('button', { name: 'Add AI' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 2, null, { timeout: 5000 }).catch(() => {})
@@ -113,7 +113,7 @@ try {
   await ada.tap(ada.page.getByRole('button', { name: 'Remove The Scholar' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 1, null, { timeout: 5000 }).catch(() => {})
   check('Remove takes the AI out again', (await lobbySeats(ada)).length === 1)
-  await choose(ada, 'Personality', 'the Strategist')
+  await choose(ada, 'Personality', 'Strategist')
   await choose(ada, 'Skill', 'Apprentice')
   await ada.tap(ada.page.getByRole('button', { name: 'Add AI' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 2, null, { timeout: 5000 }).catch(() => {})

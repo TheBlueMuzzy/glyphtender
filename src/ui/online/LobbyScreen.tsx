@@ -2,7 +2,7 @@
 // the host the table options (garden, 2-letter words, turn timer, word indicators) + Start. Everyone else: I'm ready.
 // Leave goes through useRoom.leave(). Kit Lobby with a room code; the option rows are kit ListRows.
 // AI seats (F43): the host adds one from a card under the players (the next seat's glyphling, the personality's name
-// and bio — the card holds the longest bio's height, like New Game's — ◀ personality ▶ and its skill) and can Remove
+// and bio — the same AI Type · bio · Skill rows as New Game's AI seats, AiPickerRows.tsx) and can Remove
 // it again. An AI seat shows 🤖 + its skill under its name; the server plays it (party/turnClock.ts).
 import { useState } from 'react'
 import text from '../../../content/text/en.json'
@@ -13,9 +13,9 @@ import { boardNames } from '../../engine/boards'
 import { colourOf, glyphlingArt } from '../../game/art'
 import { useGardenTuning } from '../../game/useTuning'
 import { defaultAi, type AiPick } from '../../store/seats'
-import { Avatar, Button, Card, ListRow, Lobby, Row, Selector, Stack, Text, Toggle, fill } from '../kit'
-import { personalityIds, skillIds } from '../newGame'
-import '../newGame.css'
+import { Avatar, Button, Card, ListRow, Lobby, Row, Selector, Stack, Toggle, fill } from '../kit'
+import { AiPickerRows } from '../AiPickerRows'
+import { personalityIds } from '../newGame'
 import { loadOnlineOptions, saveOnlineOptions } from './onlineOptions'
 import { leaveOnline, useOnline } from './session'
 
@@ -55,24 +55,12 @@ export function LobbyScreen() {
 function AddAi({ seat, onAdd }: { seat: number; onAdd: (ai: AiPick) => void }) {
   const colours = useGardenTuning()
   const [ai, setAi] = useState<AiPick>(defaultAi)
-  const n = text.newGame
   const shown = aiWords(ai.personality)
   return (
     <Card title={<Row gap="s"><Avatar name={shown.name} src={glyphlingArt(seat)} color={colours[colourOf(seat)]} /><span>{w.lobby.addAiTitle}</span></Row>}>
-      <span className="new-game-bio" data-lobby-ai-bio>
-        {personalityIds().map((id) => <span key={id} className="new-game-bio-sizer" aria-hidden="true"><Text kind="caption">{aiWords(id).bio}</Text></span>)}
-        <span><Text kind="caption">{shown.bio}</Text></span>
-      </span>
       <Stack gap="s">
-        <Row gap="s" justify="center">
-          <Selector label={n.personality} options={personalityIds().map((id) => aiWords(id).name)} value={shown.name}
-            onChange={(label) => setAi({ ...ai, personality: personalityIds().find((id) => aiWords(id).name === label) ?? ai.personality })} />
-        </Row>
-        <Row gap="s" justify="between">
-          <Text kind="label">{n.skill}</Text>
-          <Selector label={n.skill} options={skillIds().map(skillName)} value={skillName(ai.skill)}
-            onChange={(label) => setAi({ ...ai, skill: skillIds().find((id) => skillName(id) === label) ?? ai.skill })} />
-        </Row>
+        {/* the same rows as New Game's AI seats (Muzzy 2026-10-08) — no "Surprise me" online (the name would give it away) */}
+        <AiPickerRows personalities={personalityIds()} personality={ai.personality} skill={ai.skill} onChange={(part) => setAi({ ...ai, ...part })} />
         <Button variant="secondary" onClick={() => onAdd(ai)}>{w.lobby.addAi}</Button>
       </Stack>
     </Card>
