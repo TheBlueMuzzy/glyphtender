@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-10-08 — **Audio discovery done** (`research/audio.md` + audio-standards.md + audio-tech.md). Muzzy: beta needs sound; audio becomes a framework module, tweakable in the Dev Kit; full Double Diamond — discover → define (decide what should/shouldn't be) → build → deliver, **no code before define is signed off**. Also today: 30 s turn timer choice added · B024 verified by Muzzy · v0.8 done. Released v0.5.2 before that.
-**Ask Muzzy (open):** the 6 questions at the end of research/audio.md (direction A/B/C · beta scope · sound sources · silent switch · sliders · tiers get sounds) · idle bar sits in the middle of the board — OK there? · (carried) AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
-Next: **/define audio** — walk Muzzy through the questions, lock scope, write the framework design doc (framework/.planning/design/audio.md) + features in both ROADMAPs. Then /sprint → /develop → /deliver. Beta audits after audio.
+2026-10-09 — **Audio defined** with Muzzy: direction B "the garden sings" (Grand Glyphtender contest, cozy magical) · design/audio.md (31-sound list, mix) + framework/.planning/design/audio.md (the module) · TDD D84 · roadmaps: Glyphtender v0.9 (F54 ✅ F55–F60) + framework v0.6 Audio (F27–F31). Beta = systems right + free-library placeholders ("don't let perfect be the enemy of good").
+**Ask Muzzy (open):** (carried) AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms. (Idle bar in the middle of the board: OK — Muzzy 2026-10-09.)
+Next: /sprint → Sprint 19 (fw F27 engine + fw F29 Settings tab + F55 every moment wired + F56 placeholder sounds + F59) → /develop. Then Sprint 20 (Sound Board, garden sings, ambience), 21 (tuning), beta audits, /deliver beta.
 
 ## Where we are
-Stage: discover (audio) · Milestone: v0.9 Audio (to define) · Sprint: none (18 done) · Doing: audio discovery done → /define · Branch: main · Version: 0.5.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
+Stage: define → develop · Milestone: v0.9 The garden sings (audio) · Sprint: none (18 done) · Doing: audio defined → /sprint · Branch: main · Version: 0.5.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

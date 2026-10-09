@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — needs v0.9 audio (Muzzy 2026-10-09: "beta needs sound") + the beta audits · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -186,8 +186,34 @@ Goal: an online game with friends that never stalls and always says who's playin
 - ✅ F53 🎮 2-letter words shown in the Pause menu (Muzzy 2026-10-08 cut the ⓘ rules/settings pop-up: the only setting you can't see in play is 2-letter words) — one quiet line, kit Pause note — should · needs: —
 - ✅ B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); Muzzy re-tested 2026-10-08: the 🤖 shows — must
 
+## v0.9 — The garden sings (audio)  ← current  (→ beta)
+Goal: Glyphtender has sound — every moment heard at the moment you see it, your play becomes the melody, the Magic reveal is a ceremony for the new Grand Glyphtender — on a reusable framework Audio module Muzzy tunes in the Dev Kit Sound Board. Design: `design/audio.md` + `../../framework/.planning/design/audio.md`. Research: `research/audio.md`. Framework-first: each framework slice (its F27–F31) is built there and switched on here in the same sprint. Muzzy 2026-10-09: "beta is for 'don't let perfect be the enemy of good'" · sources: "free libraries… for now".
+- ✅ F54 ❓ Audio direction — B "the garden sings" (Grand Glyphtender contest, cozy magical) · free libraries for beta · respect the iPhone silent switch · 5 sliders · feel tiers get sounds ("try it") — Muzzy 2026-10-09
+- ⏳ F55 🎮 Every moment wired: the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
+  why: every action lands with a sound → Cozy cleverness payoff, everyone follows the play
+- ⏳ F56 🎮 Placeholder sound set from free libraries (Kenney, Sonniss GDC, Freesound CC0/CC-BY, OpenGameArt) in the garden's palette, 3–5 variants for the frequent ones, in public/audio/ + content/credits.json — must:beta · needs: fw F27
+- ⏳ F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
+  why: clever casts get an audible reward; the reveal builds to the gasp → Secret-Magic tension
+- ⏳ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
+- ⏳ F59 🎮 Settings → Audio works: Master · Music · Ambience · Effects · UI · Mute everything · Mute in background · Mono — must:beta · needs: fw F29
+- ⏳ F60 🎛️ Tuning pass: Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
+```mermaid
+flowchart LR
+  FW27[fw F27 Engine + rules] --> F55[F55 Every moment wired]
+  FW27 --> F56[F56 Placeholder sounds]
+  F55 --> F57[F57 Garden sings]
+  F56 --> F57
+  FW28[fw F28 Music + mix] --> F57
+  F56 --> F58[F58 Ambience + bed]
+  FW28 --> F58
+  FW29[fw F29 Settings Audio tab] --> F59[F59 Settings works]
+  F57 --> F60[F60 Tuning pass]
+  F58 --> F60
+  F59 --> F60
+  FW30[fw F30 Sound Board] --> F60
+```
+
 ## Later
-- **Audio milestone (own sprint + a framework Audio module)** — F48 basic audio: move, cast, grow, score pops, tangle, reveal; volume in Settings — must:beta (Muzzy 2026-10-05: its own sprint, a module will come of it)
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
 - **1.0:** tutorial · accessibility pass · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
@@ -195,6 +221,7 @@ Goal: an online game with friends that never stalls and always says who's playin
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-09 — **Bot takeover on the Story chart** (Muzzy): when a bot plays for a human (idle takeover, turn timer, left), the end screen's Story shows it — a thicker, darker band behind that player's line from the turn the bot took over until the human took back over. Needs the game log to record takeover start/end per seat.
 - 2026-10-08 — → F52. **Idle takeover with a warning bar** (Muzzy): online, 30 s without an action → a 30 s draining bar on THEIR screen ("Still there? A bot takes over soon" — concise); at 60 s a bot plays for them, mid-turn, as if they'd disconnected, until they act again. (Today: the server plays a turn for an idle player, a bot takes the seat after missedTurnsBeforeBot 2 — rooms.json.) Reworks B024's path. → make it a feature (/sprint).
 - 2026-10-08 — → F53. **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
 - 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.
