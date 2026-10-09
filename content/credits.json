@@ -100,5 +100,264 @@
     "light": "🟡",
     "url": "",
     "credit": "Word list derived from the Tournament Word List (TWL, NASPA)"
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_draft_place_01.mp3",
+      "public/audio/sfx/sfx_draft_place_02.mp3",
+      "public/audio/sfx/sfx_glyph_step_01.mp3",
+      "public/audio/sfx/sfx_glyph_step_02.mp3",
+      "public/audio/sfx/sfx_glyph_step_03.mp3",
+      "public/audio/sfx/sfx_glyph_step_04.mp3",
+      "public/audio/sfx/sfx_glyph_step_05.mp3",
+      "public/audio/sfx/sfx_reveal_bonus_02.mp3",
+      "public/audio/sfx/sfx_score_arrive_01.mp3",
+      "public/audio/sfx/sfx_score_arrive_02.mp3",
+      "public/audio/sfx/sfx_seed_land_01.mp3",
+      "public/audio/sfx/sfx_seed_land_02.mp3",
+      "public/audio/ui/ui_no_bonk_01.mp3",
+      "public/audio/ui/ui_no_bonk_02.mp3",
+      "public/audio/ui/ui_online_toast_01.mp3",
+      "public/audio/ui/ui_seed_aim_01.mp3",
+      "public/audio/ui/ui_seed_aim_02.mp3"
+    ],
+    "source": "Kenney — Impact Sounds (seed_land = Kenney soft impact + rubberduck splash, mixed)",
+    "author": "Kenney",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://kenney.nl/assets/impact-sounds",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/ui/ui_glyph_lift_01.mp3",
+      "public/audio/ui/ui_glyph_lift_02.mp3"
+    ],
+    "source": "Kenney — RPG Audio (cloth)",
+    "author": "Kenney",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://kenney.nl/assets/rpg-audio",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/ui/ui_handoff_01.mp3",
+      "public/audio/ui/ui_tray_shuffle_01.mp3"
+    ],
+    "source": "Kenney — Casino Audio (card fan / card slide)",
+    "author": "Kenney",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://kenney.nl/assets/casino-audio",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_tangle_boing_01.mp3",
+      "public/audio/sfx/sfx_tangle_boing_02.mp3",
+      "public/audio/ui/ui_seed_drop_01.mp3",
+      "public/audio/ui/ui_seed_drop_02.mp3",
+      "public/audio/ui/ui_toggle_flip_01.mp3"
+    ],
+    "source": "OpenGameArt — 100 CC0 SFX (plop, spring, wooden)",
+    "author": "rubberduck",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/100-cc0-sfx",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_reveal_bonus_01.mp3"
+    ],
+    "source": "OpenGameArt — 80 CC0 RPG SFX (item_gem)",
+    "author": "rubberduck",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/80-cc0-rpg-sfx",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/ui/ui_button_back_01.mp3",
+      "public/audio/ui/ui_button_tap_01.mp3",
+      "public/audio/ui/ui_button_tap_02.mp3",
+      "public/audio/ui/ui_button_tap_03.mp3"
+    ],
+    "source": "OpenGameArt — 100 CC0 metal and wood SFX (wood_hit, wood_misc)",
+    "author": "rubberduck",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/100-cc0-metal-and-wood-sfx",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_seed_land_01.mp3",
+      "public/audio/sfx/sfx_seed_land_02.mp3",
+      "public/audio/sfx/sfx_sprout_grow_01.mp3",
+      "public/audio/sfx/sfx_sprout_grow_02.mp3"
+    ],
+    "source": "OpenGameArt — 40 CC0 water / splash / slime SFX (bubble, splash)",
+    "author": "rubberduck",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/ui/ui_refresh_in_01.mp3",
+      "public/audio/ui/ui_seed_pick_01.mp3",
+      "public/audio/ui/ui_seed_pick_02.mp3",
+      "public/audio/ui/ui_seed_pick_03.mp3",
+      "public/audio/ui/ui_seed_pick_04.mp3"
+    ],
+    "source": "OpenGameArt — Pop sounds",
+    "author": "cogitollc",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/pop-sounds",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_cast_throw_01.mp3",
+      "public/audio/sfx/sfx_cast_throw_02.mp3",
+      "public/audio/sfx/sfx_cast_throw_03.mp3",
+      "public/audio/ui/ui_refresh_out_01.mp3",
+      "public/audio/ui/ui_undo_01.mp3"
+    ],
+    "source": "OpenGameArt — Swishes Sound Pack (undo = reversed)",
+    "author": "artisticdude",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/swishes-sound-pack",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_score_pop_01.mp3",
+      "public/audio/sfx/sfx_word_chord_01.mp3",
+      "public/audio/ui/ui_online_idle_01.mp3"
+    ],
+    "source": "OpenGameArt — Kalimba Two-Notes (retuned to D; word_chord = the note layered as D-F#-A-D)",
+    "author": "railkill",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/kalimba-two-notes",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_reveal_count_01.mp3",
+      "public/audio/sfx/sfx_reveal_tangles_01.mp3"
+    ],
+    "source": "OpenGameArt — Mystery Sting (steel tongue drum; reveal_count retuned to D5)",
+    "author": "railkill",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/mystery-sting",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_cast_flourish_01.mp3"
+    ],
+    "source": "OpenGameArt — Magic Words + Healing Sound Effect (health_restore)",
+    "author": "Julie Damsgaard / Spring Spring",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/magic-words-healing-sound-effect",
+    "credit": "Produced by Julie Damsgaard / Spring Spring (optional credit)"
+  },
+  {
+    "paths": [
+      "public/audio/ui/ui_end_award_01.mp3"
+    ],
+    "source": "OpenGameArt — Pleasing Bell Sound Effect",
+    "author": "Julie Damsgaard / Spring Spring",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/pleasing-bell-sound-effect",
+    "credit": "Produced by Julie Damsgaard / Spring Spring (optional credit)"
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_danger_warn_01.mp3"
+    ],
+    "source": "OpenGameArt — Bell dings/chimes (bell_ding3)",
+    "author": "pwl",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/bell-dingschimes",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/ui/ui_turn_yours_01.mp3"
+    ],
+    "source": "OpenGameArt — Glass Bell Sounds (hjm-glass_bell_4, retuned to D5; dual-licensed, used under CC-BY 3.0)",
+    "author": "Hansjörg Malthaner (Varkalandar)",
+    "licence": "CC-BY 3.0",
+    "light": "🟡",
+    "url": "https://opengameart.org/content/glass-bell-sounds",
+    "credit": "Glass bell by Hansjörg Malthaner (http://opengameart.org/users/varkalandar), CC-BY 3.0, pitch-shifted"
+  },
+  {
+    "paths": [
+      "public/audio/stg/stg_reveal_winner_01.mp3"
+    ],
+    "source": "OpenGameArt — Cozy Puzzle Jingle & Result (Cozy Puzzle Clear (Jingle))",
+    "author": "MintoDog",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/cozy-puzzle-jingle-result",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/mus/mus_garden_harp_01.mp3"
+    ],
+    "source": "OpenGameArt — Meadow Thoughts (solo harp)",
+    "author": "Écrivain",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/meadow-thoughts",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/mus/mus_menu_kalimba_loop.mp3"
+    ],
+    "source": "OpenGameArt — Short kalimba loop",
+    "author": "extenz",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/short-kalimba-loop",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/amb/amb_night_garden_loop.mp3"
+    ],
+    "source": "OpenGameArt — Crickets Ambient Noise - loopable (crickets layer of the night loop)",
+    "author": "Ted Kerr (wolfgang)",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://opengameart.org/content/crickets-ambient-noise-loopable",
+    "credit": "Crickets by Ted Kerr (optional credit)"
+  },
+  {
+    "paths": [
+      "public/audio/amb/amb_night_garden_loop.mp3"
+    ],
+    "source": "OpenGameArt — Wind Loop (breeze layer of the night loop; low-passed, crossfaded, mixed under crickets)",
+    "author": "AntumDeluge, from a recording by Jonathan Shaw (InspectorJ)",
+    "licence": "CC-BY 3.0",
+    "light": "🟡",
+    "url": "https://opengameart.org/content/wind-loop",
+    "credit": "Wind by Jonathan Shaw (InspectorJ), https://freesound.org/people/InspectorJ/sounds/376415/, looped by AntumDeluge, CC-BY 3.0, filtered and mixed"
   }
 ]
