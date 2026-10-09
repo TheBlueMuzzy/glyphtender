@@ -112,8 +112,9 @@ function scoreSounds(seq: ScoreSequence, pops: ScorePop[], turn: TurnPlay, start
   seq.arrivals.forEach((a) => juiceSound('totalPop', 'score.arrive', { at: at(a.at) }))
   seq.words.forEach((_, w) => {
     if ((turn.words[w]?.word.length ?? 0) < rules.chordLetters) return
-    const lastArrival = Math.max(...seq.pops.filter((_, i) => pops[i].word === w).map((p) => p.arrive))
-    playSound('word.chord', { at: at(lastArrival) })
+    const arrivals = seq.pops.filter((_, i) => pops[i].word === w).map((p) => p.arrive)
+    if (arrivals.length === 0) return // no pops for this word → nothing to ring the chord on
+    playSound('word.chord', { at: at(Math.max(...arrivals)) })
   })
   const lastArrival = seq.arrivals.at(-1)?.at
   if (seq.words.length >= rules.flourishWords && lastArrival !== undefined) playSound('cast.flourish', { at: at(lastArrival + popTime) })
