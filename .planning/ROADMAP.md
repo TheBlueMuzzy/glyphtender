@@ -222,7 +222,7 @@ flowchart LR
 
 ## Ideas
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
-  - ❓ **Secret Magic is "hidden but attainable"**: every player sees each turn's pops, so anyone can add them up and know the standings → busywork for optimisers, "Called it" rewards maths. Options: keep (most players won't) · truly hide rivals' numbers (show their words / a feel tier, not +N) · show totals openly. Test: ask players to guess the standings just before the reveal. → Ask Muzzy.
+  - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.
   - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
   - Seed-draw flood sim (≥6 vowels / ≤1 vowel / 3+ of a letter in 8 seeds) → smoothing knob if it's common (Word Play's #1 luck complaint).
   - Dyslexia-friendly font option (core for word games) · letter readability test at phone size (higher-contrast face plate?) · an e2e that every Settings toggle survives a turn, a new game and a reload.
