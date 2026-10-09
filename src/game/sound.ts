@@ -10,7 +10,7 @@
 // ui.toggle (UI kit setControlSound). Dev + Playwright: window.__audioLog (every play and drop, with why).
 import { useEffect } from 'react'
 import audioJson from '../../content/audio.json'
-import { applyAudioSettings, createAudio, exposeLog, getAudio, setAudio, useLoop, type PlayOptions } from '../audio'
+import { applyAudioSettings, createAudio, exposeLog, getAudio, seededRandom, setAudio, useLoop, type PlayOptions } from '../audio'
 import { onTuning } from '../devkit/tuning/liveTuning'
 import { useGameStore } from '../store/gameStore'
 import { setControlSound, type SettingsValues } from '../ui/kit'
@@ -18,7 +18,12 @@ import { setControlSound, type SettingsValues } from '../ui/kit'
 /** Make the engine (once). Nothing plays until the player's first tap — the engine unlocks itself then. */
 export function startSound(settings: SettingsValues) {
   if (getAudio()) return
-  const audio = createAudio(audioJson, { baseUrl: import.meta.env.BASE_URL }) // (the game lives under /glyphtender/)
+  const audio = createAudio(audioJson, {
+    baseUrl: import.meta.env.BASE_URL, // (the game lives under /glyphtender/)
+    // Its OWN dice for variants and random pitch: a sound never uses up the game's Math.random (?freeze screenshots
+    // fix that sequence — a click's sound once shifted the tray's shuffle)
+    rng: seededRandom(Date.now() >>> 0),
+  })
   setAudio(audio)
   applyAudioSettings(audio, settings)
   setControlSound((kind) => audio.play(`ui.${kind}`)) // ui.tap · ui.back · ui.toggle
