@@ -26,7 +26,7 @@ Done when: all 31 sounds play at their animation's moment (not the event's); bot
 - [ ] 🙋 10. Muzzy plays a game with sound on phone + desktop — first impressions (tuning is sprint 21)
 
 Check: check:fast after each feature · check:full once at the end.
-Ask Muzzy: a free **Freesound** account would let Claude fetch the 5 weak placeholders: an owl (amb.night), a leafy sprout (sprout.grow), a vine rustle (tangle), a grander horn/choir swell (reveal.winner), an airy whoosh (cast.throw). Sonniss GDC needs a browser download by Muzzy.
+Ask Muzzy: —
 
 ## Notes
 - F56 (9f261a4): 56 MP3s, effects 269 KB (mono 96 kbps, peak −3 dBFS), music ~2.4 MB, ambience 717 KB. Kenney + OpenGameArt by script (no login); Freesound needs a login, Sonniss 403s scripts. Licences: CC0 + two CC-BY 3.0 (glass bell → turn.yours; wind loop → amb.night) → credit lines on Credits. Ladder notes pre-tuned to D (score.pop kalimba D4, reveal.count tongue drum D5). mus.garden is a 149 s harp piece with an ending (play once, then rest — not a loop). Weak fits listed in design/audio.md "Placeholder files". Can't listen → picks by description + ffmpeg measurements.
@@ -48,3 +48,4 @@ Ask Muzzy: a free **Freesound** account would let Claude fetch the 5 weak placeh
 
 - Area check (Fast + audio game pass online online4 score spotlight end previews devkit-search): 14/14 PASS, 7.8 min. e2e:audio = new, registered in check:full (ports 5417 / 1992).
 - Checks: check:full ALL PASS 23/23 (c76b377). Two earlier loaded runs failed e2e:game desktop (reveal already showing) → B025 watching. Review (low, 2492550..71be2d3): 1 fix — word.chord guard for a word with no pops (c76b377). Framework audio 0.1.1: the engine uses its own seeded random by default.
+- Freesound (Muzzy made the account 2026-10-09; key in ~/.config/freesound.json, PC only) → 96ca02c replaced the 5 weak fits, all CC0: owl mixed into amb.night (loop length kept), leafy sprout + soft chime, vine rustle + tree creak (tangle — may be quiet on phone speakers), harp glissando → choir fanfare in D (reveal.winner), 3 soft whooshes (cast.throw — longer, may overlap seed.land; delayMs/trimEndMs). mus.menu kept.
