@@ -221,6 +221,15 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
+  - ❓ **Secret Magic is "hidden but attainable"**: every player sees each turn's pops, so anyone can add them up and know the standings → busywork for optimisers, "Called it" rewards maths. Options: keep (most players won't) · truly hide rivals' numbers (show their words / a feel tier, not +N) · show totals openly. Test: ask players to guess the standings just before the reveal. → Ask Muzzy.
+  - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
+  - Seed-draw flood sim (≥6 vowels / ≤1 vowel / 3+ of a letter in 8 seeds) → smoothing knob if it's common (Word Play's #1 luck complaint).
+  - Dyslexia-friendly font option (core for word games) · letter readability test at phone size (higher-contrast face plate?) · an e2e that every Settings toggle survives a turn, a new game and a reload.
+  - Cozy ≠ flat: the two-birds cast, a tangle and the reveal each get one clear payoff (Word Play: "sterile… watch my score rattle up").
+  - After a game: "the best word you could have grown" (the AI already finds it) — learning payoff.
+  - The night sky shifts dusk → midnight → dawn as the garden fills (one mood colour, fixed layout).
+  - AI check: measure how the HUMAN plays against each personality (does the Strategist push people to turtle?); balance by match-up × skill.
 - 2026-10-09 — **Bot takeover on the Story chart** (Muzzy): when a bot plays for a human (idle takeover, turn timer, left), the end screen's Story shows it — a thicker, darker band behind that player's line from the turn the bot took over until the human took back over. Needs the game log to record takeover start/end per seat.
 - 2026-10-08 — → F52. **Idle takeover with a warning bar** (Muzzy): online, 30 s without an action → a 30 s draining bar on THEIR screen ("Still there? A bot takes over soon" — concise); at 60 s a bot plays for them, mid-turn, as if they'd disconnected, until they act again. (Today: the server plays a turn for an idle player, a bot takes the seat after missedTurnsBeforeBot 2 — rooms.json.) Reworks B024's path. → make it a feature (/sprint).
 - 2026-10-08 — → F53. **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
