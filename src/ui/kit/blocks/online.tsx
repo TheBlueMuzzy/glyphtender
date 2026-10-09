@@ -64,7 +64,7 @@ function JoinOrCreate({ w, busy, error, name, onNameChange, onCreate, onJoin, on
         </Stack>
       </ScrollArea>
       {error && <Text kind="caption"><span className="kit-error">{error}</span></Text>}
-      {onBack && <Row gap="s"><Button variant="ghost" onClick={onBack}>{w.back}</Button></Row>}
+      {onBack && <Row gap="s"><Button variant="ghost" sound="back" onClick={onBack}>{w.back}</Button></Row>}
     </>
   )
 }

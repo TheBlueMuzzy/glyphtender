@@ -1,0 +1,823 @@
+{
+  "_help": {
+    "buses.music": "How loud the music group is, in dB under master (0 = full, -6 = about half). The player's own Music slider in Settings works on top of this.",
+    "buses.ambience": "How loud the background sounds (wind, crickets, crowd) are, in dB under master.",
+    "buses.sfx": "How loud the game's sound effects are, in dB under master. Usually 0: effects are the reference the others sit under.",
+    "buses.ui": "How loud menu and button sounds are, in dB under master. Keep it 6-10 dB under the effects: players hear these hundreds of times.",
+    "master.limiterDb": "The safety net: nothing gets louder than this (dB). -1 is the standard. Lower = squashes loud moments more.",
+    "tiers.small": "The sound a \"small\" juiced moment plays when it has no sound of its own (same intention, same sound).",
+    "tiers.medium": "The sound a \"medium\" juiced moment plays when it has no sound of its own.",
+    "tiers.big": "The sound a \"big\" juiced moment plays when it has no sound of its own.",
+    "ladder.scale": "The notes a ladder sound climbs: pentatonic (no wrong notes, the default), major, minorPentatonic or chromatic.",
+    "ladder.root": "The key your ladder sounds are recorded in, e.g. D. Record or tune them to this note so they sit in the music's key.",
+    "ladder.steps": "How many notes the ladder climbs before it holds the top note. 8 = about an octave and a half on the pentatonic scale (higher starts to sound chipmunky).",
+    "ladder.resetMs": "After this much quiet (ms), the ladder starts again at the bottom note.",
+    "snapshots.paused.music": "While paused: how much the music drops, in dB (0 = no change).",
+    "snapshots.paused.lowpassHz": "While paused: the music sounds muffled, as if behind a door. Lower = more muffled. 0 = off.",
+    "snapshots.paused.fadeMs": "How long (ms) the paused mix takes to fade in and out.",
+    "snapshots.reveal.music": "During the big reveal: how much the music drops, in dB.",
+    "snapshots.reveal.ambience": "During the big reveal: how much the background sounds drop, in dB.",
+    "snapshots.reveal.fadeMs": "How long (ms) the reveal mix takes to fade in and out.",
+    "duck.amountDb": "When a sound with \"duck\" plays, the music drops this much (dB) so the moment is clear. -6 to -8 is typical.",
+    "duck.downMs": "How fast (ms) the music drops for a ducking sound. Short = snappy.",
+    "duck.backMs": "How long (ms) the music takes to come back up after it ducked.",
+    "limits.maxVoices": "Most effect + menu sounds playing at once (music and ambience don't count). More than this: the least important, quietest, oldest one is cut. ~14 is a good number.",
+    "limits.staleMs": "A sound asked for this late (ms) is skipped instead of playing out of sync (catch-up after a hiccup or a reconnect).",
+    "sounds.*.files": "The files for this sound, inside public/audio/ (e.g. sfx/pop_01.mp3). Two or more = variants, so it doesn't sound like a machine gun.",
+    "sounds.*.pick": "Which file plays next: random (never the same one twice), sequence (in order) or shuffle (each once, then a new order).",
+    "sounds.*.bus": "Which volume group it's in: music, ambience, sfx (effects) or ui (menus & buttons).",
+    "sounds.*.volumeDb": "How loud, in dB. 0 = as recorded, -6 = about half, +6 = about double.",
+    "sounds.*.pitch": "Higher or lower, in semitones (12 = an octave). Pitch and speed are one knob: higher also plays faster.",
+    "sounds.*.randomPitch": "Each play is up to this many semitones higher or lower, picked at random. 0.5-1 stops repeats sounding identical.",
+    "sounds.*.randomVolumeDb": "Each play is up to this many dB louder or quieter, picked at random. 1-3 is subtle.",
+    "sounds.*.delayMs": "Wait this long (ms) before playing — to line it up with an animation without touching code.",
+    "sounds.*.trimStartMs": "Skip this much (ms) at the start of the file — cuts silence so it feels instant.",
+    "sounds.*.trimEndMs": "Cut this much (ms) off the end of the file.",
+    "sounds.*.fadeInMs": "Fade in over this long (ms). 0 = starts at full volume.",
+    "sounds.*.fadeOutMs": "Fade out over this long (ms) at the end.",
+    "sounds.*.loop": "true = plays over and over until stopped (music, ambience).",
+    "sounds.*.loopStartMs": "Where the loop jumps back to (ms into the file). 0 and 0 = loop the whole file.",
+    "sounds.*.loopEndMs": "Where the loop ends and jumps back (ms into the file). 0 = the end of the file.",
+    "sounds.*.maxVoices": "Most copies of this sound at once. One more cuts the oldest copy. 3-4 is typical.",
+    "sounds.*.cooldownMs": "A repeat sooner than this (ms) is skipped — stops two plays in the same instant doubling up. 30-60 is typical.",
+    "sounds.*.priority": "How important it is (0-5, higher = more important). When too many sounds play at once, the least important are cut first.",
+    "sounds.*.pan": "Left or right: -1 = left, 0 = middle, 1 = right.",
+    "sounds.*.lowpassHz": "Muffle it: only sound below this pitch (Hz) gets through. 0 = off. Try 800-3000.",
+    "sounds.*.highpassHz": "Thin it: only sound above this pitch (Hz) gets through. 0 = off. Try 200-800.",
+    "sounds.*.ladder": "true = each quick repeat plays one note higher, up the ladder (see Ladder).",
+    "sounds.*.duck": "true = the music drops for a moment while it plays (big moments).",
+    "sounds.draft.place": "A glyphling lands on its spot in the draft (yours, an AI's, or an online player's).",
+    "sounds.glyph.lift": "You pick a glyphling up to drag it.",
+    "sounds.glyph.step": "A glyphling's glide settles on its new hex (a planned move, an AI's, an online player's).",
+    "sounds.seed.pick": "You pick a seed up from the tray (tap or drag).",
+    "sounds.seed.drop": "A seed goes back in the tray (let go, taken back off the board, or moved to another place).",
+    "sounds.seed.aim": "A seed is aimed at a hex (the planned look) — yours or an AI's.",
+    "sounds.cast.throw": "The glyphling hops and throws its seed (the whoosh, at the top of the hop).",
+    "sounds.seed.land": "The thrown seed lands in the garden (soft earth + a little water).",
+    "sounds.sprout.grow": "The runeblossom grows out of the landed seed (a beat after the landing — delayMs).",
+    "sounds.score.pop": "Each scoring seed pops its \"+2\" — each pop one note higher up the ladder.",
+    "sounds.score.arrive": "Points fly into the running total (each arrival).",
+    "sounds.word.chord": "A word of 5 or more letters finishes scoring (a kalimba chord).",
+    "sounds.cast.flourish": "A cast that grew 2 or more words (\"two birds\") — after its last points land. Dips the music.",
+    "sounds.danger.warn": "A glyphling is down to one move left (its thorny ring appears).",
+    "sounds.tangle": "A glyphling gets tangled (the vine wraps it) — a \"smile or groan\", not an alarm. Dips the music.",
+    "sounds.no": "The little \"no\" shake when you tap something you can't use.",
+    "sounds.refresh.out": "Refresh: your set-aside seeds shrink out of the tray (only on the screen of the player refreshing).",
+    "sounds.refresh.in": "Refresh: the new seeds grow into the tray.",
+    "sounds.tray.shuffle": "Shuffle mixes your tray.",
+    "sounds.undo": "Undo / taking a move back (the glyphling glides home).",
+    "sounds.turn.yours": "Your turn starts (only on your own screen; pass-and-play: after \"Show my seeds\"). Your glyphlings start to breathe.",
+    "sounds.handoff": "Pass-and-play: the \"Pass to Blue\" box appears.",
+    "sounds.reveal.tangles": "The Magic reveal begins: the tangled glyphlings glow.",
+    "sounds.reveal.count": "The reveal: each player's Magic counts up — one note higher for each player (a rising run).",
+    "sounds.reveal.bonus": "The reveal: a \"+3\" tangle bonus lands in its owner's total.",
+    "sounds.reveal.winner": "The new Grand Glyphtender is named (the fanfare). Dips the music. On the effects group so the reveal mix doesn't dip it too.",
+    "sounds.end.award": "An award card shows in the end screen's Highlights.",
+    "sounds.online.idle": "Online: the \"still there?\" idle bar appears on your screen.",
+    "sounds.online.toast": "Online: a player left, is back, or a bot plays for them (the little message).",
+    "sounds.ui.tap": "Any menu button, tab or ◀ ▶ (a gentle wood knock).",
+    "sounds.ui.back": "Back, Close ✕ and Resume buttons (a lower knock).",
+    "sounds.ui.toggle": "An on/off switch in Settings or New Game.",
+    "sounds.amb.night": "The night garden (crickets, breeze) — loops for the whole game.",
+    "sounds.mus.garden": "Soft harp near the start of a game — plays ONCE (it has an ending), then the garden rests.",
+    "sounds.mus.menu": "The menus' music (a quiet kalimba loop).",
+    "sounds.tier.small": "A \"small\" juiced moment's sound when it has none of its own (feel.json tiers).",
+    "sounds.tier.medium": "A \"medium\" juiced moment's sound when it has none of its own.",
+    "sounds.tier.big": "A \"big\" juiced moment's sound when it has none of its own. Dips the music."
+  },
+  "_labels": {
+    "buses.music": "Music (dB)",
+    "buses.ambience": "Ambience (dB)",
+    "buses.sfx": "Sound effects (dB)",
+    "buses.ui": "Menus & buttons (dB)",
+    "master.limiterDb": "Loudest allowed (dB)",
+    "tiers.small": "Small moment sound",
+    "tiers.medium": "Medium moment sound",
+    "tiers.big": "Big moment sound",
+    "ladder.scale": "Scale",
+    "ladder.root": "Key",
+    "ladder.steps": "Notes it climbs",
+    "ladder.resetMs": "Starts over after quiet (ms)",
+    "snapshots.paused.music": "Paused: music (dB)",
+    "snapshots.paused.lowpassHz": "Paused: muffle music (Hz)",
+    "snapshots.paused.fadeMs": "Paused: fade (ms)",
+    "snapshots.reveal.music": "Reveal: music (dB)",
+    "snapshots.reveal.ambience": "Reveal: ambience (dB)",
+    "snapshots.reveal.fadeMs": "Reveal: fade (ms)",
+    "duck.amountDb": "Ducking: music drops (dB)",
+    "duck.downMs": "Ducking: down in (ms)",
+    "duck.backMs": "Ducking: back over (ms)",
+    "limits.maxVoices": "Most sounds at once",
+    "limits.staleMs": "Skip sounds later than (ms)",
+    "sounds.*.files": "Files",
+    "sounds.*.pick": "Pick",
+    "sounds.*.bus": "Volume group",
+    "sounds.*.volumeDb": "Volume (dB)",
+    "sounds.*.pitch": "Pitch (semitones)",
+    "sounds.*.randomPitch": "Random pitch (±)",
+    "sounds.*.randomVolumeDb": "Random volume (± dB)",
+    "sounds.*.delayMs": "Delay (ms)",
+    "sounds.*.trimStartMs": "Trim start (ms)",
+    "sounds.*.trimEndMs": "Trim end (ms)",
+    "sounds.*.fadeInMs": "Fade in (ms)",
+    "sounds.*.fadeOutMs": "Fade out (ms)",
+    "sounds.*.loop": "Loop",
+    "sounds.*.loopStartMs": "Loop start (ms)",
+    "sounds.*.loopEndMs": "Loop end (ms)",
+    "sounds.*.maxVoices": "Copies at once",
+    "sounds.*.cooldownMs": "Cooldown (ms)",
+    "sounds.*.priority": "Importance",
+    "sounds.*.pan": "Left / right",
+    "sounds.*.lowpassHz": "Muffle (Hz)",
+    "sounds.*.highpassHz": "Thin (Hz)",
+    "sounds.*.ladder": "Climbs the ladder",
+    "sounds.*.duck": "Ducks the music"
+  },
+  "_sections": {
+    "Mix": [
+      "buses",
+      "master"
+    ],
+    "Moments (feel tiers)": [
+      "tiers"
+    ],
+    "Ladder": [
+      "ladder"
+    ],
+    "Named mixes": [
+      "snapshots",
+      "duck"
+    ],
+    "Limits": [
+      "limits"
+    ],
+    "Sounds": [
+      "sounds"
+    ]
+  },
+  "_ranges": {
+    "buses.music": [
+      -40,
+      6,
+      0.5
+    ],
+    "buses.ambience": [
+      -40,
+      6,
+      0.5
+    ],
+    "buses.sfx": [
+      -40,
+      6,
+      0.5
+    ],
+    "buses.ui": [
+      -40,
+      6,
+      0.5
+    ],
+    "master.limiterDb": [
+      -12,
+      0,
+      0.5
+    ],
+    "ladder.steps": [
+      1,
+      24,
+      1
+    ],
+    "ladder.resetMs": [
+      0,
+      5000,
+      50
+    ],
+    "snapshots.paused.music": [
+      -40,
+      0,
+      0.5
+    ],
+    "snapshots.paused.lowpassHz": [
+      0,
+      20000,
+      10
+    ],
+    "snapshots.paused.fadeMs": [
+      0,
+      2000,
+      10
+    ],
+    "snapshots.reveal.music": [
+      -40,
+      0,
+      0.5
+    ],
+    "snapshots.reveal.ambience": [
+      -40,
+      0,
+      0.5
+    ],
+    "snapshots.reveal.fadeMs": [
+      0,
+      2000,
+      10
+    ],
+    "duck.amountDb": [
+      -24,
+      0,
+      0.5
+    ],
+    "duck.downMs": [
+      0,
+      500,
+      5
+    ],
+    "duck.backMs": [
+      0,
+      3000,
+      10
+    ],
+    "limits.maxVoices": [
+      1,
+      32,
+      1
+    ],
+    "limits.staleMs": [
+      0,
+      2000,
+      10
+    ],
+    "sounds.*.volumeDb": [
+      -40,
+      6,
+      0.5
+    ],
+    "sounds.*.pitch": [
+      -12,
+      12,
+      0.1
+    ],
+    "sounds.*.randomPitch": [
+      0,
+      3,
+      0.1
+    ],
+    "sounds.*.randomVolumeDb": [
+      0,
+      6,
+      0.5
+    ],
+    "sounds.*.delayMs": [
+      0,
+      1000,
+      5
+    ],
+    "sounds.*.trimStartMs": [
+      0,
+      5000,
+      5
+    ],
+    "sounds.*.trimEndMs": [
+      0,
+      5000,
+      5
+    ],
+    "sounds.*.fadeInMs": [
+      0,
+      5000,
+      5
+    ],
+    "sounds.*.fadeOutMs": [
+      0,
+      5000,
+      5
+    ],
+    "sounds.*.loopStartMs": [
+      0,
+      600000,
+      10
+    ],
+    "sounds.*.loopEndMs": [
+      0,
+      600000,
+      10
+    ],
+    "sounds.*.maxVoices": [
+      1,
+      8,
+      1
+    ],
+    "sounds.*.cooldownMs": [
+      0,
+      500,
+      5
+    ],
+    "sounds.*.priority": [
+      0,
+      5,
+      1
+    ],
+    "sounds.*.pan": [
+      -1,
+      1,
+      0.05
+    ],
+    "sounds.*.lowpassHz": [
+      0,
+      20000,
+      10
+    ],
+    "sounds.*.highpassHz": [
+      0,
+      20000,
+      10
+    ]
+  },
+  "buses": {
+    "music": -8,
+    "ambience": -10,
+    "sfx": 0,
+    "ui": -8
+  },
+  "master": {
+    "limiterDb": -1
+  },
+  "tiers": {
+    "small": "tier.small",
+    "medium": "tier.medium",
+    "big": "tier.big"
+  },
+  "ladder": {
+    "scale": "pentatonic",
+    "root": "D",
+    "steps": 8,
+    "resetMs": 1200
+  },
+  "snapshots": {
+    "paused": {
+      "music": -10,
+      "lowpassHz": 900,
+      "fadeMs": 250
+    },
+    "reveal": {
+      "music": -6,
+      "ambience": -8,
+      "fadeMs": 400
+    }
+  },
+  "duck": {
+    "amountDb": -7,
+    "downMs": 10,
+    "backMs": 600
+  },
+  "limits": {
+    "maxVoices": 14,
+    "staleMs": 400
+  },
+  "sounds": {
+    "draft.place": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_draft_place_01.mp3",
+        "sfx/sfx_draft_place_02.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.5,
+      "randomVolumeDb": 1.5,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 2
+    },
+    "glyph.lift": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_glyph_lift_01.mp3",
+        "ui/ui_glyph_lift_02.mp3"
+      ],
+      "volumeDb": -8,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 60,
+      "priority": 1
+    },
+    "glyph.step": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_glyph_step_01.mp3",
+        "sfx/sfx_glyph_step_02.mp3",
+        "sfx/sfx_glyph_step_03.mp3",
+        "sfx/sfx_glyph_step_04.mp3",
+        "sfx/sfx_glyph_step_05.mp3"
+      ],
+      "volumeDb": -8,
+      "randomPitch": 0.7,
+      "randomVolumeDb": 2,
+      "maxVoices": 3,
+      "cooldownMs": 40,
+      "priority": 2
+    },
+    "seed.pick": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_seed_pick_01.mp3",
+        "ui/ui_seed_pick_02.mp3",
+        "ui/ui_seed_pick_03.mp3",
+        "ui/ui_seed_pick_04.mp3"
+      ],
+      "volumeDb": -8,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "seed.drop": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_seed_drop_01.mp3",
+        "ui/ui_seed_drop_02.mp3"
+      ],
+      "volumeDb": -8,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "seed.aim": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_seed_aim_01.mp3",
+        "ui/ui_seed_aim_02.mp3"
+      ],
+      "volumeDb": -10,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "cast.throw": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_cast_throw_01.mp3",
+        "sfx/sfx_cast_throw_02.mp3",
+        "sfx/sfx_cast_throw_03.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.8,
+      "randomVolumeDb": 1.5,
+      "maxVoices": 2,
+      "cooldownMs": 60,
+      "priority": 2
+    },
+    "seed.land": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_seed_land_01.mp3",
+        "sfx/sfx_seed_land_02.mp3"
+      ],
+      "volumeDb": -3,
+      "randomPitch": 0.5,
+      "randomVolumeDb": 1.5,
+      "maxVoices": 2,
+      "cooldownMs": 60,
+      "priority": 3
+    },
+    "sprout.grow": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_sprout_grow_01.mp3",
+        "sfx/sfx_sprout_grow_02.mp3"
+      ],
+      "volumeDb": -8,
+      "delayMs": 80,
+      "randomPitch": 0.5,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 60,
+      "priority": 2
+    },
+    "score.pop": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_score_pop_01.mp3"
+      ],
+      "volumeDb": -6,
+      "maxVoices": 6,
+      "cooldownMs": 30,
+      "priority": 3,
+      "ladder": true
+    },
+    "score.arrive": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_score_arrive_01.mp3",
+        "sfx/sfx_score_arrive_02.mp3"
+      ],
+      "volumeDb": -12,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 4,
+      "cooldownMs": 30,
+      "priority": 2
+    },
+    "word.chord": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_word_chord_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 2,
+      "cooldownMs": 200,
+      "priority": 4
+    },
+    "cast.flourish": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_cast_flourish_01.mp3"
+      ],
+      "volumeDb": -3,
+      "maxVoices": 1,
+      "cooldownMs": 500,
+      "priority": 5,
+      "duck": true
+    },
+    "danger.warn": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_danger_warn_01.mp3"
+      ],
+      "volumeDb": -8,
+      "maxVoices": 2,
+      "cooldownMs": 250,
+      "priority": 3
+    },
+    "tangle": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_tangle_boing_01.mp3",
+        "sfx/sfx_tangle_boing_02.mp3"
+      ],
+      "volumeDb": -4,
+      "randomPitch": 0.3,
+      "maxVoices": 2,
+      "cooldownMs": 250,
+      "priority": 4,
+      "duck": true
+    },
+    "no": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_no_bonk_01.mp3",
+        "ui/ui_no_bonk_02.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 80,
+      "priority": 2
+    },
+    "refresh.out": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_refresh_out_01.mp3"
+      ],
+      "volumeDb": -6,
+      "maxVoices": 1,
+      "cooldownMs": 100,
+      "priority": 2
+    },
+    "refresh.in": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_refresh_in_01.mp3"
+      ],
+      "volumeDb": -6,
+      "maxVoices": 1,
+      "cooldownMs": 100,
+      "priority": 2
+    },
+    "tray.shuffle": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_tray_shuffle_01.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.3,
+      "maxVoices": 1,
+      "cooldownMs": 150,
+      "priority": 1
+    },
+    "undo": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_undo_01.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.3,
+      "maxVoices": 1,
+      "cooldownMs": 80,
+      "priority": 1
+    },
+    "turn.yours": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_turn_yours_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 1,
+      "cooldownMs": 500,
+      "priority": 4
+    },
+    "handoff": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_handoff_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 1,
+      "cooldownMs": 300,
+      "priority": 3
+    },
+    "reveal.tangles": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_reveal_tangles_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 1,
+      "cooldownMs": 300,
+      "priority": 4
+    },
+    "reveal.count": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_reveal_count_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 2,
+      "cooldownMs": 100,
+      "priority": 4,
+      "ladder": true
+    },
+    "reveal.bonus": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_reveal_bonus_01.mp3",
+        "sfx/sfx_reveal_bonus_02.mp3"
+      ],
+      "volumeDb": -8,
+      "randomPitch": 0.3,
+      "maxVoices": 3,
+      "cooldownMs": 40,
+      "priority": 3
+    },
+    "reveal.winner": {
+      "bus": "sfx",
+      "files": [
+        "stg/stg_reveal_winner_01.mp3"
+      ],
+      "volumeDb": -2,
+      "maxVoices": 1,
+      "cooldownMs": 500,
+      "priority": 5,
+      "duck": true
+    },
+    "end.award": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_end_award_01.mp3"
+      ],
+      "volumeDb": -8,
+      "maxVoices": 1,
+      "cooldownMs": 300,
+      "priority": 2
+    },
+    "online.idle": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_online_idle_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 1,
+      "cooldownMs": 1000,
+      "priority": 4
+    },
+    "online.toast": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_online_toast_01.mp3"
+      ],
+      "volumeDb": -8,
+      "maxVoices": 1,
+      "cooldownMs": 200,
+      "priority": 2
+    },
+    "ui.tap": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_button_tap_01.mp3",
+        "ui/ui_button_tap_02.mp3",
+        "ui/ui_button_tap_03.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.3,
+      "randomVolumeDb": 1,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "ui.back": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_button_back_01.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.3,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "ui.toggle": {
+      "bus": "ui",
+      "files": [
+        "ui/ui_toggle_flip_01.mp3"
+      ],
+      "volumeDb": -6,
+      "randomPitch": 0.3,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "amb.night": {
+      "bus": "ambience",
+      "files": [
+        "amb/amb_night_garden_loop.mp3"
+      ],
+      "volumeDb": 0,
+      "loop": true,
+      "loopEndMs": 45808,
+      "fadeInMs": 1500,
+      "maxVoices": 1,
+      "priority": 0
+    },
+    "mus.garden": {
+      "bus": "music",
+      "files": [
+        "mus/mus_garden_harp_01.mp3"
+      ],
+      "volumeDb": -2,
+      "fadeInMs": 2000,
+      "maxVoices": 1,
+      "cooldownMs": 500,
+      "priority": 0
+    },
+    "mus.menu": {
+      "bus": "music",
+      "files": [
+        "mus/mus_menu_kalimba_loop.mp3"
+      ],
+      "volumeDb": -2,
+      "loop": true,
+      "loopEndMs": 46837,
+      "fadeInMs": 1000,
+      "maxVoices": 1,
+      "priority": 0
+    },
+    "tier.small": {
+      "bus": "sfx",
+      "files": [
+        "ui/ui_online_toast_01.mp3"
+      ],
+      "volumeDb": -10,
+      "randomPitch": 0.5,
+      "maxVoices": 3,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "tier.medium": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_score_arrive_01.mp3"
+      ],
+      "volumeDb": -8,
+      "randomPitch": 0.5,
+      "maxVoices": 3,
+      "cooldownMs": 40,
+      "priority": 2
+    },
+    "tier.big": {
+      "bus": "sfx",
+      "files": [
+        "sfx/sfx_word_chord_01.mp3"
+      ],
+      "volumeDb": -4,
+      "maxVoices": 2,
+      "cooldownMs": 100,
+      "priority": 4,
+      "duck": true
+    }
+  }
+}

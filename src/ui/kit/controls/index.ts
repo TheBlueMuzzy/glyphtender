@@ -1,4 +1,5 @@
 export { Button } from './Button'
+export { setControlSound, controlSound, type ControlSoundKind } from './controlSound'
 export { Toggle } from './Toggle'
 export { Slider } from './Slider'
 export { Selector } from './Selector'

@@ -1,6 +1,6 @@
 // SETTINGS — drawn from a list, never built by hand. Copy settings.default.json to your game's
 // content/ui/settings.json, then switch rows off ("on": false) or add your own. Add a row → it appears.
-//   <Settings schema={settingsJson} onChange={(values) => audio.setVolume(values.musicVolume)} />
+//   <Settings schema={settingsJson} onChange={(values) => applyAudioSettings(audio, values)} />   (framework audio module)
 // Row types: slider · toggle · selector · stepper · button (calls onAction(id)) · link (opens url)
 //            · destructive (asks first, then onAction(id)) · info (read-only, e.g. the version).
 // Values are remembered in the browser, in a slot of the game's own (or pass your own load/save).
@@ -150,7 +150,7 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
       <Panel depth={2} gap="m" className={tabs.length > 1 ? 'kit-wide kit-tall' : 'kit-wide'}>
         <Row gap="s" justify="between">
           <Text kind="title">{w.title}</Text>
-          <Button variant="secondary" onClick={onBack}>{w.back}</Button>
+          <Button variant="secondary" sound="back" onClick={onBack}>{w.back}</Button>
         </Row>
         {/* Phones get ◀ Audio ▶ instead of a tab bar: 8 tabs would fill half the screen. One tab: no picker. */}
         {tabs.length > 1 && <>
