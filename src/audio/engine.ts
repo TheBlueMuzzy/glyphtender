@@ -13,7 +13,7 @@
 import { BUSES, dbToGain, readAudioConfig, sliderToGain, type AudioConfig, type BusName, type Tier } from './config.ts'
 import { createLoader, type FetchFile, type Loader } from './loader.ts'
 import { createLog, type AudioLog, type LogEntry } from './log.ts'
-import { planPlay, type ActiveVoice, type Drop, type EngineState, type PlayOptions, type PlayPlan, type SoundMemory } from './planner.ts'
+import { planPlay, seededRandom, type ActiveVoice, type Drop, type EngineState, type PlayOptions, type PlayPlan, type SoundMemory } from './planner.ts'
 
 /** Safari's Audio Session API (not in TypeScript's DOM types yet) */
 interface AudioSessionLike {
@@ -35,7 +35,8 @@ export interface AudioOptions {
   context?: () => AudioContext
   /** The clock `at` is measured on (ms). Default: performance.now() — the same clock as requestAnimationFrame. */
   now?: () => number
-  /** Random 0 ≤ n < 1 for variants and random pitch/volume. Default Math.random. */
+  /** Random 0 ≤ n < 1 for variants and random pitch/volume. Default: its own seeded random, so sound never
+   *  uses up the game's Math.random (Glyphtender: a click's sound shifted a frozen-random tray shuffle). */
   rng?: () => number
   /** Load every effect + menu sound right after the unlock (default true). Otherwise each loads on its first play. */
   preload?: boolean
@@ -124,7 +125,7 @@ function rampTo(param: AudioParam, value: number, at: number, seconds: number) {
 export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Audio {
   let config = readAudioConfig(rawConfig)
   const clock = options.now ?? (() => performance.now())
-  const rng = options.rng ?? Math.random
+  const rng = options.rng ?? seededRandom(Date.now())
   const makeContext = options.context ?? (() => new AudioContext())
   const win: EventTarget | undefined = options.window ?? (typeof window !== 'undefined' ? window : undefined)
   const doc: DocumentLike | undefined = options.document ?? (typeof document !== 'undefined' ? document : undefined)
