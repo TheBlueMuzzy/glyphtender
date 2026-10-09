@@ -98,7 +98,7 @@
 - **UI:** Game UI kit, **Cozy** style, tuned to night colours in `content/ui/style.json` (Cozy's preset is light paper).
 - **Art:** the original's runeblossom letters (A–Z × 4 colours) and glyphling portraits, used as-is as stand-ins. **Muzzy will redraw them** (he also has board art for later).
 - **Signature moment (later):** seed arcs to the hex → buried → glyphling splashes magic water → letter topiary grows.
-- **Sound:** none in alpha; basic audio in beta. Discovery 2026-10-08 (`research/audio.md`): built as a reusable framework Audio module, tweakable in the Dev Kit. Directions: A quiet garden (ambience + soft foley) · B the garden sings (actions become the melody, the reveal is the crescendo — Claude's pick) · C cozy soundtrack. Placeholders are real recordings, not code-made bleeps (Roll Better lesson). /define decides.
+- **Sound (beta): the garden sings** (Muzzy 2026-10-09). A night garden at a once-in-a-generation contest to become the Grand Glyphtender — cozy, magical, a little ceremonial. Night ambience + a quiet bed that rests; your play is the melody (score pops climb one key, long words ring a chord, two-birds casts flourish); the Magic reveal is the ceremony, ending in a gentle fanfare for the new Grand Glyphtender. Wood, glass, bells, kalimba, harp, soft earth, water — never arcade. Beta = every moment sounded from free libraries, systems right ("don't let perfect be the enemy of good"); final audio in 1.0. Sound list + mix: [design/audio.md](design/audio.md). Engine: the framework Audio module.
 
 ## 7. Scope
 Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are code sketches, like F01). **Done** = all its musts done.

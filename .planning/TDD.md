@@ -125,6 +125,7 @@ flowchart LR
 | Frame rate | 60 fps on a mid-range phone during grow animations | Dev Kit → Perf (when built) / DevTools |
 | First load | < 3 s on 4G; download < 2 MB incl. dictionary + stand-in art | /deliver quick check |
 | Art | runeblossoms + glyphlings ≤ 256 px WebP (originals are 2000 px) | organize-assets |
+| Audio (beta) | sound effects ≤ ~500 KB, loaded after the first screen (not in first load); music streamed, cached on first play | /deliver quick check |
 | AI turn (beta) | < 1 s on a phone, in a Web Worker | timing test |
 | Network | 1 action + N views per turn; PartyKit free tier | server logs |
 
@@ -146,6 +147,16 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D84 · 2026-10-09 · Audio: a framework module on plain Web Audio; code plays named sounds, content/audio.json says what they sound like
+  Muzzy: "audio will be a module we're breaking out into bmuz… tweakable in the dev kit… you'll need to become the
+  subject matter expert" · "solve the architecture and systems for sound… don't let perfect be the enemy of good".
+  Proposed by: Claude   Options: Howler / Tone.js / own thin layer on Web Audio
+  Chose: own layer (framework audio/, design: framework/.planning/design/audio.md) — Howler is stale (2023) with no
+  buses or filters; Tone is a 75 KB music kit. A pure planner (variants, limits, ladder, stale drop) is unit-tested
+  without audio; the engine is thin. MP3 everywhere (Opus on iPhone still flaky), files in public/audio/ so the Dev Kit
+  Sound Board can drop them in without a rebuild. iPhone silent switch respected (Muzzy: "sure"). Sounds play at the
+  animation's moment, not the event's. No code-made placeholder sounds (Roll Better's were "horrible") — free recorded
+  libraries for beta (Muzzy: "free libraries… for now"). Direction B, the garden sings (design/audio.md).
 D83 · 2026-10-08 · Idle takeover: a warning bar, then a bot mid-turn, and any tap gives it back (F52, framework rooms 0.4.0)
   Muzzy: "when a player is absent for 1 minute (no actions), a bot should take over until they are active again…
   a 30s depleting bar… this is a mid turn takeover, almost as if they had disconnected" · "if there's a timer, then
