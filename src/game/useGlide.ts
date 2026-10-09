@@ -3,14 +3,17 @@
 // planning a move (tap/drop), taking it back (Undo / tap the ghost), the dev hook, and later the other
 // players' moves arriving online. Each glyphling's group is [data-glide="id"] in Board.tsx.
 // The browser animates it (Web Animations API) — no React state per frame. Reduce motion → instant.
+// Sound: glyph.step as the PLANNED move's glide settles (`stepping` = the glyphling in the plan — a person's, an AI's
+// or an online replay's). Undo has its own sound, and a jump (no plan) is silent. Reduce motion: at once.
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import { hexKey, type Hex } from '../engine/hex'
+import { playSound } from '../audio'
 import { reduceMotion } from '../ui/kit'
 import { glideFrames, glideSeconds, offsetBetween, type Offset } from './glide'
 import { HEX } from './useThrow'
 import type { AnimTuning } from './useTuning'
 
-export function useGlide(svgRef: RefObject<SVGSVGElement | null>, spots: { id: number; hex: Hex }[], timing: AnimTuning) {
+export function useGlide(svgRef: RefObject<SVGSVGElement | null>, spots: { id: number; hex: Hex }[], timing: AnimTuning, stepping: number | null) {
   const drawnAt = useRef(new Map<number, Hex>()) // where each glyphling was drawn last time
   const key = spots.map((s) => `${s.id}@${hexKey(s.hex)}`).join(' ')
 
@@ -18,10 +21,12 @@ export function useGlide(svgRef: RefObject<SVGSVGElement | null>, spots: { id: n
     const before = drawnAt.current
     drawnAt.current = new Map(spots.map((s) => [s.id, s.hex])) // glyphlings that left the board are forgotten
     const svg = svgRef.current
-    if (!svg || reduceMotion()) return
+    const still = reduceMotion()
     for (const { id, hex } of spots) {
       const from = before.get(id)
       if (!from || hexKey(from) === hexKey(hex)) continue
+      if (id === stepping) playSound('glyph.step', { at: performance.now() + (still ? 0 : glideSeconds(from, hex, timing) * 1000) })
+      if (!svg || still) continue
       const group = svg.querySelector<SVGGElement>(`[data-glide="${id}"]`)
       if (!group) continue
       // Start from where it is on screen right now (it may still be gliding from an earlier change)

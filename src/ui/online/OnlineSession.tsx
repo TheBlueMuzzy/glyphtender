@@ -6,7 +6,9 @@
 //   any tap or key while it matters → "I'm here" (F52 — the room's idle clock)
 // While the connection is coming back it shows the kit's Reconnecting box; otherwise the kit's IdleWarning (F52:
 // my idle bar, or "a bot is playing for you — tap to play").
+// Sounds: online.toast with each seat toast · online.idle as my idle bar appears.
 import { useEffect, useRef } from 'react'
+import { playSound } from '../../audio'
 import text from '../../../content/text/en.json'
 import type { GameView, OnlineAction, OnlineOptions } from '../../../party/protocol'
 import type { RoomState } from '../../rooms/protocol'
@@ -60,7 +62,10 @@ export function OnlineSession() {
   const you = room.mySeat?.id ?? null
   const seenRoom = useRef<RoomState | null>(null)
   useEffect(() => {
-    for (const notice of seatNotices(seenRoom.current, roomState, you)) toast(fill(w.seats[notice.kind], { name: notice.name }))
+    for (const notice of seatNotices(seenRoom.current, roomState, you)) {
+      toast(fill(w.seats[notice.kind], { name: notice.name }))
+      playSound('online.toast')
+    }
     seenRoom.current = roomState
   }, [roomState, you])
 
@@ -79,6 +84,10 @@ export function OnlineSession() {
   // room restarts my idle clock — or gives me my seat back at once.
   const { active, idleWarning, botPlaysForMe } = room
   const urgent = idleWarning !== null || botPlaysForMe
+  const idleBarUp = idleWarning !== null
+  useEffect(() => {
+    if (idleBarUp) playSound('online.idle')
+  }, [idleBarUp])
   const urgentRef = useRef(urgent)
   useEffect(() => { urgentRef.current = urgent })
   useEffect(() => {

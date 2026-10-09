@@ -7,7 +7,11 @@
 // server instead of the engine, and the server's view of the game comes back and replaces `game`.
 // WHAT HAPPENED (F31): every change keeps the rules' events beside the game it made (`happened`, happened.ts) —
 // the screen reads "what just happened" (the throw's landing, the words to score, the new seeds) from them.
+// SOUNDS of the taps themselves play here, where the tap changes the screen (content/audio.json): seed.pick / seed.drop /
+// seed.aim / undo / tray.shuffle, and draft.place as a glyphling is placed (a person's or an AI's). Everything that
+// animates (glide, throw, score, tray refresh) plays its sound where the animation plays (src/game/).
 import { create } from 'zustand'
+import { playSound } from '../audio'
 import text from '../../content/text/en.json'
 import animFile from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
@@ -258,6 +262,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
   const draftAt = (hex: Hex) => {
     const applied = send({ type: 'draft', hex })
     if (!applied) return
+    playSound('draft.place')
     const next = applied.state
     const dealt = next.phase === 'play' // the draft is over and seeds are dealt: pass the device before turn 1
     set({
@@ -277,7 +282,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     const { shrinkMs } = refreshTimes(slots.length, anim.current, reduceMotion())
     if (online) {
       // The action leaves at once (the trip to the server hides inside the shrink); its view waits for the shrink
-      if (!sendOnline({ type: 'refresh', setAside: chosen }) || shrinkMs === 0) return
+      if (!sendOnline({ type: 'refresh', setAside: chosen })) return
+      if (shrinkMs === 0) return void (slots.length && playSound('refresh.in')) // (reduce motion: no shrink and grow — just the sound)
       set({ refreshFx: { seat, slots, stage: 'out' } })
       return after(shrinkMs, () => {
         if (get().refreshFx?.stage !== 'out') return // the server refused it, or the connection dropped (onlinePlay.ts)
@@ -293,7 +299,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
     const order = [...trayOrder]
     order[seat] = refillRack(order[seat] ?? [], setAsideIds(applied.events, seat), next.hands[seat])
     const passOn = () => set({ ...noPlan(), game: next, happened, trayOrder: order, handoff: handoffTo(seat, applied.events, false), refreshFx: null })
-    if (shrinkMs === 0) return passOn()
+    if (shrinkMs === 0) {
+      if (slots.length && seat === viewerOf(get())) playSound('refresh.in') // (reduce motion; only the refreshing player's own screen)
+      return passOn()
+    }
     set({ refreshFx: { seat, slots, stage: 'out' }, selected: null })
     const newSlots = placesOf(order[seat], drawnIds(applied.events, seat))
     after(shrinkMs, () => growIn({ seat, slots, newSlots, stage: 'in', hand: next.hands[seat], order: order[seat] }, passOn))
@@ -395,12 +404,16 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (game.phase === 'refresh') return get().toggleSetAside(id)
       if (game.phase !== 'play') return
       if (!move) return set({ note: 'moveFirst' })
-      if (cast?.seed !== id && selected?.kind === 'seed' && selected.id === id) return set({ selected: null })
+      if (cast?.seed !== id && selected?.kind === 'seed' && selected.id === id) {
+        playSound('seed.drop') // (let go: it settles back in its place)
+        return set({ selected: null })
+      }
       get().grabSeed(id)
     },
     grabSeed: (id) => {
       const { game, cast, move } = get()
       if (!game || !canPlayAt('play') || !move) return
+      playSound('seed.pick')
       // Picking up the targeted seed takes it back off the board
       set({ selected: { kind: 'seed', id }, cast: cast?.seed === id ? null : cast, note: null })
     },
@@ -413,7 +426,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const allowed = (piece: Piece) => playReferee(get()).judge(game.current, piece, onHex(hex)).ok
       if (game.phase === 'draft') {
         if (!allowed(NEW_GLYPHLING)) return // not a glowing hex: nothing happens
-        if (get().online) return void sendOnline({ type: 'draft', hex })
+        if (get().online) {
+          if (sendOnline({ type: 'draft', hex })) playSound('draft.place') // (online: my own action sounds on my tap)
+          return
+        }
         return draftAt(hex)
       }
       if (game.phase !== 'play') return
@@ -421,12 +437,22 @@ export const useGameStore = create<GameStore>()((set, get) => {
         return set({ move: { glyphling: selected.id, to: hex }, cast: null, selected: null, note: null })
       }
       if (selected?.kind === 'seed' && allowed(selected)) {
+        playSound('seed.aim')
         return set({ cast: { seed: selected.id, target: hex }, selected: null, note: null })
       }
-      if (cast && sameHex(cast.target, hex)) return set({ cast: null, note: null }) // the seed goes back to the tray
+      if (cast && sameHex(cast.target, hex)) { // the seed goes back to the tray
+        playSound('seed.drop')
+        return set({ cast: null, note: null })
+      }
       const origin = move && game.glyphlings.find((g) => g.id === move.glyphling)?.hex
-      if (origin && sameHex(origin, hex)) return set({ ...noPlan() }) // tapped the ghost: the glyphling goes back
-      if (cast && !selected && allowed({ kind: 'seed', id: cast.seed })) return set({ cast: { ...cast, target: hex }, note: null }) // aim it elsewhere
+      if (origin && sameHex(origin, hex)) { // tapped the ghost: the glyphling goes back
+        playSound('undo')
+        return set({ ...noPlan() })
+      }
+      if (cast && !selected && allowed({ kind: 'seed', id: cast.seed })) { // aim it elsewhere
+        playSound('seed.aim')
+        return set({ cast: { ...cast, target: hex }, note: null })
+      }
       set({ selected: null })
     },
 
@@ -435,6 +461,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const { cast, move } = get()
       if (!canPlay()) return
       const step = undoNow(move, cast)
+      if (step) playSound('undo')
       if (step === 'cast') return set({ cast: null, selected: null, note: null })
       if (step === 'move') set({ ...noPlan() })
     },
@@ -524,6 +551,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!playReferee(get()).judge(game.current, seed, { kind: 'tray', pos: to }).ok) return
       const order = [...trayOrder]
       order[game.current] = moveInRack(order[game.current], from, to)
+      playSound('seed.drop') // (it settles into its new place)
       set({ trayOrder: order })
     },
     shuffleTray: () => {
@@ -531,6 +559,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!game || !canPlay()) return
       const order = [...trayOrder]
       order[game.current] = shuffleRack(order[game.current])
+      playSound('tray.shuffle')
       set({ trayOrder: order })
     },
 
@@ -562,6 +591,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         if (get().game !== game) return // (the game moved on or was left meanwhile)
         if (!cast) return get().finishCast()
         if (aimMs <= 0) return throwNow()
+        playSound('seed.aim') // (the AI aims like a person, and it sounds like one)
         set({ cast })
         botTimer = setTimeout(throwNow, aimMs)
       }, reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000)

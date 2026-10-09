@@ -134,203 +134,49 @@
     "sounds.*.duck": "Ducks the music"
   },
   "_sections": {
-    "Mix": [
-      "buses",
-      "master"
-    ],
-    "Moments (feel tiers)": [
-      "tiers"
-    ],
-    "Ladder": [
-      "ladder"
-    ],
-    "Named mixes": [
-      "snapshots",
-      "duck"
-    ],
-    "Limits": [
-      "limits"
-    ],
-    "Sounds": [
-      "sounds"
-    ]
+    "Mix": ["buses", "master"],
+    "Moments (feel tiers)": ["tiers"],
+    "Ladder": ["ladder"],
+    "Named mixes": ["snapshots", "duck"],
+    "Limits": ["limits"],
+    "Sounds": ["sounds"]
   },
   "_ranges": {
-    "buses.music": [
-      -40,
-      6,
-      0.5
-    ],
-    "buses.ambience": [
-      -40,
-      6,
-      0.5
-    ],
-    "buses.sfx": [
-      -40,
-      6,
-      0.5
-    ],
-    "buses.ui": [
-      -40,
-      6,
-      0.5
-    ],
-    "master.limiterDb": [
-      -12,
-      0,
-      0.5
-    ],
-    "ladder.steps": [
-      1,
-      24,
-      1
-    ],
-    "ladder.resetMs": [
-      0,
-      5000,
-      50
-    ],
-    "snapshots.paused.music": [
-      -40,
-      0,
-      0.5
-    ],
-    "snapshots.paused.lowpassHz": [
-      0,
-      20000,
-      10
-    ],
-    "snapshots.paused.fadeMs": [
-      0,
-      2000,
-      10
-    ],
-    "snapshots.reveal.music": [
-      -40,
-      0,
-      0.5
-    ],
-    "snapshots.reveal.ambience": [
-      -40,
-      0,
-      0.5
-    ],
-    "snapshots.reveal.fadeMs": [
-      0,
-      2000,
-      10
-    ],
-    "duck.amountDb": [
-      -24,
-      0,
-      0.5
-    ],
-    "duck.downMs": [
-      0,
-      500,
-      5
-    ],
-    "duck.backMs": [
-      0,
-      3000,
-      10
-    ],
-    "limits.maxVoices": [
-      1,
-      32,
-      1
-    ],
-    "limits.staleMs": [
-      0,
-      2000,
-      10
-    ],
-    "sounds.*.volumeDb": [
-      -40,
-      6,
-      0.5
-    ],
-    "sounds.*.pitch": [
-      -12,
-      12,
-      0.1
-    ],
-    "sounds.*.randomPitch": [
-      0,
-      3,
-      0.1
-    ],
-    "sounds.*.randomVolumeDb": [
-      0,
-      6,
-      0.5
-    ],
-    "sounds.*.delayMs": [
-      0,
-      1000,
-      5
-    ],
-    "sounds.*.trimStartMs": [
-      0,
-      5000,
-      5
-    ],
-    "sounds.*.trimEndMs": [
-      0,
-      5000,
-      5
-    ],
-    "sounds.*.fadeInMs": [
-      0,
-      5000,
-      5
-    ],
-    "sounds.*.fadeOutMs": [
-      0,
-      5000,
-      5
-    ],
-    "sounds.*.loopStartMs": [
-      0,
-      600000,
-      10
-    ],
-    "sounds.*.loopEndMs": [
-      0,
-      600000,
-      10
-    ],
-    "sounds.*.maxVoices": [
-      1,
-      8,
-      1
-    ],
-    "sounds.*.cooldownMs": [
-      0,
-      500,
-      5
-    ],
-    "sounds.*.priority": [
-      0,
-      5,
-      1
-    ],
-    "sounds.*.pan": [
-      -1,
-      1,
-      0.05
-    ],
-    "sounds.*.lowpassHz": [
-      0,
-      20000,
-      10
-    ],
-    "sounds.*.highpassHz": [
-      0,
-      20000,
-      10
-    ]
+    "buses.music": [-40, 6, 0.5],
+    "buses.ambience": [-40, 6, 0.5],
+    "buses.sfx": [-40, 6, 0.5],
+    "buses.ui": [-40, 6, 0.5],
+    "master.limiterDb": [-12, 0, 0.5],
+    "ladder.steps": [1, 24, 1],
+    "ladder.resetMs": [0, 5000, 50],
+    "snapshots.paused.music": [-40, 0, 0.5],
+    "snapshots.paused.lowpassHz": [0, 20000, 10],
+    "snapshots.paused.fadeMs": [0, 2000, 10],
+    "snapshots.reveal.music": [-40, 0, 0.5],
+    "snapshots.reveal.ambience": [-40, 0, 0.5],
+    "snapshots.reveal.fadeMs": [0, 2000, 10],
+    "duck.amountDb": [-24, 0, 0.5],
+    "duck.downMs": [0, 500, 5],
+    "duck.backMs": [0, 3000, 10],
+    "limits.maxVoices": [1, 32, 1],
+    "limits.staleMs": [0, 2000, 10],
+    "sounds.*.volumeDb": [-40, 6, 0.5],
+    "sounds.*.pitch": [-12, 12, 0.1],
+    "sounds.*.randomPitch": [0, 3, 0.1],
+    "sounds.*.randomVolumeDb": [0, 6, 0.5],
+    "sounds.*.delayMs": [0, 1000, 5],
+    "sounds.*.trimStartMs": [0, 5000, 5],
+    "sounds.*.trimEndMs": [0, 5000, 5],
+    "sounds.*.fadeInMs": [0, 5000, 5],
+    "sounds.*.fadeOutMs": [0, 5000, 5],
+    "sounds.*.loopStartMs": [0, 600000, 10],
+    "sounds.*.loopEndMs": [0, 600000, 10],
+    "sounds.*.maxVoices": [1, 8, 1],
+    "sounds.*.cooldownMs": [0, 500, 5],
+    "sounds.*.priority": [0, 5, 1],
+    "sounds.*.pan": [-1, 1, 0.05],
+    "sounds.*.lowpassHz": [0, 20000, 10],
+    "sounds.*.highpassHz": [0, 20000, 10]
   },
   "buses": {
     "music": -8,
@@ -376,10 +222,7 @@
   "sounds": {
     "draft.place": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_draft_place_01.mp3",
-        "sfx/sfx_draft_place_02.mp3"
-      ],
+      "files": ["sfx/sfx_draft_place_01.mp3", "sfx/sfx_draft_place_02.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.5,
       "randomVolumeDb": 1.5,
@@ -389,10 +232,7 @@
     },
     "glyph.lift": {
       "bus": "ui",
-      "files": [
-        "ui/ui_glyph_lift_01.mp3",
-        "ui/ui_glyph_lift_02.mp3"
-      ],
+      "files": ["ui/ui_glyph_lift_01.mp3", "ui/ui_glyph_lift_02.mp3"],
       "volumeDb": -8,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
@@ -433,10 +273,7 @@
     },
     "seed.drop": {
       "bus": "ui",
-      "files": [
-        "ui/ui_seed_drop_01.mp3",
-        "ui/ui_seed_drop_02.mp3"
-      ],
+      "files": ["ui/ui_seed_drop_01.mp3", "ui/ui_seed_drop_02.mp3"],
       "volumeDb": -8,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
@@ -446,10 +283,7 @@
     },
     "seed.aim": {
       "bus": "ui",
-      "files": [
-        "ui/ui_seed_aim_01.mp3",
-        "ui/ui_seed_aim_02.mp3"
-      ],
+      "files": ["ui/ui_seed_aim_01.mp3", "ui/ui_seed_aim_02.mp3"],
       "volumeDb": -10,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
@@ -459,11 +293,7 @@
     },
     "cast.throw": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_cast_throw_01.mp3",
-        "sfx/sfx_cast_throw_02.mp3",
-        "sfx/sfx_cast_throw_03.mp3"
-      ],
+      "files": ["sfx/sfx_cast_throw_01.mp3", "sfx/sfx_cast_throw_02.mp3", "sfx/sfx_cast_throw_03.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.8,
       "randomVolumeDb": 1.5,
@@ -473,10 +303,7 @@
     },
     "seed.land": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_seed_land_01.mp3",
-        "sfx/sfx_seed_land_02.mp3"
-      ],
+      "files": ["sfx/sfx_seed_land_01.mp3", "sfx/sfx_seed_land_02.mp3"],
       "volumeDb": -3,
       "randomPitch": 0.5,
       "randomVolumeDb": 1.5,
@@ -486,10 +313,7 @@
     },
     "sprout.grow": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_sprout_grow_01.mp3",
-        "sfx/sfx_sprout_grow_02.mp3"
-      ],
+      "files": ["sfx/sfx_sprout_grow_01.mp3", "sfx/sfx_sprout_grow_02.mp3"],
       "volumeDb": -8,
       "delayMs": 80,
       "randomPitch": 0.5,
@@ -500,9 +324,7 @@
     },
     "score.pop": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_score_pop_01.mp3"
-      ],
+      "files": ["sfx/sfx_score_pop_01.mp3"],
       "volumeDb": -6,
       "maxVoices": 6,
       "cooldownMs": 30,
@@ -511,10 +333,7 @@
     },
     "score.arrive": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_score_arrive_01.mp3",
-        "sfx/sfx_score_arrive_02.mp3"
-      ],
+      "files": ["sfx/sfx_score_arrive_01.mp3", "sfx/sfx_score_arrive_02.mp3"],
       "volumeDb": -12,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
@@ -524,9 +343,7 @@
     },
     "word.chord": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_word_chord_01.mp3"
-      ],
+      "files": ["sfx/sfx_word_chord_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 2,
       "cooldownMs": 200,
@@ -534,9 +351,7 @@
     },
     "cast.flourish": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_cast_flourish_01.mp3"
-      ],
+      "files": ["sfx/sfx_cast_flourish_01.mp3"],
       "volumeDb": -3,
       "maxVoices": 1,
       "cooldownMs": 500,
@@ -545,9 +360,7 @@
     },
     "danger.warn": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_danger_warn_01.mp3"
-      ],
+      "files": ["sfx/sfx_danger_warn_01.mp3"],
       "volumeDb": -8,
       "maxVoices": 2,
       "cooldownMs": 250,
@@ -555,10 +368,7 @@
     },
     "tangle": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_tangle_boing_01.mp3",
-        "sfx/sfx_tangle_boing_02.mp3"
-      ],
+      "files": ["sfx/sfx_tangle_boing_01.mp3", "sfx/sfx_tangle_boing_02.mp3"],
       "volumeDb": -4,
       "randomPitch": 0.3,
       "maxVoices": 2,
@@ -568,10 +378,7 @@
     },
     "no": {
       "bus": "ui",
-      "files": [
-        "ui/ui_no_bonk_01.mp3",
-        "ui/ui_no_bonk_02.mp3"
-      ],
+      "files": ["ui/ui_no_bonk_01.mp3", "ui/ui_no_bonk_02.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
@@ -581,9 +388,7 @@
     },
     "refresh.out": {
       "bus": "ui",
-      "files": [
-        "ui/ui_refresh_out_01.mp3"
-      ],
+      "files": ["ui/ui_refresh_out_01.mp3"],
       "volumeDb": -6,
       "maxVoices": 1,
       "cooldownMs": 100,
@@ -591,9 +396,7 @@
     },
     "refresh.in": {
       "bus": "ui",
-      "files": [
-        "ui/ui_refresh_in_01.mp3"
-      ],
+      "files": ["ui/ui_refresh_in_01.mp3"],
       "volumeDb": -6,
       "maxVoices": 1,
       "cooldownMs": 100,
@@ -601,9 +404,7 @@
     },
     "tray.shuffle": {
       "bus": "ui",
-      "files": [
-        "ui/ui_tray_shuffle_01.mp3"
-      ],
+      "files": ["ui/ui_tray_shuffle_01.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.3,
       "maxVoices": 1,
@@ -612,9 +413,7 @@
     },
     "undo": {
       "bus": "ui",
-      "files": [
-        "ui/ui_undo_01.mp3"
-      ],
+      "files": ["ui/ui_undo_01.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.3,
       "maxVoices": 1,
@@ -623,9 +422,7 @@
     },
     "turn.yours": {
       "bus": "ui",
-      "files": [
-        "ui/ui_turn_yours_01.mp3"
-      ],
+      "files": ["ui/ui_turn_yours_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 1,
       "cooldownMs": 500,
@@ -633,9 +430,7 @@
     },
     "handoff": {
       "bus": "ui",
-      "files": [
-        "ui/ui_handoff_01.mp3"
-      ],
+      "files": ["ui/ui_handoff_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 1,
       "cooldownMs": 300,
@@ -643,9 +438,7 @@
     },
     "reveal.tangles": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_reveal_tangles_01.mp3"
-      ],
+      "files": ["sfx/sfx_reveal_tangles_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 1,
       "cooldownMs": 300,
@@ -653,9 +446,7 @@
     },
     "reveal.count": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_reveal_count_01.mp3"
-      ],
+      "files": ["sfx/sfx_reveal_count_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 2,
       "cooldownMs": 100,
@@ -664,10 +455,7 @@
     },
     "reveal.bonus": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_reveal_bonus_01.mp3",
-        "sfx/sfx_reveal_bonus_02.mp3"
-      ],
+      "files": ["sfx/sfx_reveal_bonus_01.mp3", "sfx/sfx_reveal_bonus_02.mp3"],
       "volumeDb": -8,
       "randomPitch": 0.3,
       "maxVoices": 3,
@@ -676,9 +464,7 @@
     },
     "reveal.winner": {
       "bus": "sfx",
-      "files": [
-        "stg/stg_reveal_winner_01.mp3"
-      ],
+      "files": ["stg/stg_reveal_winner_01.mp3"],
       "volumeDb": -2,
       "maxVoices": 1,
       "cooldownMs": 500,
@@ -687,9 +473,7 @@
     },
     "end.award": {
       "bus": "ui",
-      "files": [
-        "ui/ui_end_award_01.mp3"
-      ],
+      "files": ["ui/ui_end_award_01.mp3"],
       "volumeDb": -8,
       "maxVoices": 1,
       "cooldownMs": 300,
@@ -697,19 +481,15 @@
     },
     "online.idle": {
       "bus": "ui",
-      "files": [
-        "ui/ui_online_idle_01.mp3"
-      ],
+      "files": ["ui/ui_online_idle_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 1,
-      "cooldownMs": 1000,
+      "cooldownMs": 500,
       "priority": 4
     },
     "online.toast": {
       "bus": "ui",
-      "files": [
-        "ui/ui_online_toast_01.mp3"
-      ],
+      "files": ["ui/ui_online_toast_01.mp3"],
       "volumeDb": -8,
       "maxVoices": 1,
       "cooldownMs": 200,
@@ -717,11 +497,7 @@
     },
     "ui.tap": {
       "bus": "ui",
-      "files": [
-        "ui/ui_button_tap_01.mp3",
-        "ui/ui_button_tap_02.mp3",
-        "ui/ui_button_tap_03.mp3"
-      ],
+      "files": ["ui/ui_button_tap_01.mp3", "ui/ui_button_tap_02.mp3", "ui/ui_button_tap_03.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
@@ -731,9 +507,7 @@
     },
     "ui.back": {
       "bus": "ui",
-      "files": [
-        "ui/ui_button_back_01.mp3"
-      ],
+      "files": ["ui/ui_button_back_01.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.3,
       "maxVoices": 2,
@@ -742,9 +516,7 @@
     },
     "ui.toggle": {
       "bus": "ui",
-      "files": [
-        "ui/ui_toggle_flip_01.mp3"
-      ],
+      "files": ["ui/ui_toggle_flip_01.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.3,
       "maxVoices": 2,
@@ -753,9 +525,7 @@
     },
     "amb.night": {
       "bus": "ambience",
-      "files": [
-        "amb/amb_night_garden_loop.mp3"
-      ],
+      "files": ["amb/amb_night_garden_loop.mp3"],
       "volumeDb": 0,
       "loop": true,
       "loopEndMs": 45808,
@@ -765,9 +535,7 @@
     },
     "mus.garden": {
       "bus": "music",
-      "files": [
-        "mus/mus_garden_harp_01.mp3"
-      ],
+      "files": ["mus/mus_garden_harp_01.mp3"],
       "volumeDb": -2,
       "fadeInMs": 2000,
       "maxVoices": 1,
@@ -776,9 +544,7 @@
     },
     "mus.menu": {
       "bus": "music",
-      "files": [
-        "mus/mus_menu_kalimba_loop.mp3"
-      ],
+      "files": ["mus/mus_menu_kalimba_loop.mp3"],
       "volumeDb": -2,
       "loop": true,
       "loopEndMs": 46837,
@@ -788,9 +554,7 @@
     },
     "tier.small": {
       "bus": "sfx",
-      "files": [
-        "ui/ui_online_toast_01.mp3"
-      ],
+      "files": ["ui/ui_online_toast_01.mp3"],
       "volumeDb": -10,
       "randomPitch": 0.5,
       "maxVoices": 3,
@@ -799,9 +563,7 @@
     },
     "tier.medium": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_score_arrive_01.mp3"
-      ],
+      "files": ["sfx/sfx_score_arrive_01.mp3"],
       "volumeDb": -8,
       "randomPitch": 0.5,
       "maxVoices": 3,
@@ -810,9 +572,7 @@
     },
     "tier.big": {
       "bus": "sfx",
-      "files": [
-        "sfx/sfx_word_chord_01.mp3"
-      ],
+      "files": ["sfx/sfx_word_chord_01.mp3"],
       "volumeDb": -4,
       "maxVoices": 2,
       "cooldownMs": 100,

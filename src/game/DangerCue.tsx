@@ -2,13 +2,21 @@
 //   warning (1 move left) — a dashed, "thorny" ring in the glyphling's owner's colour
 //   tangled (no moves)   — a curly vine wrapped round it, with three little leaves (the glyphling fades a bit)
 // Sizes and colours: content/tuning/garden.json (warningWidth, warningDash, vine, vineWidth, tangledDim).
+// Sound as the cue appears: danger.warn (one move left) · tangle (a "smile or groan", not an alarm). A cue that is
+// simply there after a jump (a load, an online rejoin) is old news: silent (sound.ts appearing).
+import { useEffect } from 'react'
+import { playSound } from '../audio'
 import { hexCorners } from '../engine/hex'
 import type { Danger } from '../store/danger'
+import { appearing } from './sound'
 import type { GardenTuning } from './useTuning'
 
 type Props = { danger: Danger; x: number; y: number; hex: number; owner: string; colours: GardenTuning; glyphling: number }
 
 export function DangerCue({ danger, x, y, hex, owner, colours, glyphling }: Props) {
+  useEffect(() => {
+    playSound(danger === 'warning' ? 'danger.warn' : 'tangle', appearing())
+  }, [danger])
   if (danger === 'warning') {
     const dash = colours.warningDash
     return (

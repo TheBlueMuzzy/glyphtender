@@ -11,11 +11,13 @@ import { menuScreens } from './ui/menuScreens'
 import { OnlineSession } from './ui/online/OnlineSession'
 import { useOnline } from './ui/online/session'
 import { newGameFromEnd } from './ui/newGame'
+import { getAudio, useLoop } from './audio'
 
 export default function App() {
   const inGame = useGameStore((s) => s.game !== null)
   const online = useOnline((s) => s.code !== null)
   const inLobby = useOnline((s) => s.room?.room?.phase === 'lobby')
+  useLoop(getAudio(), inGame ? null : 'mus.menu') // the menus' music (the game screen has its own garden — sound.ts)
   return (
     <>
       <ScreenStack screens={menuScreens}>

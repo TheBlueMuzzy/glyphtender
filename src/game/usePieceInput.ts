@@ -8,6 +8,7 @@
 //   data-draft (a glyphling waiting to be placed) · data-hex (a board hex, "q,r")
 import { useRef, type PointerEvent, type RefObject } from 'react'
 import type { Hex } from '../engine/hex'
+import { playSound } from '../audio'
 import { useGameStore } from '../store/gameStore'
 import { NEW_GLYPHLING, playReferee, targetsOf, type Piece } from '../store/referee'
 import { dropKind, letterIn } from '../store/turnPlan'
@@ -93,6 +94,7 @@ export function usePieceInput(drag: DragLayer, layout: LayoutTuning, size: numbe
       if (liftable(NEW_GLYPHLING)) art = glyphlingArt(game.current)
     }
     if (!art) return
+    if (p.glyph !== undefined || p.draft) playSound('glyph.lift') // (a seed's lift is seed.pick — grabSeed)
     img.setAttribute('href', art)
     img.setAttribute('width', String(size))
     img.setAttribute('height', String(size))

@@ -111,7 +111,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
     () => game.glyphlings.map((g) => ({ id: g.id, hex: move?.glyphling === g.id ? move.to : g.hex })),
     [game.glyphlings, move],
   )
-  useGlide(svgRef, spots, timing)
+  useGlide(svgRef, spots, timing, move?.glyphling ?? null)
 
   // Whose turn: their movable glyphlings pulse gently until a move is planned
   const pulsing = useGameStore(useShallow(pulsingGlyphlings))

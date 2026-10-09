@@ -10,7 +10,9 @@
     "events.totalPop": "Which juice size the turn's total pops in with — bigger = a bouncier pop. To change it, type small, medium or big in the file (feel.json).",
     "events.turnPulse": "Which juice size the current player's glyphlings breathe with at the start of a turn — bigger = a bigger swell. To change it, type small, medium or big in the file (feel.json).",
     "events.noShake": "Which juice size the \"no\" shake uses when you tap something you can't move — bigger = a wider shake. To change it, type small, medium or big in the file (feel.json).",
-    "events.refreshGrow": "Which juice size a new seed swells with as it grows into the tray after a Refresh — bigger = a bigger swell. To change it, type small, medium or big in the file (feel.json)."
+    "events.refreshGrow": "Which juice size a new seed swells with as it grows into the tray after a Refresh — bigger = a bigger swell. To change it, type small, medium or big in the file (feel.json).",
+    "sounds.chordLetters": "A word this long (letters) or longer plays the kalimba chord (word.chord in content/audio.json) when it finishes scoring. Lower = chords more often.",
+    "sounds.flourishWords": "A cast that grows this many words or more plays the magic flourish (cast.flourish) after its last points land — the \"two birds\" moment."
   },
   "_labels": {
     "tiers.small.grow": "Small juice: how far pieces swell (0–1)",
@@ -23,23 +25,16 @@
     "events.totalPop": "Score pops: how bouncy the total (\"+6\") is (small / medium / big)",
     "events.turnPulse": "Whose turn: how much the glyphlings swell (small / medium / big)",
     "events.noShake": "\"No\" shake: how far it moves (small / medium / big)",
-    "events.refreshGrow": "Refresh: how much each new seed swells (small / medium / big)"
+    "events.refreshGrow": "Refresh: how much each new seed swells (small / medium / big)",
+    "sounds.chordLetters": "Sounds: a word this long plays a chord (letters)",
+    "sounds.flourishWords": "Sounds: this many words in one cast plays the flourish"
   },
   "_sections": {
-    "Juice sizes": [
-      "tiers"
-    ],
-    "Score pops": [
-      "events.seedPop",
-      "events.totalPop"
-    ],
-    "Turn pulse & \"no\" shake": [
-      "events.turnPulse",
-      "events.noShake"
-    ],
-    "Refresh animation": [
-      "events.refreshGrow"
-    ]
+    "Juice sizes": ["tiers"],
+    "Score pops": ["events.seedPop", "events.totalPop"],
+    "Turn pulse & \"no\" shake": ["events.turnPulse", "events.noShake"],
+    "Refresh animation": ["events.refreshGrow"],
+    "Score sounds": ["sounds"]
   },
   "_ranges": {
     "tiers.small.grow": [0, 0.3, 0.01],
@@ -47,7 +42,9 @@
     "tiers.big.grow": [0, 1, 0.01],
     "tiers.small.shake": [0, 0.3, 0.01],
     "tiers.medium.shake": [0, 0.3, 0.01],
-    "tiers.big.shake": [0, 0.3, 0.01]
+    "tiers.big.shake": [0, 0.3, 0.01],
+    "sounds.chordLetters": [2, 10, 1],
+    "sounds.flourishWords": [2, 5, 1]
   },
   "tiers": {
     "small": {
@@ -69,5 +66,9 @@
     "seedPop": "medium",
     "totalPop": "big",
     "refreshGrow": "small"
+  },
+  "sounds": {
+    "chordLetters": 5,
+    "flourishWords": 2
   }
 }

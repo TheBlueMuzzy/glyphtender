@@ -6,6 +6,8 @@
 //   over:    Skip (while the Magic reveal plays) — a normal-size button, not a board-hex one (the reveal is calm,
 //            centred: Muzzy at 768×343). After the reveal there's no ActionBar: the end bar (EndBar.tsx — ☰ · See
 //            results · New game) sits at the bottom, in the very same spot as on the end screen.
+// Sound: a button whose press has its own sound (Shuffle, Undo, Cast with a seed → the throw, Refresh N) says
+// sound={false}, so the kit's ui.tap never doubles it.
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
@@ -66,7 +68,7 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
     return (
       <Row gap="s" justify="center" className="game-actions">
         <Button size={size} compact={fixed} variant="secondary" disabled={refreshing} onClick={() => s.refresh(true)}>{w.keepAll}</Button>
-        <Button size={size} compact={fixed} disabled={refreshing || s.setAside.length === 0} onClick={() => s.refresh()}>{fill(w.refresh, { n: s.setAside.length })}</Button>
+        <Button size={size} compact={fixed} sound={false} disabled={refreshing || s.setAside.length === 0} onClick={() => s.refresh()}>{fill(w.refresh, { n: s.setAside.length })}</Button>
       </Row>
     )
   }
@@ -88,8 +90,8 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   if (!moveOnly && s.wordsStatus === 'failed') {
     return (
       <Row gap="s" justify="center" className="game-actions">
-        <Button size={size} compact={fixed} variant="ghost" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-        <Button size={size} compact={fixed} variant="secondary" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
+        <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
+        <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
         <Button size={size} compact={fixed} onClick={() => s.loadWords(wordListUrl())}>{w.retryWords}</Button>
       </Row>
     )
@@ -98,9 +100,9 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const castLabel = moveOnly ? w.endTurn : showMagic ? fill(w.castMagic, { n: preview.magic }) : w.cast
   return (
     <Row gap="s" justify="center" className="game-actions">
-      <Button size={size} compact={fixed} variant="ghost" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-      <Button size={size} compact={fixed} variant="secondary" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
-      <Button size={size} compact={fixed} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
+      <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
+      <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
+      <Button size={size} compact={fixed} sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
     </Row>
   )
 }

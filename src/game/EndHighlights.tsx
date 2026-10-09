@@ -4,7 +4,10 @@
 // carouselPauseSeconds (UI kit Carousel). Results page only — the Story page shows an award in its moment slot when
 // the scrub line is on it (GameOver.tsx; AwardRow is shared).
 // The "Highlights" title sits centred on a dark strip across the whole window. Nothing earned → nothing here. Kit parts: Carousel, Stack, Row, Text.
+// Sound: end.award each time an award card shows (the first one, and every move of the carousel).
+import { useEffect } from 'react'
 import text from '../../content/text/en.json'
+import { playSound } from '../audio'
 import { Carousel, Row, Stack, Text } from '../ui/kit'
 import { glyphlingArt } from './art'
 import { awardText } from './endText'
@@ -24,7 +27,11 @@ type Props = {
 }
 
 export function EndHighlights({ awards, index, onIndex, name, autoSeconds, pauseSeconds, big = false }: Props) {
-  if (!awards.length) return null
+  const any = awards.length > 0
+  useEffect(() => {
+    if (any) playSound('end.award')
+  }, [index, any])
+  if (!any) return null
   return (
     <Stack gap="xs" className="game-end-highlights">
       <div className="game-end-highlights-strip"><Text kind="heading">{w.highlights}</Text></div>

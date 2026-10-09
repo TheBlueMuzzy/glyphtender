@@ -6,7 +6,9 @@
 // Tapping "Show my seeds" is the moment the VIEWER seat switches to Blue (store/viewer.ts) — until then the screen
 // stays with the last person who looked.
 // Kit parts only: Screen (dialog = dims what's under it), Panel, Avatar, Text, Button.
+// Sound: handoff as the box appears; the new player's turn.yours plays once they tap (useTurnPulse), so the button is quiet.
 import { useEffect, useState, type CSSProperties } from 'react'
+import { playSound } from '../audio'
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { landingSeconds } from '../store/wordMarks'
@@ -40,7 +42,11 @@ export function Handoff({ stacked, flipped }: { stacked: boolean; flipped: boole
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handoff, scoring])
-  if (!handoff || ready !== handoff) return null
+  const showing = !!handoff && ready === handoff
+  useEffect(() => {
+    if (showing) playSound('handoff')
+  }, [showing])
+  if (!handoff || !showing) return null
 
   const player = playerName(handoff.seat)
   const colour = colours[colourOf(handoff.seat)]
@@ -50,7 +56,7 @@ export function Handoff({ stacked, flipped }: { stacked: boolean; flipped: boole
       <span><Avatar name={player} src={glyphlingArt(handoff.seat)} color={colour} active /></span>
       <Text kind="title">{fill(w.title, { player })}</Text>
       <Text>{fill(w.message, { player })}</Text>
-      <Button onClick={showSeeds}>{w.show}</Button>
+      <Button sound={false} onClick={showSeeds}>{w.show}</Button>
     </Panel>
   )
   // Over the tray: tall screens at the bottom (flipped: the top); wide at the bottom right (flipped: bottom left)

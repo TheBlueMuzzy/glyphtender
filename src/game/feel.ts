@@ -18,6 +18,9 @@ export function juiceFor(event: FeelEvent): Juice {
   return feel.tiers[tierOf(event)]
 }
 
+/** The score sequence's sound rules (feel.json sounds): how long a word plays a chord, how many words the flourish. */
+export const soundRules = () => feelTuning.current.sounds
+
 /** Which tier a moment uses (a mistyped tier name falls back to small). */
 function tierOf(event: FeelEvent): keyof typeof feelFile.tiers {
   const feel = feelTuning.current
