@@ -4,7 +4,7 @@ Muzzy will see: after the first tap the game makes a sound at every moment (31 s
 
 ## fw F27 🧱 Audio engine + rules (framework/audio — design: framework/.planning/design/audio.md)
 Done when: framework/audio/kit installs to src/audio/; code plays named sounds; content/audio.json drives them; planner rules unit-tested; engine tested with a fake AudioContext; window.__audioLog in dev/tests.
-- [ ] 🤖 1. Spike: script-download free sound packs (Kenney, OpenGameArt CC0); Freesound / Sonniss need a login? → if the vibe can't be met, `Ask Muzzy:` for an account (Muzzy: "you can ask me to create an account for the others")
+- [x] 🤖 1. Spike: script-download free sound packs (Kenney, OpenGameArt CC0); Freesound / Sonniss need a login? → if the vibe can't be met, `Ask Muzzy:` for an account (Muzzy: "you can ask me to create an account for the others")
 - [ ] 🤖 2. Module skeleton (framework/audio: kit/, scripts/install-audio.mjs + test, package.json, README, VERSION) + config.ts (types, defaults, validation of content/audio.json)
 - [ ] 🤖 3. planner.ts: variants (random-no-repeat · sequence · shuffle), random pitch/volume, voices + cooldown + priority, ladder (pentatonic, steps, reset), stale + suspended drop — unit tests
 - [ ] 🤖 4. engine.ts + loader.ts + log.ts + react.ts: first-tap unlock, buses → master → limiter, silent switch (audioSession ambient), hidden/interrupted = drop not queue, mono, basic snapshots, decode cache — fake-context tests
@@ -16,7 +16,7 @@ Done when: the kit's standard Audio tab (Master · Music · Ambience · Effects 
 
 ## F56 🎮 Placeholder sound set
 Done when: ~60 files for the 31 sounds in public/audio/{sfx,ui,amb,mus,stg}/ (MP3, mono sfx), garden palette (wood, glass, bells, kalimba/harp, soft earth, water — never arcade), every file in content/credits.json.
-- [ ] 🤖 6. Pick, trim, convert and name the files; credits
+- [x] 🤖 6. Pick, trim, convert and name the files; credits
 
 ## F55 🎮 Every moment wired (design/audio.md sound list)
 Done when: all 31 sounds play at their animation's moment (not the event's); bots/online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound.
@@ -26,6 +26,8 @@ Done when: all 31 sounds play at their animation's moment (not the event's); bot
 - [ ] 🙋 10. Muzzy plays a game with sound on phone + desktop — first impressions (tuning is sprint 21)
 
 Check: check:fast after each feature · check:full once at the end.
-Ask Muzzy: —
+Ask Muzzy: a free **Freesound** account would let Claude fetch the 5 weak placeholders: an owl (amb.night), a leafy sprout (sprout.grow), a vine rustle (tangle), a grander horn/choir swell (reveal.winner), an airy whoosh (cast.throw). Sonniss GDC needs a browser download by Muzzy.
 
 ## Notes
+- F56 (9f261a4): 56 MP3s, effects 269 KB (mono 96 kbps, peak −3 dBFS), music ~2.4 MB, ambience 717 KB. Kenney + OpenGameArt by script (no login); Freesound needs a login, Sonniss 403s scripts. Licences: CC0 + two CC-BY 3.0 (glass bell → turn.yours; wind loop → amb.night) → credit lines on Credits. Ladder notes pre-tuned to D (score.pop kalimba D4, reveal.count tongue drum D5). mus.garden is a 149 s harp piece with an ending (play once, then rest — not a loop). Weak fits listed in design/audio.md "Placeholder files". Can't listen → picks by description + ffmpeg measurements.
+- Kenney Interface Sounds + OGA "Cozy Farm SFX" measure as code-made tones (spectral flatness ≈ 0) → avoided (Roll Better lesson).
