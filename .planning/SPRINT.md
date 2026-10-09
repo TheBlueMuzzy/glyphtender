@@ -47,3 +47,4 @@ Ask Muzzy: a free **Freesound** account would let Claude fetch the 5 weak placeh
 - check:shots: only Settings → Audio differs (new rows, 7 sizes; 768×343 shows only the tabs) → re-recorded those 7, all 192 SAME after. check:golden SAME.
 
 - Area check (Fast + audio game pass online online4 score spotlight end previews devkit-search): 14/14 PASS, 7.8 min. e2e:audio = new, registered in check:full (ports 5417 / 1992).
+- Checks: check:full ALL PASS 23/23 (c76b377). Two earlier loaded runs failed e2e:game desktop (reveal already showing) → B025 watching. Review (low, 2492550..71be2d3): 1 fix — word.chord guard for a word with no pops (c76b377). Framework audio 0.1.1: the engine uses its own seeded random by default.

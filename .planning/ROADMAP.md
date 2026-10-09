@@ -189,13 +189,13 @@ Goal: an online game with friends that never stalls and always says who's playin
 ## v0.9 — The garden sings (audio)  ← current  (→ beta)
 Goal: Glyphtender has sound — every moment heard at the moment you see it, your play becomes the melody, the Magic reveal is a ceremony for the new Grand Glyphtender — on a reusable framework Audio module Muzzy tunes in the Dev Kit Sound Board. Design: `design/audio.md` + `../../framework/.planning/design/audio.md`. Research: `research/audio.md`. Framework-first: each framework slice (its F27–F31) is built there and switched on here in the same sprint. Muzzy 2026-10-09: "beta is for 'don't let perfect be the enemy of good'" · sources: "free libraries… for now".
 - ✅ F54 ❓ Audio direction — B "the garden sings" (Grand Glyphtender contest, cozy magical) · free libraries for beta · respect the iPhone silent switch · 5 sliders · feel tiers get sounds ("try it") — Muzzy 2026-10-09
-- ⏳ F55 🎮 Every moment wired: the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
+- 🔨 F55 🎮 Every moment wired (built sprint 19, check:full 23/23 — waiting for Muzzy's ears): the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
   why: every action lands with a sound → Cozy cleverness payoff, everyone follows the play
-- ⏳ F56 🎮 Placeholder sound set from free libraries (Kenney, Sonniss GDC, Freesound CC0/CC-BY, OpenGameArt) in the garden's palette, 3–5 variants for the frequent ones, in public/audio/ + content/credits.json — must:beta · needs: fw F27
+- 🔨 F56 🎮 Placeholder sound set (built sprint 19: 56 files, effects 269 KB — 5 weak fits) from free libraries (Kenney, Sonniss GDC, Freesound CC0/CC-BY, OpenGameArt) in the garden's palette, 3–5 variants for the frequent ones, in public/audio/ + content/credits.json — must:beta · needs: fw F27
 - ⏳ F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
   why: clever casts get an audible reward; the reveal builds to the gasp → Secret-Magic tension
 - ⏳ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
-- ⏳ F59 🎮 Settings → Audio works: Master · Music · Ambience · Effects · UI · Mute everything · Mute in background · Mono — must:beta · needs: fw F29
+- 🔨 F59 🎮 Settings → Audio works (built sprint 19): Master · Music · Ambience · Effects · UI · Mute everything · Mute in background · Mono — must:beta · needs: fw F29
 - ⏳ F60 🎛️ Tuning pass: Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
 ```mermaid
 flowchart LR
