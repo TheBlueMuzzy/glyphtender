@@ -2,11 +2,13 @@
   "tabs": [
     { "id": "audio", "label": "Audio", "rows": [
       { "id": "masterVolume", "type": "slider", "label": "Master volume", "default": 80 },
-      { "id": "musicVolume", "type": "slider", "label": "Music", "default": 70 },
+      { "id": "musicVolume", "type": "slider", "label": "Music", "default": 50 },
+      { "id": "ambienceVolume", "type": "slider", "label": "Ambience", "default": 60 },
       { "id": "sfxVolume", "type": "slider", "label": "Sound effects", "default": 80 },
-      { "id": "voiceVolume", "type": "slider", "label": "Voices", "default": 80, "on": false },
+      { "id": "uiVolume", "type": "slider", "label": "Menus & buttons", "default": 70 },
       { "id": "muteAll", "type": "toggle", "label": "Mute everything", "default": false },
-      { "id": "muteInBackground", "type": "toggle", "label": "Mute when in the background", "default": true }
+      { "id": "muteInBackground", "type": "toggle", "label": "Mute when in the background", "default": true },
+      { "id": "mono", "type": "toggle", "label": "Mono audio", "detail": "Same sound in both ears", "default": false }
     ]},
     { "id": "display", "label": "Display", "rows": [
       { "id": "fullscreen", "type": "toggle", "label": "Full screen", "detail": "Hides the browser's bars. On phones, any tap goes full screen", "default": false },

@@ -6,7 +6,10 @@
 //   Gameplay → AI speed: Slow · Normal · Fast · Instant — how long the AI players seem to think (content/ai/pace.json
 //   speeds; store/localBot.ts).
 //   Display → Full screen: src/ui/fullscreen.ts (its default depends on the device: on for phones, off for computers).
+//   Audio → the UI kit's standard rows (Master · Music · Ambience · Sound effects · Menus & buttons · Mute everything ·
+//   Mute in background · Mono): straight to the audio engine (src/audio settings.ts reads the same ids; src/game/sound.ts).
 import { create } from 'zustand'
+import { applyAudioSettings, getAudio } from '../audio'
 import settingsFile from '../../content/ui/settings.json'
 import { fullscreenSetting, withFullscreenDefault } from './fullscreen'
 import { loadSettings, type SettingsValues } from './kit'
@@ -39,4 +42,6 @@ export const useGameSettings = create<GameSettings>()(() => fromSettings(loadSet
 export function settingsChanged(values: SettingsValues, changed?: string) {
   useGameSettings.setState(fromSettings(values))
   fullscreenSetting(values, changed)
+  const audio = getAudio() // (none in tests and the Dev Kit's previews)
+  if (audio) applyAudioSettings(audio, values)
 }
