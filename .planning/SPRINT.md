@@ -5,9 +5,9 @@ Muzzy will see: after the first tap the game makes a sound at every moment (31 s
 ## fw F27 🧱 Audio engine + rules (framework/audio — design: framework/.planning/design/audio.md)
 Done when: framework/audio/kit installs to src/audio/; code plays named sounds; content/audio.json drives them; planner rules unit-tested; engine tested with a fake AudioContext; window.__audioLog in dev/tests.
 - [x] 🤖 1. Spike: script-download free sound packs (Kenney, OpenGameArt CC0); Freesound / Sonniss need a login? → if the vibe can't be met, `Ask Muzzy:` for an account (Muzzy: "you can ask me to create an account for the others")
-- [ ] 🤖 2. Module skeleton (framework/audio: kit/, scripts/install-audio.mjs + test, package.json, README, VERSION) + config.ts (types, defaults, validation of content/audio.json)
-- [ ] 🤖 3. planner.ts: variants (random-no-repeat · sequence · shuffle), random pitch/volume, voices + cooldown + priority, ladder (pentatonic, steps, reset), stale + suspended drop — unit tests
-- [ ] 🤖 4. engine.ts + loader.ts + log.ts + react.ts: first-tap unlock, buses → master → limiter, silent switch (audioSession ambient), hidden/interrupted = drop not queue, mono, basic snapshots, decode cache — fake-context tests
+- [x] 🤖 2. Module skeleton (framework/audio: kit/, scripts/install-audio.mjs + test, package.json, README, VERSION) + config.ts (types, defaults, validation of content/audio.json)
+- [x] 🤖 3. planner.ts: variants (random-no-repeat · sequence · shuffle), random pitch/volume, voices + cooldown + priority, ladder (pentatonic, steps, reset), stale + suspended drop — unit tests
+- [x] 🤖 4. engine.ts + loader.ts + log.ts + react.ts: first-tap unlock, buses → master → limiter, silent switch (audioSession ambient), hidden/interrupted = drop not queue, mono, basic snapshots, decode cache — fake-context tests
 Check: framework audio tests + tsc.
 
 ## fw F29 + F59 🎮 Settings → Audio
@@ -31,3 +31,4 @@ Ask Muzzy: a free **Freesound** account would let Claude fetch the 5 weak placeh
 ## Notes
 - F56 (9f261a4): 56 MP3s, effects 269 KB (mono 96 kbps, peak −3 dBFS), music ~2.4 MB, ambience 717 KB. Kenney + OpenGameArt by script (no login); Freesound needs a login, Sonniss 403s scripts. Licences: CC0 + two CC-BY 3.0 (glass bell → turn.yours; wind loop → amb.night) → credit lines on Credits. Ladder notes pre-tuned to D (score.pop kalimba D4, reveal.count tongue drum D5). mus.garden is a 149 s harp piece with an ending (play once, then rest — not a loop). Weak fits listed in design/audio.md "Placeholder files". Can't listen → picks by description + ffmpeg measurements.
 - Kenney Interface Sounds + OGA "Cozy Farm SFX" measure as code-made tones (spectral flatness ≈ 0) → avoided (Roll Better lesson).
+- fw F27 + F29 built (framework dev/audio badce88..af30113): audio 0.1.0 — 90 tests; ui-kit 0.4.1 standard Audio tab (212 tests). API: createAudio / setAudio / playSound(name,{at,catchUp,step…}) / playTier / setBusVolume(slider) / snapshot / duck / useLoop / exposeLog. Slider curve gain = (s/100)² (50 → −12 dB). Ladder sounds get no random pitch. Mute everything keeps loops running silently. Streaming music → fw F28 (beta loops fully decoded for now). _ranges use wildcard keys ("sounds.*.volumeDb") → the Sound Board must read them.
