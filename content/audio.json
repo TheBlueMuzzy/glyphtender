@@ -78,7 +78,7 @@
     "sounds.ui.tap": "Any menu button, tab or ◀ ▶ (a gentle wood knock).",
     "sounds.ui.back": "Back, Close ✕ and Resume buttons (a lower knock).",
     "sounds.ui.toggle": "An on/off switch in Settings or New Game.",
-    "sounds.amb.night": "The night garden (crickets, breeze) — loops for the whole game.",
+    "sounds.amb.night": "The night garden (crickets, breeze, a distant owl) — loops for the whole game.",
     "sounds.mus.garden": "Soft harp near the start of a game — plays ONCE (it has an ending), then the garden rests.",
     "sounds.mus.menu": "The menus' music (a quiet kalimba loop).",
     "sounds.tier.small": "A \"small\" juiced moment's sound when it has none of its own (feel.json tiers).",
@@ -293,7 +293,7 @@
     },
     "cast.throw": {
       "bus": "sfx",
-      "files": ["sfx/sfx_cast_throw_01.mp3", "sfx/sfx_cast_throw_02.mp3", "sfx/sfx_cast_throw_03.mp3"],
+      "files": ["sfx/sfx_cast_whoosh_01.mp3", "sfx/sfx_cast_whoosh_02.mp3", "sfx/sfx_cast_whoosh_03.mp3"],
       "volumeDb": -6,
       "randomPitch": 0.8,
       "randomVolumeDb": 1.5,
@@ -313,7 +313,7 @@
     },
     "sprout.grow": {
       "bus": "sfx",
-      "files": ["sfx/sfx_sprout_grow_01.mp3", "sfx/sfx_sprout_grow_02.mp3"],
+      "files": ["sfx/sfx_sprout_leaf_01.mp3", "sfx/sfx_sprout_leaf_02.mp3"],
       "volumeDb": -8,
       "delayMs": 80,
       "randomPitch": 0.5,
@@ -368,7 +368,7 @@
     },
     "tangle": {
       "bus": "sfx",
-      "files": ["sfx/sfx_tangle_boing_01.mp3", "sfx/sfx_tangle_boing_02.mp3"],
+      "files": ["sfx/sfx_tangle_vine_01.mp3", "sfx/sfx_tangle_vine_02.mp3"],
       "volumeDb": -4,
       "randomPitch": 0.3,
       "maxVoices": 2,

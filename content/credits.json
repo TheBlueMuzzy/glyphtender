@@ -154,8 +154,6 @@
   },
   {
     "paths": [
-      "public/audio/sfx/sfx_tangle_boing_01.mp3",
-      "public/audio/sfx/sfx_tangle_boing_02.mp3",
       "public/audio/ui/ui_seed_drop_01.mp3",
       "public/audio/ui/ui_seed_drop_02.mp3",
       "public/audio/ui/ui_toggle_flip_01.mp3"
@@ -195,9 +193,7 @@
   {
     "paths": [
       "public/audio/sfx/sfx_seed_land_01.mp3",
-      "public/audio/sfx/sfx_seed_land_02.mp3",
-      "public/audio/sfx/sfx_sprout_grow_01.mp3",
-      "public/audio/sfx/sfx_sprout_grow_02.mp3"
+      "public/audio/sfx/sfx_seed_land_02.mp3"
     ],
     "source": "OpenGameArt — 40 CC0 water / splash / slime SFX (bubble, splash)",
     "author": "rubberduck",
@@ -223,9 +219,6 @@
   },
   {
     "paths": [
-      "public/audio/sfx/sfx_cast_throw_01.mp3",
-      "public/audio/sfx/sfx_cast_throw_02.mp3",
-      "public/audio/sfx/sfx_cast_throw_03.mp3",
       "public/audio/ui/ui_refresh_out_01.mp3",
       "public/audio/ui/ui_undo_01.mp3"
     ],
@@ -307,17 +300,6 @@
   },
   {
     "paths": [
-      "public/audio/stg/stg_reveal_winner_01.mp3"
-    ],
-    "source": "OpenGameArt — Cozy Puzzle Jingle & Result (Cozy Puzzle Clear (Jingle))",
-    "author": "MintoDog",
-    "licence": "CC0",
-    "light": "🟢",
-    "url": "https://opengameart.org/content/cozy-puzzle-jingle-result",
-    "credit": ""
-  },
-  {
-    "paths": [
       "public/audio/mus/mus_garden_harp_01.mp3"
     ],
     "source": "OpenGameArt — Meadow Thoughts (solo harp)",
@@ -359,5 +341,159 @@
     "light": "🟡",
     "url": "https://opengameart.org/content/wind-loop",
     "credit": "Wind by Jonathan Shaw (InspectorJ), https://freesound.org/people/InspectorJ/sounds/376415/, looped by AntumDeluge, CC-BY 3.0, filtered and mixed"
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_sprout_leaf_01.mp3"
+    ],
+    "source": "Freesound — one plant grows with lettuce.wav (leafy growth layer, cut and low-passed)",
+    "author": "squidge316",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/squidge316/sounds/677814/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_sprout_leaf_02.mp3"
+    ],
+    "source": "Freesound — Crumple Dry Leaf 1 (leafy growth layer, cut and low-passed)",
+    "author": "elliotlp",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/elliotlp/sounds/235755/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_sprout_leaf_01.mp3"
+    ],
+    "source": "Freesound — Fantasy_ui_Button_5.wav (soft chime layer)",
+    "author": "ZenithInfinitiveStudios",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/ZenithInfinitiveStudios/sounds/376749/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_sprout_leaf_02.mp3"
+    ],
+    "source": "Freesound — Fantasy_ui_Button_4.wav (soft chime layer)",
+    "author": "ZenithInfinitiveStudios",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/ZenithInfinitiveStudios/sounds/376744/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_tangle_vine_01.mp3"
+    ],
+    "source": "Freesound — bushhit.wav (leafy wrap layer, low-passed)",
+    "author": "j1987",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/j1987/sounds/106113/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_tangle_vine_02.mp3"
+    ],
+    "source": "Freesound — tree shake.wav (leafy wrap layer, low-passed)",
+    "author": "zepurple",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/zepurple/sounds/540278/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_tangle_vine_01.mp3"
+    ],
+    "source": "Freesound — tree_creak_3 (tree creak layer)",
+    "author": "Comradar",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/Comradar/sounds/797993/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_tangle_vine_02.mp3"
+    ],
+    "source": "Freesound — tree_creak_2 (tree creak layer)",
+    "author": "Comradar",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/Comradar/sounds/797992/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_cast_whoosh_01.mp3"
+    ],
+    "source": "Freesound — Stick - Whoosh 7 (Soft) (rumble filtered out)",
+    "author": "Sadiquecat",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/Sadiquecat/sounds/802465/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_cast_whoosh_02.mp3"
+    ],
+    "source": "Freesound — Woosh - Plastic Tray 2 (rumble filtered out)",
+    "author": "Sadiquecat",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/Sadiquecat/sounds/742943/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/sfx/sfx_cast_whoosh_03.mp3"
+    ],
+    "source": "Freesound — Woosh - Metal Skimmer 1 (slowed) (rumble filtered out, pitched up 2 semitones)",
+    "author": "Sadiquecat",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/Sadiquecat/sounds/742955/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/stg/stg_reveal_winner_01.mp3"
+    ],
+    "source": "Freesound — Good answer harp glissando.wav (opening harp sweep, retuned C to D)",
+    "author": "oggraphics",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/oggraphics/sounds/610703/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/stg/stg_reveal_winner_01.mp3"
+    ],
+    "source": "Freesound — Angelic Fanfare 2 (choir fanfare, retuned C to D)",
+    "author": "qubodup",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/qubodup/sounds/812468/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/amb/amb_night_garden_loop.mp3"
+    ],
+    "source": "Freesound — owl.wav (distant owl layer of the night loop, filtered and echoed)",
+    "author": "Anthousai",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/Anthousai/sounds/398734/",
+    "credit": ""
   }
 ]
