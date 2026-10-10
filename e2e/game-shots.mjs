@@ -82,6 +82,8 @@ try {
       out.forEach((p) => fail(`${size.name} ${name}: ${p}`))
       console.log(`${out.length ? 'FAIL' : 'ok  '} ${size.name} ${name}${hex ? ` · board hex ${hex}px · tray seed ${tile}px` : ''}`)
     }
+    // A drop plays its carry style's landing / return first (F63, usePieceInput) — the game changes once it's done
+    const dropDone = () => page.waitForFunction(() => document.querySelector('[data-carry]')?.style.visibility !== 'visible', null, { timeout: 3000 })
     // Drag with the mouse from one element's centre to another's
     const drag = async (from, to) => {
       const a = await from.boundingBox(), b = await to.boundingBox()
@@ -89,6 +91,7 @@ try {
       await page.mouse.down()
       await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 })
       await page.mouse.up()
+      await dropDone()
     }
     // Press, move a little (it becomes a drag and the options glow), then find the target and drop on it
     const dragVia = async (from, target, screenshot = false) => {
@@ -103,6 +106,7 @@ try {
         await page.screenshot({ path: `${OUT}/${size.name}-6-drop-target.png` })
       }
       await page.mouse.up()
+      await dropDone()
     }
     // The same with a real finger (phones): the piece floats layout.dragLift px ABOVE the finger, so the finger
     // ends that far below the target
@@ -119,6 +123,7 @@ try {
       await checkDropTarget()
       await page.screenshot({ path: `${OUT}/${size.name}-6-drop-target.png` })
       await touch('touchEnd', bx, by)
+      await dropDone()
     }
     // Moves glide (anim.json moveBase + movePerHex × hexes): is one running / wait until every glyphling has settled
     const gliding = () => page.evaluate(() => [...document.querySelectorAll('[data-glide]')].some((g) => g.getAnimations().length > 0))
