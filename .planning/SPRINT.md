@@ -28,10 +28,10 @@ Done when: a game can show, per drag type, at the target: highlight (today) · g
 
 ## F64 🎮 Target feedback in Glyphtender
 Done when: board drops can show highlight | ghost preview | tether, tray reorder can show insertion marker | make room, snap strength is a knob — all switchable in the Dev Kit.
-- [ ] 🤖 1. Board: highlight | ghost preview | tether per drag type (game/dropTarget.ts, Board.tsx)
-- [ ] 🤖 2. Tray reorder: insertion marker | make room (SeedTray.tsx) — groundwork for card hands
-- [ ] 🤖 3. Snap strength + switches in drag.json / Dev Kit
-- [ ] 🤖 4. e2e + phone/desktop screenshots at every size; Full check
+- [x] 🤖 1. Board: highlight | ghost preview | tether per drag type (game/dropTarget.ts, Board.tsx)
+- [x] 🤖 2. Tray reorder: insertion marker | make room (SeedTray.tsx) — groundwork for card hands
+- [x] 🤖 3. Snap strength + switches in drag.json / Dev Kit
+- [x] 🤖 4. e2e + phone/desktop screenshots at every size; Full check
 
 ## F65 ❓ Pick a style per drag type
 - [ ] 🙋 1. Try them on phone + desktop with the Dev Kit "Dragging" dropdowns, pick per drag type
@@ -48,3 +48,9 @@ Done when: board drops can show highlight | ghost preview | tether, tray reorder
 - F63 size: the carried piece = its home's art size (lifted by liftScale), not the old fixed max(tray, hex) × 1.2 — so a landing or C's fly ends exactly the size of the real piece.
 - F63 wrong drops: after the return, the drop still does what a tap there does (as before: an illegal hex lets go of the held piece; dropping the moved glyphling on its own ghost still takes the move back — then it flies home AND glides back, a rare double motion).
 - F63 e2e/drag-styles.mjs (port 5432, check:full "drag"): 64 drags × 2 sizes, 371 checks; the reorder style in the refresh phase isn't driven (only in play).
+- F64 (Claude 2026-10-10): ui-kit 0.6.0 installed. drag.json `targets` { draft / seed / move: highlight (default) · ghost · tether; reorder: none (default) · marker · room } + snap 0.5 / snapRadius 0.6 / makeRoom 0.35 / roomTime 0.15 / tetherBend 0.15 / arrowSize 12 / ghostGlow 0.5 — all Dev Kit → Tuning → Dragging, live from the next drag (snap even mid-drag).
+- F64 glow per look: highlight = today's glow; ghost = the see-through copy on the hex + the glow at ghostGlow (0.5 — the ring still marks the hex round the piece); tether = the aim line + the full glow (the line says where from, the glow where to).
+- F64 tray rule (D86): the marker / make room show the gap moveInRack REALLY inserts into — the seed dropped on place `to` lands just right of that seed when dragged rightwards, just left when leftwards (whatever half of it the pointer is on), and only over ANOTHER seed; over an empty place (a swap) or its own place nothing shows. The kit's insertionIndex (pointer side) is not used: half the time it would show a gap the drop ignores. Groundwork for card hands: a hand that wants pointer-side insertion must change its drop rule in the same step.
+- F64 snap: candidates = the referee's legal hexes (dropKind), listed once per drag; a drop while a hex pulls the piece lands on THAT hex (else the pull would lie), so near-misses just off a legal hex now count. Off the board / over the tray nothing snaps; a seed over another tray place (reorder) never snaps.
+- F64 rough: the tether ends at the pointer, so its arrow head sits under the carried piece (only the line shows) — a taste call for F65 (end it at the piece's edge?). With style C (ghost carried) + ghost target the two see-through copies stack on the hex when the pointer is dead centre.
+- F64 e2e/drag-targets.mjs (port 5434, check:full "drag-targets"): 390×844 · 844×390 · 1440×900 — every look per drag type, snap (strong / defaults / off), marker rightwards + leftwards, make room, none; tray height unchanged.

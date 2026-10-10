@@ -39,6 +39,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
   ['drag', 'e2e/drag-styles.mjs', 'e2e-shots 5432'], // (F63: carry styles A–D × draft / seed / reorder / move, phone + desktop)
+  ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — 3 sizes)
   ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
