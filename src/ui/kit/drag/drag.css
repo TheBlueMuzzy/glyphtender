@@ -1,0 +1,5 @@
+/* THE DRAG PARTS' CSS — the kit's default look for what it draws itself (the tether). The game's CSS may restyle it. */
+@layer kit-base {
+  /* A tether / aim arrow: a soft round line in the style's main colour */
+  .kit-tether { fill: none; stroke: var(--primary); stroke-width: 0.25rem; stroke-linecap: round; stroke-linejoin: round; }
+}

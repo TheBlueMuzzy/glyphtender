@@ -13,6 +13,7 @@
 // by its centre in that layer's pixels, and plays the endings with Web Animations — never React state per frame.
 // Reduce motion → no animation: it just shows / hides.
 import { reduceMotion } from '../blocks/motion'
+import { pulledToward, type Snap } from './target'
 
 export type CarriedLook = 'solid' | 'ghost'
 export type OriginLook = 'solid' | 'ghost' | 'empty'
@@ -70,8 +71,8 @@ export type DropEnd = 'landed' | 'returned'
 export type Carrier = {
   /** Start carrying: shows the element at `at` (its centre), `size` px across, in the style's look, and lifts it. */
   start: (style: CarryStyle, at: Point, size: number) => void
-  /** Follow the pointer. */
-  move: (at: Point) => void
+  /** Follow the pointer. `snap` (target.ts snapTarget found a valid spot near it) = shown pulled toward that spot. */
+  move: (at: Point, snap?: Snap | null) => void
   /** Let go. `target` = where a valid drop lands (null = invalid). `home` = the piece's home (for fly / fly back). */
   drop: (target: Point | null, home: Point) => Promise<DropEnd>
   /** Stop at once, no ending (a cancelled press, a new screen). */
@@ -129,11 +130,11 @@ export function createCarrier(el: Animatable, feel: () => CarryFeel = () => DEFA
       el.style.transformBox = 'fill-box'
       void play([restFrame(p, carriedOpacity(s, feel())), carriedFrame(p)], feel().liftTime)
     },
-    move(p) {
-      at = p
+    move(p, snap) {
+      at = snap ? pulledToward(p, snap) : p // (where it SHOWS, so a drop starts from there)
       if (!carrying) return
       if (current) stop() // (the lift is over the moment it moves)
-      show(carriedFrame(p))
+      show(carriedFrame(at))
     },
     async drop(target, home) {
       if (!carrying) return target ? 'landed' : 'returned'

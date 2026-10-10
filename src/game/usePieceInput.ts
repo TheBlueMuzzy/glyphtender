@@ -11,6 +11,14 @@
 //   · move (a glyphling on the board).
 // A legal drop plays its landing FIRST and the store changes when it has landed (so nothing shows twice); a glyphling
 // move whose style flies the real piece (C) is the move glide itself (useGlide) — one motion, never two.
+// TARGET FEEDBACK (F64, ui-kit drag/target.ts, drag.json targets): what the target side shows while a piece is carried.
+//   board drags (draft · seed · move): highlight (the legal hex under the piece glows — always, fainter under a ghost) ·
+//     ghost (a see-through copy of the piece on that hex — its own drag-layer image, never the planned seed, B010) ·
+//     tether (an aim line in the player's colour from the piece's home to the pointer)
+//   tray reorder: none · marker · room — only over another SEED, at the gap moveInRack will really put it in (dropTarget.ts
+//     trayAim → SeedTray / HandView); over an empty place the seed just moves there, so nothing shows
+//   magnetic snap (drag.json snap / snapRadius): near a LEGAL hex (the referee's — dropKind) the carried piece is pulled
+//     toward it, it glows, and letting go there lands on it.
 // What was pressed is read from data attributes:
 //   data-glyph (board glyphling id) · data-hand (tray seed: its id) + data-tray-pos (its place in the tray)
 //   data-draft (a glyphling waiting to be placed) · data-hex (a board hex, "q,r")
@@ -21,16 +29,31 @@ import { liveTuning } from '../devkit/tuning/liveTuning'
 import { useGameStore } from '../store/gameStore'
 import { NEW_GLYPHLING, playReferee, targetsOf, type Piece } from '../store/referee'
 import { dropKind, letterIn } from '../store/turnPlan'
-import { carryStyle, createCarrier, originWhileCarried, type Carrier, type CarryStyle, type Point } from '../ui/kit'
+import {
+  carryStyle, createCarrier, createPreview, createTether, originWhileCarried, snapTarget,
+  type Carrier, type CarryStyle, type Point, type Preview, type TargetFeel, type Tether,
+} from '../ui/kit'
 import dragFile from '../../content/tuning/drag.json'
 import { glyphlingArt, seedArt } from './art'
 import { endCarry, setCarried, setOriginLook, type Carried } from './carryState'
-import { showDropTarget } from './dropTarget'
+import { insertGap, setTrayAim, showDropTarget } from './dropTarget'
 import { arrivedOn } from './useGlide'
 import type { LayoutTuning } from './useTuning'
 
 export type DragType = keyof typeof dragFile.styles
+/** What the board shows at the target of a board drag (draft · seed · move), and the tray at a reorder's. */
+export type BoardTarget = 'highlight' | 'ghost' | 'tether'
+export type TrayTarget = 'none' | 'marker' | 'room'
 const dragTuning = liveTuning('drag', dragFile) // (a Dev Kit edit applies from the next drag)
+
+/** drag.json's target numbers, in the ui-kit's TargetFeel shape (read on every use, so a Dev Kit edit applies). */
+const targetFeel = (): TargetFeel => {
+  const t = dragTuning.current
+  return { makeRoom: t.makeRoom, roomTime: t.roomTime, snapRadius: t.snapRadius, snapPull: t.snap, tetherBend: t.tetherBend, arrowSize: t.arrowSize }
+}
+
+/** A legal hex and its centre (drag-layer px) — what magnetic snap may pull toward. */
+type Spot = Point & { hex: Hex }
 
 interface Press {
   glyph?: number
@@ -53,6 +76,10 @@ interface Press {
   carried?: Carried['piece']
   home?: Point
   size?: number
+  /** A board drag's target look (drag.json targets), the legal hexes it may snap to, and the hex it's snapped to now. */
+  target?: BoardTarget
+  spots?: Spot[]
+  snapped?: Spot
 }
 
 const numberAttr = (el: Element, name: string) => {
@@ -72,12 +99,22 @@ export interface DragLayer {
   image: RefObject<SVGImageElement | null>
 }
 
-/** Pointer handlers to spread on the game screen. `carry` = the drag layer's carried piece; `size` = how big it is
- *  drawn (px) when its home's art can't be measured. */
-export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageElement | null> }, layout: LayoutTuning, size: number) {
+/** The drag layer's parts for a person's drag: the carried piece, the ghost preview (a second image) and the tether. */
+export type CarryLayer = DragLayer & {
+  carry: RefObject<SVGImageElement | null>
+  preview: RefObject<SVGImageElement | null>
+  tether: RefObject<SVGPathElement | null>
+}
+
+/** Pointer handlers to spread on the game screen. `size` = how big the carried piece is drawn (px) when its home's art
+ *  can't be measured; `board` = how big a piece is on the board (px — the ghost preview's size, and snap's reach) and a
+ *  player's colour (the tether's). */
+export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: number, board: { art: number; colour: (seat: number) => string }) {
   const press = useRef<Press | null>(null)
   const landing = useRef(false) // a drop's landing / return is playing: nothing new can be picked up until it's done
   const carrier = useRef<{ el: SVGImageElement; carry: Carrier } | null>(null)
+  const preview = useRef<{ el: SVGImageElement; preview: Preview } | null>(null)
+  const tether = useRef<Tether | null>(null)
   const store = useGameStore.getState
 
   // The carrier of the drag layer's carried <image> (made once; again if the element was replaced)
@@ -87,7 +124,21 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
     if (carrier.current?.el !== el) carrier.current = { el, carry: createCarrier(el, () => dragTuning.current) }
     return carrier.current.carry
   }
-  useEffect(() => () => { carrier.current?.carry.cancel(); setCarried(null) }, []) // (the game screen closed mid-drag)
+  // The ghost preview of the drag layer's preview <image> (made once; again if the element was replaced)
+  const previewNow = () => {
+    const el = drag.preview.current
+    if (!el) return null
+    if (preview.current?.el !== el) preview.current = { el, preview: createPreview(el, () => dragTuning.current) }
+    return preview.current.preview
+  }
+  // Hide every target look (the glow, the ghost preview, the tether, the tray's marker / room)
+  const hideTargets = () => {
+    showDropTarget(undefined, null)
+    previewNow()?.hide()
+    tether.current?.hide()
+    setTrayAim(null)
+  }
+  useEffect(() => () => { carrier.current?.carry.cancel(); setCarried(null); hideTargets() }, []) // (the game screen closed mid-drag)
 
   // A point on the screen → the drag layer's pixels; the centre of an element there
   const inLayer = (x: number, y: number): Point => {
@@ -109,6 +160,7 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
     const style = carryStyle(dragTuning.current.styles[type])
     p.type = type
     p.style = style
+    p.target = type === 'reorder' ? undefined : (dragTuning.current.targets[type] as BoardTarget)
     carrierNow()?.start(style, at, p.size ?? size)
     if (p.carried) setCarried({ piece: p.carried, origin: originWhileCarried(style), ghostOpacity: dragTuning.current.ghostOpacity })
   }
@@ -158,8 +210,61 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
     img.setAttribute('href', art)
     img.setAttribute('width', String(p.size))
     img.setAttribute('height', String(p.size))
+    // The target looks: the ghost preview is the same art at the board's piece size; the tether is in the player's colour
+    drag.preview.current?.setAttribute('href', art)
+    drag.preview.current?.setAttribute('width', String(board.art))
+    drag.preview.current?.setAttribute('height', String(board.art))
+    if (drag.tether.current) tether.current = createTether(drag.tether.current, { color: board.colour(game.current), feel: targetFeel })
+    p.spots = legalSpots()
     p.dragging = true
     carryAs(p, type, pointerAt(e, p))
+  }
+
+  // The legal hexes for the piece just picked up (the referee's answer, the same as the glow's and the drop's) and their
+  // centres — what magnetic snap may pull toward. Asked once per drag, not per pointer move.
+  const legalSpots = (): Spot[] => {
+    const s = store()
+    if (!s.game) return []
+    const game = s.game
+    return [...document.querySelectorAll('.game-garden > polygon[data-hex]')].flatMap((cell) => {
+      const hex = hexAttr(cell)
+      const at = centreOf(cell)
+      return hex && at && dropKind({ ...s, game }, hex) !== null ? [{ ...at, hex }] : []
+    })
+  }
+
+  // A board drag over the board: the snap (the nearest legal hex within reach pulls the piece), the glow, the ghost
+  // preview on the legal hex it would land on, the tether from home to the pointer
+  const showBoardTarget = (p: Press, at: Point, under: Element | null) => {
+    const t = dragTuning.current
+    const reach = t.snapRadius * board.art
+    p.snapped = (t.snap > 0 && snapTarget(at, p.spots ?? [], reach)) || undefined
+    carrierNow()?.move(at, p.snapped ? { to: p.snapped, pull: t.snap, radius: reach } : null)
+    const hex = p.snapped?.hex ?? hexAttr(under)
+    const s = store()
+    const kind = s.game ? dropKind({ ...s, game: s.game }, hex) : null
+    showDropTarget(hex, kind, p.target === 'ghost' ? t.ghostGlow : 1)
+    const spot = kind && hex ? (p.snapped ?? centreOf(document.querySelector(`.game-garden > polygon[data-hex="${hexKey(hex)}"]`))) : null
+    if (p.target === 'ghost' && spot) previewNow()?.show(spot, board.art)
+    else previewNow()?.hide()
+    if (p.target === 'tether' && p.home && tether.current) {
+      if (tether.current.showing) tether.current.update(at)
+      else tether.current.show(p.home, at)
+    }
+  }
+
+  // A tray reorder over the tray: where the seed would slide in (insertion marker / make room), shown only over
+  // ANOTHER seed the referee lets it go onto — there moveInRack slides it in; onto an empty place it just moves (no marker)
+  const showTrayTarget = (p: Press, under: Element | null) => {
+    const look = dragTuning.current.targets.reorder as TrayTarget
+    const place = under?.closest('[data-tray-pos]')
+    const to = place ? Number(place.getAttribute('data-tray-pos')) : undefined
+    const game = store().game
+    const from = p.trayPos
+    const onSeed = !!place?.hasAttribute('data-hand') && to !== undefined && from !== undefined && to !== from && p.hand !== undefined &&
+      !!game && playReferee(store()).judge(game.current, { kind: 'seed', id: p.hand }, { kind: 'tray', pos: to }).ok
+    if (look === 'none' || !onSeed || from === undefined || to === undefined) return setTrayAim(null)
+    setTrayAim({ gap: insertGap(from, to), look: look === 'room' ? 'room' : 'marker' })
   }
 
   const onPointerDown = (e: PointerEvent) => {
@@ -192,22 +297,31 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
       const type: DragType = pos !== undefined && pos !== p.trayPos ? 'reorder' : 'seed'
       if (type !== p.type) carryAs(p, type, at)
     }
-    carrierNow()?.move(at)
-    const hex = hexAttr(under)
-    const s = store()
-    showDropTarget(hex, s.game ? dropKind({ ...s, game: s.game }, hex) : null)
+    if (p.type === 'reorder') {
+      // In the tray: no board target (no glow, ghost or tether — and no snap), the tray shows where it would go
+      p.snapped = undefined
+      showDropTarget(undefined, null)
+      previewNow()?.hide()
+      tether.current?.hide()
+      carrierNow()?.move(at)
+      showTrayTarget(p, under)
+    } else {
+      setTrayAim(null)
+      showBoardTarget(p, at, under)
+    }
   }
 
   // Let go of a dragged piece. A legal drop lands (the style's landing) and THEN changes the game; a wrong one goes
   // back home (the style's return) and then does what a tap there does (it may let go of the held piece, as before).
   const drop = async (e: PointerEvent, p: Press) => {
-    showDropTarget(undefined, null)
+    hideTargets()
     const s = store()
     const game = s.game
     const carry = carrierNow()
     const dropped = underPiece(e, p)
     const trayPos = dropped ? numberAttr(dropped, 'data-tray-pos') : undefined
-    const hex = trayPos === undefined ? hexAttr(dropped) : undefined
+    // (a legal hex that has pulled the piece in — magnetic snap — is where it lands, even if the pointer is just off it)
+    const hex = trayPos === undefined ? (p.snapped?.hex ?? hexAttr(dropped)) : undefined
     const from = p.trayPos
     let target: Point | null = null // where a legal drop lands (null = it goes back)
     let commit = () => {} // what a legal drop does, once it has landed
@@ -280,7 +394,7 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
     press.current = null
     carrierNow()?.cancel()
     setCarried(null)
-    showDropTarget(undefined, null)
+    hideTargets()
   }
 
   return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel }

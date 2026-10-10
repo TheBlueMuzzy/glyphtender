@@ -10,7 +10,18 @@
     "liftTime": "How long a piece takes to grow into your hand when a drag starts, in seconds. Try 0.05–0.15.",
     "landTime": "How long a dropped piece takes to settle onto its spot (A, B) or turn solid there (D), in seconds. The game changes once it has landed. Try 0.1–0.2.",
     "flyTime": "How long the real piece takes to fly from home to the spot (C), or a wrongly dropped piece to fly back home (A, B, D), in seconds. Try 0.15–0.3.",
-    "fadeTime": "How long a wrongly dropped piece takes to fade away (C), in seconds. Try 0.1–0.25."
+    "fadeTime": "How long a wrongly dropped piece takes to fade away (C), in seconds. Try 0.1–0.25.",
+    "targets.draft": "What shows at the board while you drag a glyphling out of the tray (the draft). Highlight: the legal hex under the piece lights up. Ghost preview: a see-through copy of the piece sits on that hex (and the hex glows fainter). Aim line: a line with an arrow runs from the piece's home to your pointer (and the hex still lights up).",
+    "targets.seed": "What shows at the board while you drag a seed onto it. Highlight · Ghost preview · Aim line — see the draft setting above.",
+    "targets.move": "What shows at the board while you drag a glyphling on it. Highlight · Ghost preview · Aim line — see the draft setting above.",
+    "targets.reorder": "What the tray shows while you drag a seed onto another seed in it. None: nothing extra. Insertion marker: a slim bar in your colour where the seed will slide in. Make room: the seeds on each side of that spot slide apart. Over an empty place neither shows — the seed just moves into it.",
+    "snap": "How strongly a legal hex pulls the dragged piece once it's near — and letting go there lands on that hex. 0 = no pull. Try 0.3–0.7.",
+    "snapRadius": "How near the piece must be for a legal hex to pull it, as a share of a piece's size. Try 0.4–0.8.",
+    "makeRoom": "Make room: how far the tray's seeds slide apart, as a share of a seed's place. Try 0.2–0.5.",
+    "roomTime": "Make room: how long the tray's seeds take to slide apart (and back), in seconds. Try 0.1–0.2.",
+    "tetherBend": "Aim line: how much it curves. 0 = straight. Try 0–0.25.",
+    "arrowSize": "Aim line: its arrow head, in pixels. 0 = no head. Try 8–16.",
+    "ghostGlow": "With Ghost preview, how strongly the hex under it still glows (1 = as bright as Highlight, 0 = no glow). Try 0.3–0.6."
   },
   "_labels": {
     "styles.draft": "Drag style: draft (glyphling out of the tray)",
@@ -23,10 +34,22 @@
     "liftTime": "Drag: lift time (seconds)",
     "landTime": "Drag: landing time (seconds)",
     "flyTime": "Drag: fly / fly back time (seconds)",
-    "fadeTime": "Drag: wrong drop fade time (seconds)"
+    "fadeTime": "Drag: wrong drop fade time (seconds)",
+    "targets.draft": "Drag target: draft (where the glyphling goes)",
+    "targets.seed": "Drag target: aiming a seed",
+    "targets.move": "Drag target: moving a glyphling",
+    "targets.reorder": "Drag target: tray reorder",
+    "snap": "Drag: snap strength (0 = off)",
+    "snapRadius": "Drag: snap reach (× piece size)",
+    "makeRoom": "Drag: make room gap (× a place)",
+    "roomTime": "Drag: make room time (seconds)",
+    "tetherBend": "Drag: aim line curve (0 = straight)",
+    "arrowSize": "Drag: aim line arrow size (px)",
+    "ghostGlow": "Drag: hex glow under a ghost preview (0–1)"
   },
   "_sections": {
-    "Dragging": ["styles", "ghostOpacity", "liftScale", "liftShadow", "liftTime", "landTime", "flyTime", "fadeTime"]
+    "Dragging": ["styles", "ghostOpacity", "liftScale", "liftShadow", "liftTime", "landTime", "flyTime", "fadeTime",
+      "targets", "snap", "snapRadius", "makeRoom", "roomTime", "tetherBend", "arrowSize", "ghostGlow"]
   },
   "_ranges": {
     "ghostOpacity": [0.1, 1, 0.05],
@@ -35,13 +58,24 @@
     "liftTime": [0, 0.4, 0.01],
     "landTime": [0, 0.5, 0.01],
     "flyTime": [0, 0.6, 0.01],
-    "fadeTime": [0, 0.5, 0.01]
+    "fadeTime": [0, 0.5, 0.01],
+    "snap": [0, 1, 0.05],
+    "snapRadius": [0.2, 1.5, 0.05],
+    "makeRoom": [0, 1, 0.05],
+    "roomTime": [0, 0.5, 0.01],
+    "tetherBend": [0, 0.5, 0.01],
+    "arrowSize": [0, 30, 1],
+    "ghostGlow": [0, 1, 0.05]
   },
   "_choices": {
     "styles.draft": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
     "styles.seed": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
     "styles.reorder": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
-    "styles.move": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" }
+    "styles.move": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
+    "targets.draft": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from home" },
+    "targets.seed": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from home" },
+    "targets.move": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from home" },
+    "targets.reorder": { "none": "None", "marker": "Insertion marker", "room": "Make room" }
   },
   "styles": {
     "draft": "A",
@@ -49,11 +83,24 @@
     "reorder": "A",
     "move": "C"
   },
+  "targets": {
+    "draft": "highlight",
+    "seed": "highlight",
+    "move": "highlight",
+    "reorder": "none"
+  },
   "ghostOpacity": 0.45,
   "liftScale": 1.12,
   "liftShadow": 0.35,
   "liftTime": 0.08,
   "landTime": 0.14,
   "flyTime": 0.22,
-  "fadeTime": 0.15
+  "fadeTime": 0.15,
+  "snap": 0.5,
+  "snapRadius": 0.6,
+  "makeRoom": 0.35,
+  "roomTime": 0.15,
+  "tetherBend": 0.15,
+  "arrowSize": 12,
+  "ghostGlow": 0.5
 }

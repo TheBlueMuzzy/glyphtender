@@ -17,7 +17,7 @@ import { rackLayout, toast, useScreens } from '../ui/kit'
 import { useGameSettings } from '../ui/gameSettings'
 import { leaveToMenu } from '../ui/newGame'
 import { ActionBar } from './ActionBar'
-import { wordListUrl } from './art'
+import { colourOf, wordListUrl } from './art'
 import { Board } from './Board'
 import { boardView } from './boardPlace'
 import { EndBar } from './EndBar'
@@ -111,8 +111,12 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const dragLayer = useRef<SVGSVGElement>(null)
   const dragImage = useRef<SVGImageElement>(null)
   const carryImage = useRef<SVGImageElement>(null)
+  const previewImage = useRef<SVGImageElement>(null)
+  const tetherPath = useRef<SVGPathElement>(null)
   const dragSize = Math.max(tray.tile, hexPx) * 1.2
-  const input = usePieceInput({ layer: dragLayer, image: dragImage, carry: carryImage }, layout, dragSize)
+  // (a piece on the board is its hex's width × pieceScale — the ghost preview's size; the tether is the player's colour)
+  const boardPiece = { art: hexPx * colours.pieceScale, colour: (seat: number) => colours[colourOf(seat)] }
+  const input = usePieceInput({ layer: dragLayer, image: dragImage, carry: carryImage, preview: previewImage, tether: tetherPath }, layout, dragSize, boardPiece)
   useBotDraft({ layer: dragLayer, image: dragImage }, dragSize, hexPx) // an AI's draft travels out of the tray the same way (F50)
   useNopeShake() // a tapped piece that can't be touched shakes "no"
 
@@ -160,6 +164,10 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
       <svg className="game-edge" data-edge="right" width={rulers.right} height={0} aria-hidden="true" />
       {!stacked && <svg className="game-edge" data-edge="middle" width={rulers.middle} height={0} aria-hidden="true" />}
       <svg ref={dragLayer} className="game-drag-layer" aria-hidden="true">
+        {/* target looks under the carried piece (drag.json targets; usePieceInput): the aim line from home to the
+            pointer, and the ghost preview — a see-through copy on the legal hex (its own image, never the planned seed) */}
+        <path ref={tetherPath} data-tether="" style={{ visibility: 'hidden' }} />
+        <image ref={previewImage} data-target-preview="" x={0} y={0} style={{ visibility: 'hidden' }} />
         {/* an AI's draft travelling out of the tray (useBotDraft) */}
         <image ref={dragImage} visibility="hidden" opacity={0.85} />
         {/* the piece a person carries (usePieceInput; the ui-kit carrier moves it — visibility is its style) */}
