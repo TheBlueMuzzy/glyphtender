@@ -225,7 +225,7 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
     }
     if (!carry || !p.style || !p.home) { // (nothing carried on screen: just do it)
       ;(target ? commit : after)()
-      return setCarried(null)
+      return endCarry()
     }
     // A glyphling whose style flies the real piece home → target: that IS the move glide (useGlide) — just plan the move
     if (target && p.type === 'move' && p.style.land === 'fly') {
@@ -235,9 +235,16 @@ export function usePieceInput(drag: DragLayer & { carry: RefObject<SVGImageEleme
     }
     if (target && p.style.land === 'fly') setOriginLook('empty') // (the real piece leaves its home and flies)
     landing.current = true
-    const ended = await carry.drop(target, p.home)
-    landing.current = false
-    if (store().game !== game) return setCarried(null) // (the game moved on or was left meanwhile)
+    let ended: Awaited<ReturnType<Carrier['drop']>>
+    try {
+      ended = await carry.drop(target, p.home)
+    } finally {
+      landing.current = false // (never leave input locked, whatever happened to the animation)
+    }
+    // Left the game, or the turn moved on meanwhile → drop it. Any other update (an online sync…) is fine: the store's
+    // own action checks again whether the move is allowed
+    const now = store().game
+    if (!now || now.current !== game?.current || now.phase !== game?.phase) return setCarried(null)
     if (ended === 'landed') {
       if (p.glyph !== undefined && hex) arrivedOn(p.glyph, hex) // (it's already there: no glide)
       commit()
