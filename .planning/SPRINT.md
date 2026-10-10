@@ -12,11 +12,11 @@ Done when: a game can pick, per drag type, what the carried piece looks like (so
 
 ## F63 🎮 Carry styles in Glyphtender
 Done when: draft, plan a seed, tray reorder and glyphling move each use their style from content/tuning/drag.json; no solid copy left behind (unless the style says so); wrong drops return; the Dev Kit dropdown switches them live; e2e covers each style × drag type.
-- [ ] 🤖 1. Install ui-kit + devkit; replace the one fixed drag `<image>` (game/usePieceInput.ts, game/GameScreen.tsx) with the carry layer
-- [ ] 🤖 2. Tray + board read "dragging" (game/SeedTray.tsx, game/Board.tsx) → origin solid / ghost / empty per style
-- [ ] 🤖 3. Draft + seed drops get a short landing phase (like store.botDraft → useBotDraft); glyphling move keeps useGlide
-- [ ] 🤖 4. content/tuning/drag.json — one style per drag type + timings, _labels/_sections/_help, Dev Kit dropdowns; TDD §1/§3
-- [ ] 🤖 5. e2e: each style × drag type, mid-drag + after-drop shots; Area check
+- [x] 🤖 1. Install ui-kit + devkit; replace the one fixed drag `<image>` (game/usePieceInput.ts, game/GameScreen.tsx) with the carry layer
+- [x] 🤖 2. Tray + board read "dragging" (game/SeedTray.tsx, game/Board.tsx) → origin solid / ghost / empty per style
+- [x] 🤖 3. Draft + seed drops get a short landing phase (like store.botDraft → useBotDraft); glyphling move keeps useGlide
+- [x] 🤖 4. content/tuning/drag.json — one style per drag type + timings, _labels/_sections/_help, Dev Kit dropdowns; TDD §1/§3
+- [x] 🤖 5. e2e: each style × drag type, mid-drag + after-drop shots; Area check
 
 ## fw F54 🧱 Target feedback (framework ui-kit, kit/drag/)
 Done when: a game can show, per drag type, at the target: highlight (today) · ghost preview at the landing spot · insertion marker between items · make room (neighbours slide apart) · tether/aim arrow origin → pointer; magnetic snap near a valid spot; tested.
@@ -41,3 +41,8 @@ Done when: board drops can show highlight | ghost preview | tether, tray reorder
 - Decisions: carry styles live in **ui-kit** (looks), Table's referee stays a pure yes/no. Tray reorder is the proving ground for insertion marker / make room (card hands later).
 - Muzzy 2026-10-10: defaults = Claude's guesses until F65 — draft A · plan a seed C · tray reorder A · glyphling move C.
 - Today (code map 2026-10-10): one shared drag `<image>` opacity 0.85 (GameScreen.tsx:110); origin stays solid because grab* sets `selected` (held); draft + seed drops are instant; glyphling move already glides (≈ style C); invalid drop just vanishes.
+- F63 landings (Claude 2026-10-10): a legal drop plays its landing FIRST and the store changes when it resolves (usePieceInput drop → carrier.drop → commit). Chosen over "commit now + hide the arriving piece" because nothing in the store / Board / online flow had to learn about a hidden piece; online the action is sent after the landing (≤ 0.22 s later). While a drop lands, a new press is ignored (≤ 0.22 s). Online, the home stays carried until the server answers (carryState endCarry waits for store.waiting), so a draft never flashes back into the tray.
+- F63 seed drags: in play a seed drag is "seed" (aiming) and turns "reorder" only while it's over ANOTHER tray place (the look follows what you're about to do); in the refresh phase it's "reorder" throughout. With the defaults (seed C, reorder A) the look flips when you hover another tray place — Muzzy may want the two the same (F65).
+- F63 size: the carried piece = its home's art size (lifted by liftScale), not the old fixed max(tray, hex) × 1.2 — so a landing or C's fly ends exactly the size of the real piece.
+- F63 wrong drops: after the return, the drop still does what a tap there does (as before: an illegal hex lets go of the held piece; dropping the moved glyphling on its own ghost still takes the move back — then it flies home AND glides back, a rare double motion).
+- F63 e2e/drag-styles.mjs (port 5432, check:full "drag"): 64 drags × 2 sizes, 371 checks; the reorder style in the refresh phase isn't driven (only in play).
