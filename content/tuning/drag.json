@@ -1,0 +1,15 @@
+{
+  "styles": {
+    "draft": "A",
+    "seed": "C",
+    "reorder": "A",
+    "move": "C"
+  },
+  "ghostOpacity": 0.45,
+  "liftScale": 1.12,
+  "liftShadow": 0.35,
+  "liftTime": 0.08,
+  "landTime": 0.14,
+  "flyTime": 0.22,
+  "fadeTime": 0.15
+}

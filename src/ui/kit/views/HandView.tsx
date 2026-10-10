@@ -13,6 +13,9 @@
 //   aimed    — the piece is aimed somewhere else (e.g. on the board): the place is drawn see-through (look.aimedOpacity)
 //   waiting  — dimmed (look.waitingOpacity), e.g. "make a move first" or someone else's turn
 //   staged   — takes part in the shrink / grow stage below
+//   origin   — its piece is being carried (a drag): 'ghost' = a faint mark at home (look.ghostOpacity), 'empty' = only the
+//              empty look shows. The place keeps its attributes, so a drop back home still finds it. (drag/carry.ts
+//              originWhileCarried(style) gives this from the game's carry style.)
 // hidden (whole view) — the device is being passed on: every place shows only its empty look, with no attributes.
 //
 // SHRINK → GROW (swapping pieces): the game sets `stage` and marks the places taking part `staged`:
@@ -36,6 +39,7 @@ export type HandPlace<Piece = unknown> = {
   aimed?: boolean
   waiting?: boolean
   staged?: boolean
+  origin?: 'ghost' | 'empty'
 }
 
 /** Where a place is drawn: its number (left to right, then the next row), its centre and its size, in pixels. */
@@ -47,6 +51,7 @@ export type HandLook = {
   headroom?: number // room above the top row, as a share of a place's size, so a lifted piece isn't cut off (0.1)
   waitingOpacity?: number // (0.55)
   aimedOpacity?: number // (0.8)
+  ghostOpacity?: number // a carried piece's faint mark at home (0.45 — the same as drag/carry.ts DEFAULT_CARRY_FEEL)
 }
 
 /** Shrink / grow timings in seconds, and easings (any CSS easing). */
@@ -83,7 +88,7 @@ export function HandView<Piece>({
   layout, boxWidth, places, renderEmpty, renderPiece, hidden, stage, motion = DEFAULT_MOTION, look = {}, className, label,
 }: HandViewProps<Piece>) {
   const svg = useRef<SVGSVGElement>(null)
-  const { lift = 0.08, headroom = 0.1, waitingOpacity = 0.55, aimedOpacity = 0.8 } = look
+  const { lift = 0.08, headroom = 0.1, waitingOpacity = 0.55, aimedOpacity = 0.8, ghostOpacity = 0.45 } = look
   const { shrinkTime, growTime, stagger, overshoot, shrinkEasing = 'ease-in', growEasing = 'ease-out' } = motion
 
   // The stage: shrink the staged pieces away ("out"), or grow the new ones in ("in"), place after place
@@ -111,7 +116,9 @@ export function HandView<Piece>({
     // Passing the device on: nobody sees (or can pick) the pieces
     if (hidden) return <g key={`hidden-${index}`}>{renderEmpty(spot)}</g>
     const gone = place.staged && stage === 'gone'
-    let piece: ReactNode = place.piece === undefined || gone ? null : renderPiece?.(place, spot)
+    let piece: ReactNode = place.piece === undefined || gone || place.origin === 'empty' ? null : renderPiece?.(place, spot)
+    // Carried away with a mark left at home: only the piece goes faint, never the empty look under it
+    if (piece !== null && place.origin === 'ghost') piece = <g opacity={ghostOpacity} data-carried-from="">{piece}</g>
     // A staged piece sits in its own group, made fresh for each stage, so its animation starts from the beginning
     if (piece !== null && place.staged && stage) {
       piece = <g key={`stage-${stage}`} data-refresh-slot={index} className="kit-hand-staged">{piece}</g>
@@ -119,6 +126,7 @@ export function HandView<Piece>({
     const opacity = place.aimed ? aimedOpacity : place.waiting ? waitingOpacity : undefined
     return (
       <g key={place.key ?? `place-${index}`} {...place.attrs} data-held={place.held || undefined}
+        data-carried={place.origin}
         transform={place.held ? `translate(0 ${-tile * lift})` : undefined} opacity={opacity}>
         {renderEmpty(spot)}
         {piece}

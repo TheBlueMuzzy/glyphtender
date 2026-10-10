@@ -80,6 +80,26 @@ function autoStep(span: number): number {
   return 10 ** (Math.floor(Math.log10(span)) - 2)
 }
 
+/** One option of a dropdown: the value saved in the file, and what Muzzy reads. */
+export type Choice = { value: string; label: string }
+
+/**
+ * A text setting's dropdown, from the file's "_choices":
+ *   { "styles.draft": ["A", "B", "C"] }                                  — the values are their own names
+ *   { "styles.draft": { "A": "A · Pick it up", "B": "B · Lift, mark home" } } — value → readable name
+ * No entry (or an empty one) → undefined: the text is shown, not edited. A saved value that isn't one of the
+ * options is kept as an extra option, so opening the tab never changes it.
+ */
+export function choicesFor(path: string, choices: unknown, current?: unknown): Choice[] | undefined {
+  const own = (choices as Record<string, unknown> | undefined)?.[path]
+  let list: Choice[] = []
+  if (Array.isArray(own)) list = own.filter((v) => typeof v === 'string').map((v) => ({ value: v, label: v }))
+  else if (own && typeof own === 'object') list = Object.entries(own).map(([value, label]) => ({ value, label: String(label) }))
+  if (!list.length) return undefined
+  if (typeof current === 'string' && !list.some((c) => c.value === current)) list.push({ value: current, label: current })
+  return list
+}
+
 /** Every value that differs between two versions of a file, named "physics.json: maxSpeed" (for Copy for Claude). */
 export function listTuningChanges(fileName: string, before: unknown, after: unknown): Change[] {
   const changes: Change[] = []

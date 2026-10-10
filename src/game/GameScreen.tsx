@@ -107,11 +107,12 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
     ? { left: margin, right: margin, middle: 0 }
     : flipped ? { left: side.column, right: side.board, middle: side.middle } : { left: side.board, right: side.column, middle: side.middle }
 
-  // Taps and drags for board + tray; the dragged piece floats in its own layer on top
+  // Taps and drags for board + tray; the dragged piece is carried in its own layer on top (its carry style: drag.json)
   const dragLayer = useRef<SVGSVGElement>(null)
   const dragImage = useRef<SVGImageElement>(null)
+  const carryImage = useRef<SVGImageElement>(null)
   const dragSize = Math.max(tray.tile, hexPx) * 1.2
-  const input = usePieceInput({ layer: dragLayer, image: dragImage }, layout, dragSize)
+  const input = usePieceInput({ layer: dragLayer, image: dragImage, carry: carryImage }, layout, dragSize)
   useBotDraft({ layer: dragLayer, image: dragImage }, dragSize, hexPx) // an AI's draft travels out of the tray the same way (F50)
   useNopeShake() // a tapped piece that can't be touched shakes "no"
 
@@ -159,7 +160,10 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
       <svg className="game-edge" data-edge="right" width={rulers.right} height={0} aria-hidden="true" />
       {!stacked && <svg className="game-edge" data-edge="middle" width={rulers.middle} height={0} aria-hidden="true" />}
       <svg ref={dragLayer} className="game-drag-layer" aria-hidden="true">
+        {/* an AI's draft travelling out of the tray (useBotDraft) */}
         <image ref={dragImage} visibility="hidden" opacity={0.85} />
+        {/* the piece a person carries (usePieceInput; the ui-kit carrier moves it — visibility is its style) */}
+        <image ref={carryImage} data-carry="" x={0} y={0} style={{ visibility: 'hidden' }} />
       </svg>
     </div>
     <Handoff stacked={stacked} flipped={flipped} />
