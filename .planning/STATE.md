@@ -1,10 +1,11 @@
 ## ▶ RESUME HERE
-2026-10-10 — **Sprint 23 started — drag carry styles** (milestone v0.11, branch dev/drag from dev/story, framework dev/drag). Building fw F53 (ui-kit kit/drag/: carried solid|ghost + lift, origin solid|ghost|empty, landings/returns, presets A–D, Dev Kit dropdown field) → F63 wires it into Glyphtender (drag.json per drag type) ∥ fw F54 target feedback → F64 → F65 Muzzy picks. Plan + code map: SPRINT.md.
+2026-10-10 — **Sprint 23 built — drag carry styles** (v0.11, branch dev/drag from dev/story; framework dev/drag: ui-kit 0.6.0, Dev Kit 0.10.0). F63 (carry styles A–D per drag type, landings, wrong drops fly home) + F64 (target looks: highlight · ghost · tether; tray marker / make room; magnetic snap) are 🎛️ — all in content/tuning/drag.json, Dev Kit Tuning → "Dragging" dropdowns. Defaults (Muzzy 2026-10-10: Claude's guesses): draft A · seed C · reorder A · move C; targets highlight, tray none, snap 0.5.
+**Muzzy:** F65 — try the styles on phone + desktop and pick per drag type (+ keep the seed→reorder look switch mid-drag? · tether arrowhead hides under the piece · C/D + ghost target stacks two ghosts). Then Claude locks the picks in drag.json + GDD controls.
 **Ask Muzzy (carried):** AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
 v0.10 (Story) is still unreleased: /deliver it whenever (server redeploy — party/ + src/rooms/server changed).
 
 ## Where we are
-Stage: develop · Milestone: v0.11 Dragging feels right (v0.10 ✅ unreleased, carried on this branch) · Sprint: 23 · Doing: fw F53 — building · Branch: dev/drag · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
+Stage: develop · Milestone: v0.11 Dragging feels right (v0.10 ✅ unreleased, carried on this branch) · Sprint: 23 · Doing: F65 — waiting on Muzzy's picks · Branch: dev/drag · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
