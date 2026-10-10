@@ -1,11 +1,11 @@
 // BEFORE / AFTER SCREENSHOTS — the proof that a rebuild "looks the same" (F29 safety net).
 // Every screen at 8 window sizes: phones tall (390×844, 360×780) and on their side (844×390), a short browser window
 // (768×343), and desktops (1066×1192, 1099×846, 1440×900, 1920×1080).
-// Screens (24): main menu · Settings · Credits · Play online · New game · a 2-player game: draft, the device passed on
+// Screens (26): main menu · Settings · Credits · Play online · New game · a 2-player game: draft, the device passed on
 // (Pass to …), a turn starting, a move + cast planned, the refresh step (a cast with no Magic) · Pause · Rules ·
 // the online lobby (host and guest — from the Dev Kit's preview, no server needed) · the end of a 2-player and a
 // 4-player game (e2e/fixtures/end-2p.json, end-4p.json): the Magic reveal held at its middle step, Results, Story,
-// Scorecard, See board.
+// Story with the line on round 6 (F61's turn list), Scorecard, See board.
 //
 //   npm run shots:record   shoot the BEFORE set into e2e/shots-before/<screen>@<w>x<h>.png (committed to git).
 //                          Re-record only when a change is MEANT to look different, and look at the new pictures first.
@@ -218,6 +218,11 @@ async function endOfGame(size, { name, file }) {
     await tap(page.getByRole('tab', { name: 'Story' }))
     await page.locator('.game-end-chart-svg').waitFor({ timeout: 3000 })
     await shot(page, size, `${name}-story`)
+    // F61: the line moved to round 6 (Start + 6 presses of →): the turn list in the chart's top-left, awards under the key
+    await page.locator('.game-end-chart-svg').focus()
+    for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight')
+    await page.locator('.game-end-plays').waitFor({ timeout: 3000 })
+    await shot(page, size, `${name}-story-round6`)
     await tap(page.getByRole('tab', { name: 'Scorecard' }))
     await page.locator('.game-scorecard').waitFor({ timeout: 3000 })
     await shot(page, size, `${name}-scorecard`)
