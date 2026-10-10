@@ -8,10 +8,14 @@ export interface AudioSettings {
   ambienceVolume: number
   sfxVolume: number
   uiVolume: number
-  muteAll: boolean
+  /** Sound on (true) or off (false = everything silent). Older saves had the opposite, "muteAll" — see readAudioSettings. */
+  sound: boolean
   muteInBackground: boolean
   mono: boolean
 }
+
+/** What can be passed in: the kit Settings' values (any ids), or an older save that still has "muteAll". */
+export type AudioSettingsValues = Partial<Record<keyof AudioSettings | 'muteAll', unknown>>
 
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   masterVolume: 80,
@@ -19,7 +23,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   ambienceVolume: 60,
   sfxVolume: 80,
   uiVolume: 70,
-  muteAll: false,
+  sound: true,
   muteInBackground: true,
   mono: false,
 }
@@ -33,24 +37,26 @@ export interface AudioSettingsTarget {
 }
 
 /** Any object (e.g. the UI kit Settings' values) → complete settings; a missing or wrong-type value uses the default. */
-export function readAudioSettings(values: Partial<Record<keyof AudioSettings, unknown>> | null | undefined): AudioSettings {
+export function readAudioSettings(values: AudioSettingsValues | null | undefined): AudioSettings {
   const settings = { ...DEFAULT_AUDIO_SETTINGS }
   if (!values) return settings
   for (const key of Object.keys(DEFAULT_AUDIO_SETTINGS) as (keyof AudioSettings)[]) {
     const value = values[key]
     if (typeof value === typeof DEFAULT_AUDIO_SETTINGS[key]) (settings as Record<string, unknown>)[key] = value
   }
+  // An older save: the row was "Mute everything" (muteAll: true = silent). No Sound value yet → Sound is its opposite.
+  if (typeof values.sound !== 'boolean' && typeof values.muteAll === 'boolean') settings.sound = !values.muteAll
   return settings
 }
 
-export function applyAudioSettings(audio: AudioSettingsTarget, values: Partial<Record<keyof AudioSettings, unknown>> | null | undefined): void {
+export function applyAudioSettings(audio: AudioSettingsTarget, values: AudioSettingsValues | null | undefined): void {
   const settings = readAudioSettings(values)
   audio.setBusVolume('master', settings.masterVolume)
   audio.setBusVolume('music', settings.musicVolume)
   audio.setBusVolume('ambience', settings.ambienceVolume)
   audio.setBusVolume('sfx', settings.sfxVolume)
   audio.setBusVolume('ui', settings.uiVolume)
-  audio.setMuted(settings.muteAll)
+  audio.setMuted(!settings.sound) // Sound off = muted
   audio.setMuteInBackground(settings.muteInBackground)
   audio.setMono(settings.mono)
 }

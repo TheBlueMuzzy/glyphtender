@@ -13,7 +13,7 @@ export type DropReason =
   | 'catch-up' // replaying the past (reconnect, loading a room): silent by rule
   | 'locked' // audio not unlocked yet (no tap yet)
   | 'suspended' // tab hidden / phone call — dropped, NEVER queued, so nothing bursts out on return
-  | 'muted' // Mute everything is on
+  | 'muted' // Settings → Sound is off
   | 'stale' // asked for too late to be in sync
   | 'cooldown' // the same sound played a moment ago
   | 'already-playing' // a loop that is already playing
@@ -178,7 +178,7 @@ export function planPlay(input: PlanInput): PlanResult {
   if (options.catchUp) return drop('catch-up', 'replaying the past — silent by rule')
   if (engine === 'locked') return drop('locked', 'audio starts on the first tap')
   if (engine === 'suspended') return drop('suspended', 'audio is paused (hidden tab, call or lock screen) — dropped, not queued')
-  if (input.muted && !sound.loop) return drop('muted', 'Mute everything is on')
+  if (input.muted && !sound.loop) return drop('muted', 'Sound is off (Settings)')
 
   // When: a moment in the past (within staleMs) plays now; older is dropped; the future is scheduled
   const at = options.at ?? now

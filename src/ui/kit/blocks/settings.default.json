@@ -6,7 +6,7 @@
       { "id": "ambienceVolume", "type": "slider", "label": "Ambience", "default": 60 },
       { "id": "sfxVolume", "type": "slider", "label": "Sound effects", "default": 80 },
       { "id": "uiVolume", "type": "slider", "label": "Menus & buttons", "default": 70 },
-      { "id": "muteAll", "type": "toggle", "label": "Mute everything", "default": false },
+      { "id": "sound", "type": "toggle", "label": "Sound", "default": true },
       { "id": "muteInBackground", "type": "toggle", "label": "Mute when in the background", "default": true },
       { "id": "mono", "type": "toggle", "label": "Mono audio", "detail": "Same sound in both ears", "default": false }
     ]},

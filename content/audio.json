@@ -5,6 +5,7 @@
     "buses.sfx": "How loud the game's sound effects are, in dB under master. Usually 0: effects are the reference the others sit under.",
     "buses.ui": "How loud menu and button sounds are, in dB under master. Keep it 6-10 dB under the effects: players hear these hundreds of times.",
     "master.limiterDb": "The safety net: nothing gets louder than this (dB). -1 is the standard. Lower = squashes loud moments more.",
+    "master.muteDelayMs": "Settings → Sound switched off: the sound that has just started (the switch's own \"off\" click) keeps playing this long (ms), then everything fades to silence. About the length of that click.",
     "tiers.small": "The sound a \"small\" juiced moment plays when it has no sound of its own (same intention, same sound).",
     "tiers.medium": "The sound a \"medium\" juiced moment plays when it has no sound of its own.",
     "tiers.big": "The sound a \"big\" juiced moment plays when it has no sound of its own.",
@@ -108,6 +109,7 @@
     "buses.sfx": "Sound effects (dB)",
     "buses.ui": "Menus & buttons (dB)",
     "master.limiterDb": "Loudest allowed (dB)",
+    "master.muteDelayMs": "Sound off: let the click finish (ms)",
     "tiers.small": "Small moment sound",
     "tiers.medium": "Medium moment sound",
     "tiers.big": "Big moment sound",
@@ -177,6 +179,7 @@
     "buses.sfx": [-40, 6, 0.5],
     "buses.ui": [-40, 6, 0.5],
     "master.limiterDb": [-12, 0, 0.5],
+    "master.muteDelayMs": [0, 1000, 10],
     "ladder.steps": [1, 24, 1],
     "ladder.resetMs": [0, 5000, 50],
     "snapshots.paused.music": [-40, 0, 0.5],
@@ -225,7 +228,8 @@
     "ui": -8
   },
   "master": {
-    "limiterDb": -1
+    "limiterDb": -1,
+    "muteDelayMs": 250
   },
   "tiers": {
     "small": "tier.small",

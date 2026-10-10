@@ -195,7 +195,7 @@ Goal: Glyphtender has sound — every moment heard at the moment you see it, you
 - ✅ F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
   why: clever casts get an audible reward; the reveal builds to the gasp → Secret-Magic tension
 - ✅ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
-- ✅ F59 🎮 Settings → Audio works (built sprint 19): Master · Music · Ambience · Effects · UI · Mute everything · Mute in background · Mono — must:beta · needs: fw F29
+- ✅ F59 🎮 Settings → Audio works (built sprint 19): Master · Music · Ambience · Effects · UI · Sound (on/off — was "Mute everything", renamed 2026-10-10 after Muzzy's listening test) · Mute in background · Mono — must:beta · needs: fw F29
 - ⏳ F60 🎛️ Tuning pass: Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
 ```mermaid
 flowchart LR

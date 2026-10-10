@@ -71,6 +71,12 @@ function withSaved(schema: SettingsSchema, saved: SettingsValues | null): Settin
     const row = rows.find((r) => r.id === id)
     if (!row || (holdsValue(row) && fitsRow(row, value))) values[id] = value
   }
+  // Kit 0.4.4 renamed Audio's "Mute everything" (muteAll, true = silent) to "Sound" (sound, true = plays). An older
+  // save with no Sound value yet: Sound is the opposite of what it saved, and muteAll goes (the next save drops it).
+  if (saved && typeof saved.sound !== 'boolean' && typeof saved.muteAll === 'boolean') {
+    values.sound = !saved.muteAll
+    delete values.muteAll
+  }
   return values
 }
 

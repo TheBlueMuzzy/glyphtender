@@ -582,9 +582,22 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     else rampTo(graph.buses[bus].level.gain, busGain(bus), ctx.currentTime, SLIDER_RAMP_SEC)
   }
 
+  // Sound off: new sounds are dropped ('muted') at once, but the master holds its level for master.muteDelayMs before
+  // fading to silence — so the sound that just started (the Sound switch's own "off" click) is still heard.
+  // Sound on: the master comes straight back (the switch's "on" click plays right after: ui-kit Toggle changes first).
   function setMuted(value: boolean) {
+    const changed = muted !== value
     muted = value
-    if (graph && ctx) rampTo(graph.master.gain, masterGain(), ctx.currentTime, SLIDER_RAMP_SEC)
+    if (!graph || !ctx) return
+    const gain = graph.master.gain
+    const now = ctx.currentTime
+    if (value && changed) {
+      const fadeAt = now + config.master.muteDelayMs / 1000
+      gain.cancelScheduledValues(now)
+      gain.setValueAtTime(gain.value, now)
+      gain.setValueAtTime(gain.value, fadeAt) // hold…
+      gain.linearRampToValueAtTime(0, fadeAt + SLIDER_RAMP_SEC) // …then fade out
+    } else if (!value) rampTo(gain, masterGain(), now, SLIDER_RAMP_SEC)
   }
 
   function setMuteInBackground(value: boolean) {

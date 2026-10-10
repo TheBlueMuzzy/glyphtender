@@ -21,5 +21,5 @@ export { planPlay, seededRandom, ladderSemitones, freshMemory, soundStreams, typ
 export { createLog, exposeLog, type AudioLog, type LogEntry, type MusicEvent } from './log.ts'
 export { setAudio, getAudio, playSound, playTier } from './shared.ts'
 export { audioUrl } from './loader.ts'
-export { DEFAULT_AUDIO_SETTINGS, applyAudioSettings, readAudioSettings, type AudioSettings } from './settings.ts'
+export { DEFAULT_AUDIO_SETTINGS, applyAudioSettings, readAudioSettings, type AudioSettings, type AudioSettingsValues } from './settings.ts'
 export { useAudioSettings, useAudioSnapshot, useLoop, useMusic } from './react.ts'

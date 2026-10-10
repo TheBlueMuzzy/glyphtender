@@ -1,19 +1,19 @@
 // REACT HELPERS — tiny bridges from React screens to the audio engine.
 import { useEffect } from 'react'
 import type { Audio } from './engine.ts'
-import { applyAudioSettings, readAudioSettings, type AudioSettings } from './settings.ts'
+import { applyAudioSettings, readAudioSettings, type AudioSettingsValues } from './settings.ts'
 
 /**
  * Keeps the engine in step with the player's Settings → Audio values (the UI kit's standard ids:
- * masterVolume · musicVolume · ambienceVolume · sfxVolume · uiVolume · muteAll · muteInBackground · mono).
+ * masterVolume · musicVolume · ambienceVolume · sfxVolume · uiVolume · sound · muteInBackground · mono).
  * Pass the whole settings-values object; missing values use the defaults.
  */
-export function useAudioSettings(audio: Audio | null | undefined, values: Partial<Record<keyof AudioSettings, unknown>> | null | undefined): void {
+export function useAudioSettings(audio: Audio | null | undefined, values: AudioSettingsValues | null | undefined): void {
   const s = readAudioSettings(values)
   useEffect(() => {
     if (audio) applyAudioSettings(audio, s)
     // One entry per setting, so a new object with the same values does nothing
-  }, [audio, s.masterVolume, s.musicVolume, s.ambienceVolume, s.sfxVolume, s.uiVolume, s.muteAll, s.muteInBackground, s.mono])
+  }, [audio, s.masterVolume, s.musicVolume, s.ambienceVolume, s.sfxVolume, s.uiVolume, s.sound, s.muteInBackground, s.mono])
 }
 
 /** While a screen is showing, use a named mix (e.g. "paused" on the Pause screen) ON TOP of whatever mix was on; when it

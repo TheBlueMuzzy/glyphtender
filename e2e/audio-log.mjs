@@ -15,6 +15,9 @@
 //   5. THE REVEAL'S CEREMONY (F57, ?freeze so the script steps it): each count-up raises the music's intensity to the
 //      peak (content/tuning/anim.json), Pause opened and closed during it returns to the "reveal" mix (the snapshot
 //      stack), the fanfare plays at the peak and the end table settles it back to calm, normal mix.
+//   6. SETTINGS → SOUND (F59): switching Sound off still PLAYS its own ui.toggle.off (the speakers keep sounding while it
+//      plays out — master.muteDelayMs — then go silent), a following sound is dropped 'muted', and switching it back on
+//      plays ui.toggle.on.
 // Headless Chromium starts with --autoplay-policy=no-user-gesture-required (the taps unlock the audio anyway).
 // Starts its OWN `wrangler dev` (default port 1992) and Vite (default 5417) and stops only those.
 //   npm run e2e:audio [outDir] [vitePort] [partyPort]
@@ -190,6 +193,49 @@ try {
     ok(winnerPlayed === 1 && peak > settled && Math.abs(settled - anim.revealMusicCalm) < 0.01, `ceremony: the fanfare at the peak (${peak}), then it settles on the end table (${settled})`)
     const snaps = await audio('(a) => a.snapshots()')
     ok(!snaps.includes('reveal') && !snaps.includes('paused'), `after the reveal: the normal mix (${JSON.stringify(snaps)})`)
+    await ctx.close()
+  }
+
+  // ======== 6. SETTINGS → SOUND (F59): switching it off still plays its own "off" click; on plays "on" ========
+  {
+    const ctx = await context()
+    const page = await ctx.newPage()
+    await page.goto(`http://127.0.0.1:${VITE_PORT}/`)
+    await page.getByRole('button', { name: 'Settings', exact: true }).click() // (the first tap unlocks the audio)
+    await page.getByRole('tab', { name: 'Audio' }).click()
+    await wait(1500) // (menu sounds preload after the first tap)
+    const sound = page.getByRole('switch', { name: 'Sound', exact: true })
+    ok(await sound.getAttribute('aria-checked') === 'true', 'Sound: on by default')
+    await page.evaluate(() => window.__audioLog.clear())
+    // Sound off, then watch the speakers (master, after the limiter) for 600 ms: still sounding while the click plays out
+    const levels = await page.evaluate(async () => {
+      const audio = window.__glyphtender.audio()
+      document.querySelector('[role="switch"][aria-label="Sound"]').click()
+      const start = performance.now()
+      const seen = []
+      while (performance.now() - start < 600) {
+        seen.push([performance.now() - start, audio.level('master'), audio.level('ui')])
+        await new Promise((r) => requestAnimationFrame(r))
+      }
+      return seen
+    })
+    let log = await audioLog(page)
+    const off = log.find((e) => e.id === 'ui.toggle.off')
+    ok(off?.result === 'played', `Sound off: ui.toggle.off is PLAYED, not dropped (${off ? off.result + (off.reason ? ' ' + off.reason : '') : 'not asked'})`)
+    const loudest = (from, to, i) => Math.max(0, ...levels.filter(([t]) => t >= from && t < to).map((l) => l[i]))
+    ok(loudest(0, 150, 2) > 0 && loudest(0, 200, 1) > 0, `Sound off: the click is heard before the silence (menus peak ${loudest(0, 150, 2).toFixed(3)}, speakers ${loudest(0, 200, 1).toFixed(3)} in the first 200 ms)`)
+    ok(loudest(400, 600, 1) < 0.001, `Sound off: then silence (speakers 400–600 ms after: ${loudest(400, 600, 1).toFixed(4)})`)
+    await page.getByRole('switch', { name: 'Mono audio', exact: true }).click() // any sound after it…
+    log = await audioLog(page)
+    const after = log.find((e) => e.id === 'ui.toggle.on')
+    ok(after?.result === 'dropped' && after.reason === 'muted', `Sound off: a following sound is dropped as muted (${after?.result} ${after?.reason ?? ''})`)
+    await page.getByRole('switch', { name: 'Mono audio', exact: true }).click() // (Mono audio back off — dropped too)
+    await page.evaluate(() => window.__audioLog.clear())
+    await sound.click()
+    log = await audioLog(page)
+    const on = log.find((e) => e.id === 'ui.toggle.on')
+    ok(on?.result === 'played', `Sound on: ui.toggle.on is PLAYED (${on ? on.result + (on.reason ? ' ' + on.reason : '') : 'not asked'})`)
+    ok(await sound.getAttribute('aria-checked') === 'true', 'Sound: back on')
     await ctx.close()
   }
 

@@ -123,7 +123,9 @@ export interface SnapshotConfig {
 export interface AudioConfig {
   /** dB under master, per bus */
   buses: Record<BusName, number>
-  master: { limiterDb: number }
+  /** limiterDb: nothing louder than this · muteDelayMs: Sound switched off → the sound that just started (the switch's own
+   *  "off" click) plays out for this long, then everything fades to silence */
+  master: { limiterDb: number; muteDelayMs: number }
   /** The default sound per feel tier (same intention → same sound) */
   tiers: Record<Tier, string>
   ladder: LadderConfig
@@ -234,7 +236,7 @@ const DEFAULT_SNAPSHOT: SnapshotConfig = { music: 0, ambience: 0, sfx: 0, ui: 0,
 
 export const DEFAULT_CONFIG: AudioConfig = {
   buses: { music: -8, ambience: -10, sfx: 0, ui: -8 },
-  master: { limiterDb: -1 },
+  master: { limiterDb: -1, muteDelayMs: 250 },
   tiers: { small: 'tier.small', medium: 'tier.medium', big: 'tier.big' },
   ladder: { scale: 'pentatonic', root: 'D', steps: 10, resetMs: 1200 },
   snapshots: {
@@ -470,6 +472,7 @@ export function readAudioConfig(raw: unknown, warn: Warn = warnOnce): AudioConfi
   }
   if (isObject(raw.master)) {
     config.master.limiterDb = readNumber(raw.master.limiterDb, DEFAULT_CONFIG.master.limiterDb, -24, 0, 'master.limiterDb', warn)
+    config.master.muteDelayMs = readNumber(raw.master.muteDelayMs, DEFAULT_CONFIG.master.muteDelayMs, 0, 2000, 'master.muteDelayMs', warn)
   }
   if (isObject(raw.tiers)) {
     for (const tier of ['small', 'medium', 'big'] as const) {
