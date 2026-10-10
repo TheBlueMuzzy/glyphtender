@@ -38,6 +38,7 @@
     "fixtures:end": "node scripts/end-fixtures.mjs",
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
     "e2e:devkit-ai": "node e2e/devkit-ai.mjs",
+    "e2e:devkit-sound": "node e2e/devkit-sound.mjs",
     "e2e:fullscreen": "node e2e/fullscreen.mjs",
     "e2e:ai": "node e2e/ai-play.mjs",
     "e2e:audio": "node e2e/audio-log.mjs",

@@ -6,6 +6,11 @@
 // search clears, Tuning shows, that section is open and scrolled to the top of the panel → close + open a section
 // by its title → ✕ and Esc clear the search (Esc doesn't close the panel while there's a search). Also: the search
 // box is ≥ 16 px (no zoom on a phone), nothing scrolls sideways, no console errors. Screenshots in the out folder.
+// SEARCH PER TAB (Dev Kit 0.8.0 — Muzzy 2026-10-10: "if I'm in screens, my search should function within screens content
+// only"): the box is named for the open tab ("Search Tuning"), says "N settings found", and shows results from that tab
+// only (one tab panel, no other tab's results); picking another tab clears it. Color finds UI colours ("N colours
+// found"); Screens finds screens by name / note and by their moments ("pop" → Board, via Score pop), and a Tuning word
+// ("spotlight") finds nothing there.
 // Starts its OWN dev server (default port 5241 — never Muzzy's) and closes only that one.
 //   npm run e2e:devkit-search [outDir] [port]
 import { mkdirSync } from 'node:fs'
@@ -28,7 +33,9 @@ function results() {
   const rows = [...panel.querySelectorAll('.devkit-body:not([hidden]) .dk-section-body > div > .tt-row, .devkit-body:not([hidden]) .dk-section-body > .ct-row')].filter(shown)
   const sections = [...panel.querySelectorAll('.devkit-body:not([hidden]) .dk-section')].filter(shown)
   return {
-    count: panel.querySelector('.dk-search-count')?.textContent ?? '',
+    count: panel.querySelector('.devkit-body:not([hidden]) .dk-found')?.textContent ?? '',
+    panels: [...panel.querySelectorAll('.devkit-body:not([hidden])')].map((s) => s.getAttribute('aria-label')),
+    otherTabs: panel.querySelectorAll('.dk-results-tab').length, // (the old all-tabs results had one heading per tab)
     rows: rows.length,
     // a row matches when it has a highlight itself, or sits in a section whose title matched
     unmatched: rows
@@ -60,6 +67,20 @@ function sectionTop(id) {
   return { top: Math.round(el.getBoundingClientRect().top - scroller.getBoundingClientRect().top), open: el.dataset.open === 'true', scrolled: scroller.scrollTop }
 }
 
+/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
+async function pickTab(page, name) {
+  const inView = () => page.evaluate((name) => {
+    const view = document.querySelector('.devkit-tabs .dk-carousel-view')?.getBoundingClientRect()
+    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)?.getBoundingClientRect()
+    return !view || !tab || (tab.left >= view.left - 1 && tab.right <= view.right + 1)
+  }, name)
+  for (let i = 0; i < 6 && !(await inView()); i++) {
+    await page.getByRole('button', { name: 'Next tools' }).click()
+    await page.waitForTimeout(250)
+  }
+  await page.getByRole('tab', { name }).click()
+}
+
 const server = await createServer({ server: { port: PORT, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
 await server.listen()
 const browser = await chromium.launch()
@@ -85,7 +106,7 @@ try {
     // ` → Tuning: sections closed, chips at the top
     await page.keyboard.press('Backquote')
     const panel = page.locator('aside.devkit')
-    await page.getByRole('tab', { name: 'Tuning' }).click()
+    await pickTab(page, 'Tuning')
     await page.waitForTimeout(300)
     const heads = panel.locator('.devkit-body:not([hidden]) .dk-section-btn')
     const sectionCount = await heads.count()
@@ -97,7 +118,7 @@ try {
     await shot('1-tuning-sections')
 
     // The search box: pinned, ≥ 16 px
-    const box = page.getByRole('searchbox', { name: 'Search settings' })
+    const box = page.getByRole('searchbox', { name: 'Search Tuning', exact: true })
     const fontPx = await box.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
     if (fontPx < 16) fail(`search box font is ${fontPx}px (a phone zooms in under 16)`)
 
@@ -110,7 +131,8 @@ try {
       if (n !== r.rows) fail(`"${q}": the count says ${r.count} but ${r.rows} rows show`)
       if (r.unmatched.length) fail(`"${q}": rows without a match: ${r.unmatched.slice(0, 3).join(' | ')}`)
       if (!r.marks.some((m) => m.includes(q))) fail(`"${q}": the typed text isn't highlighted`)
-      if (!(await panel.getByRole('heading', { name: /^Tuning · \d+$/ }).isVisible())) fail(`"${q}": no "Tuning · n" results heading`)
+      if (!/^\d+ settings? found$/.test(r.count)) fail(`"${q}": the status says "${r.count}" (not "N settings found")`)
+      if (r.panels.join() !== 'Tuning' || r.otherTabs) fail(`"${q}": results not only from Tuning (${r.panels.join(', ')}; ${r.otherTabs} other-tab headings)`)
       console.log(`  ok   "${q}": ${r.count} in ${r.sections.length} sections`)
       await shot(`2-search-${q}`)
       ;(await page.evaluate(sideways)).forEach((p) => fail(`"${q}": scrolls sideways: ${p}`))
@@ -169,14 +191,50 @@ try {
     if (!(await page.evaluate(results)).none) fail('no "Nothing matches" note for a search with no results')
     await box.fill('')
 
-    // Colours: the Color tab joins the search (UI colours) and garden colours have pickers in Tuning
+    // Colours: garden colours have pickers in Tuning's results; the Color tab searches its own UI colours
     await box.fill('colour')
     await page.waitForTimeout(150)
-    const colourTabs = await panel.locator('.dk-results-tab').allTextContents()
-    if (!colourTabs.some((t) => t.startsWith('Color'))) fail(`"colour": the Color tab is not in the results (${colourTabs.join(', ')})`)
     if (!(await panel.locator('.devkit-body:not([hidden]) .tt-row-colour input[type=color]').first().isVisible())) fail('"colour": no colour pickers in Tuning results')
     await shot('5-search-colour')
-    await box.fill('')
+    await pickTab(page, 'Color')
+    const colorBox = page.getByRole('searchbox', { name: 'Search Color', exact: true })
+    if (!(await colorBox.isVisible())) fail('the Color tab has no "Search Color" box')
+    if ((await colorBox.inputValue()) !== '') fail('picking another tab did not clear the search')
+    await colorBox.fill('background')
+    await page.waitForTimeout(150)
+    const colours = await page.evaluate(results)
+    if (!/^\d+ colours? found$/.test(colours.count)) fail(`Color "background": the status says "${colours.count}"`)
+    if (colours.panels.join() !== 'Color') fail(`Color "background": results not only from Color (${colours.panels.join(', ')})`)
+    console.log(`  ok   Color: "background" → ${colours.count}`)
+    await colorBox.fill('')
+
+    // Screens: by name / note, and by a screen's moments; a Tuning word finds nothing here
+    await pickTab(page, 'Screens')
+    await panel.locator('.devkit-body:not([hidden]) [data-preview]').first().waitFor()
+    const screensBox = page.getByRole('searchbox', { name: 'Search Screens', exact: true })
+    const screensShown = () => panel.locator('.devkit-body:not([hidden]) [data-preview]').evaluateAll((els) => [...new Set(els.map((b) => b.dataset.preview))])
+    const all = await screensShown()
+    await screensBox.fill('reveal')
+    await page.waitForTimeout(150)
+    const reveal = await page.evaluate(results)
+    const revealShown = await screensShown()
+    if (!/^\d+ screens? found$/.test(reveal.count)) fail(`Screens "reveal": the status says "${reveal.count}"`)
+    if (!revealShown.includes('reveal') || revealShown.length >= all.length) fail(`Screens "reveal": shows ${revealShown.join(', ')} (of ${all.length})`)
+    if (Number(/\d+/.exec(reveal.count)?.[0]) !== revealShown.length) fail(`Screens "reveal": "${reveal.count}" but ${revealShown.length} screens show`)
+    console.log(`  ok   Screens: "reveal" → ${reveal.count} (${revealShown.join(', ')})`)
+    await screensBox.fill('score pop')
+    await page.waitForTimeout(150)
+    const pop = await screensShown()
+    if (!pop.includes('board')) fail(`Screens "score pop": the Board (its moment Score pop) is not found (${pop.join(', ')})`)
+    if (!(await panel.locator('.devkit-body:not([hidden]) .pv-moment[data-moment="score-pop"]').isVisible())) fail('Screens "score pop": the Score pop moment is not shown')
+    console.log(`  ok   Screens: "score pop" → ${pop.join(', ')} (by its moment)`)
+    await shot('6-search-screens')
+    await screensBox.fill('spotlight')
+    await page.waitForTimeout(150)
+    const tuningWord = await page.evaluate(results)
+    if (!tuningWord.none) fail(`Screens "spotlight" (a Tuning word): expected nothing, got ${tuningWord.count}`)
+    console.log('  ok   Screens: "spotlight" (a Tuning setting) → nothing — the search stays in its tab')
+    await screensBox.fill('')
 
     if (errors.length) fail(`console errors: ${errors.slice(0, 5).join(' | ')}`)
     await context.close()
@@ -185,5 +243,5 @@ try {
   await browser.close()
   await server.close()
 }
-console.log(failures ? `FAIL — ${failures} problem(s)` : `PASS — Dev Kit search + sections at phone and desktop; screenshots in ${OUT}/`)
+console.log(failures ? `FAIL — ${failures} problem(s)` : `PASS — Dev Kit search per tab (Tuning, Color, Screens) + sections at phone and desktop; screenshots in ${OUT}/`)
 process.exit(failures ? 1 : 0)

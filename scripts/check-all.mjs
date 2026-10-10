@@ -45,6 +45,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
 // on their own after the others.
 const ALONE = [
   ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
+  ['devkit-sound', 'e2e/devkit-sound.mjs', 'e2e-shots/devkit-sound 5418'], // (Sound tab: adds a test MP3 + saves audio.json, then puts both back; the 8 moments)
 ]
 
 const args = process.argv.slice(2)
