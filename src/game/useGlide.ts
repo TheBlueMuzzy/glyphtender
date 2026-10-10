@@ -7,10 +7,15 @@
 // or an online replay's). Undo has its own sound, and a jump (no plan) is silent. Reduce motion: at once.
 // A glyphling a drag has already SET DOWN on its new hex (a carry style that settles there, usePieceInput) doesn't glide:
 // arrivedOn(id, hex) just before the move is planned — it's there already, so it just stays (one motion, never two).
+// A PLANNED move glides in the move's carry style (drag.json styles.move; ui-kit travellingLook) — lifted, bigger,
+// shadowed on the way, set down at the end — so an AI's or an online rival's move (and a tapped one) looks like a
+// person's drag (Muzzy 2026-10-10: "if the player's actions look a specific way, so too should the AI's"). A style
+// that flies the real piece (C) glides as itself. Taking a move back (Undo) never lifts.
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import { hexKey, type Hex } from '../engine/hex'
 import { playSound } from '../audio'
-import { reduceMotion } from '../ui/kit'
+import { carryStyle, liftShadowFilter, reduceMotion, travellingLook } from '../ui/kit'
+import { dragTuning } from './dragTuning'
 import { glideFrames, glideSeconds, offsetBetween, type Offset } from './glide'
 import { HEX } from './useThrow'
 import type { AnimTuning } from './useTuning'
@@ -45,11 +50,29 @@ export function useGlide(svgRef: RefObject<SVGSVGElement | null>, spots: { id: n
       const frames = glideFrames(start, timing.moveSettle).map((f) => ({
         offset: f.offset, transform: `translate(${f.x}px, ${f.y}px)`, easing: 'ease-in-out',
       }))
-      group.animate(frames, { duration: glideSeconds(from, hex, timing) * 1000 })
+      const seconds = glideSeconds(from, hex, timing)
+      group.animate(frames, { duration: seconds * 1000 })
+      if (id === stepping) liftOnTheWay(group, seconds)
     }
     // Only a change of spots starts a glide (timing is read when it starts)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
+}
+
+/** The planned move's glyphling wears the move's carry style while it glides: lifted in its first moment (liftTime),
+ *  carried the whole way, set down in its last (landTime) — the same look and times as a person's drag. */
+function liftOnTheWay(group: SVGGElement, seconds: number) {
+  const lift = group.querySelector<SVGGElement>('[data-lift]')
+  const feel = dragTuning.current
+  const look = travellingLook(carryStyle(feel.styles.move), feel)
+  if (!lift || !look || seconds <= 0) return
+  lift.getAnimations().forEach((a) => a.cancel())
+  const size = Number(group.querySelector('image')?.getAttribute('width') ?? 0)
+  const rest = { transform: 'scale(1)', opacity: 1, filter: 'none' }
+  const carried = { transform: `scale(${look.scale})`, opacity: look.opacity, filter: liftShadowFilter(size, look.shadow) }
+  const up = Math.min(feel.liftTime / seconds, 0.4), down = Math.max(1 - feel.landTime / seconds, 0.6)
+  lift.animate([{ ...rest, offset: 0 }, { ...carried, offset: up }, { ...carried, offset: down }, { ...rest, offset: 1 }],
+    { duration: seconds * 1000, easing: 'ease-out' })
 }
 
 /** If a glide is still running, how far the group is from where it was heading (else 0, 0). */

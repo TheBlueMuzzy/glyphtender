@@ -240,6 +240,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
         const shown = home === 'empty' ? 0 : home === 'ghost' ? carried!.ghostOpacity : danger === 'tangled' ? colours.tangledDim : 1
         return (
           <g key={g.id} data-glide={g.id} data-carried={home}>
+            <g data-lift={g.id} className="game-lift">
             <g data-shake={g.id}>
               <g data-pulse={g.id} className="game-pulse">
                 <g data-hop={g.id} className="game-hop">
@@ -249,6 +250,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
               </g>
               {held ? ring(hex, colours[colourOf(g.seat)], false) : planned && !home && ring(hex, colours[colourOf(g.seat)], true)}
               {danger && <DangerCue danger={danger} x={x} y={y} hex={HEX} owner={colours[colourOf(g.seat)]} colours={colours} glyphling={g.id} />}
+            </g>
             </g>
           </g>
         )

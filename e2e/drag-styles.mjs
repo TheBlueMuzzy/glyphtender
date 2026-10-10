@@ -186,6 +186,25 @@ try {
       }
     }
 
+    // ---- a move planned WITHOUT a drag (a tap-tap — the same path as an AI's or an online rival's move: store.move)
+    // glides wearing the move's carry style: lifted on the way (B), or as itself (C) (Muzzy 2026-10-10: the AI's
+    // actions look like the player's) ----
+    // (the D drop above left its move planned: take it back first; the last one stays planned, as the seeds need a move)
+    await page.locator('.game-actions button', { hasText: 'Undo' }).click()
+    await glidesDone()
+    for (const style of ['B', 'C']) {
+      await setStyle('move', style)
+      await glyph.click({ force: true })
+      await option('move', 0).click({ force: true })
+      const lifted = await page.evaluate((id) => document.querySelector(`[data-lift="${id}"]`).getAnimations().length > 0, mine)
+      check(`${size.name} planned move in ${style}: ${style === 'C' ? 'glides as itself' : 'glides lifted, like a carried piece'}`, lifted === (style !== 'C'))
+      await glidesDone()
+      if (style === 'B') {
+        await page.locator('.game-actions button', { hasText: 'Undo' }).click()
+        await glidesDone()
+      }
+    }
+
     // ---- seeds: drag one from the tray onto a cast option, per style (then Undo the aim for the next) ----
     const pick = await page.evaluate(() => window.__glyphtender.findCast(false) ?? window.__glyphtender.findCast(true))
     for (const style of STYLES) {

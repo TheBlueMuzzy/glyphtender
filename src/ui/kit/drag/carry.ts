@@ -62,6 +62,16 @@ export const carriedOpacity = (style: CarryStyle, feel: CarryFeel) => (style.car
 export const originWhileCarried = (style: CarryStyle): 'ghost' | 'empty' | undefined =>
   style.origin === 'solid' ? undefined : style.origin
 
+/** How a piece that moves BY ITSELF along its own path (e.g. a glide on the board) wears the style while it travels,
+ *  so it looks like a carried one: null = it travels as itself (a style whose landing flies the real piece — C);
+ *  else its opacity, how much bigger, and its shadow strength (0–1) on the way, back to normal as it lands. */
+export const travellingLook = (style: CarryStyle, feel: CarryFeel) =>
+  style.land === 'fly' ? null : { opacity: carriedOpacity(style, feel), scale: feel.liftScale, shadow: feel.liftShadow }
+
+/** The lift shadow as a CSS filter, for a piece `size` px across (the carrier's own shadow). */
+export const liftShadowFilter = (size: number, strength: number) =>
+  strength > 0 ? `drop-shadow(0 ${size * 0.08}px ${size * 0.1}px color-mix(in srgb, var(--bg) ${Math.round(strength * 100)}%, transparent))` : 'none'
+
 /** A point in the carrier's layer, in pixels. */
 export type Point = { x: number; y: number }
 
@@ -73,6 +83,9 @@ export type Carrier = {
   start: (style: CarryStyle, at: Point, size: number) => void
   /** Follow the pointer. `snap` (target.ts snapTarget found a valid spot near it) = shown pulled toward that spot. */
   move: (at: Point, snap?: Snap | null) => void
+  /** Carry it to `to` by itself, over `seconds` — an AI or another player's piece, moved the way a person's drag
+   *  moves it ("AI looks human"): lifted, in the style's look. Then drop() it as usual. */
+  travel: (to: Point, seconds: number, easing?: string) => Promise<void>
   /** Let go. `target` = where a valid drop lands (null = invalid). `home` = the piece's home (for fly / fly back). */
   drop: (target: Point | null, home: Point) => Promise<DropEnd>
   /** Stop at once, no ending (a cancelled press, a new screen). */
@@ -90,8 +103,7 @@ export function createCarrier(el: Animatable, feel: () => CarryFeel = () => DEFA
   let carrying = false
   let current: Animation | null = null
 
-  const shadow = (strength: number) =>
-    strength > 0 ? `drop-shadow(0 ${size * 0.08}px ${size * 0.1}px color-mix(in srgb, var(--bg) ${Math.round(strength * 100)}%, transparent))` : 'none'
+  const shadow = (strength: number) => liftShadowFilter(size, strength)
   const transform = (p: Point, scale: number) => `translate(${p.x - size / 2}px, ${p.y - size / 2}px) scale(${scale})`
   const frame = (p: Point, scale: number, opacity: number, shadowStrength: number): Keyframe =>
     ({ transform: transform(p, scale), opacity, filter: shadow(shadowStrength) })
@@ -106,12 +118,12 @@ export function createCarrier(el: Animatable, feel: () => CarryFeel = () => DEFA
   const canAnimate = () => typeof el.animate === 'function' && !reduceMotion()
 
   // Play keyframes, keep the last one as the element's own look, resolve when done (at once without animation)
-  const play = (frames: Keyframe[], seconds: number) => new Promise<void>(resolve => {
+  const play = (frames: Keyframe[], seconds: number, easing?: string) => new Promise<void>(resolve => {
     stop()
     show(frames[frames.length - 1])
     if (!canAnimate() || seconds <= 0) return resolve()
     const f = feel()
-    current = el.animate(frames, { duration: seconds * 1000, easing: f.easing ?? 'ease-out' })
+    current = el.animate(frames, { duration: seconds * 1000, easing: easing ?? f.easing ?? 'ease-out' })
     const done = () => { current = null; resolve() }
     current.onfinish = done
     current.oncancel = done
@@ -135,6 +147,12 @@ export function createCarrier(el: Animatable, feel: () => CarryFeel = () => DEFA
       if (!carrying) return
       if (current) stop() // (the lift is over the moment it moves)
       show(carriedFrame(at))
+    },
+    async travel(to, seconds, easing = 'ease-in-out') {
+      if (!carrying) return
+      const from = carriedFrame(at)
+      at = to
+      await play([from, carriedFrame(to)], seconds, easing)
     },
     async drop(target, home) {
       if (!carrying) return target ? 'landed' : 'returned'

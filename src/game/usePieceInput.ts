@@ -25,26 +25,23 @@
 import { useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import { hexKey, type Hex } from '../engine/hex'
 import { playSound } from '../audio'
-import { liveTuning } from '../devkit/tuning/liveTuning'
 import { useGameStore } from '../store/gameStore'
+import { dragTuning, type DragType } from './dragTuning'
 import { NEW_GLYPHLING, playReferee, targetsOf, type Piece } from '../store/referee'
 import { dropKind, letterIn } from '../store/turnPlan'
 import {
   carryStyle, createCarrier, createPreview, createTether, originWhileCarried, snapTarget,
   type Carrier, type CarryStyle, type Point, type Preview, type TargetFeel, type Tether,
 } from '../ui/kit'
-import dragFile from '../../content/tuning/drag.json'
 import { glyphlingArt, seedArt } from './art'
 import { endCarry, setCarried, setOriginLook, type Carried } from './carryState'
 import { insertGap, setTrayAim, showDropTarget } from './dropTarget'
 import { arrivedOn } from './useGlide'
 import type { LayoutTuning } from './useTuning'
 
-export type DragType = keyof typeof dragFile.styles
 /** What the board shows at the target of a board drag (draft · seed · move), and the tray at a reorder's. */
 export type BoardTarget = 'highlight' | 'ghost' | 'tether'
 export type TrayTarget = 'none' | 'marker' | 'room'
-const dragTuning = liveTuning('drag', dragFile) // (a Dev Kit edit applies from the next drag)
 
 /** drag.json's target numbers, in the ui-kit's TargetFeel shape (read on every use, so a Dev Kit edit applies). */
 const targetFeel = (): TargetFeel => {

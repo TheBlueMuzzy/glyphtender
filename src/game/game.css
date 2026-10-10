@@ -112,6 +112,8 @@
   .game-seed { transform-box: fill-box; transform-origin: 50% 80%; }
   /* whose turn: a glyphling pulses from its own middle (useTurnPulse animates the scale) */
   .game-pulse { transform-box: fill-box; transform-origin: center; }
+  /* A planned move's glide lifts the glyphling around its own middle (useGlide — the move's carry style) */
+  .game-lift { transform-box: fill-box; transform-origin: center; }
   /* a "+3" tangle bonus pops from its own middle (RevealMarks animates the scale) */
   .game-pop { transform-box: fill-box; transform-origin: center; }
   /* a tangle bonus "+3" flying from its piece into its owner's total (RevealMarks.tsx): on the kit overlay, a layer over
