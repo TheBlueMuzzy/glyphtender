@@ -186,7 +186,7 @@ Goal: an online game with friends that never stalls and always says who's playin
 - ✅ F53 🎮 2-letter words shown in the Pause menu (Muzzy 2026-10-08 cut the ⓘ rules/settings pop-up: the only setting you can't see in play is 2-letter words) — one quiet line, kit Pause note — should · needs: —
 - ✅ B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); Muzzy re-tested 2026-10-08: the 🤖 shows — must
 
-## v0.9 — The garden sings (audio)  ← current  (→ beta)
+## v0.9 — The garden sings (audio)  ✅ done 2026-10-10 (→ release v0.6.0)
 Goal: Glyphtender has sound — every moment heard at the moment you see it, your play becomes the melody, the Magic reveal is a ceremony for the new Grand Glyphtender — on a reusable framework Audio module Muzzy tunes in the Dev Kit Sound Board. Design: `design/audio.md` + `../../framework/.planning/design/audio.md`. Research: `research/audio.md`. Framework-first: each framework slice (its F27–F31) is built there and switched on here in the same sprint. Muzzy 2026-10-09: "beta is for 'don't let perfect be the enemy of good'" · sources: "free libraries… for now".
 - ✅ F54 ❓ Audio direction — B "the garden sings" (Grand Glyphtender contest, cozy magical) · free libraries for beta · respect the iPhone silent switch · 5 sliders · feel tiers get sounds ("try it") — Muzzy 2026-10-09
 - ✅ F55 🎮 Every moment wired (sprint 19 — Muzzy 2026-10-10: "sounds are okay… good enough for now since it proved out the system… keep"): the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
@@ -196,7 +196,7 @@ Goal: Glyphtender has sound — every moment heard at the moment you see it, you
   why: clever casts get an audible reward; the reveal builds to the gasp → Secret-Magic tension
 - ✅ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
 - ✅ F59 🎮 Settings → Audio works (built sprint 19): Master · Music · Ambience · Effects · UI · Sound (on/off — was "Mute everything", renamed 2026-10-10 after Muzzy's listening test) · Mute in background · Mono — must:beta · needs: fw F29
-- ⏳ F60 🎛️ Tuning pass: Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
+- ✅ F60 🎛️ Tuning pass (Muzzy 2026-10-10: his listening tests count — "release the audio"; tune more later with the Sound tab): Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
 ```mermaid
 flowchart LR
   FW27[fw F27 Engine + rules] --> F55[F55 Every moment wired]
