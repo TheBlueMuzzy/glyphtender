@@ -20,11 +20,11 @@ Done when: draft, plan a seed, tray reorder and glyphling move each use their st
 
 ## fw F54 🧱 Target feedback (framework ui-kit, kit/drag/)
 Done when: a game can show, per drag type, at the target: highlight (today) · ghost preview at the landing spot · insertion marker between items · make room (neighbours slide apart) · tether/aim arrow origin → pointer; magnetic snap near a valid spot; tested.
-- [ ] 🤖 1. Ghost preview at the landing spot
-- [ ] 🤖 2. Insertion marker between two items (a graphic, not the piece)
-- [ ] 🤖 3. Make room — neighbours slide apart (FLIP)
-- [ ] 🤖 4. Tether / aim arrow origin → pointer
-- [ ] 🤖 5. Magnetic snap near a valid spot + tests; ui-kit 0.5.x
+- [x] 🤖 1. Ghost preview at the landing spot
+- [x] 🤖 2. Insertion marker between two items (a graphic, not the piece)
+- [x] 🤖 3. Make room — neighbours slide apart (FLIP)
+- [x] 🤖 4. Tether / aim arrow origin → pointer
+- [x] 🤖 5. Magnetic snap near a valid spot + tests; ui-kit 0.5.x
 
 ## F64 🎮 Target feedback in Glyphtender
 Done when: board drops can show highlight | ghost preview | tether, tray reorder can show insertion marker | make room, snap strength is a knob — all switchable in the Dev Kit.
@@ -35,9 +35,11 @@ Done when: board drops can show highlight | ghost preview | tether, tray reorder
 
 ## F65 ❓ Pick a style per drag type
 - [ ] 🙋 1. Try them on phone + desktop with the Dev Kit "Dragging" dropdowns, pick per drag type
+  Ask Muzzy: in play a seed drag switches to the "reorder" style while it's over another tray place (seed C → reorder A: home goes empty, carried turns solid) — keep the switch as a signal, or one look per drag?
 - [ ] 🤖 2. Lock the picks in drag.json, update GDD controls section + framework design note
 
 ## Notes
+- fw F54 done (framework 026301a · 38f6b93 · 4b331f5, ui-kit 0.6.0): createPreview, insertionIndex + HandView insertAt/renderMarker, HandView makeRoomAt, createTether, snapTarget + carrier.move(at, snap); TargetFeel defaults; 243/243 tests, check-ui, lint clean. A 2-row tray's shared gap shows its marker at the end of row 1.
 - Decisions: carry styles live in **ui-kit** (looks), Table's referee stays a pure yes/no. Tray reorder is the proving ground for insertion marker / make room (card hands later).
 - Muzzy 2026-10-10: defaults = Claude's guesses until F65 — draft A · plan a seed C · tray reorder A · glyphling move C.
 - Today (code map 2026-10-10): one shared drag `<image>` opacity 0.85 (GameScreen.tsx:110); origin stays solid because grab* sets `selected` (held); draft + seed drops are instant; glyphling move already glides (≈ style C); invalid drop just vanishes.

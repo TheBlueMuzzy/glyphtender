@@ -1,6 +1,9 @@
 # Glyphtender — Bugs
-Open: 7 (P0 0 · P1 0 · P2 3 · P3 4)
+Open: 8 (P0 0 · P1 0 · P2 3 · P3 5)
 ## Open
+### B026 · P3 · open · found 2026-10-10 in F63 (sprint 23, dev/drag) · by the F63 helper
+Dropping a moved glyphling back onto its own ghost (takes the move back) plays two motions
+Steps: move a glyphling (style A/B/D) · drag it back onto the faint spot it came from · Expected: one motion home · Actual: the carried piece flies home, then the take-back glide also plays · How often: every time, rare action. "Same intention → same motion": one motion only.
 ### B025 · P3 · watching · found 2026-10-09 by check:full (sprint 19, dev/audio) · e2e:game desktop (test, not the game as far as known)
 Steps: `npm run check:full` (3 checks at a time) · Expected: game-shots desktop 12-pause / 14-flipped show the game in play · Actual: 2 of 4 loaded runs found the game already in the Magic reveal (Skip shown, tray 0 px) after the indicators-off cast — the danger garden ended the game. Alone: passes; the last full run: 23/23 PASS; the same 3 checks on main passed once. No Math.random use on the branch (audio has its own dice). Suspect: playUntilDanger(3 + tries) + timing under load picks a garden where the cast tangles the last glyphling. Next time it fails: save the store state at 13-indicators-off.
 ### B024 · P2 · verified 2026-10-08 by Muzzy (the 🤖 shows when a friend leaves, after F52 · v0.5.1) · found 2026-10-08 by Muzzy (live v0.5.0, online with a friend) · online, a player leaves mid-game
