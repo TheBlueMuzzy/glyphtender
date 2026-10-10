@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
 2026-10-10 — **Sprint 19 approved** (Muzzy: "good enough for now since it proved out the system of implementation. keep."): the game has sound on the framework Audio module (F55 F56 F59 ✅, fw F27 F29 ✅). B026 fixed: 5 tap sounds started late (leading near-silence trimmed). Freesound replaced the 5 weak placeholders. GMTK study done → `~/.claude/references/gmtk.md`; BMUZ-PLAN got the "guide + flexible PM" principle, Moments + feel presets (fw F32), the playtest rubric idea (later).
 **Ask Muzzy (carried):** AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
-Next: /sprint 20 — fw F30 Sound Board + fw F32 Moments with 3-style feel presets (research the styles first), fw F28 music + mix, F57 the garden sings, F58 ambience + bed. Then 21 (F60 tuning), beta audits, /deliver beta. Known gap: closing Pause during the reveal resets to the normal mix → F58. Story chart upgrade (turn list + bot band) is in Ideas.
+Next: /develop Sprint 20 — Tune every sound and moment by ear in the Dev Kit (fw F30 Sound Board, fw F32 Moments + 3 feel presets, Dev Kit search per tab). Then Sprint 21 "the garden sings" (fw F28 music + mix, F57, F58), F60 tuning, beta audits, /deliver beta. Known gap: closing Pause during the reveal resets to the normal mix → F58. Story chart upgrade (turn list + bot band) is in Ideas.
 
 ## Where we are
-Stage: develop · Milestone: v0.9 The garden sings (audio) · Sprint: none (19 done) · Doing: sprint 19 approved → /sprint 20 · Branch: dev/audio (framework: dev/audio) · Version: 0.5.2.1 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
+Stage: develop · Milestone: v0.9 The garden sings (audio) · Sprint: 20 (0/10) · Doing: Sprint 20 planned → /develop · Branch: dev/audio (framework: dev/audio) · Version: 0.5.2.1 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
