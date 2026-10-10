@@ -5,9 +5,9 @@ Muzzy will see: the Dev Kit (` key) gets a **Sound** tab (every sound: play, sli
 ## fw F30 🔧 Sound Board (framework/audio/devkit → Dev Kit tab) — design: framework/.planning/design/audio.md "Dev Kit — Sound Board"
 Done when: the Sound tab lists every sound in content/audio.json by bus; ▶ / ▶×5; every knob a slider reading the wildcard `_ranges` (live via setConfig, Save writes the JSON, ↺ per field); files list (▶ each, remove, reorder, drop to add → converted to MP3, trimmed to its onset, saved under public/audio, credits asked); A/B; mixer + meters; play/drop log; waveform trim + loop handles.
 - [ ] 🤖 1. Spike: how a Moment plays WITH sound — the Screens sandbox mutes audio (src/devkit/previews/sandbox.ts); unmute it there for Moments, or fire the moment in the live game through the game adapter (like Snapshots). Pick, note in the design doc
-- [ ] 🤖 2. Binary save route (devkit vite plugin: only public/audio, dev only) + convert to MP3 + onset trim (ffmpeg — B026 lesson) + source/licence prompt → content/credits.json
-- [ ] 🤖 3. The Sound tab: list by bus · ▶ / ▶×5 · knob sliders (live, Save, ↺) · files (▶, remove, reorder, drop) · A/B · mixer with faders + meters · log
-- [ ] 🤖 4. Waveform with drag handles for trim + loop points
+- [x] 🤖 2. Binary save route (devkit vite plugin: only public/audio, dev only) + convert to MP3 + onset trim (ffmpeg — B026 lesson) + source/licence prompt → content/credits.json
+- [x] 🤖 3. The Sound tab: list by bus · ▶ / ▶×5 · knob sliders (live, Save, ↺) · files (▶, remove, reorder, drop) · A/B · mixer with faders + meters · log
+- [x] 🤖 4. Waveform with drag handles for trim + loop points
 
 ## fw F32 🔧 Moments + feel presets (Dev Kit → Screens)
 Done when: Screens → a screen → its Moments; ▶ fires one, 🔁 loops it while sliders change; each moment's sliders span feel (content/tuning/feel.json), timing (anim.json) and sound (audio.json); a 3-position preset picker sets them all; any slider stays tweakable after; Save writes the files.
@@ -27,3 +27,4 @@ Check: check:fast after each task · check:full once at the end.
 Ask Muzzy: —
 
 ## Notes
+- fw F30 built (framework dev/audio 92004fd, df5ca05): devkit 0.7.0 + audio 0.1.2. Sound tab in devkit/kit/sound (soundTab(getAudio, { file: audioJson })); POST /__devkit/save-audio (public/audio/<folder>/<stem>_NN.mp3, never overwrites; system ffmpeg; sfx/ui trimmed to onset) + POST /__devkit/add-credit. Removing a file only drops it from the list (MP3 stays); a dropped file stays in the list only after Save. Tried in a throwaway worktree: ▶×5, waveform trim, WAV drop → trimmed 76 ms → plays, meters move. devkit 246 tests, audio 92.
