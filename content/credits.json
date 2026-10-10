@@ -313,11 +313,33 @@
     "paths": [
       "public/audio/mus/mus_menu_kalimba_loop.mp3"
     ],
-    "source": "OpenGameArt — Short kalimba loop",
+    "source": "OpenGameArt — Short kalimba loop (retuned −3 semitones, G minor → E minor, tempo kept)",
     "author": "extenz",
     "licence": "CC0",
     "light": "🟢",
     "url": "https://opengameart.org/content/short-kalimba-loop",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/mus/mus_garden_pad_loop.mp3"
+    ],
+    "source": "Freesound — Rain Slowly Passing PAD A440 (tuned rain-resonator pad; filtered 100 Hz–2 kHz, 150 s loop crossfaded)",
+    "author": "speakwithanimals",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/speakwithanimals/sounds/525043/",
+    "credit": ""
+  },
+  {
+    "paths": [
+      "public/audio/mus/mus_garden_bells_loop.mp3"
+    ],
+    "source": "Freesound — Ambient Cute Bell Texture [90bpm] (40-bar loop, kept whole)",
+    "author": "deadrobotmusic",
+    "licence": "CC0",
+    "light": "🟢",
+    "url": "https://freesound.org/people/deadrobotmusic/sounds/664151/",
     "credit": ""
   },
   {
