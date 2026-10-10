@@ -10,10 +10,15 @@
 //      already on the board when he arrived is old news: the log has NO game sound played for it (only the night
 //      garden / harp starting, and the menu taps), the "your turn" chime is a catch-up drop, nothing is dropped as
 //      stale — no burst. Then his next turn sounds normally again.
+//   4. MUSIC COMES AND GOES (F58): the menus' track on the first tap; in a game the garden's track starts, plays, RESTS
+//      and comes back (a 5 s stand-in file + a 2 s rest: short test times); its bells are silent in normal play.
+//   5. THE REVEAL'S CEREMONY (F57, ?freeze so the script steps it): each count-up raises the music's intensity to the
+//      peak (content/tuning/anim.json), Pause opened and closed during it returns to the "reveal" mix (the snapshot
+//      stack), the fanfare plays at the peak and the end table settles it back to calm, normal mix.
 // Headless Chromium starts with --autoplay-policy=no-user-gesture-required (the taps unlock the audio anyway).
 // Starts its OWN `wrangler dev` (default port 1992) and Vite (default 5417) and stops only those.
 //   npm run e2e:audio [outDir] [vitePort] [partyPort]
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
 import { makePlayer, startServers } from './online-kit.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
@@ -101,6 +106,90 @@ try {
       const bad = log.filter((e) => e.result === 'dropped' && !['cooldown', 'catch-up'].includes(e.reason)).map((e) => `${e.id}: ${e.reason}`)
       ok(bad.length === 0, `local: nothing dropped for a bad reason (${bad.join(', ') || 'none'})`)
     }
+    await ctx.close()
+  }
+
+  // ======== 4. MUSIC COMES AND GOES: the garden plays, rests, comes back (short test times) ========
+  // The harp piece is 149 s, so this page gets a 5 s file in its place (the reveal stinger, routed) and the garden's
+  // rest is set to 2 s (setConfig — the Dev Kit's live path): play 1 of 1 → its end → rest → back.
+  {
+    const ctx = await context()
+    const page = await ctx.newPage()
+    await page.route('**/audio/mus/mus_garden_harp_01.mp3', (route) => route.fulfill({ path: 'public/audio/stg/stg_reveal_winner_01.mp3', contentType: 'audio/mpeg' }))
+    await page.goto(`http://127.0.0.1:${VITE_PORT}/`)
+    await page.waitForFunction(() => !!window.__glyphtender?.audio())
+    await page.evaluate(() => {
+      const audio = window.__glyphtender.audio()
+      const config = structuredClone(audio.config())
+      Object.assign(config.music.tracks.garden, { playsBeforeRest: 1, restSeconds: [2, 2], fadeInMs: 300, fadeOutMs: 500 })
+      audio.setConfig(config)
+    })
+    await page.getByRole('button', { name: 'Play', exact: true }).click() // (the first tap unlocks: the menus' music)
+    await page.getByRole('button', { name: 'Start' }).click()
+    const music = (log, id) => log.filter((e) => e.result === 'music' && e.id === id).map((e) => `${e.event}${e.detail ? ` (${e.detail})` : ''}`)
+    const back = await page.waitForFunction(() => (window.__audioLog?.entries() ?? []).some((e) => e.id === 'garden' && e.event === 'play' && /after a rest/.test(e.detail ?? '')),
+      null, { timeout: 30000 }).then(() => true, () => false)
+    const log = await audioLog(page)
+    ok(music(log, 'menu')[0]?.startsWith('start'), `music: the menus' track starts with the first tap (menu: ${music(log, 'menu').join(' · ')})`)
+    const garden = music(log, 'garden')
+    const at = (word) => garden.findIndex((g) => g.startsWith(word))
+    ok(at('start') === 0 && at('play') > 0 && at('rest') > at('play') && back, `music: in a game the garden starts, plays, rests, comes back (garden: ${garden.join(' · ')})`)
+    ok(music(log, 'menu').some((m) => m.startsWith('stop')), 'music: the menus\' track fades out when the game starts')
+    const state = await page.evaluate(() => window.__glyphtender.audio().musicState())
+    ok(state.track === 'garden' && state.layers.map((l) => l.name).join() === 'harp,pad,bells', `music: the garden's layers (${state.layers.map((l) => `${l.name} ${l.gain.toFixed(2)}`).join(', ')})`)
+    ok(state.layers.find((l) => l.name === 'bells')?.gain === 0, 'music: the bells are silent in play (calm intensity)')
+    await ctx.close()
+  }
+
+  // ======== 5. THE REVEAL'S CEREMONY + PAUSE OVER IT (?freeze: the reveal waits for this script to step it) ========
+  {
+    const ctx = await context()
+    const page = await ctx.newPage()
+    const anim = JSON.parse(readFileSync('content/tuning/anim.json', 'utf8'))
+    const text = JSON.parse(readFileSync('content/text/en.json', 'utf8'))
+    await page.goto(`http://127.0.0.1:${VITE_PORT}/?freeze`)
+    await page.getByRole('button', { name: 'Play', exact: true }).click()
+    await page.getByRole('button', { name: 'Start' }).click()
+    await page.waitForFunction(() => window.__glyphtender?.store.getState().wordsStatus === 'ready', null, { timeout: 15000 })
+    await page.evaluate(() => window.__glyphtender.store.getState().startGame({ players: 2, seed: 21, hideSeeds: false }))
+    await page.evaluate(() => window.__glyphtender.playRest(3))
+    await page.waitForFunction(() => window.__glyphtender.store.getState().revealAt === 0, null, { timeout: 15000 })
+    const audio = (fn) => page.evaluate(`(${fn})(window.__glyphtender.audio())`)
+    const steps = await page.evaluate(() => window.__glyphtender.revealStepCount())
+    const kinds = await page.evaluate(async () => (await import('/src/store/revealPlan.ts')).revealSteps(window.__glyphtender.store.getState().game).map((s) => s.kind))
+    const intensity = () => audio('(a) => a.musicState().intensity')
+    const calm = await intensity()
+    ok(Math.abs(calm - anim.revealMusicCalm) < 0.01, `ceremony: the game sits at the calm intensity (${calm})`)
+    const rises = []
+    let paused = null
+    for (let i = 0; i < steps; i++) {
+      await page.evaluate((i) => window.__glyphtender.store.getState().setRevealAt(i), i)
+      await wait(150)
+      if (kinds[i] === 'count') rises.push(await intensity())
+      if (kinds[i] === 'count' && paused === null) {
+        // Pause opened during the reveal, then closed → the reveal's mix again (the snapshot stack)
+        const during = await audio('(a) => a.snapshots()')
+        await page.getByRole('button', { name: text.game.buttons.menu, exact: true }).click() // (☰ — the game's Menu button: Pause)
+        await page.getByRole('button', { name: text.game.pause.resume }).waitFor({ timeout: 5000 })
+        const open = await audio('(a) => a.snapshots()')
+        await page.getByRole('button', { name: text.game.pause.resume }).click()
+        await wait(300)
+        const closed = await audio('(a) => a.snapshots()')
+        paused = { during, open, closed }
+      }
+    }
+    ok(paused && paused.during.at(-1) === 'reveal' && paused.open.at(-1) === 'paused' && paused.closed.at(-1) === 'reveal',
+      `pause over the reveal: mixes ${JSON.stringify(paused?.during)} → Pause ${JSON.stringify(paused?.open)} → closed ${JSON.stringify(paused?.closed)} (the reveal's again)`)
+    ok(rises.length >= 2 && rises.every((x, i) => x > (i ? rises[i - 1] : calm)) && Math.abs(rises.at(-1) - anim.revealMusicPeak) < 0.01,
+      `ceremony: each count-up raises the music (${calm} → ${rises.map((x) => x.toFixed(2)).join(' → ')}, peak ${anim.revealMusicPeak})`)
+    const peak = await intensity()
+    const winnerPlayed = played(await audioLog(page), 'reveal.winner').length
+    await page.evaluate((end) => window.__glyphtender.store.getState().setRevealAt(end), steps)
+    await wait(300)
+    const settled = await intensity()
+    ok(winnerPlayed === 1 && peak > settled && Math.abs(settled - anim.revealMusicCalm) < 0.01, `ceremony: the fanfare at the peak (${peak}), then it settles on the end table (${settled})`)
+    const snaps = await audio('(a) => a.snapshots()')
+    ok(!snaps.includes('reveal') && !snaps.includes('paused'), `after the reveal: the normal mix (${JSON.stringify(snaps)})`)
     await ctx.close()
   }
 
@@ -196,7 +285,7 @@ try {
   if (back) {
     await wait(2500)
     const log = await audioLog(bo.page)
-    const quiet = new Set(['amb.night', 'mus.garden', 'mus.menu', 'ui.tap', 'ui.back', 'ui.toggle']) // the bed + his own menu taps
+    const quiet = new Set(['amb.night', 'ui.tap', 'ui.back', 'ui.toggle']) // the bed + his own menu taps (music logs as 'music')
     const noise = log.filter((e) => e.result === 'played' && !quiet.has(e.id)).map((e) => e.id)
     ok(noise.length === 0, `Bo's rejoin: no game sound for what was already there (${noise.join(' ') || 'none'})`)
     const catchUp = log.filter((e) => e.reason === 'catch-up').map((e) => e.id)

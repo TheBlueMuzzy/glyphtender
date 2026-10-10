@@ -10,7 +10,8 @@
 //   3. Screens → Board → each board moment ▶ (score pop, seed lands, two birds, tangle, "no" shake, your turn) and
 //      Magic reveal → its two (count-up, Grand Glyphtender): each one's own sounds show up in the FRAME's __audioLog
 //      (the sandbox plays them; the real game's log gets none) → Score pop: Punchy → its sliders change (shorter pop,
-//      bigger swell, louder) → Balanced → back to the saved values → Undo unsaved.
+//      bigger swell, louder) → Balanced → back to the saved values → Undo unsaved. The count-up plays the garden's
+//      music in the frame and builds it to the peak (F57 ceremony); the Sound tab's Music section lists both tracks.
 // Phone 390×844 too (no functional run — the same code): screenshots of the Sound tab and a Moments panel, and
 // nothing in the Dev Kit scrolls sideways. No console errors anywhere.
 // Starts its OWN dev server (default port 5418 — never Muzzy's) with sound allowed to start on its own
@@ -157,6 +158,13 @@ try {
     ok(names >= 30, `Sound tab lists ${names} sounds`)
     const buses = await panel.locator('.sb-bus .tt-group').allTextContents()
     ok(buses.length >= 3, `grouped by bus (${buses.map((b) => b.replace(/\s*\d+$/, '')).join(', ')})`)
+    // The Music section: the game's two tracks, and the garden's on (we're in a game)
+    await panel.locator('.sb-section-head button', { hasText: 'Music' }).click() // (folded by default)
+    const tracks = await panel.locator('.sb-music .sb-sound-name').allTextContents()
+    ok(['garden', 'menu'].every((t) => tracks.some((x) => x.trim() === t)), `Music section: tracks ${tracks.map((t) => t.trim()).join(', ')}`)
+    const now = await panel.locator('.sb-music-now [role=status]').textContent()
+    ok(/garden/.test(now ?? ''), `Music section: ${now?.trim()}`)
+    await panel.locator('.sb-section-head button', { hasText: 'Music' }).click() // (folded again: the next checks count the sounds' rows)
     await panel.locator('.sb-sound-name', { hasText: /^no$/ }).click()
     const volume = panel.getByRole('spinbutton', { name: 'sounds.no.volumeDb', exact: true }).or(panel.locator('input[aria-label="sounds.no.volumeDb"]')).first()
     const savedDb = Number(await volume.inputValue())
@@ -227,6 +235,12 @@ try {
       const dropped = log.filter((e) => e.result === 'dropped' && m.sounds.includes(e.id)).map((e) => `${e.id} (${e.reason})`)
       ok(!problems.length && !missing.length, `${m.id} (${m.screen}): ${m.sounds.join(' + ')} heard in the frame${missing.length ? ` — MISSING ${missing.join(', ')}` : ''}${dropped.length ? ` · dropped: ${[...new Set(dropped)].join(', ')}` : ''}${problems.length ? ` · problems: ${problems.join(' | ')}` : ''}`)
       await page.screenshot({ path: `${OUT}/desktop-moment-${m.id}.png` }) // (as it ends: the vine stays, the pops have faded)
+      if (m.id === 'reveal-count') {
+        // The ceremony's music plays in the frame: the garden's track, built up to the peak by the count-up
+        const music = await open.content.evaluate(async () => (await import('/src/audio/shared.ts')).getAudio()?.musicState())
+        const peak = JSON.parse(readFileSync('content/tuning/anim.json', 'utf8')).revealMusicPeak
+        ok(music?.track === 'garden' && Math.abs(music.intensity - peak) < 0.01, `reveal-count: the garden's music in the frame, built to ${music?.intensity} (peak ${peak})`)
+      }
       if (m.id === 'score-pop') {
         // ▶ again: it sets itself up every time, so round 2 sounds like round 1
         const again = await playMoment(page, open.content, label)

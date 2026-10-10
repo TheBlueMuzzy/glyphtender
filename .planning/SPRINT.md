@@ -12,11 +12,11 @@ Done when: music + ambience stream (MediaElementSource into their bus) instead o
 
 ## F57 🎮 The garden sings
 - [x] 🤖 5. Music in tune with the pops (apply the spike) + a soft CC0 pad/drone bed layer in that key (Freesound — key in ~/.config/freesound.json) + credits
-- [ ] 🤖 6. Reveal ceremony: music intensity rises through the count-up, dips for the reveal.winner fanfare, then settles (src/game/Reveal.tsx, src/game/sound.ts); the reveal Moments (src/devkit-game/moments.ts) get music knobs
+- [x] 🤖 6. Reveal ceremony: music intensity rises through the count-up, dips for the reveal.winner fanfare, then settles (src/game/Reveal.tsx, src/game/sound.ts); the reveal Moments (src/devkit-game/moments.ts) get music knobs
 
 ## F58 🎮 Night garden mix
-- [ ] 🤖 7. In a game: amb.night + the bed's layers with rests · menus: mus.menu · paused: muffled — all times in content/audio.json; design/audio.md "Mix" updated
-- [ ] 🤖 8. Tests: framework (layers, rests, stack); e2e audio-log — a rest happens (short test times), Pause during the reveal returns to the reveal mix; check:full
+- [x] 🤖 7. In a game: amb.night + the bed's layers with rests · menus: mus.menu · paused: muffled — all times in content/audio.json; design/audio.md "Mix" updated
+- [x] 🤖 8. Tests: framework (layers, rests, stack); e2e audio-log — a rest happens (short test times), Pause during the reveal returns to the reveal mix; check:full (Area check ALL PASS 8/8; check:full still to run)
 - [ ] 🙋 9. Muzzy: a full game, listening — does the music rest? are the pops in tune? does the reveal feel like a ceremony?
 
 Check: check:fast after each task · check:full once at the end.
@@ -27,3 +27,10 @@ Ask Muzzy: —
 - Task 1 key spike (librosa chroma × Krumhansl + Temperley profiles): harp = **A major** (r 0.92–0.97), kalimba = **G minor / B♭** (E♭maj7↔Gm). Decision: the ladder root stays D — the D pentatonic notes (D E F# A B) all sit inside A major, so the harp is left alone (D would be a +5/−7 st shift); the kalimba is retuned **−3 st to E minor/G major** (smallest shift that holds every pop note; +4 to B minor was the alternative), measured after: G-major family (G major / B minor, r 0.78–0.80; Cmaj7 ↔ Em).
 - Task 5: the bed is in **A, not D** — a D drone under the A-major harp would grind against its E-major (G#) passages; an A drone suits the harp and is in the pops' scale. Bells layer is A major too (no G/G#).
 - fw F28 built (framework dev/audio 06106cf, cb392cf, 1959c1c): audio 0.2.0 (121 tests) — music.tracks.<name> {layers {file, volumeDb, fromIntensity, fullAtIntensity}, loop, loopStart/EndMs, loopCrossfadeMs, playsBeforeRest, restSeconds [min,max], fadeIn/OutMs}; playMusic/stopMusic/setMusicIntensity/musicState/useMusic; music + ambience STREAM by default (amb.night gets a 100 ms crossfade at its seam — "stream": "never" if a seam is heard); push/popSnapshot — useAudioSnapshot now stacks (Pause over Reveal fixed by reinstalling). Dev Kit 0.9.0: Sound tab Music section (▶/■, Now line, Rest now / Come back now, Intensity slider, layer + rest sliders). Not tested on a real iPhone.
+- Tasks 6–8 (audio 0.2.0 + Dev Kit 0.9.1 installed; 0.9.1 = framework fix: the Sound tab re-sent its copy of audio.json whenever React re-ran its effect, undoing Moments' live audio edits):
+  - **garden** track = harp (first: a piece, counts the plays) · pad −8 dB always on · bells −6 dB from intensity 0.4, full 0.9. **1 play then a rest** (one 2.5-min piece, then 60–90 s of night garden — hearing the same piece twice back-to-back felt like more of a radio than a garden; Sound tab → Music → plays before a rest). Fades 4 s in / 5 s out. **The pad fades with the harp** for each rest (the whole track rests — the night garden carries the quiet).
+  - Bells file rebuilt at the harp's length (149.4 s: the 40-bar loop played on, seamless, 3 s fade) — a track's layers start together, so the 106 s loop went silent for the harp's last 43 s (a reveal there would have had no bells). `mus_garden_bells_loop.mp3` → `mus_garden_bells_01.mp3`, credits updated.
+  - **menu** track = kalimba loop, never rests (short visits). Old `mus.garden` / `mus.menu` sounds removed (now tracks).
+  - Ceremony knobs in **content/tuning/anim.json** (Tuning → End-of-game reveal + the reveal Moments): calm 0.2 (in play + after), peak 0.9, settle 3 s; each count ramps over revealCount (1.5 s). 2 players: 0.2 → 0.55 → 0.9.
+  - The ceremony **ends a rest** if the music is resting at the count-up (it always has its music).
+  - Reveal mix music **−6 → −3 dB** (the music has to swell now) — Sound tab → Mixer if it crowds the counts.
