@@ -5,7 +5,7 @@
 //   reload → the saved value is still there (first size only; content/ai/personalities.json is put back afterwards,
 //   whatever happens) → ▶ Watch: an all-AI game starts on the board, decision notes and belief bars appear → ■ Stop.
 //   Desktop also: Run check (6 games, in a Web Worker) → the report link opens a page with the Personality Check,
-//   and the search box finds AI settings ("nerve").
+//   and the search box ("Search AI" — the open tab only) finds AI settings ("nerve").
 // F41 follow-ups (first size): focus 0.8 → 0.55 and goals.json's TRAP big-moment bar 55 → 60 → Save → each file
 //   differs from the hand-written one in exactly that ONE line (Save keeps the layout) → reload → both kept.
 //   Copy to new "Brute" → Save → en.json gains ai.personality.Brute { name: "the Brute", bio: the Strategist's bio }.
@@ -215,10 +215,12 @@ try {
       await section('AI: Personality Check').scrollIntoViewIfNeeded()
       await shot('5-check')
 
-      // The search box finds AI settings
-      await page.getByRole('searchbox', { name: 'Search settings' }).fill('nerve')
+      // The search box (Dev Kit 0.8.0: the open tab only — "Search AI") finds AI settings
+      await page.getByRole('searchbox', { name: 'Search AI', exact: true }).fill('nerve')
       await page.waitForTimeout(150)
-      if (!(await panel.getByRole('heading', { name: /^AI · \d+$/ }).isVisible())) fail('searching "nerve" does not list the AI tab')
+      const found = await panel.locator('.devkit-body:not([hidden]) .dk-found').textContent().catch(() => '')
+      if (!/^\d+ settings? found$/.test(found ?? '')) fail(`searching "nerve" in the AI tab: the status says "${found}"`)
+      else console.log(`  ok   search "nerve" in AI → ${found}`)
       await shot('6-search-nerve')
     }
 
