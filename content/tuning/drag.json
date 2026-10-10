@@ -1,4 +1,48 @@
 {
+  "_help": {
+    "styles.draft": "How a glyphling looks while you drag it out of the tray to place it (the draft). A · Pick it up: the piece leaves its spot, rides under your finger and settles where you drop it. B · Lift, mark home: the same, but a faint ghost stays at home. C · Aim: the piece stays home and a see-through copy follows you; on a good drop the real piece flies from home to the hex. D · Float: a see-through copy follows you, home is empty, and it turns solid where you drop it. A wrong drop flies back home (A, B, D) or fades away (C).",
+    "styles.seed": "How a seed looks while you drag it from the tray onto the board to aim it. A · Pick it up · B · Lift, mark home · C · Aim · D · Float — see the draft setting above for what each one does.",
+    "styles.reorder": "How a seed looks while you drag it to another place in the tray (it switches to this style once it's over another place, and uses it all the time while choosing seeds to refresh). A · Pick it up · B · Lift, mark home · C · Aim · D · Float — see the draft setting above.",
+    "styles.move": "How a glyphling on the board looks while you drag it to move it. A · Pick it up · B · Lift, mark home · C · Aim (the real glyphling then glides there, like a tapped move) · D · Float — see the draft setting above.",
+    "ghostOpacity": "How see-through a ghost is — the copy that follows you (C, D) and the mark left at home (B). Lower = fainter. Try 0.3–0.6.",
+    "liftScale": "A carried piece is drawn this much bigger, so it reads as \"in your hand\". 1 = no bigger. Try 1.05–1.2.",
+    "liftShadow": "How strong the shadow under a carried piece is. 0 = no shadow. Try 0.2–0.5.",
+    "liftTime": "How long a piece takes to grow into your hand when a drag starts, in seconds. Try 0.05–0.15.",
+    "landTime": "How long a dropped piece takes to settle onto its spot (A, B) or turn solid there (D), in seconds. The game changes once it has landed. Try 0.1–0.2.",
+    "flyTime": "How long the real piece takes to fly from home to the spot (C), or a wrongly dropped piece to fly back home (A, B, D), in seconds. Try 0.15–0.3.",
+    "fadeTime": "How long a wrongly dropped piece takes to fade away (C), in seconds. Try 0.1–0.25."
+  },
+  "_labels": {
+    "styles.draft": "Drag style: draft (glyphling out of the tray)",
+    "styles.seed": "Drag style: aiming a seed (tray → board)",
+    "styles.reorder": "Drag style: tray reorder (seed → another place)",
+    "styles.move": "Drag style: moving a glyphling on the board",
+    "ghostOpacity": "Drag: ghost see-through (0–1)",
+    "liftScale": "Drag: carried piece size (×)",
+    "liftShadow": "Drag: carried piece shadow (0–1)",
+    "liftTime": "Drag: lift time (seconds)",
+    "landTime": "Drag: landing time (seconds)",
+    "flyTime": "Drag: fly / fly back time (seconds)",
+    "fadeTime": "Drag: wrong drop fade time (seconds)"
+  },
+  "_sections": {
+    "Dragging": ["styles", "ghostOpacity", "liftScale", "liftShadow", "liftTime", "landTime", "flyTime", "fadeTime"]
+  },
+  "_ranges": {
+    "ghostOpacity": [0.1, 1, 0.05],
+    "liftScale": [1, 1.5, 0.01],
+    "liftShadow": [0, 1, 0.05],
+    "liftTime": [0, 0.4, 0.01],
+    "landTime": [0, 0.5, 0.01],
+    "flyTime": [0, 0.6, 0.01],
+    "fadeTime": [0, 0.5, 0.01]
+  },
+  "_choices": {
+    "styles.draft": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
+    "styles.seed": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
+    "styles.reorder": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
+    "styles.move": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" }
+  },
   "styles": {
     "draft": "A",
     "seed": "C",
