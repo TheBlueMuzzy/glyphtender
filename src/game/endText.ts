@@ -47,8 +47,9 @@ function wordsIn(words: string[], maxWord: number, room: number): string {
   return out
 }
 
-/** What each player did on round `round` (1…), in turn order. `room` = about how many letters a row has space for. */
-export function roundPlays(game: GameState, round: number, maxWord: number, room: number): PlayRow[] {
+/** What each player did on round `round` (1…), in turn order. `room` = about how many letters a row has space for.
+ *  `botTurns` (online): the turns a bot played for its person — their row ends "· by a bot" (F62). */
+export function roundPlays(game: GameState, round: number, maxWord: number, room: number, botTurns: number[] = []): PlayRow[] {
   const turns = logOf(game).turns
   const inRound = turns.filter((t) => t.round === round)
   const order = game.turnOrder ?? game.magic.map((_, seat) => seat)
@@ -70,6 +71,7 @@ export function roundPlays(game: GameState, round: number, maxWord: number, room
     if (turn.refresh) rest.push(turn.refreshed ? fill(w.chart.playRefresh, { n: turn.refreshed }) : w.chart.playKeepAll)
     const knots = turn.newlyTangled.map((id) => ({ owner: ownerOf(id), by: turn.seat }))
     if (knots.length) rest.push(w.chart.playTangled)
+    if (botTurns.includes(turn.turnNo)) rest.push(w.chart.playByBot)
     const magic = scored ? fill(w.chart.playMagic, { n: turn.magic }) : ''
     const room0 = room - magic.length - rest.join(join).length - (rest.length ? join.length : 0)
     const words = !scored ? plain : wordsIn(turn.words.map((x) => x.word), maxWord, Math.max(maxWord, room0))

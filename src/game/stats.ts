@@ -436,15 +436,46 @@ export interface StoryChart {
   /** One line per seat: Magic at the start (0), after each round, then after the tangle bonus. */
   series: { seat: number; points: number[] }[]
   markers: ChartMarker[]
+  /** Online: where a bot played for a person (F62) — a darker band behind their line from x `from` to x `to` (x as in
+   *  the points: a round's play runs from round − 1 to round). One band per unbroken run of their bot-played turns. */
+  bands: BotBand[]
   /** The biggest number on the chart (for the scale). */
   max: number
 }
 
-/** The chart: the lines, plus marks for tangles and lead changes (the current award's star is drawn on top: awardPoint). */
-export function storyChart(game: GameState, maxMarkers: number): StoryChart {
+/** A stretch of one player's line a bot played for them (online: idle, out of time, left…). */
+export interface BotBand { seat: number; from: number; to: number }
+
+/**
+ * The bot bands (F62): each player's turns a bot played FOR them (`botTurns` = log turnNos, from the server), joined
+ * into runs — a run lasts while their own turns keep being the bot's (a round they had no turn, all tangled, doesn't
+ * break it) — and placed on the chart: from the round the bot took over (its start, x = round − 1) to the round the
+ * person took back (x = the last bot round). None in pass-and-play (botTurns is always empty there).
+ */
+export function botBands(turns: LogTurn[], botTurns: number[]): BotBand[] {
+  if (!botTurns.length) return []
+  const byBot = new Set(botTurns)
+  const bands: BotBand[] = []
+  const open = new Map<number, BotBand>() // (each seat's run still going)
+  for (const t of turns) {
+    const run = open.get(t.seat)
+    if (!byBot.has(t.turnNo)) { open.delete(t.seat); continue }
+    if (run) run.to = t.round
+    else {
+      const band = { seat: t.seat, from: t.round - 1, to: t.round }
+      bands.push(band)
+      open.set(t.seat, band)
+    }
+  }
+  return bands
+}
+
+/** The chart: the lines, plus marks for tangles and lead changes (the current award's star is drawn on top: awardPoint),
+ *  plus (online) the bands where a bot played for someone — `botTurns`, the server's list (F62). */
+export function storyChart(game: GameState, maxMarkers: number, botTurns: number[] = []): StoryChart {
   // A log that doesn't cover every turn (an old save) can't tell the story: just the start and the end, no marks
   if (!logIsComplete(game)) {
-    return { rounds: 0, series: game.magic.map((final, seat) => ({ seat, points: [0, final] })), markers: [], max: Math.max(1, ...game.magic) }
+    return { rounds: 0, series: game.magic.map((final, seat) => ({ seat, points: [0, final] })), markers: [], bands: [], max: Math.max(1, ...game.magic) }
   }
   const turns = logOf(game).turns
   const ends = roundEnds(turns)
@@ -476,5 +507,5 @@ export function storyChart(game: GameState, maxMarkers: number): StoryChart {
     markers.push(m)
   }
   const max = Math.max(1, ...series.flatMap((s) => s.points))
-  return { rounds, series, markers, max }
+  return { rounds, series, markers, bands: botBands(turns, botTurns), max }
 }

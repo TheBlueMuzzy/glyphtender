@@ -8,7 +8,7 @@ import type { GameState, LogTurn } from '../engine/types'
 import endscreen from '../../content/tuning/endscreen.json'
 import { logIsComplete } from '../engine/log'
 import { hexAt, position } from '../engine/testkit'
-import { awardPoint, earnedAwards, scorecards, standings, storyChart } from './stats'
+import { awardPoint, botBands, earnedAwards, scorecards, standings, storyChart } from './stats'
 import { awardText } from './endText'
 
 // ─── Hand-built logs ───
@@ -383,6 +383,32 @@ describe('the Story chart', () => {
     expect(storyChart(g, 6).markers.some((m) => m.kind === 'lead')).toBe(false) // same spot as Blue's knot: the knot wins
     expect(storyChart(g, 6).markers.some((m) => m.kind === 'award')).toBe(false)
     expect(storyChart(g, 1).markers).toHaveLength(1)
+  })
+})
+
+describe('the Story chart’s bot bands (F62: online, where a bot played for someone)', () => {
+  // 3 players, 6 rounds; turnNo = (round − 1) × 3 + seat + 1
+  const rounds6: TurnPlan[] = Array.from({ length: 18 }, (_, i) => [i % 3, ['AT:00']])
+  const g = finished(3, rounds6)
+  const turnNo = (round: number, seat: number) => (round - 1) * 3 + seat + 1
+
+  it('none without bot turns — pass-and-play and a server older than F62', () => {
+    expect(storyChart(g, 6).bands).toEqual([])
+    expect(storyChart(g, 6, []).bands).toEqual([])
+  })
+  it('Blue’s rounds 3–5 played by a bot → ONE band from the start of round 3 (x 2) to the end of round 5 (x 5)', () => {
+    expect(storyChart(g, 6, [turnNo(3, 1), turnNo(4, 1), turnNo(5, 1)]).bands).toEqual([{ seat: 1, from: 2, to: 5 }])
+  })
+  it('a round she played herself in between splits it in two; other players’ bands stay their own', () => {
+    const bands = storyChart(g, 6, [turnNo(1, 0), turnNo(2, 0), turnNo(4, 0), turnNo(2, 2), turnNo(3, 2)]).bands
+    expect(bands).toEqual([{ seat: 0, from: 0, to: 2 }, { seat: 2, from: 1, to: 3 }, { seat: 0, from: 3, to: 4 }])
+  })
+  it('a round with no turn for them (all tangled: skipped) doesn’t break the run', () => {
+    const turns = g.log!.turns.filter((t) => !(t.seat === 1 && t.round === 4)) // Blue skipped in round 4
+    expect(botBands(turns, [turnNo(3, 1), turnNo(5, 1)])).toEqual([{ seat: 1, from: 2, to: 5 }])
+  })
+  it('a log that can’t tell the story (an old save): no bands', () => {
+    expect(storyChart({ ...g, turnCount: 40 }, 6, [turnNo(3, 1)]).bands).toEqual([])
   })
 })
 

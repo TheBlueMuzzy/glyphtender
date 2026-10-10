@@ -179,7 +179,9 @@
         "playSkipped": "no turn · all tangled",
         "playEnded": "no turn · the game ended",
         "playTangleBonus": "+{n}",
-        "playNoTangleBonus": "no bonus"
+        "playNoTangleBonus": "no bonus",
+        "playByBot": "by a bot",
+        "botBandKey": "Bot played"
       },
       "card": {
         "label": "Scorecard",

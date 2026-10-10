@@ -49,6 +49,9 @@ describe('the Story chart turn list (F61)', () => {
     expect(texts(rows)).toEqual([[2, 'NEST · TEN +9'], [0, 'F · Refresh 3'], [1, 'moved · tangled']])
     expect(rows[2].knots).toEqual([{ owner: 0, by: 1 }])
   })
+  it('online: a turn a bot played for its person ends "by a bot" (F62); the others don’t', () => {
+    expect(texts(roundPlays(game, 4, 8, 40, [10, 12]))).toEqual([[2, 'NEST · TEN +9 · by a bot'], [0, 'F · Refresh 3'], [1, 'moved · tangled · by a bot']])
+  })
   it('long words are cut (…) and words that do not fit become one …; the Magic always shows', () => {
     const long = { ...game, log: { turns: [turn({ turnNo: 10, seat: 2, words: [word('GARDENING', 12), word('DEN', 3), word('GARDEN', 8)], magic: 23 })], end: null } }
     expect(playText(roundPlays(long, 4, 8, 18)[0])).toBe('GARDENI… · DEN · … +23')

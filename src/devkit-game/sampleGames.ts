@@ -4,6 +4,7 @@
 //   finishedGame: played to the end (greedy players: they make words, so the end table has something to show)
 //   tiedGame:     the first seed whose 2-player game ends in a tie
 //   midGame:      a game a few turns into play
+//   takeoverTurns: for an online end table — the turns of one player a bot "played for them" mid-game (F62)
 import { defaultBoardFor } from '../engine/boards'
 import { glyphtenderRules, setupGame } from '../engine/rules'
 import { greedyAction, randomAction } from '../engine/sim'
@@ -46,6 +47,14 @@ export function tiedGame(words: WordList, tries = 200): SampleGame | null {
     if (sample.game.winners.length > 1) return sample
   }
   return null
+}
+
+/** For the "a bot took over" end table (F62): `seat`'s log turns (turnNo) in `rounds` rounds from about a third of
+ *  the way in — as if they went idle there, a bot played for them, and they came back. Like the server's results.botTurns. */
+export function takeoverTurns(game: GameState, seat: number, rounds = 3): number[] {
+  const turns = game.log?.turns ?? []
+  const first = Math.floor((turns.at(-1)?.round ?? 0) * 0.35) + 1
+  return turns.filter((t) => t.seat === seat && t.round >= first && t.round < first + rounds).map((t) => t.turnNo)
 }
 
 /** A game at least `turns` turns into the play phase (the draft done), still going — on `current`'s turn if given. */

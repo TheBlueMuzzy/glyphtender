@@ -66,6 +66,7 @@ function useMedia(query: string): boolean {
 
 export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const game = useGameStore((s) => s.game)
+  const botTurns = useGameStore((s) => s.botTurns) // online: the turns a bot played for someone (F62)
   const me = useGameStore(youOf) // the "You" badge: online, my seat
   const colours = useGardenTuning()
   const tuning = useEndTuning()
@@ -82,10 +83,10 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const end = useMemo(() => {
     if (!game) return null
     const awards = earnedAwards(game, tuning)
-    const chart = storyChart(game, tuning.maxMarkers)
+    const chart = storyChart(game, tuning.maxMarkers, botTurns)
     const awardMarks = awards.map((a) => awardPoint(game, chart, a)).filter((m): m is ChartMarker => m !== null)
     return { ranked: standings(game), cards: scorecards(game), awards, chart, awardMarks }
-  }, [game, tuning])
+  }, [game, tuning, botTurns])
 
   // The page's size, and what the Story page has besides the chart (its key + caption): the chart takes what's left
   const pageBox = useRef<HTMLDivElement>(null)
@@ -178,7 +179,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
   // use the line
   const spotName = (x: number) => x > end.chart.rounds ? w.chart.tangles : x === 0 ? w.chart.start : fill(w.chart.spot, { round: x })
   const playsAt = (x: number, room: number) => x === 0 || x > end.chart.rounds + 1 ? null
-    : { title: spotName(x), rows: x > end.chart.rounds ? tangleBonusPlays(game) : roundPlays(game, x, tuning.storyListMaxWordChars, room) }
+    : { title: spotName(x), rows: x > end.chart.rounds ? tangleBonusPlays(game) : roundPlays(game, x, tuning.storyListMaxWordChars, room, botTurns) }
   const spotLabel = (x: number) => {
     const plays = playsAt(x, 200)
     return plays ? playsText(plays.title, plays.rows, name) : spotName(x)
@@ -220,6 +221,16 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
                         <Text kind="label">{name(s.seat)}</Text>
                       </Row>
                     ))}
+                    {/* Online, when a bot played for someone: what the darker band behind a line means (F62) */}
+                    {end.chart.bands.length > 0 && (
+                      <Row gap="xs" className="kit-nowrap" data-bot-key>
+                        <svg className="game-end-key-shape" viewBox="0 0 16 16" aria-hidden="true">
+                          <line x1={2} y1={8} x2={14} y2={8} stroke="var(--muted)" strokeWidth={7} strokeLinecap="round" opacity={tuning.botBandOpacity} />
+                          <line x1={2} y1={8} x2={14} y2={8} stroke="var(--on-surface)" strokeWidth={2} strokeLinecap="round" />
+                        </svg>
+                        <Text kind="label">{w.chart.botBandKey}</Text>
+                      </Row>
+                    )}
                   </Row>
                   {/* The slot: the awards earned where the line is — ONE at a time in its Highlights look, always the same
                       size (empty on a round with none), so the chart never moves; before the line is touched, how to use it */}

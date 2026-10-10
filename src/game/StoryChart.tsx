@@ -13,6 +13,10 @@
 // +9", "F · Refresh 3", "moved", a knot + "tangled" — one row per player in turn order, on a soft card so it reads
 // over anything under it (the lines start bottom-left, so that corner is nearly always clear). The Tangles column
 // lists each player's tangle bonus. Sizes: endscreen.json storyList…; words: en.json game.gameOver.chart.play….
+// THE BOT BAND (F62 — Muzzy, 2026-10-10: "a thicker darker bar behind the graphline for the duration of the bot
+// takeover"): online, where a bot played for a person (idle, out of time, left), a thick band in a darker shade of
+// their colour runs behind their line from the round the bot took over to the round they took back (stats.ts
+// botBands). Thickness / darkness / solidness: endscreen.json botBand…. Never in pass-and-play.
 // Each line ends in its own shape (circle, square, triangle, diamond — not colour alone) and its total.
 // The lines draw themselves in, left to right, when the page opens (endscreen.json chartDrawSeconds; reduce motion = at once).
 // Game graphics like the board: an SVG sized in real pixels (it measures its box), colours from garden.json + style names.
@@ -21,6 +25,7 @@ import { fill, reduceMotion } from '../ui/kit'
 import type { PlayRow } from './endText'
 import type { ChartMarker, EndTuning, StoryChart as Chart } from './stats'
 import { colourOf } from './art'
+import { mixColour } from './castShade'
 import type { GardenTuning } from './useTuning'
 import text from '../../content/text/en.json'
 
@@ -108,6 +113,7 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
   // Draw in once, left to right; the marks and labels fade in after
   const lines = useRef<SVGGElement>(null)
   const after = useRef<SVGGElement>(null)
+  const bands = useRef<SVGGElement>(null)
   const drawn = useRef(false)
   useLayoutEffect(() => {
     if (!width || drawn.current) return
@@ -118,6 +124,7 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
     lines.current?.querySelectorAll('[data-draw]').forEach((el) =>
       el.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: ms, easing: 'ease-out', fill: 'backwards' }))
     after.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: ms, fill: 'backwards' })
+    bands.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: ms, fill: 'backwards' }) // (with the marks)
   }, [width, tuning.chartDrawSeconds])
 
   const dragging = useRef(false)
@@ -210,6 +217,16 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
             {chart.rounds >= 1 && <text x={X(1)} y={height - 8} textAnchor="middle">{fill(w.round, { n: 1 })}</text>}
             {chart.rounds > 1 && X(chart.rounds) - X(1) > 48 && <text x={X(chart.rounds) - 4} y={height - 8} textAnchor="end">{fill(w.round, { n: chart.rounds })}</text>}
             <text x={X(chart.rounds) + 4} y={height - 8} textAnchor="start">{w.tangles}</text>
+          </g>
+          {/* Online: where a bot played for someone — a thick band in a darker shade of their colour, behind the lines */}
+          <g ref={bands} fill="none" strokeLinecap="round" strokeLinejoin="round" pointerEvents="none">
+            {chart.bands.map((b) => {
+              const pts = chart.series[b.seat].points.slice(b.from, b.to + 1).map((v, k) => `${X(b.from + k)},${Y(v)}`).join(' ')
+              return (
+                <polyline key={`${b.seat}:${b.from}`} points={pts} stroke={mixColour(colour(b.seat), colours.background, tuning.botBandDarken)}
+                  strokeWidth={lineWidth * tuning.botBandWidth} opacity={tuning.botBandOpacity} data-bot-band={b.seat} data-from={b.from} data-to={b.to} />
+              )
+            })}
           </g>
           {/* The lines (a surface-coloured ring under each, so crossing lines stay apart) */}
           <g ref={lines} fill="none" strokeLinecap="round" strokeLinejoin="round">
