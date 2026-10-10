@@ -51,8 +51,13 @@ export function MomentsPanel({ moments, all = moments, fire, run = 0, focus, loa
     })).then((list) => setFiles(Object.fromEntries(list)), (e: Error) => setProblem(e.message))
   }, [fileNames, load])
 
-  // The frame restarted: its loop is gone with it
-  useEffect(() => setLooping(null), [run])
+  // The frame restarted: its loop is gone with it (set while drawing, not in an effect — React's "adjust state when a
+  // prop changes" pattern, so no extra render pass)
+  const [loopRun, setLoopRun] = useState(run)
+  if (loopRun !== run) {
+    setLoopRun(run)
+    setLooping(null)
+  }
 
   // 🔁: play, wait out the rest of the interval (never overlapping a long play), play again…
   useEffect(() => {

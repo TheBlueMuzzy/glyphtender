@@ -20,18 +20,18 @@ const HANDLE_NAMES: Record<HandleKey, string> = { trimStartMs: 'start', trimEndM
 
 export function Waveform({ url, values, steps, onChange }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null)
-  const [wave, setWave] = useState<WaveData | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  // The waveform of the file it was loaded for — another file shows "Loading…" until its own arrives
+  const [loaded, setLoaded] = useState<{ url: string; wave: WaveData | null; error: string | null } | null>(null)
+  const wave = loaded?.url === url ? loaded.wave : null
+  const error = loaded?.url === url ? loaded.error : null
   const [width, setWidth] = useState(360)
   const dragging = useRef<HandleKey | null>(null)
 
   useEffect(() => {
     let current = true
-    setWave(null)
-    setError(null)
     loadWaveform(url).then(
-      (data) => current && setWave(data),
-      (e: Error) => current && setError(`Couldn't load ${url}: ${e.message}`),
+      (data) => current && setLoaded({ url, wave: data, error: null }),
+      (e: Error) => current && setLoaded({ url, wave: null, error: `Couldn't load ${url}: ${e.message}` }),
     )
     return () => { current = false }
   }, [url])

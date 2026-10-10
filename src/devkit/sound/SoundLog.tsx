@@ -7,7 +7,7 @@ import type { SoundBoardAudio, SoundLogEntry } from './soundTypes'
 const KEEP = 100
 
 /** Plain words for the engine's drop reasons */
-export const DROP_WORDS: Record<string, string> = {
+const DROP_WORDS: Record<string, string> = {
   'unknown-sound': 'no sound by that name in content/audio.json',
   'no-files': 'it has no files',
   'catch-up': 'catch-up (the screen jumped — silent on purpose)',
