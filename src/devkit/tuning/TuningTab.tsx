@@ -1,7 +1,7 @@
 // TUNING TOOL — every number in the game's content/tuning/*.json files, as a slider + a number box.
 //   Settings sit in titled sections that open and close (search/Section.tsx) — the file's "_sections", else one per
 //   file — with readable names from "_labels" and a help line from "_help" (how: tuningSections.ts). Chips at the top
-//   jump to a section. The Dev Kit's search box (DevKit.tsx) filters them (DevKitSearch).
+//   jump to a section. The Dev Kit's search box filters them while this tab is open (the `query` prop).
 //   true/false values get a checkbox; colours ("#rrggbb") a colour picker; other text is shown, not edited.
 //   Slider ranges: the file's optional "_ranges" { "key.path": [min, max, step] }, else a guess (tuningLogic.ts).
 // Live: each change is sent to the game as it happens (liveTuning.ts) — the game shows it if it reads its tuning
@@ -9,9 +9,9 @@
 import { useContext, useState } from 'react'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { copyForClaudeText } from '../color/colorLogic'
-import { Highlight, Section, SectionIndex } from '../search/Section'
+import { Highlight, SearchCount, Section, SectionIndex } from '../search/Section'
 import { DevKitSearch } from '../search/searchContext'
-import { searchTerms } from '../search/searchLogic'
+import { countFound, searchTerms } from '../search/searchLogic'
 import { FieldRow } from './FieldRow'
 import { sendTuning } from './liveTuning'
 import { sectionOrder, tuningFiles, type TuningFile } from './tuningFiles'
@@ -28,12 +28,11 @@ const pathOf = (name: string) => `content/tuning/${name}.json`
 type Props = {
   files?: TuningFile[]
   order?: string[] // section titles in the order to list them (content/devkit.json "sectionOrder")
-  query?: string // the search text — normally from the Dev Kit's search box (DevKitSearch); '' = show everything
+  query?: string // the Dev Kit search box's text (DevKit.tsx passes it while this tab is open); '' = show everything
 }
 
-export function TuningTab({ files = tuningFiles, order = sectionOrder, query: ownQuery }: Props) {
+export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '' }: Props) {
   const search = useContext(DevKitSearch)
-  const query = ownQuery ?? search.query
   const [loaded] = useState(() => byName(files)) // as the page loaded — ranges and Copy for Claude start from this
   const [sections] = useState(() => tuningSections(files, order)) // names and sections never change while it runs
   const [values, setValues] = useState(loaded) // what the game uses right now
@@ -86,6 +85,7 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query: ow
 
   return (
     <div className="tt">
+      <SearchCount query={query} found={countFound(shown)} what="setting" where="Tuning" />
       {!searching && (
         <>
           <p className="tt-legend">

@@ -37,6 +37,9 @@ export function onTuning<T>(file: string, onChange: (data: T) => void): () => vo
   return () => window.removeEventListener(TUNING_EVENT, listener)
 }
 
+/** Every file's latest Dev Kit edit so far, as [file, data] (a Screens preview frame gets these when it starts). */
+export const latestTuning = (): [string, unknown][] => [...latest]
+
 /** The Dev Kit calls this on every edit (games normally don't). */
 export function sendTuning(file: string, data: unknown) {
   latest.set(file, data)

@@ -1,16 +1,24 @@
-// Finds the game's preview list: src/devkit-game/previews.tsx (or .ts), `export const previews: DevKitPreview[]`.
+// Finds the game's preview list (and its moments — Screens → a screen → Moments): src/devkit-game/previews.tsx (or .ts), `export const previews: DevKitPreview[]`.
 // Found by file name (import.meta.glob), like the Color tab finds the UI kit — so a game without the file still
 // builds, and its Screens tab just says how to add one. Only the Screens tab and the preview frame load this,
 // and both are dev-only.
+import type { DevKitMoment } from '../moments/momentTypes'
 import type { DevKitPreview } from './previewTypes'
 
-const found = import.meta.glob<{ previews?: DevKitPreview[] }>('../../devkit-game/previews.{ts,tsx}')
+const found = import.meta.glob<{ previews?: DevKitPreview[]; moments?: DevKitMoment[] }>('../../devkit-game/previews.{ts,tsx}')
 
 /** The game's previews ([] if it has no previews file yet). */
 export async function loadGamePreviews(): Promise<DevKitPreview[]> {
   const load = Object.values(found)[0]
   if (!load) return []
   return (await load()).previews ?? []
+}
+
+/** The game's moments ([] if none): `export const moments: DevKitMoment[]` in the same file (moments/momentTypes.ts). */
+export async function loadGameMoments(): Promise<DevKitMoment[]> {
+  const load = Object.values(found)[0]
+  if (!load) return []
+  return (await load()).moments ?? []
 }
 
 /** Where the list lives, for the "how to add previews" note. */

@@ -103,3 +103,4 @@
 .dk-index-all { display: flex; gap: 12px; margin-top: 4px; }
 .dk-link { background: none; border: none; padding: 2px 0; color: #8fb3ff; font-size: 12px !important; cursor: pointer; }
 .dk-link:hover { text-decoration: underline; }
+.dk-found { margin: 4px 0 6px; font-size: 12px; color: #9a9bab; }

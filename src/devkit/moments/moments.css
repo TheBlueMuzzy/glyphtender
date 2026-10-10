@@ -1,0 +1,48 @@
+/* Moments — the side panel of a Screens preview (desktop: a column on the right; phone: under the screen) */
+.mo {
+  flex: none;
+  width: min(380px, 40vw);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px 0;
+  background: #16171d;
+  border-left: 1px solid #34353f;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 640px) {
+  .mo { width: auto; max-height: 45dvh; border-left: none; border-top: 1px solid #34353f; }
+}
+.mo input, .mo select { font: inherit; color: inherit; }
+.mo-title { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: #9a9bab; }
+.mo-loop { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #c9cad6; }
+.mo-loop input { flex: 1; min-width: 0; }
+.mo-loop-s { width: 3.5em; text-align: right; font-variant-numeric: tabular-nums; }
+.mo-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mo-moment { padding: 6px 8px; border: 1px solid #34353f; border-radius: 8px; background: #1d1e26; }
+.mo-head { display: flex; align-items: center; gap: 6px; }
+.mo-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mo-active { margin-left: auto; padding: 0 6px; border-radius: 999px; background: #2c2e3a; color: #9a9bab; font-size: 11px; font-weight: 400; }
+.mo-play { padding: 4px 10px; }
+.mo-play[aria-pressed='true'] { background: #2f6fed; border-color: #2f6fed; color: #fff; }
+.mo-note { margin: 2px 0 0; font-size: 12px; color: #9a9bab; }
+.mo-body { margin-top: 6px; }
+.mo-styles { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 8px; background: #16171d; width: fit-content; }
+.mo-custom { padding: 0 8px; font-size: 12px; color: #ffd98a; }
+.mo-knob .tt-row { padding: 6px 0; }
+.mo-shared { margin: 0 0 4px; font-size: 11px; color: #ffd98a; }
+.mo-problem { margin: 4px 0; font-size: 12px; color: #ff9b9b; }
+.mo-footer { position: sticky; bottom: 0; margin: auto -10px 0; background: #16171d; }

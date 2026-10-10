@@ -7,26 +7,22 @@
 //   Close: Esc, the ✕ button, or ` again
 // Tools are tabs on their own full-width row under the title: the kit's own (KIT_TABS), then the game's own from src/devkit-game/tabs.ts.
 // More than fit → ◀ ▶ and page dots (carousel/Carousel.tsx), never a sideways scroll bar.
-// Under the tabs: a search box (search/SearchBar.tsx). Typing filters every SETTINGS tab at once (a tab with
-// countMatches — Color, Tuning): their matching settings, grouped by tab and section, highlighted. Tapping a section
-// title in the results clears the search and takes you there. Esc clears the search first, then closes.
+// Under the tabs: a search box (search/SearchBar.tsx) that searches ONLY the open tab ("Search Tuning…"): the tab gets
+// the text as its `query` prop and filters its own rows, highlighted. Picking another tab clears it. In a tab with
+// sections, tapping a section title in the results clears the search and takes you there. Esc clears it, then closes.
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react'
 import { gameTabs } from '../devkit-game/tabs'
 import { CaptureTab } from './capture/CaptureTab'
 import { Carousel } from './carousel/Carousel'
 import { ColorTab } from './color/ColorTab'
-import { searchUiColours } from './color/colorLogic'
-import { styleFile, uiKit } from './color/uiKit'
 import { CAN_SAVE } from './saveContent'
 import { SearchBar } from './search/SearchBar'
 import { DevKitSearch } from './search/searchContext'
-import { countFound, searchTerms } from './search/searchLogic'
 import { goToSection } from './search/sectionState'
 import { SnapshotsTab } from './snapshots/SnapshotsTab'
 import { TuningTab } from './tuning/TuningTab'
-import { sectionOrder, tuningFiles } from './tuning/tuningFiles'
-import { searchTuning, tuningSections } from './tuning/tuningSections'
+import { tuningFiles } from './tuning/tuningFiles'
 import './devkit.css'
 import './search/search.css'
 
@@ -35,29 +31,25 @@ const DEVKIT_MARKER = 'bmuz-devkit-console'
 
 /**
  * One tool = one tab. A game adds its own in src/devkit-game/tabs.ts.
- * countMatches: a tab that lists settings can join the search — return how many match the text (0 hides the tab
- * from the results) and filter itself by the search text it reads with useContext(DevKitSearch)
- * (search/searchContext.ts; search/searchLogic.ts + search/Section.tsx do the work).
+ * Search: while the tab is open, its Panel gets the search box's text as `query` ('' = not searching) and filters
+ * its own rows (search/searchLogic.ts + search/Section.tsx help; useContext(DevKitSearch).goTo jumps to a section).
+ * searchable: false hides the search box on that tab (a tool with nothing to search).
  */
-export type DevKitTab = { id: string; label: string; Panel: ComponentType; countMatches?: (query: string) => number }
-
-const tuningIndex = tuningSections(tuningFiles, sectionOrder) // for counting matches (the tab builds its own copy)
+export type DevKitTab = { id: string; label: string; Panel: ComponentType<{ query?: string }>; searchable?: boolean }
 
 // Loaded on first use, and only in dev: in a release build import.meta.env.DEV is false, so this import is dropped
 const ScreensTab = import.meta.env.DEV ? lazy(() => import('./previews/PreviewsTab')) : null
-function ScreensPanel() {
-  return ScreensTab && <Suspense fallback={<p className="devkit-not-plugged">Loading…</p>}><ScreensTab /></Suspense>
+function ScreensPanel({ query }: { query?: string }) {
+  return ScreensTab && <Suspense fallback={<p className="devkit-not-plugged">Loading…</p>}><ScreensTab query={query} /></Suspense>
 }
 
 // While a screen preview is open it owns the keys (Esc closes it) and the whole window, so the panel stands aside
 const previewOpen = () => document.querySelector('dialog.devkit-preview[open]') !== null
 
 const KIT_TABS: DevKitTab[] = [
-  { id: 'color', label: 'Color', Panel: ColorTab, countMatches: (q) => (uiKit && styleFile ? countFound(searchUiColours(q)) : 0) },
+  { id: 'color', label: 'Color', Panel: ColorTab },
   // Only when the game has content/tuning/*.json files
-  ...(tuningFiles.length > 0
-    ? [{ id: 'tuning', label: 'Tuning', Panel: TuningTab, countMatches: (q: string) => countFound(searchTuning(tuningIndex, q)) }]
-    : []),
+  ...(tuningFiles.length > 0 ? [{ id: 'tuning', label: 'Tuning', Panel: TuningTab }] : []),
   // These two need the game's adapter (registerDevKitGame, devkitGame.ts); without it they say how to add it
   { id: 'snapshots', label: 'Snapshots', Panel: SnapshotsTab },
   { id: 'bugs', label: 'Bugs', Panel: CaptureTab },
@@ -154,15 +146,13 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     if (performance.now() - lastTripleTap.current > GHOST_CLICK_MS) setOpen(false)
   }
 
-  // Search: which tabs join it, and how many of each one's settings match
-  const searching = searchTerms(query).length > 0
-  const searchable = tabs.some((t) => t.countMatches)
-  const counts = Object.fromEntries(tabs.map((t) => [t.id, searching && t.countMatches ? t.countMatches(query) : 0]))
-  const found = Object.values(counts).reduce((a, b) => a + b, 0)
+  // Search: only the open tab, and only if it can be searched
+  const activeTab = tabs.find((t) => t.id === tabId)
+  const searchable = activeTab !== undefined && activeTab.searchable !== false
 
   // Each tab keeps its own scroll position (they share one scrolling area)
   const scrollTops = useRef<Record<string, number>>({})
-  const view = searching ? '?search' : tabId
+  const view = tabId
   const shownView = useRef(view)
   useLayoutEffect(() => {
     const box = scroller.current
@@ -178,13 +168,9 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     setQuery('')
     setTabId(id)
   }
-  const search = (text: string) => {
-    if (!searching) remember()
-    setQuery(text)
-  }
-  // A section title tapped in the results: back to that tab, with the section open and scrolled to
-  const goTo = (id: string) => (sectionId: string) => {
-    pickTab(id)
+  // A section title tapped in the results: the search clears, the section opens and is scrolled to
+  const goTo = (sectionId: string) => {
+    setQuery('')
     goToSection(sectionId)
   }
 
@@ -205,7 +191,7 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
             <button
               key={t.id}
               role="tab"
-              aria-selected={!searching && t.id === tabId}
+              aria-selected={t.id === tabId}
               className="devkit-tab"
               onClick={() => pickTab(t.id)}
             >
@@ -213,30 +199,20 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
             </button>
           ))}
         </Carousel>
-        {searchable && <SearchBar value={query} onChange={search} found={searching ? found : null} />}
+        {searchable && <SearchBar value={query} onChange={setQuery} label={activeTab.label} />}
       </header>
       {!CAN_SAVE && (
         <p className="devkit-live-note">Live build: changes last until you refresh — copy them for Claude to keep.</p>
       )}
-      {/* One scrolling area for every tab, so search results from several tabs scroll together */}
+      {/* One scrolling area for every tab (each remembers its own scroll position) */}
       <div ref={scroller} className="devkit-scroll">
-        {searching && found === 0 && (
-          <p className="dk-results-none">Nothing matches “{query.trim()}”. Try part of a word — fade, trail, pop.</p>
-        )}
-        {tabs.map((t) => (
-          <section
-            key={t.id}
-            className="devkit-body"
-            hidden={searching ? !counts[t.id] : t.id !== tabId}
-            role="tabpanel"
-            aria-label={t.label}
-          >
-            {searching && <h2 className="dk-results-tab">{t.label} · {counts[t.id]}</h2>}
-            <DevKitSearch.Provider value={{ query: t.countMatches ? query : '', goTo: goTo(t.id) }}>
-              <t.Panel />
-            </DevKitSearch.Provider>
-          </section>
-        ))}
+        <DevKitSearch.Provider value={{ goTo }}>
+          {tabs.map((t) => (
+            <section key={t.id} className="devkit-body" hidden={t.id !== tabId} role="tabpanel" aria-label={t.label}>
+              <t.Panel query={t.id === tabId ? query : ''} />
+            </section>
+          ))}
+        </DevKitSearch.Provider>
       </div>
     </aside>
   )

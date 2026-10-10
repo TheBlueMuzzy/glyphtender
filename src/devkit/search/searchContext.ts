@@ -1,8 +1,8 @@
-// What the Dev Kit panel tells a settings tab about the search box: the text typed ('' = not searching), and
-// goTo(sectionId) = "take me to this section" (clears the search, shows the tab, opens + scrolls to the section).
-// A tab reads it with useContext(DevKitSearch); DevKit.tsx provides it around each tab.
+// What the Dev Kit panel lends a tab for its search results: goTo(sectionId) = "take me to this section" (clears the
+// search, opens + scrolls to the section). The search text itself comes as the tab's `query` prop (DevKit.tsx).
+// A tab reads this with useContext(DevKitSearch); DevKit.tsx provides it.
 import { createContext } from 'react'
 
-export type DevKitSearchInfo = { query: string; goTo: (sectionId: string) => void }
+export type DevKitSearchInfo = { goTo: (sectionId: string) => void }
 
-export const DevKitSearch = createContext<DevKitSearchInfo>({ query: '', goTo: () => {} })
+export const DevKitSearch = createContext<DevKitSearchInfo>({ goTo: () => {} })

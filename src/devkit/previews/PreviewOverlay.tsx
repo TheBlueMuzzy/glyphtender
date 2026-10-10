@@ -5,12 +5,18 @@
 //   It's a modal <dialog>: the real game underneath can't be touched while it's open.
 //   Closing (✕, Esc, or the phone's Back) removes the frame — the real game is exactly as it was, since nothing
 //   in the frame could reach it (sandbox.ts).
+// Moments (when the screen has some — src/devkit-game/previews.tsx `moments`): a panel beside the screen
+// (moments/MomentsPanel.tsx) plays them in the frame. Every Dev Kit live edit is copied into the frame, so the
+// preview follows the sliders; a fresh frame gets the latest edit of each file.
 // Back button: opening pushes ONE history entry holding the same state as before (so the game's own screen
 // stack, which counts its entries, sees no change). Back pops that entry and closes the preview, instead of
 // closing a real menu or leaving the page. ✕ / Esc step back over it.
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Carousel } from '../carousel/Carousel'
-import type { FrameMessage } from './frame'
+import { MomentsPanel } from '../moments/MomentsPanel'
+import type { DevKitMoment } from '../moments/momentTypes'
+import { TUNING_EVENT, latestTuning } from '../tuning/liveTuning'
+import type { FrameMessage, OverlayMessage } from './frame'
 import { previewUrl, type DevKitPreview } from './previewTypes'
 import { blockedLine } from './overlayLogic'
 import type { SandboxCounts } from './sandbox'
@@ -24,24 +30,38 @@ const SIZES: Record<Exclude<PreviewSize, 'fit'>, { width: number; height: number
   desktop: { width: 1440, height: 900 },
 }
 
+const MOMENT_TIMEOUT_MS = 20000 // a moment that never says it's done stops holding up the loop
+
 type Props = {
   preview: DevKitPreview
+  /** This screen's moments ([] = none: no panel). */
+  moments?: DevKitMoment[]
+  /** Every moment (so a knob can say which others share it). */
+  allMoments?: DevKitMoment[]
+  /** Open this moment first. */
+  focusMoment?: string
   variant: string | undefined
   onVariant: (variant: string) => void
   /** fromBack: closed by the Back button (its history entry is already gone). */
   onClose: (fromBack: boolean) => void
 }
 
-export function PreviewOverlay({ preview, variant, onVariant, onClose }: Props) {
+const NO_MOMENTS: DevKitMoment[] = []
+
+export function PreviewOverlay({ preview, moments = NO_MOMENTS, allMoments, focusMoment, variant, onVariant, onClose }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const frame = useRef<HTMLIFrameElement>(null)
   const stage = useRef<HTMLDivElement>(null)
+  const post = (message: OverlayMessage) => frame.current?.contentWindow?.postMessage(message, window.location.origin)
   const [size, setSize] = useState<PreviewSize>(preview.hint === 'phone' ? 'phone' : 'fit')
   const [run, setRun] = useState(0) // ↻ bumps it: a fresh frame
   const [ready, setReady] = useState(false)
   const [problems, setProblems] = useState<string[]>([])
   const [counts, setCounts] = useState<SandboxCounts>({ saves: 0, sends: 0, sounds: 0, history: 0 })
   const [room, setRoom] = useState({ width: 0, height: 0 })
+  const [showMoments, setShowMoments] = useState(true)
+  const waiting = useRef(new Map<number, () => void>()) // moments playing in the frame, by ticket
+  const nextTicket = useRef(1)
   const closeRef = useRef(onClose)
   useEffect(() => { closeRef.current = onClose })
 
@@ -73,12 +93,29 @@ export function PreviewOverlay({ preview, variant, onVariant, onClose }: Props) 
   useEffect(() => {
     const onMessage = (e: MessageEvent<FrameMessage>) => {
       if (e.source !== frame.current?.contentWindow || e.data?.source !== 'devkit-preview') return
-      if (e.data.kind === 'ready') setReady(true)
+      if (e.data.kind === 'ready') {
+        setReady(true)
+        for (const [file, data] of latestTuning()) post({ source: 'devkit-overlay', kind: 'tuning', file, data }) // edits made before it started
+      }
+      if (e.data.kind === 'moment-done') {
+        waiting.current.get(e.data.ticket)?.()
+        waiting.current.delete(e.data.ticket)
+      }
       if (e.data.kind === 'problem') { const text = e.data.text; setProblems((list) => [...list, text]) }
       if (e.data.kind === 'counts') setCounts(e.data.counts)
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
+  }, [])
+
+  // Every Dev Kit live edit (Tuning, Sound, Moments) goes into the frame's copy of the game too
+  useEffect(() => {
+    const forward = (e: Event) => {
+      const { file, data } = (e as CustomEvent<{ file: string; data: unknown }>).detail
+      post({ source: 'devkit-overlay', kind: 'tuning', file, data })
+    }
+    window.addEventListener(TUNING_EVENT, forward)
+    return () => window.removeEventListener(TUNING_EVENT, forward)
   }, [])
 
   // The stage's size, to scale a phone / desktop frame down to fit
@@ -88,6 +125,19 @@ export function PreviewOverlay({ preview, variant, onVariant, onClose }: Props) 
     const watch = new ResizeObserver(() => setRoom({ width: el.clientWidth, height: el.clientHeight }))
     watch.observe(el)
     return () => watch.disconnect()
+  }, [])
+
+  // Play a moment in the frame; resolves when it says it's done (or after MOMENT_TIMEOUT_MS)
+  const fire = useCallback((id: string, round: number, looping: boolean) => {
+    const ticket = nextTicket.current++
+    post({ source: 'devkit-overlay', kind: 'moment', id, round, looping, ticket })
+    return new Promise<void>((done) => {
+      const timer = setTimeout(done, MOMENT_TIMEOUT_MS)
+      waiting.current.set(ticket, () => {
+        clearTimeout(timer)
+        done()
+      })
+    })
   }, [])
 
   const restart = () => {
@@ -137,17 +187,28 @@ export function PreviewOverlay({ preview, variant, onVariant, onClose }: Props) 
             ))}
           </span>
           <button className="dp-chip" onClick={restart} title="Play it again from the start">↻ Replay</button>
+          {moments.length > 0 && (
+            <button className="dp-chip" aria-pressed={showMoments} onClick={() => setShowMoments(!showMoments)} title="Show or hide the Moments panel">
+              Moments · {moments.length}
+            </button>
+          )}
           <span className="dp-blocked" data-preview-blocked>{ready ? blockedLine(counts) : 'loading…'}</span>
         </Carousel>
         <button className="dp-close" onClick={() => onClose(false)} aria-label="Close the preview" title="Close (Esc) — back to the real game">✕ Close</button>
       </header>
       {problems.length > 0 && <p className="dp-problem" role="alert">This preview hit a problem: {problems.join(' · ')}</p>}
-      <div ref={stage} className="dp-stage" data-size={size}>
-        <div className="dp-box" style={boxStyle}>
-          <iframe key={`${variant}-${run}`} ref={frame} className="dp-frame" style={frameStyle} src={src}
-            title={`Preview: ${preview.label}${variantLabel ? ` (${variantLabel})` : ''}`}
-            sandbox="allow-scripts allow-same-origin allow-forms" />
+      <div className="dp-main">
+        <div ref={stage} className="dp-stage" data-size={size}>
+          <div className="dp-box" style={boxStyle}>
+            {/* allow="autoplay": a Moment's sound may play (the sandbox stays silent until one does) */}
+            <iframe key={`${variant}-${run}`} ref={frame} className="dp-frame" style={frameStyle} src={src}
+              title={`Preview: ${preview.label}${variantLabel ? ` (${variantLabel})` : ''}`}
+              sandbox="allow-scripts allow-same-origin allow-forms" allow="autoplay" />
+          </div>
         </div>
+        {moments.length > 0 && showMoments && (
+          <MomentsPanel moments={moments} all={allMoments} fire={fire} run={run} focus={focusMoment} />
+        )}
       </div>
     </dialog>
   )

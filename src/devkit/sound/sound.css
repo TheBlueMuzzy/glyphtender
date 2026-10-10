@@ -1,0 +1,127 @@
+/* The Sound tab (SoundTab.tsx). Plain developer-tool styling like the rest of the Dev Kit (devkit.css, tuning.css). */
+.sb-section { border-bottom: 1px solid #2a2b35; }
+.sb-section-head { margin: 0; font-size: 13px; }
+.sb-section-head button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 2px;
+  background: none;
+  border: none;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.sb-section-head button:hover { background: #1f2029; }
+.sb-section-body { padding: 0 0 8px; }
+.sb-count { font-size: 11px; font-weight: 400; color: #9a9bab; }
+.sb-note { margin: 4px 0; font-size: 11px; line-height: 1.4; color: #9a9bab; }
+.sb-note.is-error { color: #ff7b7b; }
+.sb-small { padding: 3px 8px; font-size: 12px; }
+.sb-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sb .devkit-btn[aria-pressed='true'] { background: #2f6fed; border-color: #2f6fed; color: #fff; }
+
+/* The sound list: name · tier · files · ▶ · ▶×5 */
+.sb-list, .sb-files, .sb-log-list { list-style: none; margin: 0; padding: 0; }
+.sb-list > li { border-bottom: 1px solid #25262f; }
+.sb-list > li.is-open { background: #1b1c24; border: 1px solid #34353f; border-radius: 6px; margin: 4px 0; padding: 0 8px 8px; }
+.sb-sound { display: flex; align-items: center; gap: 6px; padding: 4px 0; min-width: 0; }
+.sb-sound-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font: 12px ui-monospace, Consolas, monospace !important;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.sb-sound-name:hover { color: #8fb3ff; }
+.sb-badge { flex: none; font-size: 10px; padding: 1px 6px; border-radius: 9px; background: #3a3320; color: #ffd98a; }
+.sb-files-count { flex: none; font-size: 11px; color: #9a9bab; }
+.sb-icon {
+  flex: none;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 6px;
+  background: #2c2e3a;
+  border: 1px solid #4a4c5c;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.sb-icon:hover:not(:disabled) { background: #383a4a; }
+.sb-icon:disabled { opacity: 0.35; cursor: default; }
+.sb-x5 { font-size: 11px; }
+
+/* The editor */
+.sb-editor { padding-top: 2px; }
+.sb-ab { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 6px; }
+.sb-ab-toggle { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #c9cad6; cursor: pointer; }
+.sb-files > li { display: flex; align-items: center; gap: 4px; padding: 2px 0; }
+.sb-files > li.is-picked .sb-file-name { color: #8fb3ff; }
+.sb-file-name {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 2px;
+  font: 11px ui-monospace, Consolas, monospace !important;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.sb-drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+  padding: 10px;
+  border: 1px dashed #4a4c5c;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #c9cad6;
+}
+.sb-drop.is-over { border-color: #2f6fed; background: #1f2a44; }
+.sb-folder { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 11px; color: #9a9bab; }
+.sb select, .sb-credit input {
+  background: #0f1015;
+  border: 1px solid #3a3c4a;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+.sb-choice { grid-template-columns: 1fr 30px; }
+.sb-choice select { min-width: 0; }
+.sb-credit { margin: 6px 0; padding: 8px; border: 1px solid #34353f; border-radius: 6px; background: #16171d; }
+.sb-credit-field { display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 4px 6px; margin: 4px 0; font-size: 12px; }
+.sb-credit-field input + input, .sb-credit-field select + input { grid-column: 2; }
+
+/* The waveform */
+.sb-wave { margin: 8px 0 4px; min-width: 0; }
+.sb-wave canvas { display: block; background: #0f1015; border: 1px solid #34353f; border-radius: 4px; touch-action: none; }
+.sb-key-trim { color: #ffb020; }
+.sb-key-loop { color: #7bd88f; }
+
+/* The mixer */
+.sb-mix-row { padding-bottom: 4px; }
+.sb-mix-row .tt-row { border-bottom: none; }
+.sb-meter { display: block; height: 6px; background: #0f1015; border: 1px solid #34353f; border-radius: 3px; overflow: hidden; }
+.sb-meter-bar { display: block; width: 0; height: 100%; background: #7bd88f; }
+.sb-meter-bar[data-hot='true'] { background: #ff7b7b; }
+.sb-snapshots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+
+/* The log */
+.sb-log-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sb-log-list { max-height: 260px; overflow-y: auto; }
+.sb-log-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding: 3px 0; border-bottom: 1px solid #25262f; font-size: 11px; }
+.sb-log-list code { font: 11px ui-monospace, Consolas, monospace; }
+.sb-log-time { color: #7d7f92; font-variant-numeric: tabular-nums; }
+.sb-log-list .is-played .sb-log-mark { color: #7bd88f; }
+.sb-log-list .is-dropped .sb-log-mark, .sb-log-list .is-dropped .sb-log-what { color: #ff9b7b; }
+.sb-log-what { color: #9a9bab; overflow-wrap: anywhere; }

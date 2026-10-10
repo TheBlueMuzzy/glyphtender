@@ -3,32 +3,39 @@
 //   Restore: hands that state back to the game (setState) — off in online games (canRestore false).
 //   Save to file (dev only): writes content/snapshots/<name>.json, so Claude and tests can load the same moment;
 //   files already there are listed underneath. Copy for Claude: the snapshot as JSON, to paste into the chat.
+//   The Dev Kit's search box (while this tab is open) filters both lists by name, summary and version.
 // Needs the game's adapter (registerDevKitGame in src/devkit-game/tabs.ts) — see devkitGame.ts.
 import { useState, type ReactNode } from 'react'
 import { describeMoment, useDevKitGame, type DevKitGame } from '../devkitGame'
 import { NotPluggedIn } from '../NotPluggedIn'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
+import { Highlight, SearchCount } from '../search/Section'
+import { searchTerms } from '../search/searchLogic'
 import { snapshotFiles } from './snapshotFiles'
 import {
-  addSnapshot, cleanName, deleteSnapshot, loadSnapshots, shortTime, snapshotFilePath, snapshotForClaude, type Snapshot,
+  addSnapshot, cleanName, deleteSnapshot, loadSnapshots, shortTime, snapshotFilePath, snapshotForClaude, snapshotMatches, type Snapshot,
 } from './snapshotStore'
 import './snapshots.css'
 
 type Status = { kind: 'ok' | 'error' | 'info'; text: string }
 
-export function SnapshotsTab({ files = snapshotFiles }: { files?: Snapshot[] }) {
+// query: the Dev Kit's search box (while this tab is open) — filters both lists by name, summary and version
+export function SnapshotsTab({ files = snapshotFiles, query = '' }: { files?: Snapshot[]; query?: string }) {
   const game = useDevKitGame()
   if (!game) return <NotPluggedIn />
   // key: a different game (or a re-registered one) starts with its own list
-  return <Snapshots key={game.name} game={game} files={files} />
+  return <Snapshots key={game.name} game={game} files={files} query={query} />
 }
 
-function Snapshots({ game, files }: { game: DevKitGame; files: Snapshot[] }) {
+function Snapshots({ game, files, query }: { game: DevKitGame; files: Snapshot[]; query: string }) {
   const [saved, setSaved] = useState(() => loadSnapshots(game.name)) // this browser's, newest first
   const [name, setName] = useState('')
   const [status, setStatus] = useState<Status | null>(null)
   const [copyFallback, setCopyFallback] = useState<string | null>(null) // shown if the clipboard is blocked
   const restoreAllowed = game.canRestore()
+  const terms = searchTerms(query)
+  const shownSaved = saved.filter((s) => snapshotMatches(s, query))
+  const shownFiles = files.filter((s) => snapshotMatches(s, query))
 
   function saveMoment() {
     try {
@@ -109,23 +116,24 @@ function Snapshots({ game, files }: { game: DevKitGame; files: Snapshot[] }) {
       {status && <p className={`devkit-status sn-status is-${status.kind}`} role="status">{status.text}</p>}
       {copyFallback && <textarea className="sn-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}
 
+      <SearchCount query={query} found={shownSaved.length + shownFiles.length} what="snapshot" where="Snapshots" />
       <h3 className="sn-heading">Saved in this browser</h3>
       {saved.length === 0 && <p className="sn-empty">None yet — play to an interesting moment and press Save moment.</p>}
       <ul className="sn-list">
-        {saved.map((s) => (
-          <SnapshotRow key={s.name} snapshot={s} canRestore={restoreAllowed} onRestore={() => restore(s)} onCopy={() => copy(s)}>
+        {shownSaved.map((s) => (
+          <SnapshotRow key={s.name} snapshot={s} terms={terms} canRestore={restoreAllowed} onRestore={() => restore(s)} onCopy={() => copy(s)}>
             {CAN_SAVE && <button className="devkit-btn" onClick={() => saveToFile(s)} title={`Write ${snapshotFilePath(s.name)}`}>Save to file</button>}
             <button className="devkit-btn sn-delete" onClick={() => remove(s)} aria-label={`Delete ${s.name}`} title="Delete">✕</button>
           </SnapshotRow>
         ))}
       </ul>
 
-      {files.length > 0 && (
+      {shownFiles.length > 0 && (
         <>
           <h3 className="sn-heading">In the game's files <small>content/snapshots/</small></h3>
           <ul className="sn-list">
-            {files.map((s) => (
-              <SnapshotRow key={s.name} snapshot={s} canRestore={restoreAllowed} onRestore={() => restore(s)} onCopy={() => copy(s)} />
+            {shownFiles.map((s) => (
+              <SnapshotRow key={s.name} snapshot={s} terms={terms} canRestore={restoreAllowed} onRestore={() => restore(s)} onCopy={() => copy(s)} />
             ))}
           </ul>
         </>
@@ -136,6 +144,7 @@ function Snapshots({ game, files }: { game: DevKitGame; files: Snapshot[] }) {
 
 type RowProps = {
   snapshot: Snapshot
+  terms: string[] // search words to highlight
   canRestore: boolean
   onRestore: () => void
   onCopy: () => void
@@ -143,13 +152,13 @@ type RowProps = {
 }
 
 // One snapshot: name + time + summary, then its buttons
-function SnapshotRow({ snapshot, canRestore, onRestore, onCopy, children }: RowProps) {
+function SnapshotRow({ snapshot, terms, canRestore, onRestore, onCopy, children }: RowProps) {
   return (
     <li className="sn-row">
       <div className="sn-info">
-        <strong className="sn-row-name">{snapshot.name}</strong>
-        <small className="sn-time">{shortTime(snapshot.savedAt)} · v{snapshot.version}</small>
-        {snapshot.summary && <small className="sn-summary">{snapshot.summary}</small>}
+        <strong className="sn-row-name"><Highlight text={snapshot.name} terms={terms} /></strong>
+        <small className="sn-time">{shortTime(snapshot.savedAt)} · <Highlight text={`v${snapshot.version}`} terms={terms} /></small>
+        {snapshot.summary && <small className="sn-summary"><Highlight text={snapshot.summary} terms={terms} /></small>}
       </div>
       <div className="sn-buttons">
         <button className="devkit-btn devkit-btn-main" disabled={!canRestore} onClick={onRestore}>Restore</button>

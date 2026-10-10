@@ -11,9 +11,9 @@
 // The game plugs it in with aiTab(…) (aiTabEntry.ts) from src/devkit-game/tabs.ts. Shapes: aiTypes.ts. Thinking: aiLogic.ts.
 import { useContext, useState, type DragEvent, type ReactNode } from 'react'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
-import { Section, SectionIndex } from '../search/Section'
+import { SearchCount, Section, SectionIndex } from '../search/Section'
 import { DevKitSearch } from '../search/searchContext'
-import { searchTerms } from '../search/searchLogic'
+import { countFound, searchTerms } from '../search/searchLogic'
 import { FieldRow } from '../tuning/FieldRow'
 import { listTuningChanges, tuningChanged, valueAt, withValue } from '../tuning/tuningLogic'
 import { CheckPanel } from './CheckPanel'
@@ -29,8 +29,8 @@ import './ai.css'
 
 type Status = { kind: 'ok' | 'error' | 'info'; text: string } | null
 
-export function AiTab({ ai }: { ai: DevKitAi }) {
-  const search = useContext(DevKitSearch)
+export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
+  const search = useContext(DevKitSearch) // query: the Dev Kit's search box (while this tab is open)
   const [sections] = useState(() => aiSections(ai))
   const [savedPeople, setSavedPeople] = useState(() => listOf<AiPersonality>(ai.personalities))
   const [people, setPeople] = useState(savedPeople)
@@ -253,9 +253,9 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
     return null
   }
 
-  const terms = searchTerms(search.query)
+  const terms = searchTerms(query)
   const searching = terms.length > 0
-  const shown: AiSection[] = searching ? searchAi(sections, search.query) : sections
+  const shown: AiSection[] = searching ? searchAi(sections, query) : sections
   const sectionChanged = (s: AiSection) => {
     if (s.file === 'personalities') return s.keys.some((k) => isChanged((p) => p[k]))
     if (s.file === 'skills') return s.keys.some((k) => !same(skill[k], savedSkill?.[k]))
@@ -289,6 +289,7 @@ export function AiTab({ ai }: { ai: DevKitAi }) {
           {problems.map((p) => <li key={p}>{p}</li>)}
         </ul>
       )}
+      <SearchCount query={query} found={countFound(shown)} what="setting" where="AI" />
       {!searching && <SectionIndex label="AI" sections={sections.map((s) => ({ id: s.id, title: s.title, count: s.items.length }))} />}
 
       {shown.map((section) => (

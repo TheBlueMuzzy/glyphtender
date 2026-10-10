@@ -81,6 +81,9 @@ export interface Audio {
   reloadFile(file: string): void
   /** What is playing or scheduled right now */
   voices(): ActiveVoice[]
+  /** How loud a volume group is right now: the peak of the last ~20 ms, 0 (silent) … 1 (full scale). For the Dev Kit's
+   *  level meters — the first call adds a small listener (AnalyserNode) to that group. 0 before the first tap. */
+  level(bus: BusOrMaster): number
   log: AudioLog
   /** Called with every play / drop. Returns a function that stops listening. */
   onLog(listener: (entry: LogEntry) => void): () => void
@@ -145,6 +148,8 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   let nextVoiceId = 1
   const sliders: Record<BusOrMaster, number> = { master: 100, music: 100, ambience: 100, sfx: 100, ui: 100 }
   const voices = new Map<number, PlayingVoice>()
+  /** Level meters (Dev Kit): one listener per volume group, made on the first level() call */
+  const meters = new Map<BusOrMaster, { analyser: AnalyserNode; samples: Float32Array<ArrayBuffer> }>()
   const memory = new Map<string, SoundMemory>()
   /** Loops asked for while audio couldn't play (locked / suspended / still loading) — started once it can */
   const wantedLoops = new Map<string, PlayOptions>()
@@ -462,6 +467,25 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     gain.linearRampToValueAtTime(1, at + (downMs + backMs) / 1000)
   }
 
+  // ---------- level meters (Dev Kit) ----------
+  function level(bus: BusOrMaster): number {
+    if (!ctx || !graph) return 0
+    let meter = meters.get(bus)
+    if (!meter) {
+      const analyser = ctx.createAnalyser()
+      analyser.fftSize = 1024 // ~21 ms at 48 kHz
+      // A side branch: it listens, it doesn't pass sound on. Master = after the limiter (what the speakers get).
+      if (bus === 'master') graph.limiter.connect(analyser)
+      else graph.buses[bus].mix.connect(analyser)
+      meter = { analyser, samples: new Float32Array(analyser.fftSize) }
+      meters.set(bus, meter)
+    }
+    meter.analyser.getFloatTimeDomainData(meter.samples)
+    let peak = 0
+    for (const sample of meter.samples) peak = Math.max(peak, Math.abs(sample))
+    return Math.min(1, peak)
+  }
+
   // ---------- loading ----------
   function preload(names?: string[]): Promise<void> {
     if (!loader) return Promise.resolve()
@@ -504,6 +528,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     preload,
     reloadFile: (file) => loader?.forget(file),
     voices: () => [...voices.values()].map(({ id, sound, bus, startAt, endAt, gainDb, priority }) => ({ id, sound, bus, startAt, endAt, gainDb, priority })),
+    level,
     log,
     onLog: (listener) => log.subscribe(listener),
     dispose() {
