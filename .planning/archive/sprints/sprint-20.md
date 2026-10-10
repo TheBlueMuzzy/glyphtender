@@ -21,7 +21,7 @@ Today the search box searches every tab at once (DevKit.tsx countMatches, groupe
 
 ## Checks
 - [x] 🤖 9. Tests: preset + save unit tests; e2e — a Sound tab edit changes what plays, a dropped file lands + plays, a fired Moment logs its sounds, search stays in its tab; check:full
-- [ ] 🙋 10. Muzzy: try the Sound tab + Moments — tweak a sound, loop the score pop through the 3 presets, search inside a tab
+- [x] 🙋 10. Muzzy: try the Sound tab + Moments — tweak a sound, loop the score pop through the 3 presets, search inside a tab
 
 Check: check:fast after each task · check:full once at the end.
 Ask Muzzy: —
@@ -36,3 +36,4 @@ Ask Muzzy: —
 - Task 9 checks (2ad69e6): Area check ALL PASS — 8 checks, 3.7 min (Fast: unit 655/655, build, lint, golden · devkit-search 15 s · previews 93 s · devkit-ai 38 s · devkit-sound 73 s). Unit: moments.test (57 — every knob a number in its file with a range, exact values in range, Balanced = saved; every screen a preview) + momentTurns.test (6). Preset + save logic are unit-tested in the framework (277). check:full not run (Area only, as asked).
 - Noticed, not fixed: on a phone the Moments panel leaves the preview frame ~390×380 (Fit) — the game's layout at that squat size puts ☰ over the prompt; the Phone size button avoids it. A two-glyphling tangle logs one `tangle` played + one dropped (cooldown) — as designed.
 - Checks: check:full ALL PASS 24/24 (8a4c419, incl. new e2e:devkit-sound). Review (low, a99271e..8a4c419): 1 fix — Moments Save overwrote slider changes made during the save → Dev Kit 0.8.2 (devkit-sound/search/previews re-run: 0 fails). The second finding (meters lost on a graph rebuild) isn't real — the engine builds its graph once.
+- Muzzy 2026-10-10: "approved".
