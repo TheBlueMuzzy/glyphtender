@@ -228,6 +228,7 @@ Goal: the end screen's Story chart says what every player did each round and sho
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-10 — **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
   - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.
   - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
