@@ -23,7 +23,7 @@ Done when: all 31 sounds play at their animation's moment (not the event's); bot
 - [x] 🤖 7. content/audio.json (31 sounds, _help/_labels/_sections/_ranges) + playSound at each moment (useThrow, useGlide, usePieceInput, gameStore, scoreSequence/ScorePops, DangerCue, refuseTap, useTurnPulse, Handoff, Reveal, EndHighlights, OnlineSession, kit Button/Toggle) + feel.json tiers → sounds
 - [x] 🤖 8. Install in Glyphtender (src/audio/), PWA cache for sfx (vite.config.ts globPatterns), audio-setup skill → points at the module
 - [x] 🤖 9. Tests: e2e reads __audioLog (a cast logs seed.land at the landing; a reconnect plays no burst); check:golden + check:shots unchanged
-- [ ] 🙋 10. Muzzy plays a game with sound on phone + desktop — first impressions (tuning is sprint 21)
+- [x] 🙋 10. Muzzy plays a game with sound on phone + desktop — first impressions (tuning is sprint 21)
 
 Check: check:fast after each feature · check:full once at the end.
 Ask Muzzy: —
@@ -49,3 +49,4 @@ Ask Muzzy: —
 - Area check (Fast + audio game pass online online4 score spotlight end previews devkit-search): 14/14 PASS, 7.8 min. e2e:audio = new, registered in check:full (ports 5417 / 1992).
 - Checks: check:full ALL PASS 23/23 (c76b377). Two earlier loaded runs failed e2e:game desktop (reveal already showing) → B025 watching. Review (low, 2492550..71be2d3): 1 fix — word.chord guard for a word with no pops (c76b377). Framework audio 0.1.1: the engine uses its own seeded random by default.
 - Freesound (Muzzy made the account 2026-10-09; key in ~/.config/freesound.json, PC only) → 96ca02c replaced the 5 weak fits, all CC0: owl mixed into amb.night (loop length kept), leafy sprout + soft chime, vine rustle + tree creak (tangle — may be quiet on phone speakers), harp glissando → choir fanfare in D (reveal.winner), 3 soft whooshes (cast.throw — longer, may overlap seed.land; delayMs/trimEndMs). mus.menu kept.
+- Muzzy 2026-10-10: "sounds are okay - not amazing. good enough for now since it proved out the system of implementation. keep." → approved. His one report: dragging during setup sounded "really delayed" → B026 (5 tap files started with 40–70 ms of near-silence; trimmed).
