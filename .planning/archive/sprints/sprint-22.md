@@ -15,7 +15,7 @@ Done when: online, the rounds a bot played for a human (idle takeover, turn time
 - [x] 🤖 6. The band in StoryChart.tsx (width / darkness in endscreen.json) + a Dev Kit Screens preview "End table — online, a bot took over" (src/devkit-game/previews.tsx sample data)
 - [x] 🤖 7. Tests: who-played unit tests; online e2e — an idle takeover → the band on the Story page; check:full
 
-- [ ] 🙋 8. Muzzy: look at the Story page after a game (and online with a takeover)
+- [x] 🙋 8. Muzzy: look at the Story page after a game (and online with a takeover)
 
 Check: check:fast after each task · check:full once at the end.
 Ask Muzzy: —
@@ -28,3 +28,4 @@ Ask Muzzy: —
 - F62 task 6 (the band): stats.ts botBands joins each player's bot-played turns into runs (a skipped all-tangled round doesn't break one), x from round − 1 to the last bot round. Drawn before the lines in the player's colour 0.3 towards the night sky (garden background), 5× the line width, 85% solid (endscreen.json botBandWidth / botBandDarken / botBandOpacity — first try 3.5 / 0.45 / 0.6 was nearly invisible on the dark chart). Fades in with the marks. The key gets "Bot played" (a swatch) only when there's a band; the turn list row ends "· by a bot". Dev Kit: End table → "Online, a bot took over" (3p, a bot played 3 rounds for Ada).
 - F62 task 7: server tests (idle takeover 3 turns → listed, after the tap → not; Leave → every later turn; host-added AI → never; a pre-F62 record → nothing), unit tests (bands, joins, splits, none without bot turns / an old save; "by a bot" row; the sample), e2e:online-ai extended (the bot plays 2 of Ada's turns, she taps, Bo leaves → results.botTurns exact + [data-bot-band] over exactly those rounds). UI kit 0.4.5 (framework: layout.tsx '0px' → '0', check:ui clean again).
 - Checks: check:full ALL PASS 25/25 (fff809a). Review (low, F61+F62 range): no findings.
+- Muzzy 2026-10-10: "story changes are great. approved."

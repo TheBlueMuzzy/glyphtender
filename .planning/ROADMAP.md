@@ -213,11 +213,11 @@ flowchart LR
   FW30[fw F30 Sound Board] --> F60
 ```
 
-## v0.10 — The Story tells the whole game  ← current
+## v0.10 — The Story tells the whole game  ✅ done 2026-10-10 (not released — needs the server redeploy at /deliver)
 Goal: the end screen's Story chart says what every player did each round and shows when a bot played for someone (Muzzy 2026-10-09/10).
-- 🔨 F61 🎮 Turn-by-turn list on the Story chart: the chart's empty top-left lists each glyphling (stacked, up to 4) with the scrubbed round's play — words + Magic ("NEST +6"), "Refresh 3", moved only, a tangle mark; below the key = awards only. Includes the round-number fix for the shuffled turn order — should · needs: F26
+- ✅ F61 🎮 Turn-by-turn list on the Story chart: the chart's empty top-left lists each glyphling (stacked, up to 4) with the scrubbed round's play — words + Magic ("NEST +6"), "Refresh 3", moved only, a tangle mark; below the key = awards only. Includes the round-number fix for the shuffled turn order — should · needs: F26
   why: the Story reads like a replay → "again?" (Fellowship), and players learn what scored
-- 🔨 F62 🎮 Bot band on the Story chart: a thicker, darker band behind a player's line for the rounds a bot played for them (online idle takeover / turn timer / left); framework-first: every recorded move says who played it — should · needs: F52
+- ✅ F62 🎮 Bot band on the Story chart: a thicker, darker band behind a player's line for the rounds a bot played for them (online idle takeover / turn timer / left); framework-first: every recorded move says who played it — should · needs: F52
   why: the story is honest about who played — nobody's score looks like theirs when a bot made it
 
 ## Later
