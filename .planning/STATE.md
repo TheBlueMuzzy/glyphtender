@@ -4,7 +4,7 @@
 Next: **/sprint 23 — Drag carry styles** (Muzzy: "carry styles ready to go"; framework Ideas has the full brief): framework drag referee / Hand view gets per-zone/per-phase carry styles A Pick it up (solid carried · empty origin) · B Lift, mark home (solid · ghost) · C Aim (ghost · solid; valid drop → the real piece flies origin→target) · D Float (ghost · empty), + how a valid drop lands / an invalid one returns, + target side (highlight · ghost preview · insertion marker · make room · tether), lift feedback, magnetic snap — all built, a Dev Kit switch previews them live; Glyphtender guess: draft = A, plan a cast = C (or B), tray reorder = A/B — Muzzy picks after seeing them. Tiles/objects in zones first; card hands (insertion marker between cards, make room) in a near-future card game. Then: /deliver v0.10 (server redeploy — party/ + src/rooms/server changed) whenever.
 
 ## Where we are
-Stage: deliver · Milestone: v0.9 The garden sings ✅ released · Sprint: none (22 done) · Doing: sprint 22 approved → /sprint 23 drag carry styles · Branch: dev/story · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
+Stage: develop · Milestone: v0.10 The Story ✅ (unreleased, branch dev/story) · Sprint: none (22 done) · Doing: sprint 22 approved → /sprint 23 drag carry styles · Branch: dev/story · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
