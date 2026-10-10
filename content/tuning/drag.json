@@ -101,7 +101,7 @@
   },
   "targets": {
     "draft": "highlight",
-    "seed": "highlight",
+    "seed": "ghost",
     "move": "highlight",
     "reorder": "none"
   },
