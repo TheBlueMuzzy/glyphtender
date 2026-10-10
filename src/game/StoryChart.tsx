@@ -8,11 +8,17 @@
 // and a vertical line follows the finger, snapping to a round (or the Tangles column); every moment on that round
 // shows in the caption under the chart, stacked (GameOver.tsx). A tap jumps it there; ← / → move it when the chart
 // has focus (it's a slider). Before it's touched, a faint dashed line + grip waits at the start.
+// THE TURN LIST (F61 — Muzzy, 2026-10-10: "best placement would be the top left of the graph since it's always empty"):
+// once the line is moved, the plot's top-left lists what each player did on that round — their shape, then "NEST · TEN
+// +9", "F · Refresh 3", "moved", a knot + "tangled" — one row per player in turn order, on a soft card so it reads
+// over anything under it (the lines start bottom-left, so that corner is nearly always clear). The Tangles column
+// lists each player's tangle bonus. Sizes: endscreen.json storyList…; words: en.json game.gameOver.chart.play….
 // Each line ends in its own shape (circle, square, triangle, diamond — not colour alone) and its total.
 // The lines draw themselves in, left to right, when the page opens (endscreen.json chartDrawSeconds; reduce motion = at once).
 // Game graphics like the board: an SVG sized in real pixels (it measures its box), colours from garden.json + style names.
-import { useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { fill, reduceMotion } from '../ui/kit'
+import type { PlayRow } from './endText'
 import type { ChartMarker, EndTuning, StoryChart as Chart } from './stats'
 import { colourOf } from './art'
 import type { GardenTuning } from './useTuning'
@@ -63,11 +69,30 @@ type Props = {
   star: ChartMarker | null
   /** How tall the chart is, px. */
   height: number
-  /** What a spot of the line reads as, for screen readers ("Round 4"). */
+  /** What a spot of the line reads as, for screen readers ("Round 4: Yellow NEST +6; Blue moved"). */
   spotLabel: (x: number) => string
+  /** The turn list for a spot: its title ("Round 4") and one row per player; `room` = about how many letters fit a
+   *  row. Null = nothing to list (the start). */
+  playsAt: (x: number, room: number) => { title: string; rows: PlayRow[] } | null
 }
 
-export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, star, height, spotLabel }: Props) {
+/** The turn list's sizes for a plot of this size and this many players (endscreen.json storyList…). */
+function listSizes(font: number, plotW: number, plotH: number, players: number, tuning: EndTuning) {
+  // Word size: the chart's words × the scale — smaller still if the list would be taller than its share of the plot.
+  // A short chart (a phone on its side) that would need words smaller than storyListSmallest: two columns instead
+  const want = font * tuning.storyListFontScale
+  const fit = (cols: number) => (plotH * tuning.storyListMaxHeight) / ((1 + Math.ceil(players / cols)) * 1.35 + 0.8) // (+1: the title)
+  const cols = players > 2 && fit(1) < Math.min(want, tuning.storyListSmallest) ? 2 : 1
+  const size = Math.max(9, Math.min(want, fit(cols)))
+  const pad = Math.round(size * 0.4)
+  const shape = size * 1.35 // the player's shape, and the gap after it
+  const colGap = size
+  const width = plotW * tuning.storyListMaxWidth
+  const colW = (width - pad * 2 - colGap * (cols - 1)) / cols
+  return { size, pad, shape, line: size * 1.35, width, cols, colGap, colW, room: Math.max(6, Math.floor((colW - shape) / (size * 0.6))) }
+}
+
+export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, star, height, spotLabel, playsAt }: Props) {
   // Real pixels: the SVG is as wide as its box, so its words are true sizes
   const box = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
@@ -148,6 +173,19 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
   const lineX = spots[at] ?? PAD.left
 
   const colour = (seat: number) => colours[colourOf(seat)]
+
+  // The turn list: its rows, then each row's real width (measured after drawing) for the card and the knots after the words
+  const list = listSizes(FONT, plotW, plotH, chart.series.length, tuning)
+  const plays = scrub === null || !width ? null : playsAt(scrub, list.room)
+  const rowText = useRef<(SVGTextElement | null)[]>([])
+  const clipId = `game-end-plays-${useId().replace(/:/g, '')}`
+  const titleText = useRef<SVGTextElement>(null)
+  const [rowWidths, setRowWidths] = useState<number[]>([])
+  const playsKey = plays ? `${plays.title}|${plays.rows.map((r) => `${r.words}${r.magic}${r.rest}`).join('|')}|${list.size}` : ''
+  useLayoutEffect(() => {
+    if (!playsKey) return
+    setRowWidths([titleText.current, ...rowText.current].map((el) => el?.getComputedTextLength?.() ?? 0))
+  }, [playsKey])
   const pointOf = (m: ChartMarker) => ({ x: X(m.x), y: Y(chart.series[m.seat].points[m.x]) })
   const isStar = (m: ChartMarker) => !!star && m.award === star.award && m.seat === star.seat
   const ring = (x: number, y: number, r: number) => <circle cx={x} cy={y} r={r} fill="none" stroke="var(--focus)" strokeWidth={2.5} />
@@ -235,6 +273,52 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
             <path d={`M${lineX - 3 * S} ${PAD.top + plotH - 4 * S} l${-3.5 * S} ${4 * S} l${3.5 * S} ${4 * S} M${lineX + 3 * S} ${PAD.top + plotH - 4 * S} l${3.5 * S} ${4 * S} l${-3.5 * S} ${4 * S}`}
               fill="none" stroke="var(--surface)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
           </g>
+          {/* The turn list, top-left of the plot, on its soft card (on top of everything; taps go through to the chart) */}
+          {plays && (() => {
+            const x0 = PAD.left + 4
+            const y0 = PAD.top + 4
+            const knot = list.size * 0.42
+            const gap = list.size * 0.3
+            // Each row's width; one column (or two, on a short chart: left to right, then down) as wide as its widest row
+            const rowsW = plays.rows.map((r, i) => Math.min(list.colW, list.shape + (rowWidths[i + 1] ?? 0) + (r.knots.length ? gap + r.knots.length * (knot * 2 + 3) - 3 : 0)))
+            const colW = Math.max(...rowsW)
+            const cardW = Math.min(list.width, list.pad * 2 + Math.max(rowWidths[0] ?? 0, colW * list.cols + list.colGap * (list.cols - 1)))
+            const cardH = list.pad * 2 + list.line * (Math.ceil(plays.rows.length / list.cols) + 1)
+            const rowY = (line: number) => y0 + list.pad + list.line * (line + 0.5)
+            return (
+              <g className="game-end-plays" pointerEvents="none" fontSize={list.size} data-plays={plays.title} data-cols={list.cols}>
+                <defs><clipPath id={clipId}><rect x={x0} y={y0} width={cardW} height={cardH} rx={list.pad * 1.5} /></clipPath></defs>
+                <rect x={x0} y={y0} width={cardW} height={cardH} rx={list.pad * 1.5} fill="var(--surface)" opacity={tuning.storyListBackdrop}
+                  stroke="var(--border)" strokeWidth={1} className="game-end-plays-card" />
+                <g clipPath={`url(#${clipId})`}>
+                <text ref={titleText} x={x0 + list.pad} y={rowY(0)} dy="0.35em" fill="var(--muted)" fontWeight={700}>{plays.title}</text>
+                {plays.rows.map((r, i) => {
+                  const y = rowY(1 + Math.floor(i / list.cols))
+                  const left = x0 + list.pad + (i % list.cols) * (colW + list.colGap)
+                  const textX = left + list.shape
+                  const knotX = textX + (rowWidths[i + 1] ?? 0) + gap + knot
+                  return (
+                    <g key={r.seat} data-seat={r.seat} className="game-end-play">
+                      <SeatShape seat={r.seat} x={left + list.size * 0.5} y={y} size={list.size * 0.85} colour={colour(r.seat)} />
+                      <text ref={(el) => { rowText.current[i] = el }} x={textX} y={y} dy="0.35em" fill={r.quiet ? 'var(--muted)' : 'var(--on-surface)'}>
+                        {r.words && <tspan>{r.words}</tspan>}
+                        {r.magic && <tspan fontWeight={700}>{r.words ? ' ' : ''}{r.magic}</tspan>}
+                        {r.rest && <tspan fill={r.quiet ? undefined : 'var(--muted)'}>{r.words || r.magic ? text.game.gameOver.separator : ''}{r.rest}</tspan>}
+                      </text>
+                      {/* A tangle on that turn: the chart's knot (the tangled glyphling's colour, ringed in the tangler's) */}
+                      {r.knots.map((k, j) => (
+                        <g key={j} data-knot={k.owner}>
+                          <circle cx={knotX + j * (knot * 2 + 3)} cy={y} r={knot} fill="var(--surface)" stroke={colour(k.by)} strokeWidth={2} />
+                          <circle cx={knotX + j * (knot * 2 + 3)} cy={y} r={knot * 0.45} fill={colour(k.owner)} />
+                        </g>
+                      ))}
+                    </g>
+                  )
+                })}
+                </g>
+              </g>
+            )
+          })()}
         </svg>
       )}
     </div>

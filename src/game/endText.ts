@@ -1,10 +1,10 @@
-// THE END SCREEN'S SENTENCES — awards and chart captions, filled in from content/text/en.json → game.gameOver.
+// THE END SCREEN'S SENTENCES — awards, the Story chart's turn list and the scorecard's rows, filled in from content/text/en.json → game.gameOver.
 // Pure (names come in as a function), so it's tested without a screen.
 import text from '../../content/text/en.json'
 import { logOf } from '../engine/log'
-import type { GameState, LogTurn } from '../engine/types'
+import type { GameState } from '../engine/types'
 import { fill, noOrphan } from '../ui/kit/blocks/words'
-import { LENGTHS, type Award, type ChartMarker, type Scorecard } from './stats'
+import { LENGTHS, type Award, type Scorecard } from './stats'
 
 const w = text.game.gameOver
 const card = w.card
@@ -22,40 +22,76 @@ export function awardText(award: Award, name: Name): { title: string; reason: st
   return { title: words.title, reason: noOrphan(fill(reason, values)) } // (never one word alone on the last line)
 }
 
-/** What happened on one turn: "Round 7 · Blue cast N: GARDEN + DEN, +14". */
-export function turnCaption(turn: LogTurn, name: Name): string {
-  const base = { round: turn.round, player: name(turn.seat), letter: turn.letter ?? '', n: turn.magic }
-  if (turn.letter === null) return fill(w.chart.moveOnly, base)
-  if (!turn.words.length) return fill(w.chart.turnNoWords, base)
-  return fill(w.chart.turn, { ...base, words: turn.words.map((x) => x.word).join(w.and) })
-}
+// ─── The Story chart's turn list (F61) ───
+// Muzzy, 2026-10-10: "instead of Round 17 - nothing happened, it would say Round 17 - Blue: NEST +6 Yellow: F Refresh 3".
+// One row per player, in the game's TURN ORDER (the order they played that round; the rows never swap places as the
+// line moves). Each row: the words with their Magic ("NEST · TEN +9"), then what else happened ("Refresh 3", "tangled").
 
-/** The end bonus: "Tangles: Yellow +6 · Blue +3". */
-export function tangleBonusCaption(game: GameState, name: Name): string {
-  const parts = game.tangleMagic.flatMap((n, seat) => (n > 0 ? [fill(w.chart.tangleBonusPart, { player: name(seat), n })] : []))
-  return parts.length ? fill(w.chart.tangleBonus, { list: parts.join(w.separator) }) : w.chart.noTangleBonus
-}
+/** A glyphling tangled on that turn: whose it is, and who tangled it (the chart's knot: ringed in `by`'s colour). */
+export type PlayKnot = { owner: number; by: number }
+/** One player's row: `words` may be cut short (…), `magic` ("+9") and `rest` ("Refresh 3") never are. */
+export type PlayRow = { seat: number; words: string; magic: string; rest: string; knots: PlayKnot[]; quiet: boolean }
 
-/** The line under the chart when a marker is tapped (never one word alone on its last line). */
-export const markerCaption = (...args: Parameters<typeof markerLine>) => noOrphan(markerLine(...args))
+/** Cut a word longer than `max` letters: GARDENING → GARDENI… */
+const cut = (word: string, max: number) => (word.length > max ? `${word.slice(0, Math.max(1, max - 1))}…` : word)
 
-function markerLine(game: GameState, marker: ChartMarker, awards: Award[], name: Name): string {
-  const turn = marker.turnNo === null ? null : logOf(game).turns.find((t) => t.turnNo === marker.turnNo) ?? null
-  if (marker.kind === 'tangle' && turn) {
-    const owner = name(marker.seat)
-    if (marker.by === undefined || marker.by === marker.seat) return fill(w.chart.selfTangle, { round: turn.round, owner })
-    return fill(w.chart.tangle, { round: turn.round, owner, by: name(marker.by) })
+/** Words, joined, kept to about `room` letters: words that don't fit become one "…". */
+function wordsIn(words: string[], maxWord: number, room: number): string {
+  const join = w.chart.playWordJoin
+  let out = ''
+  for (const [i, word] of words.map((x) => cut(x, maxWord)).entries()) {
+    const next = i ? `${out}${join}${word}` : word
+    if (i && next.length > room) return `${out}${join}…`
+    out = next
   }
-  if (marker.kind === 'award') {
-    const award = awards.find((a) => a.id === marker.award && a.holder === marker.seat)
-    if (award) {
-      const { title, reason } = awardText(award, name)
-      return `${title}: ${reason}`
+  return out
+}
+
+/** What each player did on round `round` (1…), in turn order. `room` = about how many letters a row has space for. */
+export function roundPlays(game: GameState, round: number, maxWord: number, room: number): PlayRow[] {
+  const turns = logOf(game).turns
+  const inRound = turns.filter((t) => t.round === round)
+  const order = game.turnOrder ?? game.magic.map((_, seat) => seat)
+  const ownerOf = (id: number) => game.glyphlings.find((g) => g.id === id)?.seat ?? -1
+  const last = turns.at(-1)
+  const join = w.separator
+  return order.map((seat) => {
+    const turn = inRound.find((t) => t.seat === seat)
+    if (!turn) {
+      // No turn: the game ended before their turn came round (the last round, after the ender) — otherwise play
+      // skipped them because every glyphling of theirs was tangled (tangle.ts endTurn)
+      const ended = !!last && round === last.round && order.indexOf(seat) > order.indexOf(last.seat)
+      return { seat, words: '', magic: '', rest: ended ? w.chart.playEnded : w.chart.playSkipped, knots: [], quiet: true }
     }
-  }
-  if (marker.kind === 'lead' && turn) return fill(w.chart.lead, { round: turn.round, player: name(marker.seat) })
-  return turn ? turnCaption(turn, name) : tangleBonusCaption(game, name)
+    const rest: string[] = []
+    const scored = turn.words.length > 0
+    // (a cast with no words then a refresh reads "F · Refresh 3", as Muzzy wrote it — the refresh says it made nothing)
+    const plain = turn.letter === null ? w.chart.playMoved : scored ? '' : turn.refresh ? turn.letter : fill(w.chart.playNoWords, { letter: turn.letter })
+    if (turn.refresh) rest.push(turn.refreshed ? fill(w.chart.playRefresh, { n: turn.refreshed }) : w.chart.playKeepAll)
+    const knots = turn.newlyTangled.map((id) => ({ owner: ownerOf(id), by: turn.seat }))
+    if (knots.length) rest.push(w.chart.playTangled)
+    const magic = scored ? fill(w.chart.playMagic, { n: turn.magic }) : ''
+    const room0 = room - magic.length - rest.join(join).length - (rest.length ? join.length : 0)
+    const words = !scored ? plain : wordsIn(turn.words.map((x) => x.word), maxWord, Math.max(maxWord, room0))
+    return { seat, words, magic, rest: rest.join(join), knots, quiet: false }
+  })
 }
+
+/** The Tangles column: each player's end-of-game tangle bonus ("+6" / "no bonus"), in turn order. */
+export function tangleBonusPlays(game: GameState): PlayRow[] {
+  const order = game.turnOrder ?? game.magic.map((_, seat) => seat)
+  return order.map((seat) => {
+    const n = game.tangleMagic[seat] ?? 0
+    return { seat, words: '', magic: n > 0 ? fill(w.chart.playTangleBonus, { n }) : '', rest: n > 0 ? '' : w.chart.playNoTangleBonus, knots: [], quiet: n === 0 }
+  })
+}
+
+/** A row as one line of words (screen readers, tests): "NEST · TEN +9 · Refresh 3". */
+export const playText = (row: PlayRow) => [[row.words, row.magic].filter(Boolean).join(' '), row.rest].filter(Boolean).join(w.separator)
+
+/** The whole round for screen readers: "Round 4: Yellow NEST +6 · Blue F · no words · Refresh 3". */
+export const playsText = (label: string, rows: PlayRow[], name: Name) =>
+  fill(w.chart.plays, { round: label, list: rows.map((r) => fill(w.chart.playsPart, { player: name(r.seat), play: playText(r) })).join(w.chart.playsJoin) })
 
 // ─── The scorecard's rows ───
 

@@ -310,6 +310,8 @@
   .game-end-chart { inline-size: 100%; min-inline-size: 0; }
   .game-end-chart-svg { display: block; font-family: var(--font-body); }
   .game-end-chart-svg text { font-family: var(--font-numbers); }
+  /* the turn list (F61, top-left of the plot): words in the body font, so NEST reads as a word, not a number */
+  .game-end-plays text { font-family: var(--font-body); }
   /* drag sideways = move the scrub line; up/down still scrolls the page */
   .game-end-chart-svg { touch-action: pan-y; cursor: ew-resize; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; border-radius: var(--radius-control); }
   .game-end-chart-svg:focus-visible { box-shadow: 0 0 0 0.15rem var(--focus); }
