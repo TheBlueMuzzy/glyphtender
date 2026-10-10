@@ -1,6 +1,6 @@
 ## ▶ RESUME HERE
 2026-10-10 — **Sprint 23 started — drag carry styles** (milestone v0.11, branch dev/drag from dev/story, framework dev/drag). Building fw F53 (ui-kit kit/drag/: carried solid|ghost + lift, origin solid|ghost|empty, landings/returns, presets A–D, Dev Kit dropdown field) → F63 wires it into Glyphtender (drag.json per drag type) ∥ fw F54 target feedback → F64 → F65 Muzzy picks. Plan + code map: SPRINT.md.
-**Ask Muzzy:** defaults = Claude's guesses (draft A · plan C · reorder A) or today's look until F65? (needed before F63 task 4) · carried: AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
+**Ask Muzzy (carried):** AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
 v0.10 (Story) is still unreleased: /deliver it whenever (server redeploy — party/ + src/rooms/server changed).
 
 ## Where we are

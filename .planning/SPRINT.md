@@ -39,5 +39,5 @@ Done when: board drops can show highlight | ghost preview | tether, tray reorder
 
 ## Notes
 - Decisions: carry styles live in **ui-kit** (looks), Table's referee stays a pure yes/no. Tray reorder is the proving ground for insertion marker / make room (card hands later).
-- Ask Muzzy (before F63 task 4): defaults = my guesses (draft A · plan C · reorder A) or today's look until F65?
+- Muzzy 2026-10-10: defaults = Claude's guesses until F65 — draft A · plan a seed C · tray reorder A · glyphling move C.
 - Today (code map 2026-10-10): one shared drag `<image>` opacity 0.85 (GameScreen.tsx:110); origin stays solid because grab* sets `selected` (held); draft + seed drops are instant; glyphling move already glides (≈ style C); invalid drop just vanishes.
