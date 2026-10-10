@@ -26,6 +26,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['online4', 'e2e/online-four.mjs', 'e2e-shots 5405 1994'],
   ['online-ai', 'e2e/online-ai.mjs', 'e2e-shots 5416 1993'], // (F43: AI seats online — lobby add / remove, the server's AI, idle takeover)
   ['screenshots', 'e2e/shots.mjs', 'check'], // (always port 5250)
+  ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'], // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)
   ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 7 sizes)
   ['pass4', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5403 4'],
   ['game', 'e2e/game-shots.mjs', 'e2e-shots 5401'],
@@ -37,6 +38,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['score', 'e2e/score-sequence.mjs', 'e2e-shots 5407'],
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
+  ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 
@@ -44,6 +46,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
 // on their own after the others.
 const ALONE = [
   ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
+  ['devkit-sound', 'e2e/devkit-sound.mjs', 'e2e-shots/devkit-sound 5418'], // (Sound tab: adds a test MP3 + saves audio.json, then puts both back; the 8 moments)
 ]
 
 const args = process.argv.slice(2)

@@ -5,10 +5,13 @@
 //   What went wrong: a line in your own words.
 //   Send to /bug (dev only): saves .planning/bugs/capture-<date>.json in the game — tell Claude "/bug" and the file.
 //   Copy for Claude: the same capture as text to paste into the chat (the only way out of a live build).
+//   The Dev Kit's search box (while this tab is open) filters the 📍 marks by what was happening.
 // Needs the game's adapter (registerDevKitGame in src/devkit-game/tabs.ts) — see devkitGame.ts.
 import { useEffect, useRef, useState } from 'react'
 import { describeMoment, useDevKitGame, type DevKitGame } from '../devkitGame'
 import { NotPluggedIn } from '../NotPluggedIn'
+import { Highlight, SearchCount } from '../search/Section'
+import { matchesAll, searchTerms } from '../search/searchLogic'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { KEEP_MS, STATE_EVERY_MS, clearLog, logMark, newCaptureLog, recentLog, type CaptureLog } from './captureLog'
 import { buildBugCapture, captureFilePath, captureForClaude, count, readDevice, type BugCapture } from './captureReport'
@@ -38,13 +41,13 @@ function showLog(log: CaptureLog) {
 
 type Status = { kind: 'ok' | 'error' | 'info'; text: string }
 
-export function CaptureTab() {
+export function CaptureTab({ query = '' }: { query?: string }) {
   const game = useDevKitGame()
   if (!game) return <NotPluggedIn />
-  return <Capture key={game.name} game={game} />
+  return <Capture key={game.name} game={game} query={query} />
 }
 
-function Capture({ game }: { game: DevKitGame }) {
+function Capture({ game, query }: { game: DevKitGame; query: string }) {
   const log = useRef(newCaptureLog()) // the recorder writes here directly — no re-render per event
   const [recording, setRecording] = useState(rememberedRecording)
   const [note, setNote] = useState('')
@@ -67,6 +70,8 @@ function Capture({ game }: { game: DevKitGame }) {
   }, [recording, game])
 
   const { now, recent } = shown
+  const terms = searchTerms(query)
+  const marks = recent.marks.filter((m) => matchesAll(terms, [m.summary]))
 
   function toggleRecording() {
     rememberRecording(!recording)
@@ -152,11 +157,12 @@ function Capture({ game }: { game: DevKitGame }) {
           : `Not recording. ● Record keeps the last ${seconds} s of play; it stays on after a reload.`}
       </p>
 
-      {recent.marks.length > 0 && (
+      <SearchCount query={query} found={marks.length} what="mark" where="Bugs" />
+      {marks.length > 0 && (
         <ul className="bc-marks">
-          {recent.marks.map((m) => (
+          {marks.map((m) => (
             <li key={m.at}>
-              📍 {Math.round((now - m.at) / 1000)} s ago{m.summary && ` — ${m.summary}`}
+              📍 {Math.round((now - m.at) / 1000)} s ago{m.summary && <> — <Highlight text={m.summary} terms={terms} /></>}
             </li>
           ))}
         </ul>

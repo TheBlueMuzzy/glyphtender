@@ -10,7 +10,14 @@
 // tidy centred column, all as wide as the widest (game.css .game-reveal) — calm, not spread to the corners (Muzzy at
 // 768×343: "this layout looks weird"). After the reveal the same chips stay with the finished garden (See board).
 // Kit parts only: PlayerChip.
+// SOUND — the ceremony (content/audio.json): reveal.tangles as it opens · reveal.count as each total counts up, one note
+// higher each time (the ladder: a rising run) · reveal.bonus as each "+3" lands · reveal.winner (the fanfare) as the
+// Grand Glyphtender is named — also when Skip or reduce motion jumps straight to the end. While it plays, the "reveal"
+// mix dips the music and ambience. The MUSIC builds like a ceremony (sound.ts ceremonyMusic): each count-up raises its
+// intensity a step (the bells fade in), it holds through the fanfare (which ducks it), then settles once the end table
+// opens. Pause over the reveal stacks its "paused" mix on top, so closing Pause brings the reveal's mix back.
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { getAudio, playSound, useAudioSnapshot } from '../audio'
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { revealSteps, revealView, stepSeconds } from '../store/revealPlan'
@@ -18,7 +25,8 @@ import { landingSeconds } from '../store/wordMarks'
 import { turnOf } from '../store/happened'
 import { PlayerChip, reduceMotion, screens } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
-import { juiceFor } from './feel'
+import { juiceFor, juiceSound } from './feel'
+import { ceremonyMusic } from './sound'
 import { frozen } from './freeze'
 import { playerName } from './prompt'
 import { useAnimTuning, useGardenTuning, useLayoutTuning } from './useTuning'
@@ -67,6 +75,25 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
     if (revealAt === end && !screens.current.includes('gameOver')) screens.push('gameOver')
   }, [revealAt, end])
 
+  // The ceremony's sounds, each as its step starts
+  const heardAt = useRef<number | null | undefined>(undefined) // the step that last sounded (undefined: just shown)
+  useEffect(() => {
+    const before = heardAt.current
+    heardAt.current = revealAt
+    if (revealAt === null || revealAt === before || (before === undefined && revealAt === end)) return // (already over when shown: quiet)
+    const step = steps[revealAt]
+    if (step?.kind === 'tangles') playSound('reveal.tangles')
+    if (step?.kind === 'count') {
+      const counted = steps.slice(0, revealAt).filter((s) => s.kind === 'count').length
+      playSound('reveal.count', { step: counted })
+      ceremonyMusic({ count: counted + 1, of: steps.filter((s) => s.kind === 'count').length }, timing)
+    }
+    if (revealAt === end) ceremonyMusic('settle', timing)
+    if (step?.kind === 'winner' || (revealAt === end && before !== end - 1)) playSound('reveal.winner') // (Skip / reduce motion: straight here)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealAt])
+  useAudioSnapshot(getAudio(), revealAt !== null && revealAt < end ? 'reveal' : null)
+
   const view = revealView(steps, revealAt, game)
   const counting = view.current?.kind === 'count' ? view.current.seat : null
 
@@ -74,7 +101,9 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
   const panel = useRef<HTMLDivElement>(null)
   const landed = revealAt !== null && revealAt > 0 ? steps[revealAt - 1] : undefined
   useEffect(() => {
-    if (landed?.kind !== 'bonus' || reduceMotion()) return
+    if (landed?.kind !== 'bonus') return
+    juiceSound('totalPop', 'reveal.bonus')
+    if (reduceMotion()) return
     const el = panel.current?.querySelector(`[data-reveal-seat="${landed.seat}"] .kit-player-chip-score`)
     const swell = 1 + juiceFor('totalPop').grow
     const a = el?.animate([{ transform: 'scale(1)' }, { transform: `scale(${swell})`, offset: 0.4 }, { transform: 'scale(1)' }],

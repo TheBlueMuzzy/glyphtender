@@ -113,7 +113,7 @@ export function ToastStack({ label, place = 'top', words }: { label?: string; pl
         <Panel key={t.id} depth={2} gap="s" className="kit-toast" data-variant={t.variant} data-dismissible
           onClick={() => toasts.dismiss(t.id)}>
           <span>{t.text}</span>
-          <Button variant="ghost" icon aria-label={w.close}>✕</Button>
+          <Button variant="ghost" icon sound="back" aria-label={w.close}>✕</Button>
         </Panel>
       ) : (
         <Panel key={t.id} depth={2} gap="xs" className="kit-toast" data-variant={t.variant}>{t.text}</Panel>

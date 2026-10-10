@@ -5,7 +5,7 @@
 // two selectors right-aligned, the same width (newGame.css). "Surprise me" = a random personality picked at Start.
 // The card never changes size as you flip through personalities: an invisible copy of every bio, piled in one spot,
 // holds it as tall as the longest. The whole screen scrolls (kit <Screen scroll>, no scroll bar — Muzzy: "when it
-// expands down, they just drag and the entire screen moves"): the menu starts at the top, so opening an AI seat pushes
+// expands down, they just drag and the entire screen moves"): the menu opens centred, then its top stays put (UI kit 0.4.4), so opening an AI seat pushes
 // the rows below DOWN, the Person / AI button you tapped stays under your finger, and Start scrolls with the rest.
 // Built like the kit's Settings screen: Panel, a title row with Back, rows (ListRow + Stepper / Selector /
 // Toggle), and the Start button. Words: content/text/en.json → newGame, ai.

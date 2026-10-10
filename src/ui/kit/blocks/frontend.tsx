@@ -71,7 +71,7 @@ export function ModeSelect({ modes, value, onChange, onStart, onBack = () => scr
           ))}
         </Grid>
         <Row gap="s" justify="end">
-          <Button variant="ghost" onClick={onBack}>{w.back}</Button>
+          <Button variant="ghost" sound="back" onClick={onBack}>{w.back}</Button>
           <Button onClick={onStart}>{w.start}</Button>
         </Row>
       </Panel>
@@ -97,7 +97,7 @@ export function HowToPlay({ pages, onDone = () => screens.pop(), words }: { page
         <Row gap="s" justify="between">
           <Pips count={pages.length} filled={index + 1} label={fill(w.page, { n: index + 1, total: pages.length })} />
           <Row gap="s">
-            {index > 0 && <Button variant="ghost" onClick={() => setIndex(index - 1)}>{w.back}</Button>}
+            {index > 0 && <Button variant="ghost" sound="back" onClick={() => setIndex(index - 1)}>{w.back}</Button>}
             <Button onClick={() => (last ? onDone() : setIndex(index + 1))}>{last ? w.done : w.next}</Button>
           </Row>
         </Row>
@@ -136,7 +136,7 @@ export function Credits({ people = [], assets = [], onBack = () => screens.pop()
             )}
           </Stack>
         </ScrollArea>
-        <Row justify="end"><Button variant="secondary" onClick={onBack}>{w.back}</Button></Row>
+        <Row justify="end"><Button variant="secondary" sound="back" onClick={onBack}>{w.back}</Button></Row>
       </Panel>
     </Screen>
   )

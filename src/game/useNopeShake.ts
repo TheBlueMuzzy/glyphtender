@@ -2,11 +2,12 @@
 // piece gives a quick sideways shake: a glyphling's [data-shake] group, a planted seed's image, a tray seed.
 // Cozy, not harsh: small (feel.json noShake → shake, a share of the piece's width) and quick (anim.json
 // noShakeTime). The browser animates it (Web Animations). Reduce motion → no shake (the prompt still says why).
+// Sound: "no" (a soft wooden bonk) with every shake — reduce motion too.
 import { useEffect } from 'react'
 import { useGameStore } from '../store/gameStore'
 import type { NopeTarget } from '../store/nope'
 import { reduceMotion } from '../ui/kit'
-import { juiceFor } from './feel'
+import { juiceFor, juiceSound } from './feel'
 import { useAnimTuning } from './useTuning'
 
 const selectorFor = (target: NopeTarget) =>
@@ -17,7 +18,9 @@ export function useNopeShake() {
   const nope = useGameStore((s) => s.nope)
   const timing = useAnimTuning()
   useEffect(() => {
-    if (!nope || reduceMotion()) return
+    if (!nope) return
+    juiceSound('noShake', 'no')
+    if (reduceMotion()) return
     const piece = document.querySelector<SVGGraphicsElement>(selectorFor(nope))
     if (!piece) return
     const d = piece.getBBox().width * juiceFor('noShake').shake // in the piece's own units (board: hexes · tray: pixels)

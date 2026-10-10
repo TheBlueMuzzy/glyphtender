@@ -2,6 +2,7 @@
 // Only draws the tab bar; show the matching content yourself based on `value`.
 // ← / → move between tabs, like every console game.
 import type { KeyboardEvent } from 'react'
+import { controlSound } from './controlSound'
 
 type TabsProps = { tabs: string[]; value: string; onChange: (tab: string) => void; label: string }
 
@@ -21,7 +22,10 @@ export function Tabs({ tabs, value, onChange, label }: TabsProps) {
           key={tab} type="button" role="tab" className="kit-tab kit-target"
           aria-selected={tab === value} tabIndex={tab === value ? 0 : -1}
           data-state={tab === value ? 'active' : undefined}
-          onClick={() => onChange(tab)}
+          onClick={() => {
+            controlSound('tap')
+            onChange(tab)
+          }}
         >{tab}</button>
       ))}
     </div>

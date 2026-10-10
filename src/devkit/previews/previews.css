@@ -89,3 +89,16 @@
 .dp-stage[data-size='fit'] .dp-box { flex: 1; }
 .dp-stage:not([data-size='fit']) .dp-box { outline: 1px solid #4a4c5c; }
 .dp-frame { display: block; border: none; }
+.devkit-preview input, .devkit-preview select { font: inherit; color: inherit; }
+
+/* The screen + its Moments panel (moments/moments.css): side by side; on a phone the panel goes under */
+.dp-main { flex: 1; min-height: 0; display: flex; }
+.dp-main > .dp-stage { min-width: 0; }
+@media (max-width: 640px) {
+  .dp-main { flex-direction: column; }
+}
+.pv-moments { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 8px; padding-top: 6px; border-top: 1px solid #2c2e3a; }
+.pv-moments-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #9a9bab; }
+.pv-moment { padding: 2px 8px; border: 1px solid #4a4c5c; border-radius: 999px; background: #16171d; cursor: pointer; font-size: 12px; }
+.pv-moment:hover { background: #2c2e3a; }
+.pv-problems { margin: 0; padding: 6px 10px 6px 24px; border-radius: 6px; background: #4a1f24; color: #ff9b9b; font-size: 12px; }

@@ -26,9 +26,13 @@ Defined with Muzzy 2026-10-09. Engine and rules: the framework Audio module (`..
 
 ## Mix
 - **Volume groups:** Ambience (night garden) · Music (a very quiet bed + the reveal ceremony) · Effects (the board) · UI (menus, tray taps).
-- **The garden at rest:** ambience always; the music bed comes in softly and **rests** after a few loops. Thinking time should feel like a quiet night, not a radio.
-- **Big moments duck the music:** two-birds, tangle, reveal.
-- **Pause:** muffled and quieter (snapshot). **Reveal:** ambience and music dip so the ceremony is clear.
+- **The garden at rest:** ambience (`amb.night`) always; the garden's music (track `garden`: harp + soft pad, bells only at high intensity) plays **one** harp piece (~2.5 min), fades out over its ending (5 s), **rests 60–90 s** with just the night garden, then fades back in (4 s). The pad fades out with the harp for each rest (the whole track rests). Thinking time should feel like a quiet night, not a radio.
+- **Menus:** track `menu` (the kalimba loop) — never rests (short visits). Menus ↔ game crossfade (the old track's fade-out under the new one's fade-in).
+- **Intensity (0–1):** calm **0.2** in play (harp + pad; bells come in from 0.4, full at 0.9). The reveal raises it (below).
+- **Big moments duck the music:** two-birds, tangle, reveal.winner (−7 dB, 10 ms down, 600 ms back).
+- **The reveal is a ceremony** (F57): each player's count-up raises the intensity a step, ramping over that count (2 players: 0.2 → 0.55 → 0.9), so the bells swell in; it holds through the "+3"s and the fanfare (which ducks it), then settles back to 0.2 over 3 s once the end table opens. A rest is ended if the music is resting when the count-up starts. Reduce motion: the same changes, at once. Knobs: `content/tuning/anim.json` revealMusicCalm / Peak / Settle (Tuning → End-of-game reveal, and the reveal Moments).
+- **Pause:** muffled and quieter (snapshot). **Reveal:** ambience −8 dB and music −3 dB (was −6 — the music now has to swell) so the ceremony is clear. Mixes stack: Pause opened during the reveal returns to the reveal's mix.
+- All times: `content/audio.json` (`music.tracks`, `snapshots`, `duck`) — the Dev Kit Sound tab's Music section.
 
 ## Sound list (beta)
 Each sound fires at its animation's moment (code: where the visual plays), never on the raw event. **Twin** = what you also see, so sound is never the only signal.
@@ -62,10 +66,10 @@ Each sound fires at its animation's moment (code: where the visual plays), never
 | 25 | `end.award` | an award card shows on the end screen | `EndHighlights` | small · ui | card |
 | 26 | `online.idle` | the idle bar appears on your screen | `OnlineSession` | small · ui | the bar |
 | 27 | `online.toast` | a player left / is back / bot plays | seat toasts | tiny · ui | toast |
-| 28 | `ui.tap` / `ui.back` / `ui.toggle` | menu buttons (confirm up, back down) | kit Button / Toggle | tiny · ui | — |
+| 28 | `ui.tap` / `ui.back` / `ui.toggle.on` / `ui.toggle.off` | menu buttons + switches (confirm up, back down; on rises +3 st, off falls −3 st) — **menu sounds never vary**: one file, no random pitch/volume (Muzzy 2026-10-10) | kit Button / Toggle | tiny · ui | — |
 | 29 | `amb.night` (loop) | in a game: crickets, breeze, the odd owl | game screen | — · ambience | — |
-| 30 | `mus.garden` (layers, rests) | in a game, very quiet; menus too | game + menu | — · music | — |
-| 31 | `mus.menu` | main menu | menu | — · music | — |
+| 30 | music track `garden` (harp · pad · bells, rests) | in a game, quiet; plays, rests, comes back; bells swell for the reveal | game screen (`useGardenSounds`), Reveal (`ceremonyMusic`) | — · music | — |
+| 31 | music track `menu` (kalimba loop) | main menu and menu screens | `App.tsx` | — · music | — |
 
 That's about 31 sounds and ~60 files with variants. The heaviest repeaters (`glyph.step`, `seed.pick`, `score.pop`, `ui.tap`) get 3–5 variants.
 
@@ -82,3 +86,50 @@ That's about 31 sounds and ~60 files with variants. The heaviest repeaters (`gly
 - **Freesound — CC0 / CC-BY only, never CC-BY-NC**: night ambience, kalimba, harp, water.
 - **OpenGameArt — CC0**: cozy music loops and stingers.
 - Every file → `content/credits.json`, with 🟡 credit lines shown in Credits.
+
+## Placeholder files (sprint 19)
+All in `public/audio/`, real recordings only (no code-made sounds), every file in `content/credits.json`. Effects: mono MP3 96 kbps, lead silence trimmed, faded, peak −3 dBFS with RMS capped at −15 dBFS (set per-sound volume in `content/audio.json`). Stinger −16 LUFS, music −20 LUFS, ambience −26 LUFS (stereo, 128 kbps; garden harp is VBR to stay under 2 MB). Effects total ≈ 290 KB (+83 KB stinger); music ≈ 2.4 MB; ambience 0.7 MB. **Ladder notes are pre-tuned to D**, so playbackRate = 2^(semitones/12) up the D major pentatonic (0, 2, 4, 7, 9, 12…).
+
+| Sound | File(s) | Source | Notes |
+|---|---|---|---|
+| `draft.place` | `sfx/sfx_draft_place_01–02` | Kenney Impact (wood medium) | soft wooden thunk |
+| `glyph.lift` | `ui/ui_glyph_lift_01–02` | Kenney RPG (cloth) | felt lift, cut to 220 ms |
+| `glyph.step` | `sfx/sfx_glyph_step_01–05` | Kenney Impact (wood light) | light wood taps |
+| `seed.pick` | `ui/ui_seed_pick_01–04` | cogitollc Pop sounds | round mouth pops |
+| `seed.drop` | `ui/ui_seed_drop_01–02` | rubberduck 100 CC0 SFX (plop) | |
+| `seed.aim` | `ui/ui_seed_aim_01–02` | Kenney Impact (glass light) | tiny glass tink, low-passed |
+| `cast.throw` | `sfx/sfx_cast_whoosh_01–03` | Freesound: Sadiquecat Stick Whoosh 7 (Soft), Woosh Plastic Tray 2, Woosh Metal Skimmer 1 (slowed, +2 st) | ✅ *F56:* soft airy swings, 460–580 ms, mic rumble cut (high-pass 150 Hz) — resolved |
+| `seed.land` | `sfx/sfx_seed_land_01–02` | Kenney soft impact + rubberduck splash | layered: earth thud + a little water |
+| `sprout.grow` | `sfx/sfx_sprout_leaf_01–02` | Freesound: squidge316 "one plant grows with lettuce" / elliotlp "Crumple Dry Leaf 1" + ZenithInfinitiveStudios Fantasy UI Button 5 / 4 | ✅ *F56:* leafy growth crunch (low-passed 6 kHz) + a soft chime 7 dB under, ~0.6 s — resolved (brighter than the old bloop; trim `volumeDb` if it pokes out) |
+| `score.pop` **ladder** | `sfx/sfx_score_pop_01` | railkill Kalimba Two-Notes | real kalimba, **root D4 (measured D4 −2 c)**, 610 ms |
+| `score.arrive` | `sfx/sfx_score_arrive_01–02` | Kenney Impact (glass medium) | glass clink (pitch ≈ B5/C6, not in key — fine for a clink) |
+| `word.chord` | `sfx/sfx_word_chord_01` | the kalimba note, layered | D4-F#4-A4-D5 strum, 35 ms apart (in key) |
+| `cast.flourish` | `sfx/sfx_cast_flourish_01` | Spring Spring "health restore" | harp-like magic run, 1.7 s |
+| `danger.warn` | `sfx/sfx_danger_warn_01` | pwl Bell dings | small bell with a tremble (D#4) — **weak-ish**: gentle but could read as "ding" rather than "careful" |
+| `tangle` | `sfx/sfx_tangle_vine_01–02` | Freesound: j1987 "bushhit" / zepurple "tree shake" + Comradar tree_creak_3 / _2 | ✅ *F56:* leafy wrap (low-passed) + a soft wooden tree creak (the "groan"), 0.64–0.71 s — resolved; the old boing's "smile" is gone, the creak carries it |
+| `no` | `ui/ui_no_bonk_01–02` | Kenney Impact (wood heavy) | soft wooden bonk |
+| `refresh.out` | `ui/ui_refresh_out_01` | artisticdude Swishes | low soft swish |
+| `refresh.in` | `ui/ui_refresh_in_01` | cogitollc pops, layered | three rising pops |
+| `tray.shuffle` | `ui/ui_tray_shuffle_01` | Kenney Casino (card fan) | paper riffle, 450 ms |
+| `undo` | `ui/ui_undo_01` | artisticdude Swishes (reversed) | a "whoop" back |
+| `turn.yours` | `ui/ui_turn_yours_01` | Varkalandar Glass Bell (🟡 credit) | glass bell **retuned to D5** |
+| `handoff` | `ui/ui_handoff_01` | Kenney Casino (card slide) | passing slide |
+| `reveal.tangles` | `sfx/sfx_reveal_tangles_01` | railkill Mystery Sting | steel tongue drum A3→E4, mysterious opener |
+| `reveal.count` **ladder** | `sfx/sfx_reveal_count_01` | railkill Mystery Sting | steel tongue drum note, **root D5 (measured D5 ±0 c)** |
+| `reveal.bonus` | `sfx/sfx_reveal_bonus_01–02` | rubberduck gem + Kenney glass | small tinks |
+| `reveal.winner` | `stg/stg_reveal_winner_01` | Freesound: oggraphics "Good answer harp glissando" + qubodup "Angelic Fanfare 2" | ✅ *F56:* harp sweep up into a choir fanfare, both **retuned C → D major** (+2 st, measured key D major), 5.2 s, −16 LUFS — resolved (grander but still soft: no brass/drums) |
+| `end.award` | `ui/ui_end_award_01` | Spring Spring Pleasing Bell | F#5 — in key |
+| `online.idle` | `ui/ui_online_idle_01` | railkill Kalimba Two-Notes | both notes, retuned to D4→A4 |
+| `online.toast` | `ui/ui_online_toast_01` | Kenney Impact (glass light) | tiny tink |
+| `ui.tap` | `ui/ui_button_tap_01` (one file — menu sounds never vary) | rubberduck wood (wood_hit, wood_misc) | wood knocks, 120 ms |
+| `ui.back` | `ui/ui_button_back_01` | rubberduck wood_hit_09 | lower knock |
+| `ui.toggle.on` / `.off` | `ui/ui_toggle_flip_01` (pitched +3 / −3 st) | rubberduck wooden_01 | |
+| `amb.night` (loop) | `amb/amb_night_garden_loop` | wolfgang Crickets (CC0) + AntumDeluge/InspectorJ Wind Loop (🟡) + Freesound: Anthousai "owl.wav" (CC0) | **loop 0 → 45 808 ms** (4 × the 11.45 s cricket loop; breeze low-passed, seam crossfaded). ✅ *F56:* a distant owl (band-passed 180–1400 Hz + echo) mixed in twice per loop: a hoo-hoooo phrase at 13 s (left, 9 dB under the bed) and one hoo at 33.5 s (right, 13 dB under); loop length and loudness (−26 LUFS) unchanged — resolved |
+| `mus.garden` | `mus/mus_garden_harp_01` | Écrivain "Meadow Thoughts" (solo harp, CC0) | 149 360 ms, a through-composed piece with a natural ending (**not a loop**): play once, then rest, fits "rests after a few loops". *F57:* measured **A major** (r 0.92–0.97, two methods; rubato, ~59/117 BPM) — every D-pentatonic pop note (D E F# A B) is in A major, so **not retuned** |
+| `mus.garden` pad layer (loop) | `mus/mus_garden_pad_loop` | Freesound: speakwithanimals "Rain Slowly Passing PAD A440" (CC0) | *F57:* a soft sustained **A drone** (A + E + C# overtones — the harp's key, also inside D pentatonic), high-pass 100 Hz + low-pass ~2 kHz (warm, no bass), **loop 0 → 150 000 ms** (4 s crossfade at the seam), −22 LUFS. *F58:* garden track layer, −8 dB, always on |
+| `mus.garden` bells layer (for "intensity") | `mus/mus_garden_bells_01` | Freesound: deadrobotmusic "Ambient Cute Bell Texture [90bpm]" (CC0) | *F57:* soft bell texture, measured **A major** (A C# D E B — no G/G#, so it fits D pentatonic too), 90 BPM, the 40-bar loop (0 → 106 667 ms, seamless) played on to the harp's length — **149 360 ms**, 3 s fade at the end (*F58*: a track's layers start together and the harp counts the plays, so a shorter bells file went silent for the harp's last 43 s), −22 LUFS. ~150 notes/min — keep it low; fades in only for the reveal (from intensity 0.4) |
+| `mus.menu` (loop) | `mus/mus_menu_kalimba_loop` | extenz "Short kalimba loop" (CC0) | *F57:* **retuned −3 st** (measured G minor/B♭ — E♭maj7 ↔ Gm, clashes with the pops' F# and B — now **G major family (Cmaj7 ↔ Em; measured G major / B minor)**, which holds every D-pentatonic note; rubberband, tempo ~82 BPM kept, seam crossfaded 186 ms), −20.4 LUFS. **loop 0 → 46 837 ms** (made as a loop, kept whole). Not heard; alt: "Gentle Lullaby Loop" by Frances Calceta (CC-BY 3.0, 34 s). *F56:* kept — no clearly better CC0 loop on Freesound (candidates if it bores: blankie.rest "Sleepy Upright Piano Seamless Loop" 116 s, csnmedia "Music box lullaby" 84 s) |
+
+Freesound replacements (F56) were rebuilt by a script in the session scratchpad (`fs/build2.py`, reusing `sounds/build.py`'s processing); every source is CC0.
+
+Loop points assume the browser's MP3 decoder honours the LAME gapless header (Chrome and Firefox do). If a click shows up at the seam, set `loopStart`/`loopEnd` to the times above.

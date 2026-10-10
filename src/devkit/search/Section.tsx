@@ -3,6 +3,7 @@
 //                   While searching it is always open, and its title takes you to it (search cleared).
 //   <SectionIndex>  one chip per section (a dot carousel) + Expand all / Collapse all, at the top of a tab.
 //   <Highlight>     a text with the searched-for parts marked.
+//   <SearchCount>   while searching: "3 found" / "Nothing in Tuning matches “zzz”" at the top of a tab.
 // Give each <Section> a unique id ("tuning:Trails") — the search, the chips and the saved open/closed state use it.
 import type { ReactNode } from 'react'
 import { Carousel } from '../carousel/Carousel'
@@ -82,4 +83,16 @@ export function SectionIndex({ sections, label }: { sections: { id: string; titl
       </div>
     </nav>
   )
+}
+
+/**
+ * While searching, at the top of a tab: how many things match ("3 found"), or a plain "nothing" line.
+ * `what` names them: "setting" → "1 setting" / "3 settings". Nothing while not searching.
+ */
+export function SearchCount({ query, found, what, where }: { query: string; found: number; what: string; where: string }) {
+  if (!query.trim()) return null
+  if (found === 0) {
+    return <p className="dk-results-none" role="status">Nothing in {where} matches “{query.trim()}”. Try part of a word.</p>
+  }
+  return <p className="dk-found" role="status">{found} {found === 1 ? what : `${what}s`} found</p>
 }

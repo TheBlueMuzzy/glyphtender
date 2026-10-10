@@ -1,12 +1,12 @@
 // COLOR TOOL — the colour-blind preview, and every UI kit colour with a picker each.
 //   UI colours come from content/ui/style.json: the preset's colours, with "tweaks" on top.
 // ↺ on a colour = back to the preset. A dot next to a name = changed, not saved yet.
-// The Dev Kit's search box filters the colours (DevKitSearch); the colour-blind preview hides while searching.
+// The Dev Kit's search box filters the colours (the `query` prop); the colour-blind preview hides while searching.
 // A game's own colours (e.g. a 3D table) go in a game tab: src/devkit-game/ (ColourRow is free to use there).
 import { useContext, useEffect, useState } from 'react'
-import { Highlight, Section } from '../search/Section'
+import { Highlight, SearchCount, Section } from '../search/Section'
 import { DevKitSearch } from '../search/searchContext'
-import { searchTerms } from '../search/searchLogic'
+import { countFound, searchTerms } from '../search/searchLogic'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { ColourBlindPreview } from './ColourBlindPreview'
 import { ColourRow } from './ColourRow'
@@ -14,9 +14,8 @@ import { UI_COLOUR_SECTION, copyForClaudeText, searchUiColours, listChanges, sam
 import { styleFile, uiKit } from './uiKit'
 import './color.css'
 
-export function ColorTab() {
-  const { query } = useContext(DevKitSearch) // the Dev Kit's search box ('' = show everything)
-  const searching = searchTerms(query).length > 0
+export function ColorTab({ query = '' }: { query?: string }) {
+  const searching = searchTerms(query).length > 0 // query: the Dev Kit's search box ('' = show everything)
   return (
     <div className="ct">
       {!searching && (
@@ -28,7 +27,9 @@ export function ColorTab() {
         </>
       )}
       {uiKit && styleFile ? (
-        <UiColoursEditor />
+        <UiColoursEditor query={query} />
+      ) : searching ? (
+        <SearchCount query={query} found={0} what="colour" where="Color" />
       ) : (
         <p className="ct-legend">This game doesn't use the Game UI kit (src/ui/kit + content/ui/style.json), so there are no UI colours to edit here.</p>
       )}
@@ -36,8 +37,8 @@ export function ColorTab() {
   )
 }
 
-function UiColoursEditor() {
-  const { query, goTo } = useContext(DevKitSearch)
+function UiColoursEditor({ query }: { query: string }) {
+  const { goTo } = useContext(DevKitSearch)
   // Only shown when both exist (see ColorTab)
   const kit = uiKit!
   const file = styleFile!
@@ -89,6 +90,7 @@ function UiColoursEditor() {
 
   return (
     <>
+      <SearchCount query={query} found={countFound(found)} what="colour" where="Color" />
       {found.map((section) => (
         <Section
           key={section.id}

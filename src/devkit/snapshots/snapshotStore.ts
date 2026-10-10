@@ -1,6 +1,7 @@
 // SNAPSHOTS — "this exact moment" of the game, saved so it can be restored later.
 // Kept in this browser (localStorage, one list per game), and in dev also as files in content/snapshots/
 // so Claude and tests can load the same moment. Plain functions only — the tab (SnapshotsTab.tsx) uses them.
+import { matchesAll, searchTerms } from '../search/searchLogic'
 
 export interface Snapshot {
   name: string
@@ -94,3 +95,7 @@ export function snapshotForClaude(snapshot: Snapshot): string {
     JSON.stringify(snapshot, null, 2),
   ].join('\n')
 }
+
+/** Does a snapshot match the Dev Kit search? (its name, its one-line summary, its version) */
+export const snapshotMatches = (snapshot: Snapshot, query: string) =>
+  matchesAll(searchTerms(query), [snapshot.name, snapshot.summary, `v${snapshot.version}`])

@@ -9,14 +9,19 @@
 // Times: wordMarks.scoreSequence (anim.json score…) · keyframes: scoreFrames.ts · sizes/colour: garden.json
 // (scorePop…) · swell: feel.json (seedPop, totalPop). Reduce motion → no pops flying, no bounce: the words step, the
 // total steps up, everything fades. Every frame is the browser's (Web Animations) — no React state per frame.
+// SOUNDS, scheduled on the same times when the sequence starts (content/audio.json; reduce motion: the same times —
+// the words still step and the total still counts up): score.pop as each seed pops, one note higher each (the ladder) ·
+// score.arrive as its points land in the total · word.chord when a long word's last points land (feel.json
+// sounds.chordLetters) · cast.flourish after the last points of a cast that grew several words (sounds.flourishWords).
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import text from '../../content/text/en.json'
 import { hexToPixel } from '../engine/hex'
 import type { GameState } from '../engine/types'
 import type { TurnPlay } from '../store/happened'
-import { scorePops, scoreSequence } from '../store/wordMarks'
+import { scorePops, scoreSequence, type ScorePop, type ScoreSequence } from '../store/wordMarks'
 import { fill, reduceMotion } from '../ui/kit'
-import { juiceFor } from './feel'
+import { playSound } from '../audio'
+import { juiceFor, juiceSound, soundRules } from './feel'
 import { countFrames, popFrames, totalScaleFrames, wordFrames } from './scoreFrames'
 import type { Box } from './spotlight'
 import { HEX } from './useThrow'
@@ -32,6 +37,7 @@ const TOTAL_ABOVE = HEX * 1.0 // the total sits over the glyphling's head
 
 export function ScorePops({ game, turn, colours, timing, pxPerHex, view }: Props) {
   const groupRef = useRef<SVGGElement>(null)
+  const soundsScheduled = useRef(false)
   const pops = useMemo(() => scorePops(game, turn), [game, turn])
   // (the timing is read once, when this landing's sequence starts — the store's timer used the same numbers)
   const seq = useMemo(() => scoreSequence(pops, timing), [pops]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -60,6 +66,8 @@ export function ScorePops({ game, turn, colours, timing, pxPerHex, view }: Props
     if (!group || !svg || !seq.words.length) return
     const still = reduceMotion()
     const t = { popTime: timing.scorePopTime, fade: timing.spotlightFade }
+    if (!soundsScheduled.current) scoreSounds(seq, pops, turn, performance.now(), timing.scorePopTime)
+    soundsScheduled.current = true // (once: dev's StrictMode runs this twice, and a scheduled sound can't be called back)
     const options: KeyframeAnimationOptions = { duration: seq.end * 1000, fill: 'both' }
     const playing: Animation[] = []
     const play = (el: Element | null, frames: Keyframe[]) => el && playing.push(el.animate(frames, options))
@@ -94,4 +102,20 @@ export function ScorePops({ game, turn, colours, timing, pxPerHex, view }: Props
       </g>
     </g>
   )
+}
+
+/** The score sequence's sounds, scheduled from `start` (this landing's sequence starting, performance.now() ms). */
+function scoreSounds(seq: ScoreSequence, pops: ScorePop[], turn: TurnPlay, start: number, popTime: number) {
+  const at = (seconds: number) => start + seconds * 1000
+  const rules = soundRules()
+  seq.pops.forEach((p, i) => juiceSound('seedPop', 'score.pop', { at: at(p.pop), step: i })) // each pop a note higher
+  seq.arrivals.forEach((a) => juiceSound('totalPop', 'score.arrive', { at: at(a.at) }))
+  seq.words.forEach((_, w) => {
+    if ((turn.words[w]?.word.length ?? 0) < rules.chordLetters) return
+    const arrivals = seq.pops.filter((_, i) => pops[i].word === w).map((p) => p.arrive)
+    if (arrivals.length === 0) return // no pops for this word → nothing to ring the chord on
+    playSound('word.chord', { at: at(Math.max(...arrivals)) })
+  })
+  const lastArrival = seq.arrivals.at(-1)?.at
+  if (seq.words.length >= rules.flourishWords && lastArrival !== undefined) playSound('cast.flourish', { at: at(lastArrival + popTime) })
 }

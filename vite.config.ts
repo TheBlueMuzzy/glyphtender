@@ -28,8 +28,21 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,csv}'],
+        // Sound effects (sfx, ui, stg — ~360 KB) are precached so they work offline. Music and ambience (~3 MB) are NOT,
+        // to keep the first load small: they're cached the first time they play (runtime, cache-first, below).
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,csv,mp3}'],
+        globIgnores: ['**/audio/mus/**', '**/audio/amb/**'],
         navigateFallback: 'index.html',
+        runtimeCaching: [{
+          urlPattern: /\/audio\/(mus|amb)\/.*\.mp3$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'glyphtender-music',
+            expiration: { maxEntries: 12 },
+            cacheableResponse: { statuses: [0, 200] },
+            rangeRequests: true, // (for streaming music later — framework F28)
+          },
+        }],
       },
     }),
   ],

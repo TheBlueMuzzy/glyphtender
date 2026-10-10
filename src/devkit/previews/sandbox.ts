@@ -4,7 +4,7 @@
 //   saves    localStorage / sessionStorage writes stay in the frame (reads see them; the real storage never changes)
 //   network  WebSockets never connect; fetch / XHR / sendBeacon may only GET (pictures, a word list); BroadcastChannel is mute
 //   history  pushState / replaceState / back / forward do nothing (the frame shares the tab's Back button)
-//   sound    <audio>/<video> play() and Web Audio stay silent
+//   sound    <audio>/<video> play() and Web Audio stay silent — until a Moment plays (allowSound): you asked to hear it
 //   workers  no service worker registration (it would control the real page too)
 // Every blocked thing is counted (sandboxCounts) — the Screens tab shows the counts and the e2e checks them.
 // This only ever runs inside the frame; it changes the frame's own copies of these browser objects.
@@ -25,6 +25,17 @@ let changed: (() => void) | null = null
 const count = (what: keyof SandboxCounts) => {
   sandboxCounts[what]++
   changed?.()
+}
+
+// Sound: blocked until allowSound(). The audio contexts made meanwhile are kept, to wake them then.
+let soundAllowed = false
+const contexts: AudioContext[] = [] // their resume() is the real one once sound is allowed
+
+/** Let the frame make sound from now on (a Moment was asked to play), and wake the audio the game already made. */
+export function allowSound() {
+  if (soundAllowed) return
+  soundAllowed = true
+  for (const ctx of contexts) void ctx.resume().catch(() => {})
 }
 
 /** Make GET requests whose address contains this text fail (e.g. a word list that "didn't load"). */
@@ -132,16 +143,28 @@ export function installSandbox(win: Win = window as Win, onChange?: () => void) 
   win.history.forward = blockHistory
   win.history.go = blockHistory
 
-  // Sound
-  if (win.HTMLMediaElement) win.HTMLMediaElement.prototype.play = function () { count('sounds'); return Promise.resolve() }
+  // Sound (silent until allowSound)
+  if (win.HTMLMediaElement) {
+    const play = win.HTMLMediaElement.prototype.play
+    win.HTMLMediaElement.prototype.play = function () {
+      if (soundAllowed) return play.call(this)
+      count('sounds')
+      return Promise.resolve()
+    }
+  }
   if (win.AudioContext) {
     const RealAudio = win.AudioContext
     win.AudioContext = class extends RealAudio {
       constructor(options?: AudioContextOptions) {
         super(options)
-        void this.suspend()
+        contexts.push(this)
+        if (!soundAllowed) void this.suspend()
       }
-      resume() { count('sounds'); return Promise.resolve() }
+      resume() {
+        if (soundAllowed) return super.resume()
+        count('sounds')
+        return Promise.resolve()
+      }
     }
   }
 

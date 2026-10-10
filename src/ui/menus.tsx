@@ -1,6 +1,7 @@
 // MENUS — the home page and the screens it opens, all built from the UI kit.
 // Words: content/text/en.json · settings rows: content/ui/settings.json · look: content/ui/style.json
 import { Button, Credits, HowToPlay, MainMenu, Pause, Settings, fill, screens } from './kit'
+import { getAudio, useAudioSnapshot } from '../audio'
 import { GameOverScreen } from '../game/GameOver'
 import { leaveToMenu, newGameFromEnd, openNewGame } from './newGame'
 import { settings, settingsChanged } from './gameSettings'
@@ -61,6 +62,7 @@ export function CreditsScreen() {
 // PAUSE — the Menu button in the game: back to the garden, the Rules, Settings, or leave (asks first). Under the title:
 // "2-letter words: on/off" for this game (F53).
 export function PauseScreen() {
+  useAudioSnapshot(getAudio(), 'paused') // the garden goes quiet and muffled while paused (content/audio.json snapshots)
   // Online: the title carries the room code ("Paused · Room BAKU"), so it's always one tap away
   const code = useOnline((s) => s.code)
   const online = useGameStore((s) => s.online !== null)

@@ -186,17 +186,17 @@ Goal: an online game with friends that never stalls and always says who's playin
 - ✅ F53 🎮 2-letter words shown in the Pause menu (Muzzy 2026-10-08 cut the ⓘ rules/settings pop-up: the only setting you can't see in play is 2-letter words) — one quiet line, kit Pause note — should · needs: —
 - ✅ B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); Muzzy re-tested 2026-10-08: the 🤖 shows — must
 
-## v0.9 — The garden sings (audio)  ← current  (→ beta)
+## v0.9 — The garden sings (audio)  ✅ done 2026-10-10 (→ release v0.6.0)
 Goal: Glyphtender has sound — every moment heard at the moment you see it, your play becomes the melody, the Magic reveal is a ceremony for the new Grand Glyphtender — on a reusable framework Audio module Muzzy tunes in the Dev Kit Sound Board. Design: `design/audio.md` + `../../framework/.planning/design/audio.md`. Research: `research/audio.md`. Framework-first: each framework slice (its F27–F31) is built there and switched on here in the same sprint. Muzzy 2026-10-09: "beta is for 'don't let perfect be the enemy of good'" · sources: "free libraries… for now".
 - ✅ F54 ❓ Audio direction — B "the garden sings" (Grand Glyphtender contest, cozy magical) · free libraries for beta · respect the iPhone silent switch · 5 sliders · feel tiers get sounds ("try it") — Muzzy 2026-10-09
-- ⏳ F55 🎮 Every moment wired: the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
+- ✅ F55 🎮 Every moment wired (sprint 19 — Muzzy 2026-10-10: "sounds are okay… good enough for now since it proved out the system… keep"): the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
   why: every action lands with a sound → Cozy cleverness payoff, everyone follows the play
-- ⏳ F56 🎮 Placeholder sound set from free libraries (Kenney, Sonniss GDC, Freesound CC0/CC-BY, OpenGameArt) in the garden's palette, 3–5 variants for the frequent ones, in public/audio/ + content/credits.json — must:beta · needs: fw F27
-- ⏳ F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
+- ✅ F56 🎮 Placeholder sound set (built sprint 19: 56 files, effects 269 KB — 5 weak fits) from free libraries (Kenney, Sonniss GDC, Freesound CC0/CC-BY, OpenGameArt) in the garden's palette, 3–5 variants for the frequent ones, in public/audio/ + content/credits.json — must:beta · needs: fw F27
+- ✅ F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
   why: clever casts get an audible reward; the reveal builds to the gasp → Secret-Magic tension
-- ⏳ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
-- ⏳ F59 🎮 Settings → Audio works: Master · Music · Ambience · Effects · UI · Mute everything · Mute in background · Mono — must:beta · needs: fw F29
-- ⏳ F60 🎛️ Tuning pass: Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
+- ✅ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
+- ✅ F59 🎮 Settings → Audio works (built sprint 19): Master · Music · Ambience · Effects · UI · Sound (on/off — was "Mute everything", renamed 2026-10-10 after Muzzy's listening test) · Mute in background · Mono — must:beta · needs: fw F29
+- ✅ F60 🎛️ Tuning pass (Muzzy 2026-10-10: his listening tests count — "release the audio"; tune more later with the Sound tab): Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
 ```mermaid
 flowchart LR
   FW27[fw F27 Engine + rules] --> F55[F55 Every moment wired]
@@ -221,7 +221,18 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
-- 2026-10-09 — **Bot takeover on the Story chart** (Muzzy): when a bot plays for a human (idle takeover, turn timer, left), the end screen's Story shows it — a thicker, darker band behind that player's line from the turn the bot took over until the human took back over. Needs the game log to record takeover start/end per seat.
+- 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
+  - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.
+  - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
+  - Seed-draw flood sim (≥6 vowels / ≤1 vowel / 3+ of a letter in 8 seeds) → smoothing knob if it's common (Word Play's #1 luck complaint).
+  - Dyslexia-friendly font option (core for word games) · letter readability test at phone size (higher-contrast face plate?) · an e2e that every Settings toggle survives a turn, a new game and a reload.
+  - Cozy ≠ flat: the two-birds cast, a tangle and the reveal each get one clear payoff (Word Play: "sterile… watch my score rattle up").
+  - After a game: "the best word you could have grown" (the AI already finds it) — learning payoff.
+  - The night sky shifts dusk → midnight → dawn as the garden fills (one mood colour, fixed layout).
+  - AI check: measure how the HUMAN plays against each personality (does the Strategist push people to turtle?); balance by match-up × skill.
+- 2026-10-09/10 — **Story chart upgrade** (Muzzy) — two parts, one feature:
+  - **Turn-by-turn list (2026-10-10):** as you scroll the Story, each round says what happened instead of "Round 17 — nothing happened": "Round 17 — Blue: NEST +6 · Yellow: F · Refresh 3" style. Placed in the chart's TOP-LEFT (always empty): the glyphlings in a vertically stacked list (room for 4 players), each with that round's words + Magic or refresh. The area below the key stays the awards (achievement) area.
+  - **Bot takeover band (2026-10-09):** when a bot plays for a human (idle takeover, turn timer, left), a thicker, darker band behind that player's line from the turn the bot took over until the human took back over. Needs the game log to record takeover start/end per seat.
 - 2026-10-08 — → F52. **Idle takeover with a warning bar** (Muzzy): online, 30 s without an action → a 30 s draining bar on THEIR screen ("Still there? A bot takes over soon" — concise); at 60 s a bot plays for them, mid-turn, as if they'd disconnected, until they act again. (Today: the server plays a turn for an idle player, a bot takes the seat after missedTurnsBeforeBot 2 — rooms.json.) Reworks B024's path. → make it a feature (/sprint).
 - 2026-10-08 — → F53. **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
 - 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.

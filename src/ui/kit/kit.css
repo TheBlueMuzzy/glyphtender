@@ -57,13 +57,13 @@
   .kit-screen > [data-slot="bottom"] { grid-area: bottom; }
   .kit-screen > [data-slot="bottom-right"] { grid-area: bottom-right; justify-self: end; }
   /* <Screen scroll>: the screen itself scrolls (drag anywhere on it, wheel, keys), with no scroll bar. The middle row
-     grows to fit (minmax(min-content, 1fr): the whole centre, so the end padding and shadow scroll into view too) and the centre sits in the middle at its natural height while it fits (Muzzy: "centered vertically"),
-     at the top once it's taller than the window. The screen's padding keeps the safe areas and room for shadows.
+     grows to fit (minmax(min-content, 1fr): the whole centre, so the end padding and shadow scroll into view too); the centre
+     opens in the middle at its natural height while it fits (Muzzy: "centered vertically"), at the top once it's taller than the window. The screen's padding keeps the safe areas and room for shadows.
      It catches drags on its empty space too (a menu, not a HUD: taps there don't reach the game). */
   .kit-screen[data-scroll] { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none;
     grid-template-rows: auto minmax(min-content, 1fr) auto; pointer-events: auto; }
   .kit-screen[data-scroll]::-webkit-scrollbar { display: none; }
-  .kit-screen[data-scroll] > [data-slot="center"] { align-self: center; max-block-size: none; } /* centred while it fits; taller → starts at the top and scrolls (Muzzy 2026-10-05) */
+  .kit-screen[data-scroll] > [data-slot="center"] { align-self: start; max-block-size: none; } /* at the top of its row, pushed down to the middle by a top margin measured when it opens (layout.tsx keepCentredOnOpen), so it then only grows DOWN and a control you just tapped (+ / −, Person ▶ AI) stays under your finger; taller than the screen → it scrolls (Muzzy 2026-10-05, 2026-10-10) */
   /* Screen stack layers: no box of their own, they only carry "inert" for the screens inside */
   .kit-layer { display: contents; }
   /* An open screen with another one on top is hidden (ScreenStack sets data-covered): only the top screen shows.

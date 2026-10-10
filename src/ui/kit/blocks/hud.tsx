@@ -24,7 +24,7 @@ export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay,
     <Modal title={w.title}>
       {note && <Text kind="caption">{note}</Text>}
       <Stack gap="s" className="kit-menu">
-        <Button onClick={onResume}>{w.resume}</Button>
+        <Button sound="back" onClick={onResume}>{w.resume}</Button>
         {onSettings && <Button variant="secondary" onClick={onSettings}>{w.settings}</Button>}
         {onHowToPlay && <Button variant="secondary" onClick={onHowToPlay}>{w.howToPlay}</Button>}
         {onQuit && <Button variant="danger" onClick={quit}>{w.quit}</Button>}

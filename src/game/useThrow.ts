@@ -2,8 +2,11 @@
 // to its target (time = flightBase + flightPerHex × distance), lands, the game commits the turn, then the
 // runeblossom sprouts with a little overshoot (then the words it made score one at a time and fade — ScorePops.tsx).
 // Every frame changes SVG attributes directly (no React state per frame). Reduce motion → no flight.
+// Sounds (content/audio.json): cast.throw at the top of the hop · seed.land as it lands · sprout.grow as it grows — the
+// same for a person, an AI and an online player's replay (they all fly through here). Reduce motion: land + grow, at once.
 import { useEffect, type RefObject } from 'react'
 import { hexToPixel, type Hex } from '../engine/hex'
+import { playSound } from '../audio'
 import { reduceMotion } from '../ui/kit'
 import { throwHandle } from './trailShape'
 import type { AnimTuning } from './useTuning'
@@ -26,6 +29,7 @@ export function useThrow({ svgRef, seedRef, flight, onLanded, landed, timing }: 
   useEffect(() => {
     if (!flight) return
     if (reduceMotion()) {
+      playSound('seed.land')
       onLanded()
       return
     }
@@ -38,6 +42,7 @@ export function useThrow({ svgRef, seedRef, flight, onLanded, landed, timing }: 
     const ms = 1000 * (timing.flightBase + (timing.flightPerHex * distance) / Math.sqrt(3))
     const handle = throwHandle(a, b, timing.arcHeight) // bezier handle above the middle (the trail's arc is the same curve)
     const start = performance.now()
+    playSound('cast.throw', { at: start + timing.hopTime * 1000 }) // the whoosh at the top of the hop
     let frame = 0
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / ms)
@@ -46,7 +51,10 @@ export function useThrow({ svgRef, seedRef, flight, onLanded, landed, timing }: 
       const y = (1 - e) ** 2 * a.y + 2 * (1 - e) * e * handle.y + e * e * b.y
       seedRef.current?.setAttribute('transform', `translate(${x} ${y})`)
       if (t < 1) frame = requestAnimationFrame(step)
-      else onLanded()
+      else {
+        playSound('seed.land')
+        onLanded()
+      }
     }
     frame = requestAnimationFrame(step)
     return () => cancelAnimationFrame(frame)
@@ -56,7 +64,9 @@ export function useThrow({ svgRef, seedRef, flight, onLanded, landed, timing }: 
 
   // After landing: the runeblossom sprouts
   useEffect(() => {
-    if (!landed || reduceMotion()) return
+    if (!landed) return
+    playSound('sprout.grow') // (audio.json delayMs puts it a beat after the landing)
+    if (reduceMotion()) return
     const svg = svgRef.current
     svg?.querySelector(`[data-seed="${landed.key}"]`)?.animate(
       [{ transform: `scale(${timing.growFrom})`, opacity: 0.4 }, { transform: 'scale(1)', opacity: 1 }],

@@ -8,6 +8,7 @@ import style from '../content/ui/style.json'
 import { settings } from './ui/gameSettings'
 import { startFullscreen } from './ui/fullscreen'
 import { freezeScreen, frozen } from './game/freeze'
+import { startSound } from './game/sound'
 
 // Dev only: ?freeze holds the screen still for the before / after screenshots (src/game/freeze.ts)
 if (frozen) freezeScreen()
@@ -27,6 +28,9 @@ function startGame() {
   // Offline cache: when a new release is out it downloads in the background and the page swaps
   // to it straight away — returning players never see an old version (Roll Better B020).
   registerSW({ immediate: true })
+
+  // Sound (src/game/sound.ts): made now, starts on the first tap; Settings → Audio sets the volumes
+  startSound(loadSettings(settings))
 
   // Full screen: phones go full screen on a tap (Settings → Display → Full screen); src/ui/fullscreen.ts
   startFullscreen(() => loadSettings(settings))

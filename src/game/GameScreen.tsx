@@ -29,6 +29,7 @@ import { SeedTray } from './SeedTray'
 import { TurnBar } from './TurnBar'
 import { useBotDraft } from './useBotDraft'
 import { useNopeShake } from './useNopeShake'
+import { useGardenSounds } from './sound'
 import { usePieceInput } from './usePieceInput'
 import { useGardenTuning, useLayoutTuning } from './useTuning'
 import './game.css'
@@ -46,6 +47,7 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   useEffect(() => { loadWords(wordListUrl()) }, [loadWords])
   // The AI seats on this device play by themselves while the game is on screen (store/localBot.ts)
   useEffect(() => driveLocalBots(), [])
+  useGardenSounds() // the night garden + the garden's music, with rests (src/game/sound.ts)
   // Couldn't load the words (a first visit on a bad connection): say so — the Cast button becomes Retry
   useEffect(() => {
     if (wordsStatus === 'failed') toast(text.game.notes.wordsFailed, { variant: 'danger', dismissible: true })

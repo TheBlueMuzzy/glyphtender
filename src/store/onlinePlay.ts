@@ -23,6 +23,9 @@
 //     travels; its view waits for the shrink, then the new seeds (the drew event) grow in — and the next change waits
 //     for the grow too (B020). Nobody else sees my seeds.
 //   · A gap too old for the feed (back after a long time away): no animation — straight to the view.
+//   · SOUND: a replayed change sounds like it would on the player's own screen, as it animates (the glide, throw and
+//     score play their own sounds in src/game/); another seat's placement plays draft.place as it lands (here, in show).
+//     A jump (startFrom / jumpTo) is silent: nothing "just happened" (happened = null → src/game/sound.ts catchingUp).
 import animJson from '../../content/tuning/anim.json'
 import { liveTuning } from '../devkit/tuning/liveTuning'
 import type { GameView, OnlineAction } from '../../party/protocol'
@@ -31,6 +34,7 @@ import { flowOf } from '../engine/rules'
 import { mayAct } from '../table/flow'
 import { newChanges } from '../table/events'
 import type { Action, GameState } from '../engine/types'
+import { playSound } from '../audio'
 import { glideSeconds } from '../game/glide'
 import { reduceMotion } from '../ui/kit/blocks/motion'
 import { useGameStore, type OnlineLink } from './gameStore'
@@ -197,6 +201,7 @@ function show(view: GameView, change: Happened, last: boolean) {
   })
   const sprout = thrown ? { key: hexKey(thrown.target), count: (landed?.count ?? 0) + 1 } : landed
   if (mine) clearTimers()
+  else if (eventOf(events, 'placed')) playSound('draft.place') // (another seat's glyphling arriving — mine sounded on my tap)
   lastPlayed = change.change
   set({
     game, online: last ? { ...online, version: view.version } : online, trayOrder: order, landed: sprout, happened: change,

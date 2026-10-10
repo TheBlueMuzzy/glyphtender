@@ -16,6 +16,10 @@
 // NO RE-SORT: a cast seed's place stays where it was — the drawn seed grows into it, or it stays empty (TRAY_GAP)
 // until a refresh fills it; the other seeds never shift (Muzzy 2026-10-01; Table rack.ts refillRack).
 // Taps and drags are handled by usePieceInput (data-hand / data-tray-pos / data-draft).
+// Sound: refresh.out as the set-aside seeds shrink, refresh.in as the new ones grow — only when it's THIS tray (the
+// viewer's) refreshing, so an AI's or another player's refresh stays as private as their seeds.
+import { useEffect } from 'react'
+import { playSound } from '../audio'
 import { hexCorners } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
@@ -24,7 +28,7 @@ import { viewerOf } from '../store/viewer'
 import { letterIn, TRAY_GAP } from '../store/turnPlan'
 import { HandView, type HandPlace, type RackLayout } from '../ui/kit'
 import { colourOf, glyphlingArt, seedArt } from './art'
-import { juiceFor } from './feel'
+import { juiceFor, juiceSound } from './feel'
 import { useAnimTuning, useGardenTuning } from './useTuning'
 
 /** What sits in a place: a seed (its letter), or during the draft a glyphling still to place ("next" = the one to place now). */
@@ -51,6 +55,10 @@ export function SeedTray({ layout, boxWidth }: Props) {
   const seat = aiDrafting ? game.current : viewer
   const refreshing = refreshFx?.seat === seat ? refreshFx : null
   const stage = refreshing?.stage
+  useEffect(() => {
+    if (stage === 'out') playSound('refresh.out')
+    if (stage === 'in') juiceSound('refreshGrow', 'refresh.in')
+  }, [stage])
   const myTurn = useGameStore(isMyTurn) // online, the plan on the board may be another player's replay
   const player = colours[colourOf(seat)]
   const { tile } = layout

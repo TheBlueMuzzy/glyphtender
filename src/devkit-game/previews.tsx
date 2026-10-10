@@ -4,10 +4,11 @@
 // so filling the stores here never touches the real game. Saves, sends and history steps are blocked there.
 // Dev only — never in a release build. The sample games are real games played by the sim (sampleGames.ts).
 // Not here (and why): an "update available" notice — there isn't one (a new release swaps in silently, B020);
-// board moments (draft, refresh, danger cues, tangles) — the Snapshots tab restores those in the real game;
+// other board positions (draft, refresh, danger cues) — the Snapshots tab restores those in the real game;
 // Settings / Credits — not gated (the main menu opens them).
+// MOMENTS (Screens → Board / Magic reveal → Moments: a score pop, a tangle, the fanfare… on a loop, with their sliders
+// and the Soft · Balanced · Punchy styles): moments.ts, re-exported below for the Dev Kit.
 import type { DevKitPreview, PreviewSandbox } from '../devkit/previews/previewTypes'
-import type { WordList } from '../engine/types'
 import { wordListUrl } from '../game/art'
 import type { Seat as RoomSeat } from '../rooms/protocol'
 import { useGameStore, type OnlineLink } from '../store/gameStore'
@@ -16,7 +17,10 @@ import text from '../../content/text/en.json'
 import { fill, screens, toast } from '../ui/kit'
 import { closedMessage, useOnline, type Room } from '../ui/online/session'
 import { PreviewApp } from './PreviewApp'
-import { finishedGame, midGame, tiedGame, type SampleGame } from './sampleGames'
+import { midGame, type SampleGame } from './sampleGames'
+import { endGame, loadGame, playersOf, words } from './sampleStore'
+
+export { moments } from './moments'
 
 // ─── The end screen — ONE function, so a new end screen is a one-line swap (F26) ───────────────────────
 /** Opens the end screen for a finished game: the reveal done, the end table open (src/game/GameOver.tsx). */
@@ -27,35 +31,10 @@ function showEndScreen(sample: SampleGame) {
 }
 
 // ─── Sample data ───────────────────────────────────────────────────────────────────────────────────
-/** The real word list (the same file the game loads; the store keeps it, so the game screen won't load it again). */
-async function words(): Promise<WordList> {
-  await useGameStore.getState().loadWords(wordListUrl())
-  const list = useGameStore.getState().words
-  if (!list) throw new Error("the word list didn't load")
-  return list
-}
-
-/** Puts a sample game in the store, with the table options a new game would have. */
-function loadGame({ game, stats }: SampleGame) {
-  useGameStore.getState().loadState(game, stats)
-  useGameStore.setState({
-    options: { players: game.config.players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: true, wordIndicators: true },
-  })
-}
+// words(), loadGame(), playersOf(), endGame(): sampleStore.ts (the moments use them too)
 
 const PLAYER_COUNTS = [{ id: '2p', label: '2 players' }, { id: '3p', label: '3 players' }, { id: '4p', label: '4 players' }]
 const END_VARIANTS = [...PLAYER_COUNTS, { id: 'tie', label: 'A tie' }]
-const playersOf = (variant: string | undefined) => Number(variant?.[0] ?? 2)
-
-/** A finished game for an end-of-game variant: 2p / 3p / 4p, or a 2-player tie. */
-async function endGame(variant: string | undefined): Promise<SampleGame> {
-  const list = await words()
-  if (variant !== 'tie') return finishedGame(playersOf(variant), list)
-  const tie = tiedGame(list)
-  if (!tie) throw new Error('no tied game in the first 200 seeds — raise tiedGame tries')
-  return tie
-}
-
 // Online: names, and a room / link that go nowhere
 const ONLINE_NAMES = ['Muzzy', 'Ada', 'Sam', 'Kit']
 const roomSeat = (i: number, extra: Partial<RoomSeat> = {}): RoomSeat =>
@@ -85,6 +64,13 @@ const LONG = 3600 // seconds: a preview's toast stays up to be looked at (the re
 
 // ─── The list ──────────────────────────────────────────────────────────────────────────────────────
 export const previews: DevKitPreview[] = [
+  {
+    id: 'board', label: 'Board (mid-game)', group: 'In a game',
+    note: 'A 2-player pass-and-play game a few turns in, seeds shown — its Moments play the score pops, tangles, "no" shake and turn start',
+    async show() {
+      loadGame(midGame(2, await words()), { hideSeeds: false })
+    },
+  },
   {
     id: 'handoff', label: 'Pass the device', group: 'Between turns', hint: 'phone',
     note: '"Pass to Blue" — pass-and-play with hidden seeds, between two players',

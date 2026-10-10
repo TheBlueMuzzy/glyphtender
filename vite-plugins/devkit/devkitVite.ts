@@ -12,9 +12,13 @@
 //      A missing folder is refused, except the two the Dev Kit's own tools fill (MADE_ON_FIRST_SAVE).
 //      Files are written like hand-written JSON (formatJson.ts: 2 spaces, short objects / lists on one line), and a "_help" note already
 //      in the file is kept even if the tool didn't send it.
+//   3. The Sound tab's two endpoints, dev server only (audioSave.ts): POST /__devkit/save-audio (a dropped-in sound →
+//      MP3 in public/audio/<folder>/, nowhere else) and POST /__devkit/add-credit (appends to content/credits.json).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import { dirname, join, resolve, sep } from 'node:path'
 import type { Plugin } from 'vite'
+import { ADD_CREDIT_URL, MAX_UPLOAD_BYTES, SAVE_AUDIO_URL, readAudioTarget, readCreditEntry, saveAudioFile } from './audioSave'
 import { formatJson } from './formatJson'
 
 // How files are written (one-line short objects and lists, like hand-written files): formatJson.ts
@@ -84,19 +88,79 @@ export function devkit(): Plugin {
       const originHost = (origin: string) => {
         try { return new URL(origin).host } catch { return '' }
       }
-      server.middlewares.use(SAVE_URL, (req, res) => {
-        const reply = (status: number, body: object) => {
-          res.statusCode = status
-          res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify(body))
-        }
-        if (req.method !== 'POST') return reply(405, { error: 'POST only' })
-        // Only the game's own page may save: the dev server is on the Wi-Fi (--host), and any web page
-        // could otherwise POST here. A same-page fetch sends Origin = this server; JSON forces that check.
+      const replier = (res: ServerResponse) => (status: number, body: object) => {
+        res.statusCode = status
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify(body))
+      }
+      // Only the game's own page may save: the dev server is on the Wi-Fi (--host), and any web page
+      // could otherwise POST here. A same-page fetch sends Origin = this server; JSON (or raw bytes) forces that check.
+      const refused = (req: IncomingMessage, contentType: string): [number, string] | null => {
+        if (req.method !== 'POST') return [405, 'POST only']
         const origin = req.headers.origin
         const host = req.headers.host
-        if (!origin || !host || originHost(origin) !== host) return reply(403, { error: 'Save only from the game page' })
-        if (!String(req.headers['content-type'] ?? '').startsWith('application/json')) return reply(415, { error: 'JSON only' })
+        if (!origin || !host || originHost(origin) !== host) return [403, 'Save only from the game page']
+        if (!String(req.headers['content-type'] ?? '').startsWith(contentType)) return [415, `${contentType} only`]
+        return null
+      }
+
+      // 3a. A sound file dropped into the Sound tab → MP3 in public/audio/<folder>/ (audioSave.ts)
+      server.middlewares.use(SAVE_AUDIO_URL, (req, res) => {
+        const reply = replier(res)
+        const no = refused(req, 'application/octet-stream')
+        if (no) return reply(no[0], { error: no[1] })
+        const params = new URL(req.url ?? '/', 'http://x').searchParams
+        const target = readAudioTarget({ folder: params.get('folder'), stem: params.get('stem'), bus: params.get('bus'), ext: params.get('ext') })
+        if (typeof target === 'string') return reply(400, { error: `Not allowed: ${target}` })
+        const chunks: Buffer[] = []
+        let size = 0
+        req.on('data', (chunk: Buffer) => {
+          size += chunk.length
+          if (size <= MAX_UPLOAD_BYTES) chunks.push(chunk)
+        })
+        req.on('end', () => {
+          if (size > MAX_UPLOAD_BYTES) return reply(413, { error: `That file is too big (over ${MAX_UPLOAD_BYTES / 1024 / 1024} MB)` })
+          saveAudioFile(root, target, Buffer.concat(chunks)).then(
+            (saved) => {
+              justWrote.set(fileKey(resolve(root, saved.file)), Date.now())
+              server.config.logger.info(`[devkit] saved ${saved.file} (start trimmed ${saved.trimmedMs} ms)`, { timestamp: true })
+              reply(200, { ok: true, ...saved })
+            },
+            (e: Error) => reply(500, { error: e.message }),
+          )
+        })
+      })
+
+      // 3b. Where a dropped-in sound came from → content/credits.json (a list)
+      server.middlewares.use(ADD_CREDIT_URL, (req, res) => {
+        const reply = replier(res)
+        const no = refused(req, 'application/json')
+        if (no) return reply(no[0], { error: no[1] })
+        const chunks: Buffer[] = []
+        req.on('data', (chunk: Buffer) => chunks.push(chunk))
+        req.on('end', () => {
+          try {
+            const entry = readCreditEntry(JSON.parse(Buffer.concat(chunks).toString('utf8')).entry)
+            if (typeof entry === 'string') return reply(400, { error: `Not allowed: ${entry}` })
+            const file = resolve(root, 'content', 'credits.json')
+            if (!existsSync(dirname(file))) return reply(400, { error: 'No such folder: content' })
+            const oldText = existsSync(file) ? readFileSync(file, 'utf8') : undefined
+            const list: unknown = oldText === undefined ? [] : JSON.parse(oldText)
+            if (!Array.isArray(list)) return reply(400, { error: 'content/credits.json should be a list [ … ] — not changed' })
+            justWrote.set(fileKey(file), Date.now())
+            writeFileSync(file, formatJson([...list, entry], oldText))
+            server.config.logger.info(`[devkit] credits: added ${entry.paths.join(', ')}`, { timestamp: true })
+            reply(200, { ok: true })
+          } catch (e) {
+            reply(500, { error: String(e) })
+          }
+        })
+      })
+
+      server.middlewares.use(SAVE_URL, (req, res) => {
+        const reply = replier(res)
+        const no = refused(req, 'application/json')
+        if (no) return reply(no[0], { error: no[1] === 'application/json only' ? 'JSON only' : no[1] })
 
         const chunks: Buffer[] = []
         req.on('data', (chunk: Buffer) => chunks.push(chunk))
