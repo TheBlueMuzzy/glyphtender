@@ -17,7 +17,7 @@ Done when: music + ambience stream (MediaElementSource into their bus) instead o
 ## F58 🎮 Night garden mix
 - [x] 🤖 7. In a game: amb.night + the bed's layers with rests · menus: mus.menu · paused: muffled — all times in content/audio.json; design/audio.md "Mix" updated
 - [x] 🤖 8. Tests: framework (layers, rests, stack); e2e audio-log — a rest happens (short test times), Pause during the reveal returns to the reveal mix; check:full (Area check ALL PASS 8/8; check:full still to run)
-- [ ] 🙋 9. Muzzy: a full game, listening — does the music rest? are the pops in tune? does the reveal feel like a ceremony?
+- [x] 🙋 9. Muzzy: a full game, listening — does the music rest? are the pops in tune? does the reveal feel like a ceremony?
 
 Check: check:fast after each task · check:full once at the end.
 Ask Muzzy: —
@@ -35,3 +35,4 @@ Ask Muzzy: —
   - The ceremony **ends a rest** if the music is resting at the count-up (it always has its music).
   - Reveal mix music **−6 → −3 dB** (the music has to swell now) — Sound tab → Mixer if it crowds the counts.
 - Checks: check:full ALL PASS 24/24 (c4f9118). Review (low, 2582acf..c4f9118): no findings.
+- Muzzy 2026-10-10 listening test: menu tab sounds shouldn't vary ("I like variance for other things, but not really for expected menu function"); toggles need a positive (on) and negative (off) sound; New Game grew up AND down so the + moved under his finger → should only grow down ("this is why we put the scroll page feature in"). Fixed: menu sounds one file + no randomness, ui.toggle.on (+3 st) / ui.toggle.off (−3 st) via ui-kit 0.4.3 toggle.on/.off, scrolling Screen starts at the top (UI kit 0.4.3) — + stays at y 140 (was 187 → 153 → 140). "all else good enough" → done.
