@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — needs v0.9 audio (Muzzy 2026-10-09: "beta needs sound") + the beta audits · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -186,7 +186,7 @@ Goal: an online game with friends that never stalls and always says who's playin
 - ✅ F53 🎮 2-letter words shown in the Pause menu (Muzzy 2026-10-08 cut the ⓘ rules/settings pop-up: the only setting you can't see in play is 2-letter words) — one quiet line, kit Pause note — should · needs: —
 - ✅ B024 friend left via Menu → Leave (PC, live v0.5.0): no "a bot is playing" toast, no 🤖 — can't reproduce (e2e passes); Muzzy re-tested 2026-10-08: the 🤖 shows — must
 
-## v0.9 — The garden sings (audio)  ✅ done 2026-10-10 (→ release v0.6.0)
+## v0.9 — The garden sings (audio)  ✅ released 2026-10-10 (v0.6.0)
 Goal: Glyphtender has sound — every moment heard at the moment you see it, your play becomes the melody, the Magic reveal is a ceremony for the new Grand Glyphtender — on a reusable framework Audio module Muzzy tunes in the Dev Kit Sound Board. Design: `design/audio.md` + `../../framework/.planning/design/audio.md`. Research: `research/audio.md`. Framework-first: each framework slice (its F27–F31) is built there and switched on here in the same sprint. Muzzy 2026-10-09: "beta is for 'don't let perfect be the enemy of good'" · sources: "free libraries… for now".
 - ✅ F54 ❓ Audio direction — B "the garden sings" (Grand Glyphtender contest, cozy magical) · free libraries for beta · respect the iPhone silent switch · 5 sliders · feel tiers get sounds ("try it") — Muzzy 2026-10-09
 - ✅ F55 🎮 Every moment wired (sprint 19 — Muzzy 2026-10-10: "sounds are okay… good enough for now since it proved out the system… keep"): the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27

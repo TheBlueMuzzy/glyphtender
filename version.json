@@ -1,7 +1,7 @@
 {
   "name": "Glyphtender",
-  "version": "0.5.2",
-  "build": 1,
+  "version": "0.6.0",
+  "build": 0,
   "history": [
     {
       "version": "0.0.0",
@@ -47,6 +47,11 @@
       "version": "0.5.2",
       "date": "2026-10-08",
       "summary": "New Game and the online lobby now start with 2-letter words off, even if you'd turned them on before"
+    },
+    {
+      "version": "0.6.0",
+      "date": "2026-10-10",
+      "summary": "The garden sings — Glyphtender has sound: every move, throw, landing, score pop and tangle is heard, the pops climb a musical scale, a night garden of crickets and an owl with harp music that rests, and a Magic reveal that builds to a fanfare for the new Grand Glyphtender; Settings → Audio with 5 volume sliders"
     }
   ]
 }

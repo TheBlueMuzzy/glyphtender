@@ -1,3 +1,4 @@
+- 2026-10-04 — Sprint 14 (autonomous): the AI brain + Glyphtender instincts built; 7 personalities play whole games (13 ms/decision); first Personality Check (positional personalities rarely win). Review: no leaks; call-it + meter fixes. Full check 19/19.
 - 2026-09-30 — Alpha release prep: live online host set, returning-player update check, credits; all checks green. Delivering v0.1.0.
 - 2026-10-04 — Defined the AI (beta) with Muzzy: framework AI module v0.5 (brain, fuzzy beliefs, personality ≠ skill, explain notes, Dev Kit editor, Personality Check = feel proven by behaviour over many games, offline learning only) + Glyphtender v0.7 (goals + territory, "call it", 7 personalities with feel targets). D69–D72.
 - 2026-10-04 — Released v0.4.0 (alpha): v0.6 Rebuilt on the Table ✅ — same game on the framework Table (ready for AI), Pincer hunt, online fixes. Framework v0.4.0 released. Checks: fast + smoke fresh, full reused (04bc6eb, 19/19), security review clean.
