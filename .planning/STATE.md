@@ -4,7 +4,7 @@
 Next: /sprint — candidates: Story chart upgrade (turn list + bot band, Ideas), the beta audits (optimize · design + iPhone test of the streaming music) → beta label, or move on to the next game (Muzzy: build several games to grow the framework, polish later).
 
 ## Where we are
-Stage: deliver · Milestone: v0.9 The garden sings ✅ released · Sprint: none (21 done) · Doing: released v0.6.0 · Branch: main · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
+Stage: deliver · Milestone: v0.9 The garden sings ✅ released · Sprint: 22 (0/8) · Doing: Sprint 22 — the Story tells the whole game · Branch: dev/story · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
