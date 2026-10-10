@@ -4,10 +4,10 @@ Muzzy will see: dragging a seed or a draft glyphling no longer leaves a solid co
 
 ## fw F53 🧱 Carry styles (framework ui-kit, kit/drag/)
 Done when: a game can pick, per drag type, what the carried piece looks like (solid | ghost, lift = scale + shadow), what its origin shows (solid | ghost | empty), how a valid drop ends (settle · turn solid · fly from origin) and how an invalid one returns (fly back · fade) — presets A–D; tested; ui-kit 0.5.0.
-- [ ] 🤖 1. Carry layer: carried solid|ghost + lift feedback (scale + shadow) — framework/ui-kit/kit/drag/
-- [ ] 🤖 2. Origin look solid|ghost|empty — a "dragging" state separate from "held" (tap-select); HandView place state
-- [ ] 🤖 3. Endings: valid drop settles / turns solid / flies from origin; invalid flies back from the pointer / fades (start rect captured on pointer-down)
-- [ ] 🤖 4. Presets A Pick it up · B Lift, mark home · C Aim · D Float + tests + check-ui; ui-kit 0.5.0
+- [x] 🤖 1. Carry layer: carried solid|ghost + lift feedback (scale + shadow) — framework/ui-kit/kit/drag/
+- [x] 🤖 2. Origin look solid|ghost|empty — a "dragging" state separate from "held" (tap-select); HandView place state
+- [x] 🤖 3. Endings: valid drop settles / turns solid / flies from origin; invalid flies back from the pointer / fades (start rect captured on pointer-down)
+- [x] 🤖 4. Presets A Pick it up · B Lift, mark home · C Aim · D Float + tests + check-ui; ui-kit 0.5.0
 - [ ] 🤖 5. Dev Kit Tuning tab: a dropdown (choice) field — framework/devkit (tuningLogic.ts only knows number / on-off / text)
 
 ## F63 🎮 Carry styles in Glyphtender
