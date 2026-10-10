@@ -109,8 +109,12 @@ export function MomentsPanel({ moments, all = moments, fire, run = 0, focus, loa
     if (!files) return
     setStatus({ kind: 'info', text: 'Saving…' })
     try {
-      for (const file of unsaved) await save(file, files[file].values)
-      setFiles(Object.fromEntries(Object.entries(files).map(([f, s]) => [f, { ...s, saved: s.values }])))
+      for (const file of unsaved) {
+        const written = files[file].values
+        await save(file, written)
+        // Mark only what was written as saved, on the LATEST state: a slider moved during the save stays (still unsaved)
+        setFiles((now) => (now && now[file] ? { ...now, [file]: { ...now[file], saved: written } } : now))
+      }
       setStatus({ kind: 'ok', text: `Saved ${unsaved.join(', ')}.` })
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save: ${(e as Error).message}` })
