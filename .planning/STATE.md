@@ -4,7 +4,7 @@
 Next: /sprint 21 "the garden sings" — fw F28 music + mix (streamed layers, loop points, stingers, rests, snapshot/duck timing), F57 (score pops on D pentatonic, chords, two-birds flourish, reveal ceremony), F58 (night ambience + mixes; a quiet bed that rests — should). Then F60 tuning pass (Muzzy, with the Sound tab + Moments), beta audits, /deliver beta. Known gap: closing Pause during the reveal resets to the normal mix → F58. Story chart upgrade is in Ideas.
 
 ## Where we are
-Stage: develop · Milestone: v0.9 The garden sings (audio) · Sprint: none (20 done) · Doing: sprint 20 approved → /sprint 21 · Branch: dev/audio (framework: dev/audio) · Version: 0.5.2.1 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
+Stage: develop · Milestone: v0.9 The garden sings (audio) · Sprint: 21 (0/9) · Doing: Sprint 21 — the garden sings · Branch: dev/audio (framework: dev/audio) · Version: 0.5.2.1 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.5.2, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

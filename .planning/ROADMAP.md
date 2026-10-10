@@ -192,9 +192,9 @@ Goal: Glyphtender has sound — every moment heard at the moment you see it, you
 - ✅ F55 🎮 Every moment wired (sprint 19 — Muzzy 2026-10-10: "sounds are okay… good enough for now since it proved out the system… keep"): the 31 sounds of design/audio.md play at their animation's moment (not the event's); bots + online rivals sound like people; online catch-up silent; reduce motion keeps sounds; feel tiers carry a default sound — must:beta · needs: fw F27
   why: every action lands with a sound → Cozy cleverness payoff, everyone follows the play
 - ✅ F56 🎮 Placeholder sound set (built sprint 19: 56 files, effects 269 KB — 5 weak fits) from free libraries (Kenney, Sonniss GDC, Freesound CC0/CC-BY, OpenGameArt) in the garden's palette, 3–5 variants for the frequent ones, in public/audio/ + content/credits.json — must:beta · needs: fw F27
-- ⏳ F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
+- 🔨 F57 🎮 The garden sings: score pops climb D pentatonic, long words ring a chord, two-birds flourish (ducks the music), reveal ceremony (count-ups rise, +3s pop, Grand Glyphtender fanfare) — must:beta · needs: F55, F56, fw F28
   why: clever casts get an audible reward; the reveal builds to the gasp → Secret-Magic tension
-- ⏳ F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
+- 🔨 F58 🎮 Night ambience (crickets, breeze, the odd owl) + pause / reveal mixes — must:beta; a quiet music bed that layers and rests — should · needs: F56, fw F28
 - ✅ F59 🎮 Settings → Audio works (built sprint 19): Master · Music · Ambience · Effects · UI · Mute everything · Mute in background · Mono — must:beta · needs: fw F29
 - ⏳ F60 🎛️ Tuning pass: Muzzy plays with sound on his phone + desktop (iPhone silent switch, Android, Bluetooth), tweaks in the Sound Board; loudness check — must:beta · needs: F55, F56, F57, F58, F59, fw F30
 ```mermaid
