@@ -17,7 +17,7 @@ import type { ClientMessage, CloseReason, ErrorCode, ServerMessage } from '../pr
 import type { GameRules, RoomTools, SeatChange } from './gameRules'
 import {
   addBot, backToLobby, dropOut, findSeat, findSeatOf, handToBot, joinRoom, kick,
-  newRoom, publicRoom, publicSeat, removeSeat, startPlaying, takeBack, whyNotStart,
+  newRoom, playedBy, publicRoom, publicSeat, removeSeat, startPlaying, takeBack, whyNotStart,
 } from './seats'
 import type { RoomData, SeatRecord } from './seats'
 import { readSettings } from './settings'
@@ -92,6 +92,10 @@ export class RoomServer<State, Options, Action, View, Event = never> {
       },
       onTheClock: (seatIds) => this.setOnTheClock(seatIds),
       timedOut: (seatId) => this.botTakesIdleSeat(seatId, 'their turn timer ran out'),
+      playedBy: (seatId) => {
+        const seat = findSeat(this.data, seatId)
+        return seat ? playedBy(seat) : null
+      },
       log: (message) => this.log(message),
     }
   }

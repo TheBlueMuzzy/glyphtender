@@ -103,6 +103,8 @@ export function aiAction(state: ServerGame, room: RoomTools<ServerGame, never>, 
 export function botStep(state: ServerGame, room: RoomTools<ServerGame, never>, words: () => WordList): ServerGame {
   const seat = state.game.current
   const picked = aiAction(state, room, words())
-  const next = { ...play(state, seat, picked.action, words()), botRng: picked.rng }
+  // (who's playing: a bot FOR the seat's person, or a seat the host added as AI — asked now, kept on the move: F62)
+  const by = room.playedBy(state.seatIds[seat]) ?? 'bot'
+  const next = { ...play(state, seat, picked.action, words(), by), botRng: picked.rng }
   return planNextTurn(next, room, words)
 }

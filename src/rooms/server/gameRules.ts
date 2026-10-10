@@ -7,6 +7,8 @@
 // viewFor(state, theirSeat) — so hidden things (hands, bags, scores) stay hidden in the data,
 // not just on screen.
 import type { Seat } from '../protocol'
+import type { PlayedBy } from './seats'
+export type { PlayedBy } from './seats'
 import type { RoomSettings } from './settings'
 import type { Timers } from './timers'
 
@@ -51,6 +53,14 @@ export interface RoomTools<State, Event> {
   onTheClock(seatIds: string[]): void
   /** The game's own turn timer ran out for this seat: a bot takes it now, the same way as idling (a tap gives it back). */
   timedOut(seatId: string): void
+  /**
+   * Who plays this seat right now: 'seat' (its person) · 'bot-for-seat' (a bot holding a person's seat — idle, out of
+   * time, left, kicked, away too long) · 'bot' (a bot the host added). null = no such seat. Ask it when a move is
+   * played (e.g. in the game's bot step) and keep the answer with the move — the seat can change back later, and at
+   * game over idle-held seats go back to their people. In onAction it's always 'seat' (a move from a person whose
+   * seat a bot held gives the seat back first). (Rooms 0.5.0.)
+   */
+  playedBy(seatId: string): PlayedBy | null
   /** A line in the server log (npm run party:dev shows it), marked with the room code. */
   log(message: string): void
 }

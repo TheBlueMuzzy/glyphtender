@@ -101,6 +101,9 @@ export interface GameStore {
   handoff: Handoff | null
   /** Each player's best turn, longest word and words made, for the end table. */
   stats: PlayerStats[]
+  /** Online, once the game is over: the log turns (turnNo) a bot played FOR its person — the Story chart's bot band
+   *  (F62; the server's results.botTurns). Always [] in pass-and-play (its AI seats are bots from the start). */
+  botTurns: number[]
   /** How far the end-of-game Magic reveal has got (a step number in revealPlan.ts); null = not started. */
   revealAt: number | null
   /** Online only (null in pass-and-play). */
@@ -330,6 +333,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     options: null,
     handoff: null,
     stats: [],
+    botTurns: [],
     revealAt: null,
     online: null,
     waiting: false,
@@ -350,7 +354,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const seats = localSeats(players, text.game.players).map((seat, i): Seat => (bots.includes(i) ? { ...seat, kind: 'bot', ai: ai[i] ?? defaultAi() } : seat))
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
-        happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players),
+        happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players), botTurns: [],
         trayOrder: game.hands.map(rackOf),
       })
     },
@@ -623,6 +627,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         happened: null, // a jump, not a change: nothing "just happened"
         seats, lastViewer: firstViewer(seats, game),
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
+        botTurns: [], // (a loaded game: nobody played for anyone — the Dev Kit's preview sets its own after)
         trayOrder: game.hands.map(rackOf),
       })
     },

@@ -52,10 +52,27 @@ export interface Rules<State, Action, Event extends TableEvent, Setup, View> {
   viewFor(state: State, seat: Seat): View
 }
 
+/**
+ * Who played a move (0.7.0):
+ * - 'seat'         — the seat's own person.
+ * - 'bot-for-seat' — a bot playing FOR that seat's person (online: they went idle, their turn timer ran out,
+ *                    they left, were kicked or stayed away too long). The end screen can say "a bot played these for Blue".
+ * - 'bot'          — the seat IS a bot (added as a bot from the start): nobody to play for.
+ * Rooms' `room.playedBy(seatId)` gives the same three words for an online seat.
+ */
+export type PlayedBy = 'seat' | 'bot-for-seat' | 'bot'
+
+/** One move in a record. `by` is optional: records made before 0.7.0 (or by sims that don't care) have none. */
+export interface RecordedMove<Action> {
+  seat: Seat
+  action: Action
+  by?: PlayedBy
+}
+
 /** A replayable game: how it was set up + every move in order. Not the end screen's summary log — the raw moves. */
 export interface MoveRecord<Setup, Action> {
   setup: Setup
-  moves: { seat: Seat; action: Action }[]
+  moves: RecordedMove<Action>[]
 }
 
 /** May this seat see this event? */
@@ -68,12 +85,28 @@ export function eventsFor<Event extends TableEvent>(events: Event[], seat: Seat)
   return events.filter((e) => canSee(e, seat))
 }
 
-/** The record with one more move on the end (the record itself is never edited). */
-export function addMove<Setup, Action>(record: MoveRecord<Setup, Action>, seat: Seat, action: Action): MoveRecord<Setup, Action> {
-  return { setup: record.setup, moves: [...record.moves, { seat, action }] }
+/** The record with one more move on the end (the record itself is never edited). `by` = who played it (left out = not said). */
+export function addMove<Setup, Action>(
+  record: MoveRecord<Setup, Action>,
+  seat: Seat,
+  action: Action,
+  by?: PlayedBy,
+): MoveRecord<Setup, Action> {
+  const move: RecordedMove<Action> = by === undefined ? { seat, action } : { seat, action, by }
+  return { setup: record.setup, moves: [...record.moves, move] }
 }
 
-/** Plays a record from its setup, move by move. Throws (saying which move) if a move is no longer allowed. */
+/** The move numbers (0-based, in record order) a bot played FOR this seat's person — what "a bot played these turns
+ *  for Blue" lists. Moves with no `by` count as the seat's own. */
+export function botPlayedFor<Setup, Action>(record: MoveRecord<Setup, Action>, seat: Seat): number[] {
+  const indexes: number[] = []
+  record.moves.forEach((move, i) => {
+    if (move.seat === seat && move.by === 'bot-for-seat') indexes.push(i)
+  })
+  return indexes
+}
+
+/** Plays a record from its setup, move by move (who played each move — `by` — doesn't change the game). Throws (saying which move) if a move is no longer allowed. */
 export function replay<State, Action, Event extends TableEvent, Setup, View>(
   rules: Rules<State, Action, Event, Setup, View>,
   record: MoveRecord<Setup, Action>,

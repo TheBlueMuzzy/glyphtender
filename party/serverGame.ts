@@ -2,9 +2,10 @@
 // room's bookkeeping. It is never sent to anyone as is: views.ts cuts one player's view out of it.
 // Every change goes through the rules' one door (src/engine/rules.ts) and is written into the move record,
 // and its events go into the feed (each player's view carries the part of it they may see — views.ts).
+import { logOf } from '../src/engine/log'
 import { glyphtenderRules, type GameEvent, type GameSetup } from '../src/engine/rules'
 import type { Action, GameState, WordList } from '../src/engine/types'
-import { addMove, type MoveRecord } from '../src/table/core'
+import { addMove, botPlayedFor, type MoveRecord, type PlayedBy } from '../src/table/core'
 import { addChange, type Feed } from '../src/table/events'
 import { addTurn, type PlayerStats } from '../src/store/stats'
 import type { Change, OnlineOptions } from './protocol'
@@ -43,12 +44,34 @@ export interface ServerGame {
 /** Plays one action for `seat` through the rules (throws if they say no), keeps the end-table numbers, writes the
  *  move into the record and its events into the feed (as change number = the new version). Every change goes through
  *  here — a player's, a bot's and the turn clock's — so the feed misses nothing. (Normal mode, not fast: the end
- *  screen reads the game log.) */
-export function play(state: ServerGame, seat: number, action: Action, words: WordList): ServerGame {
+ *  screen reads the game log.) `by` = who played it (rooms' room.playedBy, asked NOW — the seat can change hands later):
+ *  kept on the move in the record, so the end screen can show the turns a bot played for someone (F62). */
+export function play(state: ServerGame, seat: number, action: Action, words: WordList, by?: PlayedBy): ServerGame {
   const { state: game, events } = glyphtenderRules(words).apply(state.game, seat, action)
   const stats = action.type === 'turn' && game.lastTurn ? addTurn(state.stats, game.lastTurn) : state.stats
-  const record = addMove(state.record, seat, action)
+  const record = addMove(state.record, seat, action, by)
   const version = state.version + 1
   const feed = addChange(state.feed, version, events)
   return { ...state, game, stats, record, feed, version, change: action.type, by: seat }
+}
+
+/**
+ * The log turns (turnNo) a bot played FOR its person — they idled, their turn timer ran out, they left, were kicked or
+ * stayed away too long (F62: the Story chart's bot band). A turn counts by who played its move + cast (the 'turn'
+ * action — each one makes exactly one log turn, in order); draft placements and refreshes aren't log turns of their
+ * own. Seats the host added as AI are bots from the start: never listed. A room started before F62 (moves without
+ * `by`) lists nothing.
+ */
+export function botTurns(state: ServerGame): number[] {
+  const { moves } = state.record
+  const forPeople = new Set(state.seatIds.flatMap((_, seat) => botPlayedFor(state.record, seat)))
+  const turns = logOf(state.game).turns
+  const out: number[] = []
+  let at = 0 // (the next log turn)
+  moves.forEach((move, i) => {
+    if (move.action.type !== 'turn') return
+    const turn = turns[at++]
+    if (turn && turn.seat === move.seat && forPeople.has(i)) out.push(turn.turnNo)
+  })
+  return out
 }

@@ -123,7 +123,7 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurn
       if (message.version !== state.version) throw new Error('The game moved on — try again.')
       const problem = glyphtenderRules(words()).check(state.game, mine, message.action)
       if (problem) throw new Error(problem)
-      const next = play(state, mine, message.action, words())
+      const next = play(state, mine, message.action, words(), 'seat') // (a person's own move: F62)
       // (remember which change this seat's own action made — its view tells its screen the move got through, B021)
       // (a room started before B021 has no lastOwnAction yet: everyone starts at 0)
       const lastOwnAction = (next.lastOwnAction ?? next.game.hands.map(() => 0)).map((change, seat) => (seat === mine ? next.version : change))
