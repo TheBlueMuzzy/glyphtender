@@ -34,3 +34,4 @@ Ask Muzzy: —
   - Ceremony knobs in **content/tuning/anim.json** (Tuning → End-of-game reveal + the reveal Moments): calm 0.2 (in play + after), peak 0.9, settle 3 s; each count ramps over revealCount (1.5 s). 2 players: 0.2 → 0.55 → 0.9.
   - The ceremony **ends a rest** if the music is resting at the count-up (it always has its music).
   - Reveal mix music **−6 → −3 dB** (the music has to swell now) — Sound tab → Mixer if it crowds the counts.
+- Checks: check:full ALL PASS 24/24 (c4f9118). Review (low, 2582acf..c4f9118): no findings.
