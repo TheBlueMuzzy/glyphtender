@@ -326,6 +326,7 @@
       "bus": "sfx",
       "files": ["sfx/sfx_score_pop_01.mp3"],
       "volumeDb": -6,
+      "randomPitch": 0,
       "maxVoices": 6,
       "cooldownMs": 30,
       "priority": 3,
