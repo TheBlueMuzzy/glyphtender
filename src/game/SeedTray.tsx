@@ -18,6 +18,10 @@
 // Taps and drags are handled by usePieceInput (data-hand / data-tray-pos / data-draft). While a seed or a draft glyphling
 // is CARRIED (a drag — carryState.ts, not "held"), its place shows what the drag's carry style says: itself, a faint
 // ghost or nothing (HandPlace.origin; drag.json), and no held ring — the piece is in the hand now.
+// WHERE A REORDERED SEED WILL GO (F64, drag.json targets.reorder; dropTarget.ts trayAim, set by usePieceInput): while a seed
+// is dragged onto another seed, an insertion marker (a slim bar in the player's colour, like the held ring) at the gap
+// it will slide into, or the seeds on each side of that gap make room (HandView makeRoomAt). Both stay inside the tray's
+// own box: the marker is drawn in the gap, making room only slides sideways — the tray never changes height (B013).
 // Sound: refresh.out as the set-aside seeds shrink, refresh.in as the new ones grow — only when it's THIS tray (the
 // viewer's) refreshing, so an AI's or another player's refresh stays as private as their seeds.
 import { useEffect } from 'react'
@@ -28,11 +32,12 @@ import { isMyTurn } from '../store/myTurn'
 import { isLocalHuman } from '../store/seats'
 import { viewerOf } from '../store/viewer'
 import { letterIn, TRAY_GAP } from '../store/turnPlan'
-import { HandView, type HandPlace, type RackLayout } from '../ui/kit'
+import { HandView, type HandPlace, type HandSpot, type RackLayout } from '../ui/kit'
 import { colourOf, glyphlingArt, seedArt } from './art'
 import { originOf, useCarried } from './carryState'
+import { useTrayAim } from './dropTarget'
 import { juiceFor, juiceSound } from './feel'
-import { useAnimTuning, useGardenTuning } from './useTuning'
+import { useAnimTuning, useDragTuning, useGardenTuning } from './useTuning'
 
 /** What sits in a place: a seed (its letter), or during the draft a glyphling still to place ("next" = the one to place now). */
 type Piece = { kind: 'seed'; letter: string } | { kind: 'glyphling'; next: boolean }
@@ -64,6 +69,8 @@ export function SeedTray({ layout, boxWidth }: Props) {
   }, [stage])
   const myTurn = useGameStore(isMyTurn) // online, the plan on the board may be another player's replay
   const carried = useCarried((s) => s.carried) // (a drag: the carried piece's home look)
+  const aim = useTrayAim((s) => s.aim) // (a seed dragged onto another: where it will slide in)
+  const dragFeel = useDragTuning() // (make room's gap and time)
   const player = colours[colourOf(seat)]
   const { tile } = layout
 
@@ -77,6 +84,14 @@ export function SeedTray({ layout, boxWidth }: Props) {
       <polygon points={hexCorners(x, y, tile / 2)} fill="none" stroke={player} strokeWidth={tile * 0.1} strokeOpacity={0.3} strokeLinejoin="round" />
       <polygon points={hexCorners(x, y, tile / 2)} fill="none" stroke={player} strokeWidth={tile * 0.045} strokeLinejoin="round" />
       {planned && <animate attributeName="opacity" values="1;0.3;1" dur={`${timing.pulseTime}s`} repeatCount="indefinite" />}
+    </g>
+  )
+
+  // The insertion marker: a slim rounded bar in the player's colour with a soft glow round it (the held ring's look)
+  const marker = ({ x, y }: HandSpot) => (
+    <g pointerEvents="none" data-insert-marker="">
+      <rect x={x - tile * 0.09} y={y - tile * 0.42} width={tile * 0.18} height={tile * 0.84} rx={tile * 0.09} fill={player} opacity={0.3} />
+      <rect x={x - tile * 0.04} y={y - tile * 0.38} width={tile * 0.08} height={tile * 0.76} rx={tile * 0.04} fill={player} />
     </g>
   )
 
@@ -115,8 +130,10 @@ export function SeedTray({ layout, boxWidth }: Props) {
 
   return (
     <HandView<Piece> layout={layout} boxWidth={boxWidth} className="game-tray" label="Seeds" hidden={hidden} places={places}
-      stage={stage} look={{ ghostOpacity: carried?.ghostOpacity }}
-      motion={{ shrinkTime: timing.refreshShrinkTime, growTime: timing.refreshGrowTime, stagger: timing.refreshStagger, overshoot: juiceFor('refreshGrow').grow }}
+      stage={stage} look={{ ghostOpacity: carried?.ghostOpacity, makeRoom: dragFeel.makeRoom }}
+      motion={{ shrinkTime: timing.refreshShrinkTime, growTime: timing.refreshGrowTime, stagger: timing.refreshStagger, overshoot: juiceFor('refreshGrow').grow, roomTime: dragFeel.roomTime }}
+      insertAt={aim?.look === 'marker' ? aim.gap : undefined} renderMarker={marker}
+      makeRoomAt={aim?.look === 'room' ? aim.gap : undefined}
       renderEmpty={({ x, y }) => slot(x, y)}
       renderPiece={({ piece, held, aimed, origin }, { x, y }) => {
         if (!piece) return null
