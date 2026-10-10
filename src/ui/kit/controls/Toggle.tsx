@@ -11,7 +11,7 @@ export function Toggle({ on, onChange, label, disabled }: ToggleProps) {
     e.preventDefault()
     const want = e.key === 'ArrowRight'
     if (want === on) return
-    controlSound('toggle')
+    controlSound(want ? 'toggle.on' : 'toggle.off')
     onChange(want)
   }
   return (
@@ -24,7 +24,7 @@ export function Toggle({ on, onChange, label, disabled }: ToggleProps) {
       data-state={on ? 'on' : 'off'}
       disabled={disabled}
       onClick={() => {
-        controlSound('toggle')
+        controlSound(on ? 'toggle.off' : 'toggle.on')
         onChange(!on)
       }}
       onKeyDown={onKeyDown}

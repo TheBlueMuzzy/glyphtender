@@ -66,7 +66,7 @@ Each sound fires at its animation's moment (code: where the visual plays), never
 | 25 | `end.award` | an award card shows on the end screen | `EndHighlights` | small · ui | card |
 | 26 | `online.idle` | the idle bar appears on your screen | `OnlineSession` | small · ui | the bar |
 | 27 | `online.toast` | a player left / is back / bot plays | seat toasts | tiny · ui | toast |
-| 28 | `ui.tap` / `ui.back` / `ui.toggle` | menu buttons (confirm up, back down) | kit Button / Toggle | tiny · ui | — |
+| 28 | `ui.tap` / `ui.back` / `ui.toggle.on` / `ui.toggle.off` | menu buttons + switches (confirm up, back down; on rises +3 st, off falls −3 st) — **menu sounds never vary**: one file, no random pitch/volume (Muzzy 2026-10-10) | kit Button / Toggle | tiny · ui | — |
 | 29 | `amb.night` (loop) | in a game: crickets, breeze, the odd owl | game screen | — · ambience | — |
 | 30 | music track `garden` (harp · pad · bells, rests) | in a game, quiet; plays, rests, comes back; bells swell for the reveal | game screen (`useGardenSounds`), Reveal (`ceremonyMusic`) | — · music | — |
 | 31 | music track `menu` (kalimba loop) | main menu and menu screens | `App.tsx` | — · music | — |
@@ -121,9 +121,9 @@ All in `public/audio/`, real recordings only (no code-made sounds), every file i
 | `end.award` | `ui/ui_end_award_01` | Spring Spring Pleasing Bell | F#5 — in key |
 | `online.idle` | `ui/ui_online_idle_01` | railkill Kalimba Two-Notes | both notes, retuned to D4→A4 |
 | `online.toast` | `ui/ui_online_toast_01` | Kenney Impact (glass light) | tiny tink |
-| `ui.tap` | `ui/ui_button_tap_01–03` | rubberduck wood (wood_hit, wood_misc) | wood knocks, 120 ms |
+| `ui.tap` | `ui/ui_button_tap_01` (one file — menu sounds never vary) | rubberduck wood (wood_hit, wood_misc) | wood knocks, 120 ms |
 | `ui.back` | `ui/ui_button_back_01` | rubberduck wood_hit_09 | lower knock |
-| `ui.toggle` | `ui/ui_toggle_flip_01` | rubberduck wooden_01 | |
+| `ui.toggle.on` / `.off` | `ui/ui_toggle_flip_01` (pitched +3 / −3 st) | rubberduck wooden_01 | |
 | `amb.night` (loop) | `amb/amb_night_garden_loop` | wolfgang Crickets (CC0) + AntumDeluge/InspectorJ Wind Loop (🟡) + Freesound: Anthousai "owl.wav" (CC0) | **loop 0 → 45 808 ms** (4 × the 11.45 s cricket loop; breeze low-passed, seam crossfaded). ✅ *F56:* a distant owl (band-passed 180–1400 Hz + echo) mixed in twice per loop: a hoo-hoooo phrase at 13 s (left, 9 dB under the bed) and one hoo at 33.5 s (right, 13 dB under); loop length and loudness (−26 LUFS) unchanged — resolved |
 | `mus.garden` | `mus/mus_garden_harp_01` | Écrivain "Meadow Thoughts" (solo harp, CC0) | 149 360 ms, a through-composed piece with a natural ending (**not a loop**): play once, then rest, fits "rests after a few loops". *F57:* measured **A major** (r 0.92–0.97, two methods; rubato, ~59/117 BPM) — every D-pentatonic pop note (D E F# A B) is in A major, so **not retuned** |
 | `mus.garden` pad layer (loop) | `mus/mus_garden_pad_loop` | Freesound: speakwithanimals "Rain Slowly Passing PAD A440" (CC0) | *F57:* a soft sustained **A drone** (A + E + C# overtones — the harp's key, also inside D pentatonic), high-pass 100 Hz + low-pass ~2 kHz (warm, no bass), **loop 0 → 150 000 ms** (4 s crossfade at the seam), −22 LUFS. *F58:* garden track layer, −8 dB, always on |

@@ -63,7 +63,7 @@
   .kit-screen[data-scroll] { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none;
     grid-template-rows: auto minmax(min-content, 1fr) auto; pointer-events: auto; }
   .kit-screen[data-scroll]::-webkit-scrollbar { display: none; }
-  .kit-screen[data-scroll] > [data-slot="center"] { align-self: center; max-block-size: none; } /* centred while it fits; taller → starts at the top and scrolls (Muzzy 2026-10-05) */
+  .kit-screen[data-scroll] > [data-slot="center"] { align-self: start; max-block-size: none; } /* starts at the top and only grows DOWN, so a control you just tapped (+ / −, Person ▶ AI) stays under your finger; taller than the screen → it scrolls (Muzzy 2026-10-05, 2026-10-10) */
   /* Screen stack layers: no box of their own, they only carry "inert" for the screens inside */
   .kit-layer { display: contents; }
   /* An open screen with another one on top is hidden (ScreenStack sets data-covered): only the top screen shows.

@@ -13,7 +13,7 @@ import { DEFAULT_AUDIO_SETTINGS, readAudioConfig } from '../audio'
 import settingsJson from '../../content/ui/settings.json'
 
 const root = join(import.meta.dirname, '..', '..')
-const sounds = audioJson.sounds as Record<string, { files: string[] }>
+const sounds = audioJson.sounds as Record<string, { files: string[]; pitch?: number; randomPitch?: number; randomVolumeDb?: number }>
 const tracks = audioJson.music.tracks as Record<string, { layers: Record<string, { file: string }> }>
 
 /** Every .ts / .tsx file under src/, except the framework's own copies (they name no game sounds). */
@@ -44,12 +44,22 @@ describe('content/audio.json', () => {
     expect(missing).toEqual([])
   })
 
-  it('has the kit control sounds (ui.tap · ui.back · ui.toggle) and a sound for every feel tier', () => {
-    for (const kind of ['tap', 'back', 'toggle']) expect(sounds[`ui.${kind}`]?.files.length).toBeGreaterThan(0)
+  it('has the kit control sounds (ui.tap · ui.back · ui.toggle.on / .off) and a sound for every feel tier', () => {
+    for (const kind of ['tap', 'back', 'toggle.on', 'toggle.off']) expect(sounds[`ui.${kind}`]?.files.length).toBeGreaterThan(0)
     for (const tier of Object.keys(feelJson.tiers)) {
       const name = (audioJson.tiers as Record<string, string>)[tier]
       expect(sounds[name]?.files.length, `tier ${tier}`).toBeGreaterThan(0)
     }
+  })
+
+  it('menu sounds never vary: one file, no random pitch or volume (Muzzy 2026-10-10: "not really for expected menu function")', () => {
+    for (const kind of ['tap', 'back', 'toggle.on', 'toggle.off']) {
+      const s = sounds[`ui.${kind}`]
+      expect(s.files.length, kind).toBe(1)
+      expect(s.randomPitch ?? 0, kind).toBe(0)
+      expect(s.randomVolumeDb ?? 0, kind).toBe(0)
+    }
+    expect(sounds['ui.toggle.on'].pitch).toBeGreaterThan(sounds['ui.toggle.off'].pitch ?? 0) // on rises, off falls
   })
 
   it('every file it names is in public/audio/', () => {

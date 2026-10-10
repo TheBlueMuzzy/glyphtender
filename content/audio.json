@@ -77,7 +77,8 @@
     "sounds.online.toast": "Online: a player left, is back, or a bot plays for them (the little message).",
     "sounds.ui.tap": "Any menu button, tab or ◀ ▶ (a gentle wood knock).",
     "sounds.ui.back": "Back, Close ✕ and Resume buttons (a lower knock).",
-    "sounds.ui.toggle": "An on/off switch in Settings or New Game.",
+    "sounds.ui.toggle.on": "An on/off switch turned ON (Settings, New Game) — the same sound as off, pitched up: a positive sound.",
+    "sounds.ui.toggle.off": "An on/off switch turned OFF — the same sound as on, pitched down: a negative sound.",
     "sounds.amb.night": "The night garden (crickets, breeze, a distant owl) — loops for the whole game.",
     "music.tracks.garden": "The garden's music in a game: a harp piece with a soft pad under it, and bells that come in only when the music gets exciting (the reveal). It plays, rests with just the night garden, then comes back.",
     "music.tracks.menu": "The menus' music: a quiet kalimba loop. Switching between the menus and a game crossfades the two.",
@@ -537,10 +538,10 @@
     },
     "ui.tap": {
       "bus": "ui",
-      "files": ["ui/ui_button_tap_01.mp3", "ui/ui_button_tap_02.mp3", "ui/ui_button_tap_03.mp3"],
+      "files": ["ui/ui_button_tap_01.mp3"],
       "volumeDb": -6,
-      "randomPitch": 0.3,
-      "randomVolumeDb": 1,
+      "randomPitch": 0,
+      "randomVolumeDb": 0,
       "maxVoices": 2,
       "cooldownMs": 40,
       "priority": 1
@@ -549,16 +550,27 @@
       "bus": "ui",
       "files": ["ui/ui_button_back_01.mp3"],
       "volumeDb": -6,
-      "randomPitch": 0.3,
+      "randomPitch": 0,
       "maxVoices": 2,
       "cooldownMs": 40,
       "priority": 1
     },
-    "ui.toggle": {
+    "ui.toggle.on": {
       "bus": "ui",
       "files": ["ui/ui_toggle_flip_01.mp3"],
       "volumeDb": -6,
-      "randomPitch": 0.3,
+      "pitch": 3,
+      "randomPitch": 0,
+      "maxVoices": 2,
+      "cooldownMs": 40,
+      "priority": 1
+    },
+    "ui.toggle.off": {
+      "bus": "ui",
+      "files": ["ui/ui_toggle_flip_01.mp3"],
+      "volumeDb": -6,
+      "pitch": -3,
+      "randomPitch": 0,
       "maxVoices": 2,
       "cooldownMs": 40,
       "priority": 1

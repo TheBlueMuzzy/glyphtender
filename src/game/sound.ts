@@ -7,7 +7,7 @@
 //   · reduce motion: the sound still plays, at the instant the moment happens
 // The Settings → Audio rows (content/ui/settings.json, the UI kit's standard ids) drive the volume groups: at start
 // here, then live from src/ui/gameSettings.ts settingsChanged. The kit's buttons and switches play ui.tap / ui.back /
-// ui.toggle (UI kit setControlSound). Dev + Playwright: window.__audioLog (every play and drop, with why).
+// ui.toggle.on / ui.toggle.off (UI kit setControlSound; menu sounds never vary — Muzzy 2026-10-10). Dev + Playwright: window.__audioLog (every play and drop, with why).
 import { useEffect } from 'react'
 import audioJson from '../../content/audio.json'
 import { applyAudioSettings, createAudio, exposeLog, getAudio, seededRandom, setAudio, useLoop, useMusic, type PlayOptions } from '../audio'
@@ -27,7 +27,7 @@ export function startSound(settings: SettingsValues) {
   })
   setAudio(audio)
   applyAudioSettings(audio, settings)
-  setControlSound((kind) => audio.play(`ui.${kind}`)) // ui.tap · ui.back · ui.toggle
+  setControlSound((kind) => audio.play(`ui.${kind}`)) // ui.tap · ui.back · ui.toggle.on · ui.toggle.off
   if (import.meta.env.DEV || navigator.webdriver) exposeLog(audio) // e2e tests read it; the console too
   onTuning('audio', (data) => audio.setConfig(data)) // a Dev Kit edit of content/audio.json applies at once
 }

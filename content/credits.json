@@ -179,9 +179,7 @@
   {
     "paths": [
       "public/audio/ui/ui_button_back_01.mp3",
-      "public/audio/ui/ui_button_tap_01.mp3",
-      "public/audio/ui/ui_button_tap_02.mp3",
-      "public/audio/ui/ui_button_tap_03.mp3"
+      "public/audio/ui/ui_button_tap_01.mp3"
     ],
     "source": "OpenGameArt — 100 CC0 metal and wood SFX (wood_hit, wood_misc)",
     "author": "rubberduck",
