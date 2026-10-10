@@ -12,6 +12,12 @@ export const PICK_MODES: readonly PickMode[] = ['random', 'sequence', 'shuffle']
 
 export type Tier = 'small' | 'medium' | 'big'
 
+/** How a sound's file is played: auto (music + ambience stream, effects + menus are decoded) · always (stream) · never (decode).
+ *  Streamed = played straight from the file through an <audio> element, so a 3-minute song never sits whole in memory
+ *  (decoded it is ~40 MB). The cost: a streamed loop can't jump back sample-exact, so its loop point gets a short crossfade. */
+export type StreamMode = 'auto' | 'always' | 'never'
+export const STREAM_MODES: readonly StreamMode[] = ['auto', 'always', 'never']
+
 /** One named sound, e.g. "seed.land". Every field has a default, so a sound can be just { "files": [...] }. */
 export interface SoundConfig {
   /** Files under public/audio/, e.g. "sfx/seed_land_01.mp3". Several = variants. */
@@ -51,6 +57,46 @@ export interface SoundConfig {
   ladder: boolean
   /** true = playing it lowers the music for a moment (big moments) */
   duck: boolean
+  /** auto (music + ambience stream) · always · never — see StreamMode */
+  stream: StreamMode
+  /** A streamed loop crossfades this long (ms) where it jumps back, to hide the seam. (Decoded loops are sample-exact: unused.) */
+  loopCrossfadeMs: number
+}
+
+/** One layer of a music track: a file that plays in sync with the track's other layers, faded in by the intensity. */
+export interface MusicLayerConfig {
+  /** The file under public/audio/, e.g. "mus/mus_garden_harp_01.mp3". A track's layers should be the same length. */
+  file: string
+  volumeDb: number
+  /** Intensity (0–1) where this layer starts to be heard. Below it: silent. */
+  fromIntensity: number
+  /** Intensity where it reaches its full volume; between the two it fades in. (from 0 + full 0 = always on) */
+  fullAtIntensity: number
+}
+
+/** A music track: layers that start together and stay together, played round after round, with rests in between. */
+export interface MusicTrackConfig {
+  layers: Record<string, MusicLayerConfig>
+  /** true = a seamless loop (each time round is one "play") · false = a piece with an ending (one play = to its end) */
+  loop: boolean
+  /** Where each loop jumps back to (ms). 0 and 0 = the whole file. Applies to every layer. */
+  loopStartMs: number
+  /** Where each loop ends (ms). Anything after it is the ending, heard before a rest. 0 = the end of the file. */
+  loopEndMs: number
+  /** The crossfade at the loop point (ms): streamed music can't jump back sample-exact, this hides the seam */
+  loopCrossfadeMs: number
+  /** How many plays before the music rests (0 = never rests) */
+  playsBeforeRest: number
+  /** How long a rest is, in seconds: a random time between the two (e.g. [60, 90]) */
+  restSeconds: [number, number]
+  /** Fade in when it starts and when it comes back after a rest (ms) */
+  fadeInMs: number
+  /** Fade out at the end of the last play before a rest, and when it is stopped (ms) */
+  fadeOutMs: number
+}
+
+export interface MusicConfig {
+  tracks: Record<string, MusicTrackConfig>
 }
 
 export interface LadderConfig {
@@ -87,8 +133,8 @@ export interface AudioConfig {
   /** maxVoices: effect + menu sounds at once (music and ambience don't count) · staleMs: a request older than this is dropped */
   limits: { maxVoices: number; staleMs: number }
   sounds: Record<string, SoundConfig>
-  /** Music layers, stingers, rests — framework F28 (not used yet; kept as written) */
-  music?: unknown
+  /** Music tracks: layers + intensity + rests (framework F28) */
+  music: MusicConfig
 }
 
 // ---------- scales for the ladder ----------
@@ -121,7 +167,26 @@ export const SOUND_RANGES: Record<NumberKnob, [number, number, number]> = {
   pan: [-1, 1, 0.05],
   lowpassHz: [0, 20000, 10],
   highpassHz: [0, 20000, 10],
+  loopCrossfadeMs: [0, 5000, 10],
 }
+
+/** A music track's number knobs: [min, max, step] (restSeconds: both ends use it) */
+export const TRACK_RANGES = {
+  loopStartMs: [0, 600000, 10],
+  loopEndMs: [0, 600000, 10],
+  loopCrossfadeMs: [0, 10000, 10],
+  playsBeforeRest: [0, 20, 1],
+  restSeconds: [0, 600, 1],
+  fadeInMs: [0, 20000, 50],
+  fadeOutMs: [0, 20000, 50],
+} satisfies Record<string, [number, number, number]>
+
+/** A music layer's number knobs: [min, max, step] */
+export const LAYER_RANGES = {
+  volumeDb: [-40, 6, 0.5],
+  fromIntensity: [0, 1, 0.05],
+  fullAtIntensity: [0, 1, 0.05],
+} satisfies Record<string, [number, number, number]>
 
 export const DEFAULT_SOUND: SoundConfig = {
   files: [],
@@ -147,6 +212,22 @@ export const DEFAULT_SOUND: SoundConfig = {
   highpassHz: 0,
   ladder: false,
   duck: false,
+  stream: 'auto',
+  loopCrossfadeMs: 100,
+}
+
+export const DEFAULT_LAYER: MusicLayerConfig = { file: '', volumeDb: 0, fromIntensity: 0, fullAtIntensity: 0 }
+
+export const DEFAULT_TRACK: MusicTrackConfig = {
+  layers: {},
+  loop: true,
+  loopStartMs: 0,
+  loopEndMs: 0,
+  loopCrossfadeMs: 100,
+  playsBeforeRest: 2,
+  restSeconds: [60, 90],
+  fadeInMs: 2000,
+  fadeOutMs: 3000,
 }
 
 const DEFAULT_SNAPSHOT: SnapshotConfig = { music: 0, ambience: 0, sfx: 0, ui: 0, lowpassHz: 0, fadeMs: 250 }
@@ -163,6 +244,7 @@ export const DEFAULT_CONFIG: AudioConfig = {
   duck: { amountDb: -7, downMs: 10, backMs: 600 },
   limits: { maxVoices: 14, staleMs: 400 },
   sounds: {},
+  music: { tracks: {} },
 }
 
 // ---------- validation ----------
@@ -222,6 +304,13 @@ function readFilter(value: unknown, where: string, warn: Warn): number {
   return hz
 }
 
+/** stream: "auto" / "always" / "never" (true and false are understood as always / never) */
+function readStream(value: unknown, where: string, warn: Warn): StreamMode {
+  if (value === true) return 'always'
+  if (value === false) return 'never'
+  return readChoice(value, DEFAULT_SOUND.stream, STREAM_MODES, where, warn)
+}
+
 /** One sound's settings, with defaults filled in and bad values replaced. */
 export function readSound(name: string, raw: unknown, warn: Warn = warnOnce): SoundConfig {
   const where = (key: string) => `sounds["${name}"].${key}`
@@ -243,6 +332,7 @@ export function readSound(name: string, raw: unknown, warn: Warn = warnOnce): So
   sound.loop = readBoolean(raw.loop, DEFAULT_SOUND.loop, where('loop'), warn)
   sound.ladder = readBoolean(raw.ladder, DEFAULT_SOUND.ladder, where('ladder'), warn)
   sound.duck = readBoolean(raw.duck, DEFAULT_SOUND.duck, where('duck'), warn)
+  sound.stream = readStream(raw.stream, where('stream'), warn)
   for (const key of Object.keys(SOUND_RANGES) as NumberKnob[]) {
     const [min, max] = SOUND_RANGES[key]
     sound[key] = key === 'lowpassHz' || key === 'highpassHz'
@@ -256,6 +346,99 @@ export function readSound(name: string, raw: unknown, warn: Warn = warnOnce): So
     sound.loopEndMs = 0
   }
   return sound
+}
+
+function readLayer(where: string, raw: unknown, warn: Warn): MusicLayerConfig | null {
+  if (!isObject(raw)) {
+    warn(`${where} should be an object like { "file": "mus/…mp3" } — left out.`)
+    return null
+  }
+  for (const key of Object.keys(raw)) {
+    if (!key.startsWith('_') && key !== 'files' && !(key in DEFAULT_LAYER)) warn(`${where}.${key} is not a layer setting — ignored (check the spelling).`)
+  }
+  // "file": "…" — or "files": ["…"] like a sound. A layer plays ONE file (layers stay in sync; variants wouldn't).
+  let file = typeof raw.file === 'string' ? raw.file : ''
+  if (!file && Array.isArray(raw.files) && typeof raw.files[0] === 'string') {
+    file = raw.files[0]
+    if (raw.files.length > 1) warn(`${where}.files has ${raw.files.length} files — a layer plays one file (to stay in sync), using the first.`)
+  }
+  if (!file) {
+    warn(`${where} has no file (e.g. "file": "mus/…mp3") — left out.`)
+    return null
+  }
+  const layer: MusicLayerConfig = { ...DEFAULT_LAYER, file }
+  for (const key of Object.keys(LAYER_RANGES) as (keyof typeof LAYER_RANGES)[]) {
+    const [min, max] = LAYER_RANGES[key]
+    layer[key] = readNumber(raw[key], DEFAULT_LAYER[key], min, max, `${where}.${key}`, warn)
+  }
+  if (layer.fullAtIntensity < layer.fromIntensity) {
+    warn(`${where}.fullAtIntensity (${layer.fullAtIntensity}) is below fromIntensity (${layer.fromIntensity}) — using ${layer.fromIntensity} (it comes in all at once there).`)
+    layer.fullAtIntensity = layer.fromIntensity
+  }
+  return layer
+}
+
+function readTrack(name: string, raw: unknown, warn: Warn): MusicTrackConfig {
+  const where = `music.tracks["${name}"]`
+  const track: MusicTrackConfig = structuredClone(DEFAULT_TRACK)
+  if (!isObject(raw)) {
+    warn(`${where} should be an object like { "layers": { "main": { "file": "mus/…mp3" } } } — it will be silent.`)
+    return track
+  }
+  for (const key of Object.keys(raw)) {
+    if (!key.startsWith('_') && !(key in DEFAULT_TRACK)) warn(`${where}.${key} is not a music track setting — ignored (check the spelling).`)
+  }
+  if (isObject(raw.layers)) {
+    for (const [layerName, value] of Object.entries(raw.layers)) {
+      if (layerName.startsWith('_')) continue
+      const layer = readLayer(`${where}.layers["${layerName}"]`, value, warn)
+      if (layer) track.layers[layerName] = layer
+    }
+  } else if (raw.layers !== undefined) warn(`${where}.layers should be an object of named layers — it will be silent.`)
+  track.loop = readBoolean(raw.loop, DEFAULT_TRACK.loop, `${where}.loop`, warn)
+  for (const key of ['loopStartMs', 'loopEndMs', 'loopCrossfadeMs', 'playsBeforeRest', 'fadeInMs', 'fadeOutMs'] as const) {
+    const [min, max] = TRACK_RANGES[key]
+    track[key] = readNumber(raw[key], DEFAULT_TRACK[key], min, max, `${where}.${key}`, warn)
+  }
+  track.playsBeforeRest = Math.round(track.playsBeforeRest)
+  if (track.loopEndMs > 0 && track.loopEndMs <= track.loopStartMs) {
+    warn(`${where}.loopEndMs (${track.loopEndMs}) must be after loopStartMs (${track.loopStartMs}) — looping the whole file instead.`)
+    track.loopStartMs = 0
+    track.loopEndMs = 0
+  }
+  if (raw.restSeconds !== undefined) {
+    const rest = raw.restSeconds
+    const [min, max] = TRACK_RANGES.restSeconds
+    if (typeof rest === 'number') {
+      const seconds = readNumber(rest, DEFAULT_TRACK.restSeconds[0], min, max, `${where}.restSeconds`, warn)
+      track.restSeconds = [seconds, seconds]
+    } else if (Array.isArray(rest) && rest.length === 2) {
+      const low = readNumber(rest[0], DEFAULT_TRACK.restSeconds[0], min, max, `${where}.restSeconds[0]`, warn)
+      const high = readNumber(rest[1], DEFAULT_TRACK.restSeconds[1], min, max, `${where}.restSeconds[1]`, warn)
+      track.restSeconds = [Math.min(low, high), Math.max(low, high)]
+    } else {
+      warn(`${where}.restSeconds should be [shortest, longest] in seconds, like [60, 90] — using [${DEFAULT_TRACK.restSeconds.join(', ')}].`)
+    }
+  }
+  return track
+}
+
+/** The "music" section: { "tracks": { "<name>": { layers, loop, rests, fades } } } */
+function readMusic(raw: unknown, warn: Warn): MusicConfig {
+  const music: MusicConfig = { tracks: {} }
+  if (!isObject(raw)) {
+    warn('music should be an object like { "tracks": { … } } — no music will play.')
+    return music
+  }
+  if (raw.tracks === undefined) return music
+  if (!isObject(raw.tracks)) {
+    warn('music.tracks should be an object of named tracks — no music will play.')
+    return music
+  }
+  for (const [name, value] of Object.entries(raw.tracks)) {
+    if (!name.startsWith('_')) music.tracks[name] = readTrack(name, value, warn)
+  }
+  return music
 }
 
 function readSnapshot(name: string, raw: unknown, warn: Warn): SnapshotConfig {
@@ -325,7 +508,7 @@ export function readAudioConfig(raw: unknown, warn: Warn = warnOnce): AudioConfi
       }
     } else warn('sounds should be an object of named sounds — no sounds will play.')
   }
-  if (raw.music !== undefined) config.music = raw.music
+  if (raw.music !== undefined) config.music = readMusic(raw.music, warn)
   return config
 }
 

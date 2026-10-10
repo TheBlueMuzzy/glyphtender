@@ -5,6 +5,7 @@ import { termsOf } from './soundLogic'
 import type { SoundBoardAudio, SoundLogEntry } from './soundTypes'
 
 const KEEP = 100
+const MARKS: Record<string, string> = { played: '▶', dropped: '✕', music: '♪' }
 
 /** Plain words for the engine's drop reasons */
 const DROP_WORDS: Record<string, string> = {
@@ -29,7 +30,7 @@ export function SoundLog({ audio, query }: { audio: SoundBoardAudio; query: stri
   useEffect(() => audio.onLog((entry) => setEntries((list) => [entry, ...list].slice(0, KEEP))), [audio])
 
   const terms = termsOf(query)
-  const shown = entries.filter((e) => terms.every((t) => `${e.id} ${e.file ?? ''} ${e.reason ?? ''}`.toLowerCase().includes(t)))
+  const shown = entries.filter((e) => terms.every((t) => `${e.id} ${e.file ?? ''} ${e.reason ?? ''} ${e.event ?? ''}`.toLowerCase().includes(t)))
 
   return (
     <div className="sb-log">
@@ -49,12 +50,14 @@ export function SoundLog({ audio, query }: { audio: SoundBoardAudio; query: stri
       </div>
       <ol className="sb-log-list">
         {shown.map((e, i) => (
-          <li key={`${e.t}-${i}`} className={e.result === 'played' ? 'is-played' : 'is-dropped'}>
+          <li key={`${e.t}-${i}`} className={`is-${e.result}`}>
             <span className="sb-log-time">{clock(e.t)}</span>
-            <span className="sb-log-mark" aria-label={e.result}>{e.result === 'played' ? '▶' : '✕'}</span>
+            <span className="sb-log-mark" aria-label={e.result}>{MARKS[e.result] ?? '✕'}</span>
             <code>{e.id}</code>
             <span className="sb-log-what">
-              {e.result === 'played'
+              {e.result === 'music'
+                ? `music ${e.event ?? ''}${e.detail ? ` — ${e.detail}` : ''}`
+                : e.result === 'played'
                 ? `${e.file ?? ''}${e.step !== undefined ? ` · ladder step ${e.step}` : ''}${e.delayMs ? ` · in ${Math.round(e.delayMs)} ms` : ''}`
                 : `${DROP_WORDS[e.reason ?? ''] ?? e.reason ?? 'dropped'}${e.detail ? ` — ${e.detail}` : ''}`}
             </span>

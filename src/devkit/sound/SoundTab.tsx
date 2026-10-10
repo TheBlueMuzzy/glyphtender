@@ -2,6 +2,7 @@
 //   Sounds — every sound, grouped by volume group, filtered by the Dev Kit's search box (only this tab's).
 //            Each row: ▶ · ▶×5 (five plays to hear the variation) · ■ for loops · its feel tier · how many files.
 //            Tap a name → its editor opens under it (SoundEditor.tsx).
+//   Music  — the music tracks: ▶ / ■, layers, a live intensity slider, rests (MusicSection.tsx, framework F28).
 //   Mixer  — the volume groups' levels + meters, and the named mixes (Mixer.tsx).
 //   Log    — what played and what was dropped, and why (SoundLog.tsx).
 // Every change is live: the engine gets the edited file (audio.setConfig) and the game hears the Dev Kit's usual
@@ -10,6 +11,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { sendTuning } from '../tuning/liveTuning'
 import { Mixer } from './Mixer'
+import { MusicSection } from './MusicSection'
+import { trackNames } from './musicLogic'
 import { SoundEditor } from './SoundEditor'
 import { SoundLog } from './SoundLog'
 import {
@@ -39,14 +42,18 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
   const [selected, setSelected] = useState<string | null>(null)
   const [gameHearsSaved, setGameHearsSaved] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
-  const [open, setOpen] = useState({ sounds: true, mixer: false, log: false })
+  const [open, setOpen] = useState({ sounds: true, music: false, mixer: false, log: false })
 
   // What the game uses right now: the edit — or, while A is chosen, the edit with the open sound as saved
   const live = gameHearsSaved && selected ? abConfig(edited, saved, selected, 'A') : edited
   const liveText = JSON.stringify(live)
-  const first = useRef(true)
+  // Only a real change is sent: the game already has the file as loaded, and React may run this effect again with
+  // nothing changed (StrictMode, or the Dev Kit's hidden tabs reconnecting) — re-sending then would undo any other
+  // live edit of the file (a Moments knob, a test's setConfig)
+  const sent = useRef(liveText)
   useEffect(() => {
-    if (first.current) { first.current = false; return } // the game already has the file as loaded
+    if (liveText === sent.current) return
+    sent.current = liveText
     const data = JSON.parse(liveText) as RawAudio
     audio?.setConfig(data)
     sendTuning(tuningName, data)
@@ -83,6 +90,7 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
       ...changed.map((name) => `"${name}": ${JSON.stringify(soundsOf(edited)[name])}`),
       ...(JSON.stringify(edited.buses) !== JSON.stringify(saved.buses) ? [`"buses": ${JSON.stringify(edited.buses)}`] : []),
       ...(JSON.stringify(edited.master) !== JSON.stringify(saved.master) ? [`"master": ${JSON.stringify(edited.master)}`] : []),
+      ...(JSON.stringify(edited.music) !== JSON.stringify(saved.music) ? [`"music": ${JSON.stringify(edited.music)}`] : []),
     ].join('\n')
     const ok = await copyText(text)
     setStatus(ok ? { kind: 'ok', text: 'Copied — paste it into your chat with Claude.' } : { kind: 'error', text: 'The browser blocked copying.' })
@@ -154,6 +162,10 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
             </div>
           ))}
         </>
+      ))}
+
+      {section('music', 'Music', searching ? `${trackNames(edited, query).length} of ${trackNames(edited).length}` : `${trackNames(edited).length} · layers · intensity · rests`, () => (
+        <MusicSection audio={audio} edited={edited} saved={saved} query={query} onChange={change} />
       ))}
 
       {section('mixer', 'Mixer', 'levels · meters · named mixes', () => (

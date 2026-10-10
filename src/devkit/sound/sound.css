@@ -125,3 +125,11 @@
 .sb-log-list .is-played .sb-log-mark { color: #7bd88f; }
 .sb-log-list .is-dropped .sb-log-mark, .sb-log-list .is-dropped .sb-log-what { color: #ff9b7b; }
 .sb-log-what { color: #9a9bab; overflow-wrap: anywhere; }
+
+/* The music section (MusicSection.tsx) */
+.sb-music-now { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin: 4px 0 6px; }
+.sb-music-now b { color: #e6e7ef; font-weight: 600; }
+.sb-intensity { margin-bottom: 6px; }
+.sb-layer { padding-bottom: 2px; }
+.sb-layer-file { font: 11px ui-monospace, Consolas, monospace; color: #9a9bab; font-weight: 400; overflow-wrap: anywhere; }
+.sb-log-list .is-music .sb-log-mark { color: #8fb3ff; }

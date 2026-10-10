@@ -18,6 +18,9 @@
     "revealCount": "Each player's Magic counts up in turn, lowest first, with a short pause after. Higher = more suspense. Try 1–2.",
     "revealWinner": "How long the winner banner stays before the end table opens. Higher = more time to celebrate. Try 2–3.",
     "revealPopTime": "Each \"+3\" swells past full size, then settles. Higher = a slower, softer pop; lower = snappier. (The gap between bonuses is a separate setting above.) Try 0.3–0.5.",
+    "revealMusicCalm": "The music's everyday intensity in a game (0–1): the harp and pad, no bells. The reveal settles back here once the end table opens. Keep it under the bells' \"comes in at\" (Sound → Music → garden → bells) or the bells play all game.",
+    "revealMusicPeak": "How high the music builds by the last count-up (0–1): each player's count raises it a step, so the bells fade in (they're full at 0.9). It holds there through the \"+3\"s and the fanfare. Lower = a gentler build.",
+    "revealMusicSettle": "Once the end table opens, the music takes this long (seconds) to settle back to calm (the bells fade away). Reduce motion: it changes at once.",
     "moveBase": "The least time a glyphling takes to glide to its new hex, even one hex away. Higher = slower moves. The per-hex setting below adds more for long moves. Try 0.1–0.25.",
     "movePerHex": "Added for each hex it crosses, so long moves take longer. 0 = every move takes the same time. Try 0.02–0.06.",
     "moveSettle": "How far a gliding glyphling overshoots its new hex before settling back. Higher = a bouncier stop; 0 = it stops dead. Try 0.03–0.1.",
@@ -79,7 +82,10 @@
     "revealBonus": "End reveal: gap between one \"+3\" bonus and the next (seconds)",
     "revealCount": "End reveal: time for each player's Magic to count up (seconds)",
     "revealWinner": "End reveal: how long \"Grand Glyphtender!\" shows (seconds)",
-    "revealPopTime": "End reveal: how long each \"+3\" takes to pop in (seconds)"
+    "revealPopTime": "End reveal: how long each \"+3\" takes to pop in (seconds)",
+    "revealMusicCalm": "End reveal: music intensity in play + after (0–1)",
+    "revealMusicPeak": "End reveal: music intensity at the top of the count-up (0–1)",
+    "revealMusicSettle": "End reveal: music settles back over (seconds)"
   },
   "_sections": {
     "Planned seed look": [
@@ -137,7 +143,10 @@
       "revealBonus",
       "revealCount",
       "revealWinner",
-      "revealPopTime"
+      "revealPopTime",
+      "revealMusicCalm",
+      "revealMusicPeak",
+      "revealMusicSettle"
     ]
   },
   "_ranges": {
@@ -230,6 +239,21 @@
       0.1,
       1,
       0.05
+    ],
+    "revealMusicCalm": [
+      0,
+      1,
+      0.05
+    ],
+    "revealMusicPeak": [
+      0,
+      1,
+      0.05
+    ],
+    "revealMusicSettle": [
+      0,
+      10,
+      0.1
     ],
     "moveBase": [
       0,
@@ -355,6 +379,9 @@
   "revealCount": 1.5,
   "revealWinner": 2.5,
   "revealPopTime": 0.4,
+  "revealMusicCalm": 0.2,
+  "revealMusicPeak": 0.9,
+  "revealMusicSettle": 3,
   "moveBase": 0.15,
   "movePerHex": 0.04,
   "moveSettle": 0.06,

@@ -2,12 +2,17 @@
 // Feeds the Dev Kit Sound Board's log, and e2e tests read it as window.__audioLog (see exposeLog in index.ts).
 import type { DropReason } from './planner.ts'
 
+export type MusicEvent = 'start' | 'play' | 'rest' | 'stop'
+
 export interface LogEntry {
   /** When it was asked for (the engine's clock, ms) */
   t: number
-  /** The sound's name, e.g. "seed.land" */
+  /** The sound's name, e.g. "seed.land" — or a music track's name */
   id: string
-  result: 'played' | 'dropped'
+  /** music = a music track's moment (see event) */
+  result: 'played' | 'dropped' | 'music'
+  /** Music: start (asked for) · play (a play begins: detail "play 2 of 3") · rest (it goes quiet: detail "74 s") · stop */
+  event?: MusicEvent
   reason?: DropReason
   detail?: string
   file?: string

@@ -11,6 +11,7 @@ import { addTurn } from '../store/stats'
 import { dangers } from '../store/danger'
 import { revealSteps } from '../store/revealPlan'
 import { useOnline } from '../ui/online/session'
+import { getAudio } from '../audio'
 import type { GameState } from '../engine/types'
 
 export function installDevHook() {
@@ -18,6 +19,8 @@ export function installDevHook() {
     store: useGameStore,
     /** The online session (room code, the live room) — read-only use by the online e2e. */
     online: useOnline,
+    /** The sound engine (musicState(), snapshots(), setConfig() — the audio e2e). */
+    audio: getAudio,
     /** For the planned move: a seed (its id) and target hex that make Magic (or, with false, none). */
     findCast(wantMagic: boolean) {
       const { game, move, words } = useGameStore.getState()

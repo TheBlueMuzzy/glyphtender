@@ -135,7 +135,7 @@ export function SoundEditor({ audio, name, edited, saved, live, baseUrl, canSave
   }
   const groups = [...new Set(KNOBS.map((k) => k.group))]
   const loop = value('loop') === true
-  const shownKnobs = (group: string) => KNOBS.filter((k) => k.group === group && (loop || (k.key !== 'loopStartMs' && k.key !== 'loopEndMs')))
+  const shownKnobs = (group: string) => KNOBS.filter((k) => k.group === group && (loop || !['loopStartMs', 'loopEndMs', 'loopCrossfadeMs'].includes(k.key)))
   const steps = Object.fromEntries((['trimStartMs', 'trimEndMs', 'loopStartMs', 'loopEndMs'] as HandleKey[]).map((k) => [k, knobRange(edited, name, k)[2]])) as Record<HandleKey, number>
   const differs = JSON.stringify(sound) !== JSON.stringify(savedSound)
 

@@ -79,8 +79,24 @@
     "sounds.ui.back": "Back, Close ✕ and Resume buttons (a lower knock).",
     "sounds.ui.toggle": "An on/off switch in Settings or New Game.",
     "sounds.amb.night": "The night garden (crickets, breeze, a distant owl) — loops for the whole game.",
-    "sounds.mus.garden": "Soft harp near the start of a game — plays ONCE (it has an ending), then the garden rests.",
-    "sounds.mus.menu": "The menus' music (a quiet kalimba loop).",
+    "music.tracks.garden": "The garden's music in a game: a harp piece with a soft pad under it, and bells that come in only when the music gets exciting (the reveal). It plays, rests with just the night garden, then comes back.",
+    "music.tracks.menu": "The menus' music: a quiet kalimba loop. Switching between the menus and a game crossfades the two.",
+    "music.tracks.*.playsBeforeRest": "How many times the music plays (each loop, or the whole piece) before it rests. 0 = it never rests. 1–2 lets the night garden breathe.",
+    "music.tracks.*.restSeconds": "How long a rest lasts, in seconds: a random time between the shortest and the longest, so it never feels like a timer.",
+    "music.tracks.*.fadeInMs": "How long (ms) the music takes to fade in when it starts and when it comes back after a rest. Longer = it creeps in.",
+    "music.tracks.*.fadeOutMs": "How long (ms) the music takes to fade out before a rest (over the end of its last play) and when you leave the screen.",
+    "music.tracks.*.loop": "On = a seamless loop (each time round is one play). Off = a piece with an ending (one play = to its end).",
+    "music.tracks.*.loopCrossfadeMs": "Music streams from the file, so it can't jump back perfectly: it crossfades this long (ms) at the loop point to hide the seam. Raise it if you hear a bump.",
+    "music.tracks.*.loopStartMs": "Where each loop jumps back to (ms into the file). 0 and 0 = loop the whole file.",
+    "music.tracks.*.loopEndMs": "Where each loop ends (ms into the file). Anything after it is the ending, heard before a rest. 0 = the end of the file.",
+    "music.tracks.*.layers.*.file": "The file this layer plays, inside public/audio/. All of a track's layers start together, so they should be the same length.",
+    "music.tracks.*.layers.*.volumeDb": "How loud this layer is at its fullest, in dB. 0 = as recorded, -6 = about half.",
+    "music.tracks.*.layers.*.fromIntensity": "The music's intensity (0–1, the game raises it in exciting moments) where this layer starts to be heard. Below it: silent. 0 = always on.",
+    "music.tracks.*.layers.*.fullAtIntensity": "The intensity where this layer reaches its full volume; it fades in between the two. 0 and 0 = always on at full.",
+    "music.tracks.garden.layers.harp.volumeDb": "The harp melody (always on). It's a piece with an ending, and it counts the plays: when it ends, the music rests.",
+    "music.tracks.garden.layers.pad.volumeDb": "The soft pad under the harp (always on, quiet). It fades out with the harp for each rest.",
+    "music.tracks.garden.layers.bells.volumeDb": "The bells, at their fullest (the top of the reveal's count-up). They're silent in normal play.",
+    "music.tracks.garden.layers.bells.fromIntensity": "Where the bells start to be heard. The game sits at the reveal's \"calm\" intensity (Tuning → End-of-game reveal), below this, so they only come in for the reveal.",
     "sounds.tier.small": "A \"small\" juiced moment's sound when it has none of its own (feel.json tiers).",
     "sounds.tier.medium": "A \"medium\" juiced moment's sound when it has none of its own.",
     "sounds.tier.big": "A \"big\" juiced moment's sound when it has none of its own. Dips the music."
@@ -131,7 +147,19 @@
     "sounds.*.lowpassHz": "Muffle (Hz)",
     "sounds.*.highpassHz": "Thin (Hz)",
     "sounds.*.ladder": "Climbs the ladder",
-    "sounds.*.duck": "Ducks the music"
+    "sounds.*.duck": "Ducks the music",
+    "music.tracks.*.playsBeforeRest": "Plays before a rest (0 = never rests)",
+    "music.tracks.*.restSeconds": "Rest: shortest / longest (s)",
+    "music.tracks.*.fadeInMs": "Fade in (ms)",
+    "music.tracks.*.fadeOutMs": "Fade out (ms)",
+    "music.tracks.*.loop": "Loop (off = a piece with an ending)",
+    "music.tracks.*.loopCrossfadeMs": "Loop crossfade (ms)",
+    "music.tracks.*.loopStartMs": "Loop start (ms)",
+    "music.tracks.*.loopEndMs": "Loop end (ms, 0 = the end)",
+    "music.tracks.*.layers.*.file": "File",
+    "music.tracks.*.layers.*.volumeDb": "Volume (dB)",
+    "music.tracks.*.layers.*.fromIntensity": "Comes in at intensity",
+    "music.tracks.*.layers.*.fullAtIntensity": "Full at intensity"
   },
   "_sections": {
     "Mix": ["buses", "master"],
@@ -139,7 +167,8 @@
     "Ladder": ["ladder"],
     "Named mixes": ["snapshots", "duck"],
     "Limits": ["limits"],
-    "Sounds": ["sounds"]
+    "Sounds": ["sounds"],
+    "Music": ["music"]
   },
   "_ranges": {
     "buses.music": [-40, 6, 0.5],
@@ -176,7 +205,17 @@
     "sounds.*.priority": [0, 5, 1],
     "sounds.*.pan": [-1, 1, 0.05],
     "sounds.*.lowpassHz": [0, 20000, 10],
-    "sounds.*.highpassHz": [0, 20000, 10]
+    "sounds.*.highpassHz": [0, 20000, 10],
+    "music.tracks.*.playsBeforeRest": [0, 20, 1],
+    "music.tracks.*.restSeconds": [0, 600, 1],
+    "music.tracks.*.fadeInMs": [0, 20000, 50],
+    "music.tracks.*.fadeOutMs": [0, 20000, 50],
+    "music.tracks.*.loopCrossfadeMs": [0, 10000, 10],
+    "music.tracks.*.loopStartMs": [0, 600000, 10],
+    "music.tracks.*.loopEndMs": [0, 600000, 10],
+    "music.tracks.*.layers.*.volumeDb": [-40, 6, 0.5],
+    "music.tracks.*.layers.*.fromIntensity": [0, 1, 0.05],
+    "music.tracks.*.layers.*.fullAtIntensity": [0, 1, 0.05]
   },
   "buses": {
     "music": -8,
@@ -205,7 +244,7 @@
       "fadeMs": 250
     },
     "reveal": {
-      "music": -6,
+      "music": -3,
       "ambience": -8,
       "fadeMs": 400
     }
@@ -534,25 +573,6 @@
       "maxVoices": 1,
       "priority": 0
     },
-    "mus.garden": {
-      "bus": "music",
-      "files": ["mus/mus_garden_harp_01.mp3"],
-      "volumeDb": -2,
-      "fadeInMs": 2000,
-      "maxVoices": 1,
-      "cooldownMs": 500,
-      "priority": 0
-    },
-    "mus.menu": {
-      "bus": "music",
-      "files": ["mus/mus_menu_kalimba_loop.mp3"],
-      "volumeDb": -2,
-      "loop": true,
-      "loopEndMs": 46837,
-      "fadeInMs": 1000,
-      "maxVoices": 1,
-      "priority": 0
-    },
     "tier.small": {
       "bus": "sfx",
       "files": ["ui/ui_online_toast_01.mp3"],
@@ -579,6 +599,32 @@
       "cooldownMs": 100,
       "priority": 4,
       "duck": true
+    }
+  },
+  "music": {
+    "tracks": {
+      "garden": {
+        "layers": {
+          "harp": { "file": "mus/mus_garden_harp_01.mp3", "volumeDb": -2 },
+          "pad": { "file": "mus/mus_garden_pad_loop.mp3", "volumeDb": -8 },
+          "bells": { "file": "mus/mus_garden_bells_01.mp3", "volumeDb": -6, "fromIntensity": 0.4, "fullAtIntensity": 0.9 }
+        },
+        "loop": false,
+        "playsBeforeRest": 1,
+        "restSeconds": [60, 90],
+        "fadeInMs": 4000,
+        "fadeOutMs": 5000
+      },
+      "menu": {
+        "layers": {
+          "kalimba": { "file": "mus/mus_menu_kalimba_loop.mp3", "volumeDb": -2 }
+        },
+        "loop": true,
+        "loopEndMs": 46837,
+        "playsBeforeRest": 0,
+        "fadeInMs": 1000,
+        "fadeOutMs": 1500
+      }
     }
   }
 }

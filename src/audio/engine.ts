@@ -4,6 +4,10 @@
 //   bus (music · ambience · sfx · ui): level (content dB × player slider) → mix (snapshots) ─[music: duck → muffle]─┐
 //   master (player slider × mute, mono option) → limiter (nothing above master.limiterDb) → speakers
 //
+// Music + ambience STREAM (stream.ts: an <audio> element → the same chain), effects + menus are decoded (loader.ts).
+// Music tracks — layers, intensity, rests — are music.ts, playing into the Music group (so ducking + snapshots apply).
+// Snapshots STACK: pushSnapshot('paused') over 'reveal', popSnapshot('paused') → the reveal mix again.
+//
 // Phone rules it handles (design: framework/.planning/design/audio.md, "Phones and the web"):
 // - The AudioContext is made lazily, inside the first tap/key (pointerup · touchend · keydown, capture phase).
 // - iPhone silent switch is respected: navigator.audioSession.type = 'ambient' when the browser has it.
@@ -11,9 +15,11 @@
 //   so twenty sounds don't burst out on return. Loops asked for meanwhile start once audio can play again.
 // - Back to visible → resume; if the browser refuses without a tap, the next tap resumes (the tap listeners stay on).
 import { BUSES, dbToGain, readAudioConfig, sliderToGain, type AudioConfig, type BusName, type Tier } from './config.ts'
-import { createLoader, type FetchFile, type Loader } from './loader.ts'
+import { audioUrl, createLoader, type FetchFile, type Loader } from './loader.ts'
 import { createLog, type AudioLog, type LogEntry } from './log.ts'
-import { planPlay, seededRandom, type ActiveVoice, type Drop, type EngineState, type PlayOptions, type PlayPlan, type SoundMemory } from './planner.ts'
+import { createMusic, type MusicState } from './music.ts'
+import { planPlay, seededRandom, soundStreams, type ActiveVoice, type Drop, type EngineState, type PlayOptions, type PlayPlan, type SoundMemory } from './planner.ts'
+import { createStream, makeAudioElement, realTimers, type MakeMediaElement, type Stream } from './stream.ts'
 
 /** Safari's Audio Session API (not in TypeScript's DOM types yet) */
 interface AudioSessionLike {
@@ -42,6 +48,8 @@ export interface AudioOptions {
   preload?: boolean
   /** How many log entries to keep (default 200) */
   logSize?: number
+  /** Makes the <audio> element a streamed file plays through (tests pass a fake). Default: new Audio(). */
+  mediaElement?: MakeMediaElement
   /** For tests: where taps, visibility and the audio session are watched. Default: the real window / document / navigator. */
   window?: EventTarget
   document?: DocumentLike
@@ -64,8 +72,28 @@ export interface Audio {
   setMuted(muted: boolean): void
   setMuteInBackground(mute: boolean): void
   setMono(mono: boolean): void
-  /** Switch to a named mix from content/audio.json (e.g. "paused"), or null for the normal mix. Fades over its fadeMs. */
+  /** Switch to a named mix from content/audio.json (e.g. "paused"), or null for the normal mix. Fades over its fadeMs.
+   *  Replaces every mix on the stack (see pushSnapshot). */
   snapshot(name: string | null): void
+  /** Put a named mix ON TOP of the current one (e.g. "paused" over "reveal"). Fades in over its fadeMs. */
+  pushSnapshot(name: string): void
+  /** Take a named mix off (wherever it is on the stack). If it was on top, the mix below comes back — fading over the
+   *  removed one's fadeMs. Pause over the Reveal → unpause → the Reveal's mix again, not normal. */
+  popSnapshot(name: string): void
+  /** The mixes on the stack, bottom first (the last one is what you hear) */
+  snapshots(): string[]
+  /** Plays a music track from content/audio.json "music.tracks" (one at a time: another one crossfades over fadeMs,
+   *  default: the old one's fadeOutMs and the new one's fadeInMs). Asked for before the first tap → starts after it. */
+  playMusic(name: string, options?: { fadeMs?: number }): void
+  /** Fades the music out (default its fadeOutMs). With `track`, only if that track is the one playing. */
+  stopMusic(options?: { fadeMs?: number; track?: string }): void
+  /** The music's intensity, 0–1: each layer fades in between its fromIntensity and fullAtIntensity (default ramp 300 ms) */
+  setMusicIntensity(intensity: number, options?: { rampMs?: number }): void
+  /** Dev Kit: the music rests now (fades out over its fadeOutMs) · comes back now */
+  restMusic(): void
+  endMusicRest(): void
+  /** What the music is doing: track, phase (off · waiting · playing · fading · resting), play n of N, rest left, layers */
+  musicState(): MusicState
   /** Lowers the music for a moment (duck.amountDb, down in duck.downMs, back over duck.backMs) */
   duck(): void
   /** Call from inside a tap/key handler to start audio. (Happens on its own on the first tap — only needed for custom flows.) */
@@ -107,14 +135,21 @@ interface Graph {
 }
 
 interface PlayingVoice extends ActiveVoice {
-  source: AudioBufferSourceNode
+  /** A decoded sound's source — or, for a streamed one, its stream */
+  source?: AudioBufferSourceNode
+  stream?: Stream
   volume: GainNode
   nodes: AudioNode[]
+  /** Streamed: its fade-out before the end (s), and whether that fade has started */
+  fadeOutSec: number
+  fadingOut: boolean
 }
 
 const OFF_HZ = 20000 // a lowpass this high changes nothing
 const STEAL_FADE_SEC = 0.015 // short fade so a cut voice doesn't click
 const SLIDER_RAMP_SEC = 0.05
+/** How often streams + music are looked after (loop points, ends, rests) while any are playing */
+const TICK_MS = 50
 const GESTURES = ['pointerup', 'touchend', 'keydown'] as const
 
 /** Moves an AudioParam to a value over `seconds` (a ramp, so it never clicks). */
@@ -144,8 +179,14 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   let muted = false
   let muteInBackground = true
   let mono = false
-  let currentSnapshot: string | null = null
+  /** The named mixes, bottom first: the top one is what you hear (empty = the normal mix) */
+  let snapshotStack: string[] = []
+  const topSnapshot = (): string | null => snapshotStack.at(-1) ?? null
   let nextVoiceId = 1
+  const makeElement = options.mediaElement ?? makeAudioElement
+  const fileUrl = (file: string) => audioUrl(options.baseUrl ?? '/', file)
+  let ticker: ReturnType<typeof setInterval> | null = null
+  let lastTick = 0
   const sliders: Record<BusOrMaster, number> = { master: 100, music: 100, ambience: 100, sfx: 100, ui: 100 }
   const voices = new Map<number, PlayingVoice>()
   /** Level meters (Dev Kit): one listener per volume group, made on the first level() call */
@@ -153,6 +194,19 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   const memory = new Map<string, SoundMemory>()
   /** Loops asked for while audio couldn't play (locked / suspended / still loading) — started once it can */
   const wantedLoops = new Map<string, PlayOptions>()
+
+  const music = createMusic({
+    context: () => ctx,
+    output: () => graph?.buses.music.level ?? null,
+    config: () => config,
+    state: () => state(),
+    url: fileUrl,
+    makeElement,
+    timers: realTimers,
+    rng,
+    now: clock,
+    log: (entry) => record(entry),
+  })
 
   // ---------- state ----------
   function state(): EngineState {
@@ -169,7 +223,55 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
       unlockedOnce = true
       if (options.preload !== false) void preload()
     }
+    syncStreams()
     if (state() === 'running') startWantedLoops()
+  }
+
+  /** Streams (<audio> elements) keep playing on their own when the AudioContext pauses: pause / resume them with it */
+  function syncStreams() {
+    const running = state() === 'running'
+    for (const voice of voices.values()) {
+      if (running) voice.stream?.resume()
+      else voice.stream?.pause()
+    }
+    music.setRunning(running)
+    if (running) startTicking()
+  }
+
+  // ---------- the tick: streams' loop points + ends, music plays + rests ----------
+  function startTicking() {
+    if (ticker !== null || disposed) return
+    lastTick = clock()
+    ticker = setInterval(tick, TICK_MS)
+  }
+  function tick() {
+    const now = clock()
+    const running = state() === 'running'
+    // Rests and fades only count time while audio plays (a hidden tab doesn't use up a rest)
+    const dt = running ? Math.max(0, now - lastTick) : 0
+    lastTick = now
+    let streaming = false
+    for (const [id, voice] of voices) {
+      if (!voice.stream) continue
+      streaming = true
+      if (!running) continue
+      voice.stream.tick()
+      if (voice.stream.ended()) {
+        forgetVoice(id)
+        continue
+      }
+      // A streamed one-shot fades out before its end (its length is only known once it plays)
+      const left = voice.stream.remainingSec()
+      if (!voice.fadingOut && voice.fadeOutSec > 0 && left <= voice.fadeOutSec && ctx) {
+        voice.fadingOut = true
+        rampTo(voice.volume.gain, 0, ctx.currentTime, left)
+      }
+    }
+    music.tick(dt)
+    if (!streaming && !music.active() && ticker !== null) {
+      clearInterval(ticker)
+      ticker = null
+    }
   }
 
   // ---------- the context and the mix (made inside the first tap) ----------
@@ -207,7 +309,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     }
     graph = { master, limiter, buses, musicDuck, musicMuffle }
     applyMixNow()
-    if (currentSnapshot) applySnapshot(currentSnapshot, 0)
+    if (topSnapshot()) applySnapshot(topSnapshot(), 0)
 
     context.onstatechange = onStateChange
     nav?.audioSession?.addEventListener?.('statechange', onStateChange)
@@ -253,6 +355,9 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   // The tap listeners stay on: a tap after a phone call or a stuck 'interrupted' state resumes audio too
   const onGesture = () => {
     if (state() !== 'running' && !(hidden && muteInBackground)) unlock()
+    // A phone may refuse to start an <audio> element outside a tap: this tap starts any that were refused
+    for (const voice of voices.values()) voice.stream?.retry()
+    music.retryBlocked()
   }
   for (const type of GESTURES) win?.addEventListener(type, onGesture, { capture: true })
 
@@ -278,6 +383,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     const voice = voices.get(id)
     if (!voice) return
     voices.delete(id)
+    voice.stream?.release()
     for (const node of voice.nodes) node.disconnect()
   }
   function stopVoice(id: number, fadeSec: number) {
@@ -285,8 +391,15 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     if (!voice || !ctx) return
     const at = ctx.currentTime
     rampTo(voice.volume.gain, 0, at, fadeSec)
+    if (voice.stream) {
+      const { stream, nodes } = voice
+      realTimers.setTimeout(() => {
+        stream.release()
+        for (const node of nodes) node.disconnect()
+      }, fadeSec * 1000 + 20)
+    }
     try {
-      voice.source.stop(at + fadeSec)
+      voice.source?.stop(at + fadeSec)
     } catch { /* already stopped */ }
     voices.delete(id) // gone from the count now; its nodes disconnect when it ends
   }
@@ -312,8 +425,13 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
       record({ t: now, id: name, result: 'dropped', reason: plan.reason, detail: plan.detail })
       return plan
     }
-    const buffer = loader?.get(plan.file)
-    if (!ctx || !graph || !buffer) {
+    if (!ctx || !graph) {
+      record({ t: now, id: name, result: 'dropped', reason: 'locked', detail: 'audio starts on the first tap' })
+      return { kind: 'drop', sound: name, reason: 'locked', detail: 'audio starts on the first tap' }
+    }
+    // Streamed (music, ambience): nothing to load first — the <audio> element fetches as it plays
+    const buffer = plan.stream ? null : loader?.get(plan.file)
+    if (!plan.stream && !buffer) {
       // Not loaded yet: start loading. A loop starts when it arrives; a one-shot is dropped (it would be late).
       if (plan.loop) wantedLoops.set(name, { ...playOptions, at: undefined })
       void loader?.load(plan.file).then((loaded) => {
@@ -326,19 +444,17 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     memory.set(name, result.memory)
     wantedLoops.delete(name)
     for (const id of plan.steal) stopVoice(id, STEAL_FADE_SEC)
-    startVoice(plan, buffer, ctx, graph)
+    if (buffer) startVoice(plan, buffer, ctx, graph)
+    else startStreamVoice(plan, ctx, graph)
     record({ t: now, id: name, result: 'played', file: plan.file, delayMs: plan.delayMs, ...(plan.ladderStep !== null ? { step: plan.ladderStep } : {}) })
     return plan
   }
 
-  function startVoice(plan: PlayPlan, buffer: AudioBuffer, context: AudioContext, mix: Graph) {
-    const startTime = context.currentTime + plan.delayMs / 1000
-    const source = context.createBufferSource()
-    source.buffer = buffer
-    source.playbackRate.value = plan.playbackRate
-    const nodes: AudioNode[] = [source]
+  /** A sound's own chain after its source: [thin] → [muffle] → volume → [left/right] → its volume group */
+  function voiceChain(plan: PlayPlan, context: AudioContext, mix: Graph) {
+    const nodes: AudioNode[] = []
     const chain = (node: AudioNode) => {
-      nodes[nodes.length - 1].connect(node)
+      nodes.at(-1)?.connect(node)
       nodes.push(node)
     }
     if (plan.highpassHz > 0) {
@@ -361,6 +477,27 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
       chain(panner)
     }
     nodes[nodes.length - 1].connect(mix.buses[plan.bus].level)
+    return { input: nodes[0], volume, nodes }
+  }
+
+  /** Fade in from startTime (or start at full volume) */
+  function fadeIn(volume: GainNode, plan: PlayPlan, startTime: number) {
+    if (plan.fadeInSec > 0) {
+      volume.gain.setValueAtTime(0, startTime)
+      volume.gain.linearRampToValueAtTime(plan.gain, startTime + plan.fadeInSec)
+    } else {
+      volume.gain.value = plan.gain
+    }
+  }
+
+  function startVoice(plan: PlayPlan, buffer: AudioBuffer, context: AudioContext, mix: Graph) {
+    const startTime = context.currentTime + plan.delayMs / 1000
+    const source = context.createBufferSource()
+    source.buffer = buffer
+    source.playbackRate.value = plan.playbackRate
+    const { input, volume, nodes } = voiceChain(plan, context, mix)
+    source.connect(input)
+    nodes.unshift(source)
 
     const offset = Math.min(plan.trimStartSec, buffer.duration)
     let seconds = Infinity // how long it plays, in real time
@@ -378,12 +515,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     }
 
     // Volume envelope: fade in, hold, fade out before the end
-    if (plan.fadeInSec > 0) {
-      volume.gain.setValueAtTime(0, startTime)
-      volume.gain.linearRampToValueAtTime(plan.gain, startTime + plan.fadeInSec)
-    } else {
-      volume.gain.value = plan.gain
-    }
+    fadeIn(volume, plan, startTime)
     if (plan.fadeOutSec > 0 && Number.isFinite(seconds)) {
       const fade = Math.min(plan.fadeOutSec, seconds)
       volume.gain.setValueAtTime(plan.gain, startTime + seconds - fade)
@@ -395,12 +527,40 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     voices.set(id, {
       id, sound: plan.sound, bus: plan.bus, startAt: plan.startAt,
       endAt: plan.startAt + seconds * 1000, gainDb: plan.gainDb, priority: plan.priority,
-      source, volume, nodes,
+      source, volume, nodes, fadeOutSec: 0, fadingOut: false,
     })
     source.onended = () => {
       if (voices.get(id)?.source === source) voices.delete(id)
       for (const node of nodes) node.disconnect()
     }
+  }
+
+  /** A streamed sound (stream.ts): played from the file through an <audio> element into the same chain.
+   *  Its length is only known once it plays, so it counts as playing until the tick sees its end. */
+  function startStreamVoice(plan: PlayPlan, context: AudioContext, mix: Graph) {
+    const startTime = context.currentTime + plan.delayMs / 1000
+    const { input, volume, nodes } = voiceChain(plan, context, mix)
+    const stream = createStream(context, {
+      url: fileUrl(plan.file),
+      output: input,
+      rate: plan.playbackRate,
+      startSec: plan.trimStartSec,
+      loop: plan.loop,
+      loopStartSec: plan.loopStartSec,
+      loopEndSec: plan.loopEndSec,
+      endTrimSec: plan.trimEndSec,
+      seamSec: plan.loopCrossfadeSec,
+    }, makeElement, realTimers)
+    fadeIn(volume, plan, startTime)
+    if (plan.delayMs > 0) realTimers.setTimeout(() => stream.start(), plan.delayMs)
+    else stream.start()
+    if (plan.duck) duckAt(startTime)
+    const id = nextVoiceId++
+    voices.set(id, {
+      id, sound: plan.sound, bus: plan.bus, startAt: plan.startAt, endAt: Infinity, gainDb: plan.gainDb, priority: plan.priority,
+      stream, volume, nodes, fadeOutSec: plan.loop ? 0 : plan.fadeOutSec, fadingOut: false,
+    })
+    startTicking()
   }
 
   function startWantedLoops() {
@@ -446,15 +606,35 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     rampTo(graph.musicMuffle.frequency, target && target.lowpassHz > 0 ? target.lowpassHz : OFF_HZ, at, fadeSec)
   }
 
+  const knownSnapshot = (name: string) => {
+    if (config.snapshots[name]) return true
+    console.warn(`[audio] no snapshot called "${name}" in content/audio.json — the mix is unchanged.`)
+    return false
+  }
+  const fadeMsOf = (name: string | null) => (name ? config.snapshots[name]?.fadeMs : undefined) ?? 250
+
+  /** Replace the whole stack: one mix, or null = normal. Fading in uses the new mix's time; back to normal, the one left. */
   function snapshot(name: string | null) {
-    if (name !== null && !config.snapshots[name]) {
-      console.warn(`[audio] no snapshot called "${name}" in content/audio.json — the mix is unchanged.`)
-      return
-    }
-    // Fading in uses the new snapshot's time; fading back out uses the one being left
-    const fadeMs = config.snapshots[name ?? currentSnapshot ?? '']?.fadeMs ?? 250
-    currentSnapshot = name
-    applySnapshot(name, fadeMs / 1000)
+    if (name !== null && !knownSnapshot(name)) return
+    const leaving = topSnapshot()
+    snapshotStack = name ? [name] : []
+    applySnapshot(name, fadeMsOf(name ?? leaving) / 1000)
+  }
+
+  /** A mix on top of the current one (Pause over the Reveal) */
+  function pushSnapshot(name: string) {
+    if (!knownSnapshot(name)) return
+    snapshotStack.push(name)
+    applySnapshot(name, fadeMsOf(name) / 1000)
+  }
+
+  /** Take a mix off. Only if it was on top does what you hear change: the one below comes back, over the removed one's fade. */
+  function popSnapshot(name: string) {
+    const index = snapshotStack.lastIndexOf(name)
+    if (index < 0) return
+    const wasOnTop = index === snapshotStack.length - 1
+    snapshotStack.splice(index, 1)
+    if (wasOnTop) applySnapshot(topSnapshot(), fadeMsOf(name) / 1000)
   }
 
   function duckAt(at: number) {
@@ -493,7 +673,9 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
       const sound = config.sounds[name]
       return sound.bus === 'sfx' || sound.bus === 'ui'
     })
-    return loader.preload(chosen.flatMap((name) => config.sounds[name]?.files ?? []))
+    // Streamed sounds aren't loaded ahead: the <audio> element fetches as it plays
+    const decoded = chosen.filter((name) => config.sounds[name] && !soundStreams(config.sounds[name]))
+    return loader.preload(decoded.flatMap((name) => config.sounds[name].files))
   }
 
   return {
@@ -503,12 +685,25 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     stopAll(stopOptions) {
       for (const name of new Set([...voices.values()].map((voice) => voice.sound))) stop(name, stopOptions)
       wantedLoops.clear()
+      music.stop(stopOptions)
     },
     setBusVolume,
     setMuted,
     setMuteInBackground,
     setMono,
     snapshot,
+    pushSnapshot,
+    popSnapshot,
+    snapshots: () => [...snapshotStack],
+    playMusic(name, musicOptions) {
+      music.play(name, musicOptions)
+      startTicking()
+    },
+    stopMusic: (musicOptions) => music.stop(musicOptions),
+    setMusicIntensity: (intensity, musicOptions) => music.setIntensity(intensity, musicOptions),
+    restMusic: () => music.restNow(),
+    endMusicRest: () => music.backNow(),
+    musicState: () => music.state(),
     duck: () => {
       if (ctx) duckAt(ctx.currentTime)
     },
@@ -520,9 +715,10 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
         const at = ctx.currentTime
         graph.limiter.threshold.value = config.master.limiterDb
         for (const bus of BUSES) rampTo(graph.buses[bus].level.gain, busGain(bus), at, SLIDER_RAMP_SEC)
-        if (currentSnapshot && !config.snapshots[currentSnapshot]) currentSnapshot = null
-        applySnapshot(currentSnapshot, SLIDER_RAMP_SEC)
+        snapshotStack = snapshotStack.filter((name) => config.snapshots[name])
+        applySnapshot(topSnapshot(), SLIDER_RAMP_SEC)
       }
+      music.configChanged()
     },
     config: () => config,
     preload,
@@ -536,8 +732,12 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
       for (const type of GESTURES) win?.removeEventListener(type, onGesture, { capture: true })
       doc?.removeEventListener('visibilitychange', onVisibility)
       nav?.audioSession?.removeEventListener?.('statechange', onStateChange)
+      if (ticker !== null) clearInterval(ticker)
+      ticker = null
+      for (const voice of voices.values()) voice.stream?.release()
       voices.clear()
       wantedLoops.clear()
+      music.dispose()
       void ctx?.close().catch(() => {})
     },
   }

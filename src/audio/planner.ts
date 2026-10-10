@@ -106,6 +106,10 @@ export interface PlayPlan {
   pan: number
   duck: boolean
   priority: number
+  /** true = play it from the file through an <audio> element (music, ambience) instead of a decoded copy */
+  stream: boolean
+  /** Streamed loops: the crossfade at the loop point */
+  loopCrossfadeSec: number
   /** Voices the engine stops first to make room (their ids) */
   steal: number[]
 }
@@ -131,6 +135,9 @@ export function ladderSemitones(scale: ScaleName, step: number): number {
 }
 
 const isLoopBus = (bus: BusName) => bus === 'music' || bus === 'ambience'
+
+/** Does this sound stream from its file (stream: auto → music + ambience do; always; never)? */
+export const soundStreams = (sound: SoundConfig): boolean => sound.stream === 'always' || (sound.stream === 'auto' && isLoopBus(sound.bus))
 /** ±range, evenly spread */
 const spread = (rng: () => number, range: number) => (range > 0 ? (rng() * 2 - 1) * range : 0)
 
@@ -250,6 +257,8 @@ export function planPlay(input: PlanInput): PlanResult {
     pan: Math.min(1, Math.max(-1, options.pan ?? sound.pan)),
     duck: sound.duck,
     priority: sound.priority,
+    stream: soundStreams(sound),
+    loopCrossfadeSec: sound.loopCrossfadeMs / 1000,
     steal,
   }
   return {

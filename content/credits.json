@@ -333,9 +333,9 @@
   },
   {
     "paths": [
-      "public/audio/mus/mus_garden_bells_loop.mp3"
+      "public/audio/mus/mus_garden_bells_01.mp3"
     ],
-    "source": "Freesound — Ambient Cute Bell Texture [90bpm] (40-bar loop, kept whole)",
+    "source": "Freesound — Ambient Cute Bell Texture [90bpm] (40-bar loop played 1.4 times to the harp piece's length, 149.4 s, 3 s fade at the end)",
     "author": "deadrobotmusic",
     "licence": "CC0",
     "light": "🟢",

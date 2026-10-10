@@ -34,6 +34,8 @@ const b = (key: string, group: string): Knob => ({ key, kind: 'boolean', fallbac
 export const KNOBS: Knob[] = [
   { key: 'bus', kind: 'choice', fallback: 'sfx', choices: ['sfx', 'ui', 'ambience', 'music'], group: 'Basics' },
   { key: 'pick', kind: 'choice', fallback: 'random', choices: ['random', 'sequence', 'shuffle'], group: 'Basics' },
+  // auto = music + ambience stream from the file (long files never sit whole in memory), effects + menus are decoded
+  { key: 'stream', kind: 'choice', fallback: 'auto', choices: ['auto', 'always', 'never'], group: 'Basics' },
   n('volumeDb', 0, [-40, 6, 0.5], 'Basics'),
   n('pitch', 0, [-12, 12, 0.1], 'Basics'),
   n('randomPitch', 0, [0, 3, 0.1], 'Variation'),
@@ -46,6 +48,7 @@ export const KNOBS: Knob[] = [
   b('loop', 'Loop'),
   n('loopStartMs', 0, [0, 600000, 10], 'Loop'),
   n('loopEndMs', 0, [0, 600000, 10], 'Loop'),
+  n('loopCrossfadeMs', 100, [0, 5000, 10], 'Loop'),
   n('maxVoices', 4, [1, 8, 1], 'Limits'),
   n('cooldownMs', 30, [0, 500, 5], 'Limits'),
   n('priority', 2, [0, 5, 1], 'Limits'),
