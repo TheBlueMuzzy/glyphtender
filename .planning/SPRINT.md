@@ -8,7 +8,7 @@ Done when: a game can pick, per drag type, what the carried piece looks like (so
 - [x] 🤖 2. Origin look solid|ghost|empty — a "dragging" state separate from "held" (tap-select); HandView place state
 - [x] 🤖 3. Endings: valid drop settles / turns solid / flies from origin; invalid flies back from the pointer / fades (start rect captured on pointer-down)
 - [x] 🤖 4. Presets A Pick it up · B Lift, mark home · C Aim · D Float + tests + check-ui; ui-kit 0.5.0
-- [ ] 🤖 5. Dev Kit Tuning tab: a dropdown (choice) field — framework/devkit (tuningLogic.ts only knows number / on-off / text)
+- [x] 🤖 5. Dev Kit Tuning tab: a dropdown (choice) field — framework/devkit (tuningLogic.ts only knows number / on-off / text) — Dev Kit 0.10.0 `_choices` (framework e5f07a2)
 
 ## F63 🎮 Carry styles in Glyphtender
 Done when: draft, plan a seed, tray reorder and glyphling move each use their style from content/tuning/drag.json; no solid copy left behind (unless the style says so); wrong drops return; the Dev Kit dropdown switches them live; e2e covers each style × drag type.
