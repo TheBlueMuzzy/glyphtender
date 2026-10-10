@@ -48,8 +48,24 @@
     "ghostGlow": "Drag: hex glow under a ghost preview (0–1)"
   },
   "_sections": {
-    "Dragging": ["styles", "ghostOpacity", "liftScale", "liftShadow", "liftTime", "landTime", "flyTime", "fadeTime",
-      "targets", "snap", "snapRadius", "makeRoom", "roomTime", "tetherBend", "arrowSize", "ghostGlow"]
+    "Dragging": [
+      "styles",
+      "ghostOpacity",
+      "liftScale",
+      "liftShadow",
+      "liftTime",
+      "landTime",
+      "flyTime",
+      "fadeTime",
+      "targets",
+      "snap",
+      "snapRadius",
+      "makeRoom",
+      "roomTime",
+      "tetherBend",
+      "arrowSize",
+      "ghostGlow"
+    ]
   },
   "_ranges": {
     "ghostOpacity": [0.1, 1, 0.05],
@@ -79,9 +95,9 @@
   },
   "styles": {
     "draft": "A",
-    "seed": "C",
+    "seed": "B",
     "reorder": "A",
-    "move": "C"
+    "move": "B"
   },
   "targets": {
     "draft": "highlight",
