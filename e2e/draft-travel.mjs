@@ -21,7 +21,7 @@ export function recordAiDraft() {
     rec.placedBefore = s.game.glyphlings.length
     const step = () => {
       const now = store.getState()
-      const img = document.querySelector('.game-drag-layer image')
+      const img = document.querySelector('.game-drag-layer [data-bot-draft]') // (the AI's travelling glyphling — not the preview or the carried piece)
       rec.frames.push({ shown: img.getAttribute('visibility') === 'visible', ...centre(img), placed: now.game.glyphlings.length, travelling: now.botDraft !== null })
       if (now.botDraft) return requestAnimationFrame(step)
       rec.landedAt = now.game.glyphlings.find((g) => `${g.hex.q},${g.hex.r}` === key) ? key : null

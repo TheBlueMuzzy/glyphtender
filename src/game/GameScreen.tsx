@@ -169,7 +169,7 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
         <path ref={tetherPath} data-tether="" style={{ visibility: 'hidden' }} />
         <image ref={previewImage} data-target-preview="" x={0} y={0} style={{ visibility: 'hidden' }} />
         {/* an AI's draft travelling out of the tray (useBotDraft) */}
-        <image ref={dragImage} visibility="hidden" opacity={0.85} />
+        <image ref={dragImage} data-bot-draft="" visibility="hidden" opacity={0.85} />
         {/* the piece a person carries (usePieceInput; the ui-kit carrier moves it — visibility is its style) */}
         <image ref={carryImage} data-carry="" x={0} y={0} style={{ visibility: 'hidden' }} />
       </svg>
