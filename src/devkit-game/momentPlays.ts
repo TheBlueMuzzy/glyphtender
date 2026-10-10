@@ -4,7 +4,7 @@
 // game's own code paths (the store's actions, the same as a person's taps), so it looks, moves and sounds exactly
 // like the game — and follows the Dev Kit's sliders (liveTuning / useAnimTuning). Each resolves once it has played out.
 import animFile from '../../content/tuning/anim.json'
-import { getAudio } from '../audio'
+import { getAudio, readAudioSettings } from '../audio'
 import { latestTuning, liveTuning } from '../devkit/tuning/liveTuning'
 import { glideSeconds } from '../game/glide'
 import { startSound } from '../game/sound'
@@ -29,20 +29,22 @@ async function until(ready: () => boolean, ms: number) {
 // ─── Sound ───────────────────────────────────────────────────────────────────────────────────────────
 /**
  * The frame never ran the game's start-up, so the first moment starts the sound engine (sound.ts) with the player's
- * settings, gives it the Dev Kit's latest audio edit, and wakes it. Music and ambience are turned off in the frame:
- * a moment is heard on its own. The moment's own sounds are loaded first — a sound not loaded yet would be dropped.
+ * settings, gives it the Dev Kit's latest audio edit, and wakes it. Ambience is turned off in the frame, and music too
+ * unless the moment is about the music (the reveal's ceremony: `music` — then the garden's track plays at the
+ * player's Music volume): a moment is heard on its own. Its own sounds are loaded first — one not loaded would be dropped.
  */
-async function soundReady(names: string[]) {
+async function soundReady(names: string[], music = false) {
   const fresh = !getAudio()
-  startSound(loadSettings(settings))
+  const values = loadSettings(settings)
+  startSound(values)
   const audio = getAudio()
   if (!audio) return
   if (fresh) {
     const edit = latestTuning().find(([file]) => file === 'audio') // (an edit made before the engine was here)
     if (edit) audio.setConfig(edit[1])
-    audio.setBusVolume('music', 0)
     audio.setBusVolume('ambience', 0)
   }
+  audio.setBusVolume('music', music ? readAudioSettings(values).musicVolume : 0)
   audio.unlock()
   await audio.preload(names)
   await until(() => audio.state() === 'running', 1500)
@@ -119,7 +121,7 @@ const finished = new Map<string, SampleGame>() // a finished game per variant, p
 /** The end-of-game reveal from `from`: 'count' (each player's Magic counts up, then the "+3" tangle bonuses — held
  *  before the winner) or 'winner' (Grand Glyphtender! — then the end table opens, as in the game). */
 export async function revealMoment(from: 'count' | 'winner', variant: string | undefined, sounds: string[]) {
-  await soundReady(sounds)
+  await soundReady(sounds, true)
   const key = variant ?? '2p'
   let sample = finished.get(key)
   if (!sample) finished.set(key, (sample = await endGame(variant)))
@@ -129,6 +131,15 @@ export async function revealMoment(from: 'count' | 'winner', variant: string | u
   const first = from === 'count' ? steps.findIndex((s) => s.kind === 'count') : winner
   holdRevealBefore(from === 'count' ? winner : null)
   loadGame(sample)
+  await frames() // (the game screen has drawn it — a new game sets the music back to calm: sound.ts useGardenSounds)
+  // The garden's music, every round as the game would have it here: calm before the count-up; at its peak (where the
+  // count-up left it) for the winner — then the reveal moves it (sound.ts ceremonyMusic). Never resting.
+  const audio = getAudio()
+  if (audio) {
+    audio.playMusic('garden')
+    if (['resting', 'fading'].includes(audio.musicState().phase)) audio.endMusicRest()
+    audio.setMusicIntensity(from === 'count' ? anim.current.revealMusicCalm : anim.current.revealMusicPeak, { rampMs: 0 })
+  }
   useGameStore.getState().setRevealAt(first)
   const seconds = steps.slice(first, from === 'count' ? winner : winner + 1).reduce((sum, step) => sum + stepSeconds(step, anim.current), 0)
   await wait(seconds * 1000)

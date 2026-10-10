@@ -20,6 +20,9 @@ const tier = (event: keyof typeof feelFile.events, what: 'grow' | 'shake'): Mome
   ({ file: FEEL, path: `tiers.${feelFile.events[event]}.${what}` })
 const anim = (path: string, extra: Partial<MomentKnob> = {}): MomentKnob => ({ file: ANIM, path, ...extra })
 const sound = (id: string, key: string, extra: Partial<MomentKnob> = {}): MomentKnob => ({ file: AUDIO, path: `sounds.${id}.${key}`, ...extra })
+/** A layer of the garden's music (content/audio.json music.tracks.garden) */
+const gardenLayer = (layer: string, key: string, extra: Partial<MomentKnob> = {}): MomentKnob =>
+  ({ file: AUDIO, path: `music.tracks.garden.layers.${layer}.${key}`, ...extra })
 
 const plays = () => import('./momentPlays')
 
@@ -111,7 +114,7 @@ export const moments: DevKitMoment[] = [
   // ─── The end-of-game reveal ───────────────────────────────────────────────────────────────────────
   {
     id: 'reveal-count', screen: 'reveal', label: 'Reveal count-up',
-    note: 'Each player\'s Magic counts up, lowest first (a rising run), then the "+3" tangle bonuses fly in — it stops before the winner',
+    note: 'Each player\'s Magic counts up, lowest first (a rising run) while the music builds (the bells fade in), then the "+3" tangle bonuses fly in — it stops before the winner',
     play: async ({ variant }) => (await plays()).revealMoment('count', variant, ['reveal.count', 'reveal.bonus']),
     knobs: [
       anim('revealCount'),
@@ -120,15 +123,23 @@ export const moments: DevKitMoment[] = [
       tier('totalPop', 'grow'),
       sound('reveal.count', 'volumeDb'),
       sound('reveal.bonus', 'volumeDb'),
+      // the music's build (sound.ts ceremonyMusic): from calm up to the peak, the bells fading in on the way
+      anim('revealMusicCalm', { role: 'none' }),
+      anim('revealMusicPeak', { values: { soft: 0.7, balanced: 0.9, punchy: 1 } }),
+      gardenLayer('bells', 'volumeDb'),
+      gardenLayer('bells', 'fromIntensity', { role: 'none' }),
     ],
   },
   {
     id: 'grand-glyphtender', screen: 'reveal', label: 'New Grand Glyphtender',
-    note: 'The winner is named — "Grand Glyphtender!" and the fanfare — then the end table opens',
+    note: 'The winner is named — "Grand Glyphtender!" and the fanfare (the music, at the top of its build, dips for it) — then the end table opens and the music settles',
     play: async ({ variant }) => (await plays()).revealMoment('winner', variant, ['reveal.winner']),
     knobs: [
       anim('revealWinner'),
       sound('reveal.winner', 'volumeDb'),
+      { file: AUDIO, path: 'duck.amountDb', role: 'none' },
+      anim('revealMusicSettle'),
+      gardenLayer('bells', 'volumeDb'),
     ],
   },
 ]

@@ -27,7 +27,7 @@ function at(data: unknown, path: string): unknown {
 function rangeOf(data: Record<string, unknown>, path: string): [number, number] | undefined {
   const ranges = (data._ranges ?? {}) as Record<string, [number, number, number]>
   if (ranges[path]) return [ranges[path][0], ranges[path][1]]
-  const wild = Object.keys(ranges).find((key) => key.includes('*') && new RegExp(`^${key.replace(/\./g, '\\.').replace('*', '.+')}$`).test(path))
+  const wild = Object.keys(ranges).find((key) => key.includes('*') && new RegExp(`^${key.replace(/\./g, '\\.').replaceAll('*', '.+')}$`).test(path)) // (one * per key: "music.tracks.*.layers.*.volumeDb")
   return wild ? [ranges[wild][0], ranges[wild][1]] : undefined
 }
 

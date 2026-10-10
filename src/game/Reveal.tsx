@@ -13,7 +13,9 @@
 // SOUND — the ceremony (content/audio.json): reveal.tangles as it opens · reveal.count as each total counts up, one note
 // higher each time (the ladder: a rising run) · reveal.bonus as each "+3" lands · reveal.winner (the fanfare) as the
 // Grand Glyphtender is named — also when Skip or reduce motion jumps straight to the end. While it plays, the "reveal"
-// mix dips the music and ambience.
+// mix dips the music and ambience. The MUSIC builds like a ceremony (sound.ts ceremonyMusic): each count-up raises its
+// intensity a step (the bells fade in), it holds through the fanfare (which ducks it), then settles once the end table
+// opens. Pause over the reveal stacks its "paused" mix on top, so closing Pause brings the reveal's mix back.
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { getAudio, playSound, useAudioSnapshot } from '../audio'
 import text from '../../content/text/en.json'
@@ -24,6 +26,7 @@ import { turnOf } from '../store/happened'
 import { PlayerChip, reduceMotion, screens } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
 import { juiceFor, juiceSound } from './feel'
+import { ceremonyMusic } from './sound'
 import { frozen } from './freeze'
 import { playerName } from './prompt'
 import { useAnimTuning, useGardenTuning, useLayoutTuning } from './useTuning'
@@ -80,7 +83,12 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
     if (revealAt === null || revealAt === before || (before === undefined && revealAt === end)) return // (already over when shown: quiet)
     const step = steps[revealAt]
     if (step?.kind === 'tangles') playSound('reveal.tangles')
-    if (step?.kind === 'count') playSound('reveal.count', { step: steps.slice(0, revealAt).filter((s) => s.kind === 'count').length })
+    if (step?.kind === 'count') {
+      const counted = steps.slice(0, revealAt).filter((s) => s.kind === 'count').length
+      playSound('reveal.count', { step: counted })
+      ceremonyMusic({ count: counted + 1, of: steps.filter((s) => s.kind === 'count').length }, timing)
+    }
+    if (revealAt === end) ceremonyMusic('settle', timing)
     if (step?.kind === 'winner' || (revealAt === end && before !== end - 1)) playSound('reveal.winner') // (Skip / reduce motion: straight here)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealAt])
