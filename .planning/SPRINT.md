@@ -4,7 +4,7 @@ Muzzy will see: the Story chart's empty top-left lists what each player did in t
 
 ## F61 🎮 Turn-by-turn list on the Story chart
 Done when: for the scrubbed round, the chart's top-left lists every player (glyphling, stacked, 2–4) with that round's play — words + Magic ("NEST +6", "NEST · TEN +9"), "Refresh 3", moved only, a tangle mark; it follows drag / tap / ← → scrubbing; below the key = the awards slot only; fits all 8 sizes; rounds are counted right with a shuffled turn order.
-- [ ] 🤖 1. Fix: round numbers with the shuffled turn order (src/engine/log.ts:70 assumes seat order → use the game's turn order) + log.test.ts; golden games checked
+- [x] 🤖 1. Fix: round numbers with the shuffled turn order (src/engine/log.ts:70 assumes seat order → use the game's turn order) + log.test.ts; golden games checked
 - [ ] 🤖 2. The list (src/game/StoryChart.tsx / GameOver.tsx, reuse endText.ts turnCaption pieces, words in content/text/en.json, sizes in content/tuning/endscreen.json with _help/_labels/_ranges)
 - [ ] 🤖 3. Below the key = awards only (the "{round} · nothing marked" caption goes)
 - [ ] 🤖 4. All 8 sizes × 2–4 players: e2e/end-screen-shots.mjs checks + Story baselines re-recorded (only those)
@@ -21,3 +21,4 @@ Check: check:fast after each task · check:full once at the end.
 Ask Muzzy: —
 
 ## Notes
+- F61 task 1 (round fix): log.ts counts a new round by PLACE in the game's turn order (state.turnOrder, default 0,1,2…), not seat number. Golden games: SAME, all 300 — they play the default order, where place = seat, so the rounds in their fingerprints don't change; no re-record. Games already saved with a shuffled order keep their old (wrong) round numbers in the log.
