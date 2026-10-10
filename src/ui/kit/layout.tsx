@@ -48,7 +48,7 @@ function keepCentredOnOpen(box: HTMLDivElement) {
     const size = `${screen!.clientWidth}x${screen!.clientHeight}`
     if (size === measuredFor && !always) return // (only the content changed: leave it where it is)
     measuredFor = size
-    box.style.marginBlockStart = '0px'
+    box.style.marginBlockStart = '0'
     box.style.alignSelf = 'center'
     const centredTop = box.offsetTop
     box.style.alignSelf = ''
