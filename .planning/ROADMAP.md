@@ -220,6 +220,21 @@ Goal: the end screen's Story chart says what every player did each round and sho
 - ✅ F62 🎮 Bot band on the Story chart: a thicker, darker band behind a player's line for the rounds a bot played for them (online idle takeover / turn timer / left); framework-first: every recorded move says who played it — should · needs: F52
   why: the story is honest about who played — nobody's score looks like theirs when a bot made it
 
+## v0.11 — Dragging feels right  ← current
+Goal: every drag (draft, plan a seed, tray reorder, move a glyphling) carries the piece in the style Muzzy picks after seeing them all live — no solid copy left behind by accident, wrong drops return home (Muzzy 2026-10-10).
+- 🔨 F63 🎮 Carry styles in Glyphtender: drag.json picks per drag type A Pick it up · B Lift, mark home · C Aim · D Float + landings / returns; Dev Kit dropdowns — should · needs: fw F53 · sprint 23
+  why: one real piece at a time → the board reads honestly while you try things (Try freely, commit once)
+- 🔨 F64 🎮 Target feedback: board highlight | ghost preview | tether; tray insertion marker | make room; magnetic snap — should · needs: fw F54, F63 · sprint 23
+- 🔨 F65 ❓ Pick a style per drag type (Muzzy, after trying them) — should · needs: F63, F64 · sprint 23
+```mermaid
+flowchart LR
+  FW53[fw F53 Carry styles] --> F63[F63 Carry styles]
+  FW54[fw F54 Target feedback] --> F64[F64 Target feedback]
+  F63 --> F64
+  F63 --> F65[F65 Pick]
+  F64 --> F65
+```
+
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
@@ -228,7 +243,7 @@ Goal: the end screen's Story chart says what every player did each round and sho
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
-- 2026-10-10 — **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
+- 2026-10-10 — → F63–F65 (v0.11). **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
   - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.
   - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
