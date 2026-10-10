@@ -42,6 +42,7 @@
     "e2e:fullscreen": "node e2e/fullscreen.mjs",
     "e2e:ai": "node e2e/ai-play.mjs",
     "e2e:audio": "node e2e/audio-log.mjs",
+    "e2e:new-game": "node e2e/new-game-position.mjs",
     "shots:record": "node e2e/shots.mjs record",
     "check:shots": "node e2e/shots.mjs check",
     "ai:arena": "node scripts/ai-arena.mjs",

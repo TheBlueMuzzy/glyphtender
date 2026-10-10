@@ -38,6 +38,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['score', 'e2e/score-sequence.mjs', 'e2e-shots 5407'],
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
+  ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 
