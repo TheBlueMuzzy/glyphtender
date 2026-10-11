@@ -69,6 +69,20 @@ export function promptSizers(names: string[]): { texts: string[]; detail: string
   }
 }
 
+/** The same for the Magic reveal (the game is over): only the reveal's lines, and no small line — the reveal has none.
+ *  The panel changes anyway when the reveal starts (the tray gives way to the Magic chips), so the frame may change
+ *  there; through the reveal it holds still. Without this the frame kept room for the longest TURN prompt + a note
+ *  under it: empty space that took the board's room (end4-reveal at 390×844: a board ~170 px wide). */
+export function revealSizers(names: string[]): { texts: string[]; detail: string[] } {
+  const player = names.reduce((a, b) => (b.length > a.length ? b : a), '')
+  const r = w.reveal
+  return {
+    texts: [r.tangles, ...[r.bonus, r.counting].map((t) => fill(t, { player, n: 10 })),
+      fill(r.winner, { names: player }), fill(r.winners, { names: names.join(r.and) })],
+    detail: [],
+  }
+}
+
 /** The turn bar during the Magic reveal: what's being revealed, then the winner(s). */
 function revealPrompt(game: GameState, at: number | null): string {
   const view = revealView(revealSteps(game), at)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import text from '../../content/text/en.json'
-import { promptSizers } from './prompt'
+import { promptSizers, revealSizers } from './prompt'
 
 const w = text.game
 const names = ['Yellow', 'Bartholomew', 'Pink']
@@ -24,5 +24,19 @@ describe('the prompt frame holds the longest message (B013)', () => {
     expect(texts).toContain(w.reveal.tangles)
     expect(texts).toContain('Grand Glyphtenders: Yellow & Bartholomew & Pink!')
     expect(texts).toContain('Counting Bartholomew\'s Magic…')
+  })
+})
+
+describe('the reveal holds the frame for its own lines only (F67)', () => {
+  const { texts, detail } = revealSizers(names)
+  it('every reveal line, with the longest name and every winner at once', () => {
+    expect(texts).toContain(w.reveal.tangles)
+    expect(texts).toContain('Grand Glyphtenders: Yellow & Bartholomew & Pink!')
+    expect(texts).toContain('Counting Bartholomew\'s Magic…')
+    expect(texts).toContain('Grand Glyphtender: Bartholomew!')
+  })
+  it('no turn prompts and no small line (they kept empty room above the Magic chips)', () => {
+    expect(texts).not.toContain(w.prompts.refresh)
+    expect(detail).toEqual([])
   })
 })

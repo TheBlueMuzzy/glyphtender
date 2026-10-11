@@ -36,8 +36,8 @@ const w = text.game.reveal
 /** One chip per line (a chip never shrinks, so two in a row on a phone ran into each other — B016).
  *  Sizes: big (a roomy screen, e.g. a desktop) and a phone held upright (lots of room under the board) = the full-size
  *  chip, and on a roomy screen the whole group is drawn bigger (layout.json revealBigZoom, but never wider than its
- *  column) to match the big board; compact (the side column, e.g. a phone on its side) = small, or with 3–4 players
- *  the one-line chip (else they run into the end bar). */
+ *  column) to match the big board; compact (the side column, e.g. a phone on its side) and 3–4 players on anything but
+ *  a roomy screen = the one-line chip (else they run into the end bar / squeeze the board). */
 export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }) {
   const game = useGameStore((s) => s.game)!
   const revealAt = useGameStore((s) => s.revealAt)
@@ -112,25 +112,36 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealAt])
 
-  // On a roomy screen: as much bigger as revealBigZoom asks, but only as wide as the column has room for
+  // On a roomy screen: as much bigger as revealBigZoom asks, but only as wide as the column has room for.
+  // A short column (beside the board in a short window, 768×343, 4 players): the cards a little smaller, so they and
+  // Skip fit under the prompt — never below layout.json revealMinZoom. (Below/above the board the panel grows to fit
+  // them instead, so there it never shrinks.)
   useLayoutEffect(() => {
     const el = panel.current
     const column = el?.parentElement
     if (!el || !column) return
     const fit = () => {
       el.style.zoom = '1'
-      const room = column.clientWidth / Math.max(1, el.scrollWidth)
-      el.style.zoom = big ? String(Math.max(1, Math.min(layout.revealBigZoom, room))) : ''
+      const wide = column.clientWidth / Math.max(1, el.scrollWidth)
+      // the height the cards may have: the panel's, less its other rows (the prompt, Skip) and the gaps between
+      const others = [...column.children].filter((child) => child !== el)
+      const gap = parseFloat(getComputedStyle(column).rowGap) || 0
+      const free = column.clientHeight - others.reduce((sum, child) => sum + child.getBoundingClientRect().height + gap, 0)
+      const tall = free / Math.max(1, el.scrollHeight)
+      const zoom = Math.min(big ? Math.max(1, Math.min(layout.revealBigZoom, wide)) : 1, Math.max(layout.revealMinZoom, tall))
+      el.style.zoom = zoom === 1 ? '' : String(zoom)
     }
     fit()
     const watch = new ResizeObserver(fit)
     watch.observe(column)
     return () => watch.disconnect()
-  }, [big, layout.revealBigZoom, revealAt])
+  }, [big, layout.revealBigZoom, layout.revealMinZoom, revealAt])
 
-  // (3–4 players: a size down, so four padded cards don't squeeze the board — upright phones too)
+  // 3–4 players (not a roomy screen): the one-line card, so four cards don't squeeze the board — upright phones too
+  // (two-line cards left a 4-player board ~170 px wide at 390×844). Beside the board on a phone (compact): one-line
+  // cards always — the column is short there.
   const many = game.magic.length > 2
-  const size: 'm' | 's' | 'xs' = !compact ? (many && !big ? 's' : 'm') : many ? 'xs' : 's'
+  const size: 'm' | 's' | 'xs' = compact || (many && !big) ? 'xs' : 'm'
   return (
     <div ref={panel} className="game-reveal" data-size={size} role="group" aria-label={w.label}>
       {game.magic.map((_, seat) => {
@@ -144,7 +155,7 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
         return (
           <div key={seat} data-reveal-seat={seat}>
             <div className="game-reveal-sizer" aria-hidden="true">
-              <PlayerChip {...chip} score={widest} detail={size === 'xs' ? undefined : w.secret} badge={w.winnerBadge} />
+              <PlayerChip {...chip} score={widest} detail={w.secret} badge={w.winnerBadge} />
             </div>
             <PlayerChip {...chip} score={score ?? undefined} detail={score === null ? w.secret : undefined}
               badge={winner ? w.winnerBadge : undefined} active={counting === seat || winner} />
