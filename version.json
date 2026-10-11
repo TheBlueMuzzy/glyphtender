@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "build": 0,
   "history": [
     {
@@ -52,6 +52,11 @@
       "version": "0.6.0",
       "date": "2026-10-10",
       "summary": "The garden sings — Glyphtender has sound: every move, throw, landing, score pop and tangle is heard, the pops climb a musical scale, a night garden of crickets and an owl with harp music that rests, and a Magic reveal that builds to a fanfare for the new Grand Glyphtender; Settings → Audio with 5 volume sliders"
+    },
+    {
+      "version": "0.7.0",
+      "date": "2026-10-10",
+      "summary": "Dragging feels right + the Story tells the whole game — pick up one real piece (seeds and glyphlings lift, land and fly home), straight aim lines, swap seeds in the tray, the AI moves like a person; the end Story lists every player's play each round and shows when a bot played for someone"
     }
   ]
 }

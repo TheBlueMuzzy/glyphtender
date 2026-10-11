@@ -1,11 +1,10 @@
 ## ▶ RESUME HERE
-2026-10-10 — **Sprint 23 approved — dragging feels right** (v0.11 ✅ + v0.10 ✅, both on branch dev/drag, NOT released; framework dev/drag: ui-kit 0.6.1, Dev Kit 0.10.0, table 0.7.1). Muzzy's picks in content/tuning/drag.json: draft A · seed B · move B · reorder A; targets: draft glow · seed + move straight aim line (a seed's from its glyphling) · tray swap places · snap 0.5 · trayLeave 0.5. Rules he set: the AI moves like a person; picking up again = a new decision (one undo); a planned cast leaves a dotted glyphling → seed line. GDD "How dragging feels", TDD D87–D89, framework design/ui-kit.md §4b.
-Next: **/deliver** v0.10 + v0.11 together (server redeploy — party/ + src/rooms/server changed in v0.10; merge framework dev/drag too) — or /sprint for the next milestone.
+2026-10-10 — **Released v0.7.0** (beta stage): v0.10 The Story (turn list + bot band; server redeployed) + v0.11 Dragging feels right (carry styles, straight aim lines, swap places, the AI moves like a person). Framework v0.6.0 released alongside. Next: /sprint (or /roadmap).
 **Ask Muzzy (carried):** AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
 v0.10 (Story) is still unreleased: /deliver it whenever (server redeploy — party/ + src/rooms/server changed).
 
 ## Where we are
-Stage: develop · Milestone: v0.11 Dragging feels right ✅ + v0.10 ✅ (both unreleased) · Sprint: none (23 done) · Doing: ready to /deliver · Branch: dev/drag · Version: 0.6.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.6.0, online)
+Stage: deliver · Milestone: v0.11 ✅ released · Sprint: none · Doing: released v0.7.0 · Branch: main · Version: 0.7.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.7.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

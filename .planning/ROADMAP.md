@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -213,14 +213,14 @@ flowchart LR
   FW30[fw F30 Sound Board] --> F60
 ```
 
-## v0.10 — The Story tells the whole game  ✅ done 2026-10-10 (not released — needs the server redeploy at /deliver)
+## v0.10 — The Story tells the whole game  ✅ released 2026-10-10 (v0.7.0)
 Goal: the end screen's Story chart says what every player did each round and shows when a bot played for someone (Muzzy 2026-10-09/10).
 - ✅ F61 🎮 Turn-by-turn list on the Story chart: the chart's empty top-left lists each glyphling (stacked, up to 4) with the scrubbed round's play — words + Magic ("NEST +6"), "Refresh 3", moved only, a tangle mark; below the key = awards only. Includes the round-number fix for the shuffled turn order — should · needs: F26
   why: the Story reads like a replay → "again?" (Fellowship), and players learn what scored
 - ✅ F62 🎮 Bot band on the Story chart: a thicker, darker band behind a player's line for the rounds a bot played for them (online idle takeover / turn timer / left); framework-first: every recorded move says who played it — should · needs: F52
   why: the story is honest about who played — nobody's score looks like theirs when a bot made it
 
-## v0.11 — Dragging feels right  ✅ done 2026-10-10 (not released — with v0.10 on dev/drag)
+## v0.11 — Dragging feels right  ✅ released 2026-10-10 (v0.7.0)
 Goal: every drag (draft, plan a seed, tray reorder, move a glyphling) carries the piece in the style Muzzy picks after seeing them all live — no solid copy left behind by accident, wrong drops return home (Muzzy 2026-10-10).
 - ✅ F63 🎮 Carry styles in Glyphtender: drag.json picks per drag type A Pick it up · B Lift, mark home · C Aim · D Float + landings / returns; Dev Kit dropdowns — should · needs: fw F53 · sprint 23
   why: one real piece at a time → the board reads honestly while you try things (Try freely, commit once)
