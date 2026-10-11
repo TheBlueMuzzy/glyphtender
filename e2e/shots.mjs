@@ -90,6 +90,15 @@ async function settle(page) {
   await page.mouse.move(0, 0) // no button left looking hovered
 }
 
+/** "Held still" uses the same measure as the before / after comparison (pixelmatch at THRESHOLD, ALLOWED pixels):
+ *  at 844×390 (sprint 24) Chrome re-drew the turn portrait's edge a hair differently on every picture — 36 faint pixels
+ *  no comparison would ever count — and a byte-for-byte test called the screen "never still". */
+function samePicture(a, b) {
+  const pa = PNG.sync.read(a), pb = PNG.sync.read(b)
+  if (pa.width !== pb.width || pa.height !== pb.height) return false
+  return pixelmatch(pa.data, pb.data, null, pa.width, pa.height, { threshold: THRESHOLD }) <= ALLOWED
+}
+
 /** Take the picture — kept once two in a row are the same (anything still changing shows up as a difference). */
 async function shot(page, size, name) {
   await settle(page)
@@ -98,7 +107,7 @@ async function shot(page, size, name) {
   for (let i = 0; i < 20; i++) {
     await page.waitForTimeout(150)
     const next = await page.screenshot({ animations: 'disabled' })
-    if (next.equals(last)) {
+    if (next.equals(last) || samePicture(last, next)) {
       writeFileSync(file, next)
       shotCount++
       console.log(`shot ${name}@${size.width}x${size.height}`)
