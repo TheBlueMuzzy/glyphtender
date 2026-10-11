@@ -54,6 +54,8 @@ type Spot = Point & { hex: Hex }
 
 interface Press {
   glyph?: number
+  /** Pressed a moved glyphling's start-of-turn ghost (its id): a TAP takes the move back, a DRAG picks it up again. */
+  ghostOf?: number
   /** A tray seed's id. */
   hand?: string
   trayPos?: number
@@ -172,12 +174,20 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     let art: string | null = null
     let type: DragType = 'move'
     let home: Element | null = null
+    if (p.ghostOf !== undefined) p.glyph = p.ghostOf // (dragging a moved glyphling's start-of-turn ghost = dragging it)
     if (p.glyph !== undefined) {
       const refused = store().refuseTap({ glyph: p.glyph })
-      store().grabGlyphling(p.glyph) // (a refused one still says why in the prompt)
+      // Already moved this turn? Picking it up again = trying again from the START OF THE TURN (Muzzy 2026-10-10): the
+      // plan goes back at once (no glide home), and the drag starts from its start hex — aim line and faint mark there
+      const planned = store().move?.glyphling === p.glyph
+      const start = planned ? game.glyphlings.find((g) => g.id === p.glyph)?.hex : undefined
+      const art0 = document.querySelector(`[data-glyph="${p.glyph}"]`) // (its size, before it jumps back)
+      if (start && !refused) arrivedOn(p.glyph, start)
+      store().grabGlyphling(p.glyph, { startOver: planned && !refused }) // (a refused one still says why in the prompt)
       if (refused) return void (p.refused = true)
       if (liftable({ kind: 'glyphling', id: p.glyph })) art = glyphlingArt(game.current)
-      home = document.querySelector(`[data-glyph="${p.glyph}"]`)
+      home = start ? document.querySelector(`.game-garden [data-hex="${hexKey(start)}"]`) : art0
+      if (start && art0) p.size = art0.getBoundingClientRect().width
       p.carried = { kind: 'glyphling', id: p.glyph }
     } else if (p.hand !== undefined) {
       // Before the move (or not my turn) a seed can't be dragged at all, not even to reorder the tray (B008)
@@ -203,7 +213,7 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     // Its home, and its size there: the carried piece is the piece itself, lifted a little (drag.json liftScale)
     const homeBox = home?.getBoundingClientRect()
     p.home = centreOf(home) ?? pointerAt(e, p)
-    p.size = homeBox && homeBox.width > 0 ? homeBox.width : size
+    p.size ??= homeBox && homeBox.width > 0 ? homeBox.width : size
     img.setAttribute('href', art)
     img.setAttribute('width', String(p.size))
     img.setAttribute('height', String(p.size))
@@ -264,6 +274,13 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     setTrayAim({ gap: insertGap(from, to), look: look === 'room' ? 'room' : 'marker' })
   }
 
+  // Pressed on the moved glyphling's start-of-turn spot (its ghost — or an option circle drawn over it)? Its id
+  const movedFrom = (hex: Hex | undefined) => {
+    const { game, move } = store()
+    const start = move && game?.glyphlings.find((g) => g.id === move.glyphling)?.hex
+    return hex && start && hexKey(start) === hexKey(hex) ? move.glyphling : undefined
+  }
+
   const onPointerDown = (e: PointerEvent) => {
     if (store().flying) return // nothing to touch while a seed is in the air
     if (landing.current) return // (a dropped piece is still landing — a fraction of a second)
@@ -272,6 +289,7 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     const t = e.target as Element
     press.current = {
       glyph: numberAttr(t, 'data-glyph'),
+      ghostOf: movedFrom(hexAttr(t)),
       hand: textAttr(t, 'data-hand'),
       trayPos: numberAttr(t, 'data-tray-pos'),
       draft: !!t.closest('[data-draft]'),
@@ -283,7 +301,7 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
 
   const onPointerMove = (e: PointerEvent) => {
     const p = press.current
-    if (!p || p.refused || e.pointerId !== p.pointerId || (p.glyph === undefined && p.hand === undefined && !p.draft)) return
+    if (!p || p.refused || e.pointerId !== p.pointerId || (p.glyph === undefined && p.ghostOf === undefined && p.hand === undefined && !p.draft)) return
     if (!p.dragging && Math.hypot(e.clientX - p.x, e.clientY - p.y) > layout.dragStartDistance) startDrag(p, e)
     if (!p.dragging) return
     const at = pointerAt(e, p)

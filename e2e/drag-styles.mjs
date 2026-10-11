@@ -205,6 +205,40 @@ try {
       }
     }
 
+    // ---- try again (Muzzy 2026-10-10): dragging the MOVED glyphling — or its start-of-turn ghost — starts over from
+    // the start of the turn: the plan goes back at once (no glide), its home (faint mark, aim line) is the START hex ----
+    await setStyle('move', 'B')
+    const startHex = await store((s) => { const g = s.game.glyphlings.find((x) => x.id === s.move.glyphling); return `${g.hex.q},${g.hex.r}` })
+    const startCentre = await centre(page.locator(`.game-garden > polygon[data-hex="${startHex}"]`))
+    for (const grab of ['glyphling', 'ghost']) {
+      await pickUp(grab === 'ghost' ? page.locator(`[data-moved-from="${mine}"]`) : glyph)
+      const mid = await page.evaluate((id) => ({
+        move: window.__glyphtender.store.getState().move,
+        ghost: document.querySelectorAll('[data-moved-from]').length,
+        home: document.querySelector(`[data-glide="${id}"]`).getAttribute('data-carried'),
+        at: (() => { const r = document.querySelector(`[data-glyph="${id}"]`).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })(),
+      }), mine)
+      check(`${size.name} grab the moved ${grab} again: the plan is taken back (no move, no old ghost)`, mid.move === null && mid.ghost === 0)
+      check(`${size.name} grab the moved ${grab} again: its faint home is the turn's START hex`, mid.home === 'ghost' && Math.hypot(mid.at.x - startCentre.x, mid.at.y - startCentre.y) < 3)
+      await goTo(await centre(option('move', 1)))
+      await page.mouse.up()
+      await dropDone()
+      await glidesDone()
+      check(`${size.name} grab the moved ${grab} again: dropping it plans the new move`, await store((s) => s.move !== null))
+    }
+    // and back onto its start hex = put it back: no plan, one motion home (B026)
+    await pickUp(glyph)
+    await goTo(startCentre)
+    await page.mouse.up()
+    await dropDone()
+    check(`${size.name} dropped back on its start hex: no move planned`, await store((s) => s.move === null))
+    const glidingHome = await page.evaluate((id) => document.querySelector(`[data-glide="${id}"]`).getAnimations().length > 0, mine)
+    check(`${size.name} dropped back on its start hex: one motion only, no glide after (B026)`, !glidingHome)
+    // (the seeds below need a planned move)
+    await glyph.click({ force: true })
+    await option('move', 0).click({ force: true })
+    await glidesDone()
+
     // ---- seeds: drag one from the tray onto a cast option, per style (then Undo the aim for the next) ----
     const pick = await page.evaluate(() => window.__glyphtender.findCast(false) ?? window.__glyphtender.findCast(true))
     for (const style of STYLES) {

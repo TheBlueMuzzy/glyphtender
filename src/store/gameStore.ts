@@ -138,7 +138,8 @@ export interface GameStore {
   loadWords: (url: string) => Promise<void>
   setWords: (words: WordList) => void
   tapGlyphling: (id: number) => void
-  grabGlyphling: (id: number) => void
+  /** Hold a glyphling. `startOver` (a drag of the one already moved): its plan goes back to the start of the turn. */
+  grabGlyphling: (id: number, opts?: { startOver?: boolean }) => void
   tapSeed: (id: string) => void
   grabSeed: (id: string) => void
   tapHex: (hex: Hex) => void
@@ -392,12 +393,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (selected?.kind === 'glyphling' && selected.id === id) return set({ selected: null })
       get().grabGlyphling(id)
     },
-    grabGlyphling: (id) => {
+    grabGlyphling: (id, opts) => {
       const { game, move } = get()
       if (!game || !canPlayAt('play')) return
       if (!isCurrents(game, id)) return set({ note: 'notYours' })
       if (game.tangled.includes(id)) return set({ selected: null, note: 'tangled' })
-      if (move?.glyphling === id) return set({ selected: { kind: 'glyphling', id }, note: null })
+      if (move?.glyphling === id && !opts?.startOver) return set({ selected: { kind: 'glyphling', id }, note: null })
       set({ ...noPlan(), selected: { kind: 'glyphling', id } }) // a different glyphling: the old plan goes
     },
 

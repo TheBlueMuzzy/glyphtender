@@ -182,7 +182,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       <WordBorders planned={planned} grown={grown} grownKey={landed?.count ?? 0} colours={colours} />
 
       {moved && (
-        <image data-hex={hexKey(moved.hex)} href={glyphlingArt(moved.seat)} x={at(moved.hex).x - s} y={at(moved.hex).y - s}
+        <image data-hex={hexKey(moved.hex)} data-moved-from={moved.id} href={glyphlingArt(moved.seat)} x={at(moved.hex).x - s} y={at(moved.hex).y - s}
           width={2 * s} height={2 * s} opacity={colours.ghostOpacity} />
       )}
 
