@@ -151,6 +151,15 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D88 · 2026-10-10 · A seed's aim line starts at the glyphling that just moved (F64)
+  Proposed by: Muzzy ("could we break frame a bit… just for this project have it come from the glyphling that was just
+  moved")   Options: from the seed's home in the tray (the kit's default) / from the casting glyphling
+  Chose: Muzzy's. In Glyphtender the glyphling casts the seed in a straight line, so the line tells the truth about
+  the cast. Game-only (usePieceInput aimFrom); the kit's tether takes any start point. Also Muzzy: the line should be
+  straight — "an arc conveys verticality, your pieces don't jump over anything" (drag.json tetherBend 0).
+D87 · 2026-10-10 · Dragging a moved glyphling (or its start-of-turn ghost) starts over from the turn's start (F63)
+  Proposed by: Muzzy   Chose: the plan is taken back at once (no glide), its home = the start hex (faint mark + aim
+  line there); taps unchanged. The ghost press is found by its hex (option circles sit over it). Fixes B026.
 D86 · 2026-10-10 · Tray reorder feedback shows only what moveInRack will really do (F64)
   Proposed by: Claude   Options: the kit's insertionIndex (the gap on the pointer's side of the nearest place) / the
   gap the drop rule makes
