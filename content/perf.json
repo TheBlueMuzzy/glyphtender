@@ -1,0 +1,13 @@
+{
+  "_help": "Performance budgets for npm run perf (scripts/perf-audit.mjs, F66). A slow phone = Slow 4G (150 ms, 1.6 Mbit/s) + a CPU 4× slower than the PC. Over budget → the line says OVER.",
+  "phonePlayMs": 5000,
+  "desktopPlayMs": 1000,
+  "phoneAgainPlayMs": 2500,
+  "firstScreenKB": 450,
+  "backgroundKB": 4000,
+  "frameMedianMs": 17.5,
+  "frameP95Ms": 34,
+  "slowFramePct": 5,
+  "heapGrowthKB": 20480,
+  "gameSeconds": 120
+}

@@ -8,10 +8,10 @@ Run: autonomous overnight (Muzzy 2026-10-11: "go auto mode. i'm going to bed" ·
 
 ## F66 ⚡ Optimize audit
 Done when: first load, frame time and memory are measured against a budget (desktop + phone) in research/optimize.md, the biggest costs are fixed and re-measured, and nothing looks or plays different (check:full).
-- [ ] 🤖 1. Measure: first-visit bytes (what the page + service worker download before you can play), load time on a throttled phone, frame time during a turn and the reveal, memory over a whole game — research/optimize.md
-- [ ] 🤖 2. Audio (8.2 MB of public/audio): only what the first screen needs loads first; music streams; nothing oversized (vite.config.ts PWA precache, src/audio)
-- [ ] 🤖 3. Code (garden 254 KB · style 225 KB · main 167 KB): split what the first screen doesn't need; no Dev Kit / sims code in live builds (vite.config.ts, src/main.tsx)
-- [ ] 🤖 4. Fix the next-biggest cost the measurements find; re-measure; record before → after
+- [x] 🤖 1. Measure: first-visit bytes (what the page + service worker download before you can play), load time on a throttled phone, frame time during a turn and the reveal, memory over a whole game — research/optimize.md
+- [x] 🤖 2. Audio (8.2 MB of public/audio): only what the first screen needs loads first; music streams; nothing oversized (vite.config.ts PWA precache, src/audio)
+- [x] 🤖 3. Code (garden 254 KB · style 225 KB · main 167 KB): split what the first screen doesn't need; no Dev Kit / sims code in live builds (vite.config.ts, src/main.tsx)
+- [x] 🤖 4. Fix the next-biggest cost the measurements find; re-measure; record before → after
 - [ ] 🤖 5. Full check (looks + plays the same)
 
 ## F67 🎨 Design pass
@@ -25,3 +25,4 @@ Done when: every screen at phone portrait, phone landscape and desktop is review
 Check: npm run check:full 27/27 + research/optimize.md before → after table + design-pass list all ticked.
 Ask Muzzy: —
 Notes:
+- F66 (research/optimize.md): runtime already healthy (60 fps on a 4×-slow phone, no memory climb). Fixed: Dev Kit mounts after the first screen in release builds (-47 KB before Play) and the offline cache skips the 6 unused style fonts + the v0.1 sketch. Slow phone first visit 2.16 → 1.60 s, second 0.37 → 0.18 s. New tool: npm run perf (budgets content/perf.json). Audio needed no change (music/ambience already streamed, not precached).

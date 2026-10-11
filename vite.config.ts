@@ -2,8 +2,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { devkit } from './vite-plugins/devkit/devkitVite'
+
+// Fonts the game's UI style never uses (F66): the kit ships one font per style preset; the offline cache keeps only the
+// ones content/ui/style.json's preset (+ its tweaks) names. A Dev Kit preset switch still fetches the others on demand.
+function unusedFontGlobs(): string[] {
+  const read = (path: string) => readFileSync(resolve(import.meta.dirname, path), 'utf8')
+  const style = JSON.parse(read('content/ui/style.json'))
+  const named = read(`src/ui/kit/styles/${style.preset}.json`) + JSON.stringify(style.tweaks ?? {})
+  const faces = [...read('src/ui/kit/fonts/fonts.css').matchAll(/font-family: '([^']+)'; src: url\('\.\/([\w-]+)\.woff2'\)/g)]
+  return faces.filter(([, family]) => !named.includes(`'${family}'`)).map(([, , file]) => `**/assets/${file}-*.woff2`)
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -31,7 +42,8 @@ export default defineConfig({
         // Sound effects (sfx, ui, stg — ~360 KB) are precached so they work offline. Music and ambience (~3 MB) are NOT,
         // to keep the first load small: they're cached the first time they play (runtime, cache-first, below).
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,csv,mp3}'],
-        globIgnores: ['**/audio/mus/**', '**/audio/amb/**'],
+        // Not cached either: the v0.1 code sketch (its own page, still online) and the unused style fonts (F66).
+        globIgnores: ['**/audio/mus/**', '**/audio/amb/**', 'sketches/**', '**/assets/moveCast-*', ...unusedFontGlobs()],
         navigateFallback: 'index.html',
         runtimeCaching: [{
           urlPattern: /\/audio\/(mus|amb)\/.*\.mp3$/,
