@@ -19,7 +19,7 @@ Done when: every screen at phone portrait, phone landscape and desktop is review
 - [x] 🤖 1. Shoot every screen (menu, New Game, game turn states, reveal, end pages, Pause, Settings, online lobby, Dev Kit off) at 390×844 · 844×390 · 1440×900 and review: edges, padding, overlaps, contrast, consistent motion — list in research/design-pass.md
 - [x] 🤖 2. Fix what the list finds (game CSS / kit options framework-first)
 - [x] 🤖 3. B019 (P2) short window 768×343 · B017 (P3) online lobby sideways — fix if the pass touches them
-- [ ] 🤖 4. Area + full check; new guards for anything fixed
+- [x] 🤖 4. Area + full check; new guards for anything fixed — full check 24/27 at dac25a9 (online-ai = load flake, passes alone · screenshots 1 px on one Story shot, gone on re-run · margins = its Pause check didn't know the two-column Pause → fixed) → re-run of those 3 at 8ea917f: ALL PASS. Code review (low) 40412c8..dac25a9: 1 finding (Reveal sizer "always two lines") — not a bug: an xs chip puts its detail BESIDE the name (kit hud.tsx oneLine)
 - [ ] 🙋 5. iPhone streaming-music test (music keeps playing / resumes after a call, silent switch) — after release, on the live link
 
 Check: npm run check:full 27/27 + research/optimize.md before → after table + design-pass list all ticked.

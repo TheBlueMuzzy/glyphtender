@@ -235,10 +235,10 @@ flowchart LR
   F64 --> F65
 ```
 
-## v0.12 — Beta audits  🔨 sprint 24
+## v0.12 — Beta audits  ✅ built 2026-10-11 (sprint 24, overnight) — releasing as v0.8.0
 Goal: the beta label — the game loads fast, runs smooth and every screen passes a design check (accessibility parked — Muzzy 2026-10-09).
-- 🔨 F66 ⚡ Optimize audit: measure first load / frame time / memory vs a budget (desktop + phone), fix the biggest costs, re-measure — must:beta · sprint 24
-- 🔨 F67 🎨 Design pass: every screen at phone + desktop vs the UI-kit rules + breathing room; fix what's found; iPhone streaming-music test (Muzzy) — must:beta · sprint 24
+- ✅ F66 ⚡ Optimize audit (slow phone 2.16 → 1.60 s to Play; research/optimize.md; npm run perf): measure first load / frame time / memory vs a budget (desktop + phone), fix the biggest costs, re-measure — must:beta · sprint 24
+- ✅ F67 🎨 Design pass (8 fixes on sideways / short screens, B019 + B017 fixed; UI kit 0.7.0; research/design-pass.md — taste calls logged for Muzzy): every screen at phone + desktop vs the UI-kit rules + breathing room; fix what's found; iPhone streaming-music test (Muzzy) — must:beta · sprint 24
 
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
