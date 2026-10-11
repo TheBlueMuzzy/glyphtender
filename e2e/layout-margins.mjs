@@ -8,7 +8,7 @@
 //   · B019: the prompt (its words and glyphling) never shares space with the turn bar (portrait + ☰) — at least
 //     PROMPT_CLEAR px below it — and nothing in the panel spills out of it: on the turn, a planned cast AND the refresh
 //     step (the longest prompt, "No Magic this turn — refresh seeds?", + its small line); then a REAL tap on ☰ opens Pause
-//   · the Pause menu: the room left and right of its buttons the same (±2 px), and the top about the same
+//   · the Pause menu: the room left and right of its content (title + buttons — side by side on a short wide screen) the same (±2 px), and the top about the same
 //   · the Dev Kit: the tool tabs on their own full-width row under the title + ✕ (all 5 fit on a desktop)
 // Screenshots of each (turn, pause, Dev Kit Tuning + Screens) go to the out folder.
 // Starts its OWN dev server (default port 5233 — never Muzzy's 5180/5192) and closes only that one.
@@ -69,9 +69,10 @@ function pausePadding() {
   const menu = document.querySelector('.kit-modal .kit-menu').getBoundingClientRect()
   const title = document.querySelector('.kit-modal > .kit-text').getBoundingClientRect()
   const style = getComputedStyle(document.querySelector('.kit-modal'))
+  // the content's outer edges, title + buttons (UI kit 0.7.0: on a short wide screen the title sits LEFT of the buttons)
   return {
-    left: menu.left - panel.left, right: panel.right - menu.right,
-    top: title.top - panel.top, bottom: panel.bottom - menu.bottom,
+    left: Math.min(menu.left, title.left) - panel.left, right: panel.right - Math.max(menu.right, title.right),
+    top: Math.min(title.top, menu.top) - panel.top, bottom: panel.bottom - Math.max(menu.bottom, title.bottom),
     titleLeft: title.left - panel.left, border: parseFloat(style.borderLeftWidth) || 0,
   }
 }

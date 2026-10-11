@@ -17,8 +17,8 @@ Done when: first load, frame time and memory are measured against a budget (desk
 ## F67 🎨 Design pass
 Done when: every screen at phone portrait, phone landscape and desktop is reviewed against the UI-kit rules and the breathing-room rule, what's found is fixed, check:ui is clean of problems, and the screenshot checks pass.
 - [x] 🤖 1. Shoot every screen (menu, New Game, game turn states, reveal, end pages, Pause, Settings, online lobby, Dev Kit off) at 390×844 · 844×390 · 1440×900 and review: edges, padding, overlaps, contrast, consistent motion — list in research/design-pass.md
-- [ ] 🤖 2. Fix what the list finds (game CSS / kit options framework-first)
-- [ ] 🤖 3. B019 (P2) short window 768×343 · B017 (P3) online lobby sideways — fix if the pass touches them
+- [x] 🤖 2. Fix what the list finds (game CSS / kit options framework-first)
+- [x] 🤖 3. B019 (P2) short window 768×343 · B017 (P3) online lobby sideways — fix if the pass touches them
 - [ ] 🤖 4. Area + full check; new guards for anything fixed
 - [ ] 🙋 5. iPhone streaming-music test (music keeps playing / resumes after a call, silent switch) — after release, on the live link
 
@@ -26,3 +26,5 @@ Check: npm run check:full 27/27 + research/optimize.md before → after table + 
 Ask Muzzy: —
 Notes:
 - F66 (research/optimize.md): runtime already healthy (60 fps on a 4×-slow phone, no memory climb). Fixed: Dev Kit mounts after the first screen in release builds (-47 KB before Play) and the offline cache skips the 6 unused style fonts + the v0.1 sketch. Slow phone first visit 2.16 → 1.60 s, second 0.37 → 0.18 s. New tool: npm run perf (budgets content/perf.json). Audio needed no change (music/ambience already streamed, not precached).
+- F67 (research/design-pass.md): 8 fixes, all on sideways phones / short windows (desktop + upright phone were clean). Two helpers: UI kit 0.7.0 (framework dev/short-screens d5dc135) — cards scroll inside themselves and take the height on short screens, Pause / Play online / lobby go two-column when short + wide, Settings tabs → picker when short, every screen over the menu dims it (B017 fixed) ∥ game: short side column lays the seeds in one row + safe centring (B019 fixed; layout.json sideShortHeight 500 · sideShortMaxShare 0.55 · revealMinZoom 0.7), the reveal board fills a phone's width (4p ~158 → ~330 px), Results stat pairs never break inside. check:shots re-recorded (78 meant diffs; desktop game screens unchanged). Taste calls left for Muzzy are in design-pass.md "Logged for Muzzy".
+- check:shots "never held still" at game-play@844x390: Chrome re-drew 36 faint px at the turn portrait's edge every picture (layout proven still, no DOM changes, only the turn pulse running) → the stillness test now uses the comparison's own pixelmatch measure (0 px by it).
