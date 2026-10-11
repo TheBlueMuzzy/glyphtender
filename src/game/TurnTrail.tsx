@@ -1,9 +1,10 @@
 // A TURN TRAIL on the board, in the player's colour (trail.ts says which one shows and how):
-//   from ring → dotted move path → to ring → dashed target ring.
+//   from ring → dotted move path → to ring → dotted cast line (glyphling → seed, the cast shade) → dashed target ring.
+//   (Muzzy 2026-10-10: after dropping a seed "there should be" a dotted line from the glyphling to it.)
 //   plan  — only the path (the planned halos already ring both ends and the aimed hex)
 //   live  — another player's replayed turn: the parts draw on one after another over anim.json trailLead
 //           (Web Animations, no React state per frame; reduce motion = it's simply there)
-// No cast arc (Muzzy: casts are straight-line shots — an arc reads as jumping over things), and it's gone once the
+// No cast ARC (Muzzy: casts are straight-line shots — an arc reads as jumping over things), and it's gone once the
 // seed lands. It sits UNDER the seeds and glyphlings (Board.tsx), so it never covers a letter. Every line has a dark
 // casing so it still reads over a highlight of the same colour.
 import { useLayoutEffect, useRef } from 'react'
@@ -11,6 +12,7 @@ import { hexCorners, hexToPixel } from '../engine/hex'
 import { trailKey, type Trail, type TrailMode } from '../store/trail'
 import { reduceMotion } from '../ui/kit'
 import { colourOf } from './art'
+import { castColour } from './castShade'
 import { drawSteps, movePath } from './trailShape'
 import { HEX } from './useThrow'
 import type { AnimTuning, GardenTuning } from './useTuning'
@@ -44,6 +46,8 @@ export function TurnTrail({ trail, mode, colours, timing }: Props) {
   const w = colours.trailWidth
   const steps = drawSteps(trail.target !== null)
   const path = movePath(trail.from, trail.to, HEX)
+  const castPath = trail.target ? movePath(trail.to, trail.target, HEX) : null
+  const castTint = castColour(colour, colours.background, colours.castShade) // (the cast options' shade)
   const at = (h: Trail['from']) => hexToPixel(h, HEX)
   const draw = (part: keyof typeof steps) => (live ? { 'data-draw': steps[part].join(',') } : {})
 
@@ -70,6 +74,12 @@ export function TurnTrail({ trail, mode, colours, timing }: Props) {
             <path d={path} fill="none" stroke="white" strokeWidth={w * 6} pathLength={1}
               strokeDasharray="1 2" data-draw={steps.path.join(',')} data-draw-line="" />
           </mask>
+          {castPath && (
+            <mask id="trail-reveal-cast" maskUnits="userSpaceOnUse" x={-200} y={-200} width={400} height={400}>
+              <path d={castPath} fill="none" stroke="white" strokeWidth={w * 6} pathLength={1}
+                strokeDasharray="1 2" data-draw={steps.castPath.join(',')} data-draw-line="" />
+            </mask>
+          )}
         </defs>
       )}
       {live && ring('from', trail.from, false)}
@@ -79,6 +89,13 @@ export function TurnTrail({ trail, mode, colours, timing }: Props) {
         <path d={path} fill="none" stroke={colour} strokeWidth={w * 1.35} strokeDasharray={dash} strokeLinecap="round" />
       </g>
       {live && ring('to', trail.to, false)}
+      {castPath && (
+        <g data-trail-part="cast" mask={live ? 'url(#trail-reveal-cast)' : undefined}>
+          <path d={castPath} fill="none" stroke={colours.background} strokeOpacity={0.55} strokeWidth={w * 1.35 + 0.07}
+            strokeDasharray={dash} strokeLinecap="round" />
+          <path d={castPath} fill="none" stroke={castTint} strokeWidth={w * 1.35} strokeDasharray={dash} strokeLinecap="round" />
+        </g>
+      )}
       {live && trail.target && ring('target', trail.target, true)}
     </g>
   )

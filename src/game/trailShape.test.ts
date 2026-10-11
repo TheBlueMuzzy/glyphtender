@@ -15,10 +15,10 @@ describe('trail shapes', () => {
     expect(throwHandle(a, near, 0)).toEqual({ x: 1, y: 0 }) // flat
   })
 
-  it('the parts draw on in order — from ring, path, to ring, target ring (no arc) — inside the lead', () => {
+  it('the parts draw on in order — from ring, path, to ring, cast line, target ring (no arc) — inside the lead', () => {
     for (const cast of [true, false]) {
       const s = drawSteps(cast)
-      const order = [s.from, s.path, s.to, s.target]
+      const order = [s.from, s.path, s.to, s.castPath, s.target]
       for (const [start, end] of order) expect(0 <= start && start <= end && end <= 1).toBe(true)
       for (let i = 1; i < order.length; i++) expect(order[i][0]).toBeGreaterThanOrEqual(order[i - 1][0])
     }
