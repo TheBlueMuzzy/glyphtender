@@ -11,8 +11,11 @@
 //           carousel showing ONE award (none earned → no Highlights at all); at 390×844 and 1440×900 it moves on by
 //           itself (carouselSeconds) and a tap moves it on AND holds it (carouselPauseSeconds) before it carries on;
 //           ▶ on the last award LOOPS to the first (slides in from the right; only two awards move)
-//   story   the key under the chart, the same carousel under the key, the caption under that; a 4-pointed star on the
-//           shown award's holder's line, which moves when the carousel moves on
+//   story   the key under the chart, the awards slot under the key; a 4-pointed star on the shown award's holder's line,
+//           which moves when the slot moves on. F61: drag / arrow keys move the line -> the plot's top-left lists every
+//           player's play on that round (words + Magic, a refresh, a move - read against the fixture's log), inside the
+//           chart, clear of the key, never cut off; it follows the line; the Tangles column lists the tangle bonuses;
+//           the slot under the key holds that round's awards only (a round with none: empty, same size)
 //   all     no page scrolls (phones on their side / short windows may — reported as a NOTE, not a failure); on a
 //           desktop the page's content uses ≥ 70% of the window's height (not floating small in the middle);
 //           (or as wide as the page — width ran out first); nothing within 12 px of the window's edges; buttons ≥ 44 px;
@@ -274,13 +277,13 @@ try {
       const svg = page.locator('.game-end-chart-svg')
       const slotSize = async () => ({ chart: (await box('.game-end-chart')).height, slot: (await box('.game-end-caption')).height })
       const before = await slotSize()
-      // drag to the busiest round (most marks — awards win ties), so taking turns gets checked too
+      // drag to the round with the most AWARDS (the slot shows only awards - F61), so taking turns gets checked too
+      check('no turn list before the line is touched', (await page.locator('.game-end-plays').count()) === 0)
       const target = await page.evaluate(() => {
-        const marks = [...document.querySelectorAll('[data-marker][data-x]')]
+        const marks = [...document.querySelectorAll('[data-marker="award"][data-x], [data-marker="star"][data-x]')]
         if (!marks.length) return null
         const count = (x) => marks.filter((m) => m.dataset.x === x).length
-        const m = marks.reduce((best, m) => (count(m.dataset.x) > count(best.dataset.x)
-          || (count(m.dataset.x) === count(best.dataset.x) && m.dataset.award && !best.dataset.award) ? m : best))
+        const m = marks.reduce((best, m) => (count(m.dataset.x) > count(best.dataset.x) ? m : best))
         const r = m.getBoundingClientRect()
         return { x: r.left + r.width / 2, round: Number(m.dataset.x), all: count(m.dataset.x) }
       })
@@ -309,10 +312,46 @@ try {
         return { shown: slot.querySelectorAll('.game-end-moment').length, moments: Number(slot.dataset.moments), text: slot.innerText.replace(/\n/g, ' | '),
           award: award ? `${award.dataset.award}:${award.dataset.holder}` : null, star: star ? `${star.dataset.award}:${star.dataset.seat}` : null }
       })
+      // The turn list (F61): its title, each row's seat + words as drawn, and whether it sits inside the chart
+      const order = game.turnOrder ?? game.magic.map((_, seat) => seat)
+      const rounds = Math.max(0, ...game.log.turns.map((t) => t.round))
+      const listNow = () => page.evaluate(() => {
+        const list = document.querySelector('.game-end-plays')
+        if (!list) return null
+        const card = list.querySelector('.game-end-plays-card').getBoundingClientRect()
+        const chart = document.querySelector('.game-end-chart-svg').getBoundingClientRect()
+        const key = document.querySelector('.game-end-key').getBoundingClientRect()
+        const rows = [...list.querySelectorAll('.game-end-play')].map((g) => {
+          const t = g.querySelector('text').getBoundingClientRect()
+          return { seat: Number(g.dataset.seat), text: g.querySelector('text').textContent, size: t.height,
+            inCard: t.left >= card.left - 0.5 && t.right <= card.right + 0.5 && t.top >= card.top - 0.5 && t.bottom <= card.bottom + 0.5 }
+        })
+        return { title: list.dataset.plays, rows, card: [card.left, card.top, card.right, card.bottom].map(Math.round),
+          inChart: card.left >= chart.left && card.right <= chart.right && card.top >= chart.top && card.bottom <= chart.bottom, clearOfKey: card.bottom <= key.top }
+      })
+      /** What a row should say, from the fixture's log: its first word's start + Magic, a refresh, a move, or no turn. */
+      const expectRow = (round, seat) => {
+        const t = game.log.turns.find((x) => x.round === round && x.seat === seat)
+        if (!t) return (text) => /^no turn/.test(text)
+        if (t.words.length) return (text) => text.startsWith(t.words[0].word.slice(0, 7)) && text.includes(`+${t.magic}`)
+        if (t.refresh) return (text) => text.includes('Refresh')
+        if (t.letter === null) return (text) => text.startsWith('moved')
+        return (text) => text.startsWith(`${t.letter} · no words`)
+      }
+      const listChecks = async (round, how) => {
+        const list = await listNow()
+        if (!list) return fail(`${tag}: no turn list after ${how} (round ${round})`)
+        check(`the list follows the line (${how}): “${list.title}” for round ${round}`, list.title === `Round ${round}`)
+        check(`the list has every player in turn order (${how}: ${list.rows.map((r) => r.seat)} vs ${order})`, list.rows.map((r) => r.seat).join() === order.join())
+        list.rows.forEach((r) => check(`round ${round}, seat ${r.seat}: “${r.text}” matches the log`, expectRow(round, r.seat)(r.text)))
+        check(`the list sits inside the chart, clear of the key (${how}: card ${list.card})`, list.inChart && list.clearOfKey)
+        check(`every row is inside its card, not cut off (${how})`, list.rows.every((r) => r.inCard))
+        check(`the list's words are readable (>= 9 px: ${list.rows.map((r) => Math.round(r.size))})`, list.rows.every((r) => r.size >= 9))
+      }
       const s1 = await slotNow()
       if (target) {
         check(`the line lands on the dragged-to round (${scrubAt} vs ${target.round})`, scrubAt === target.round)
-        check(`the slot shows ONE of that round's ${target.all} moments (“${s1.text}”)`, !/Drag the line/.test(s1.text) && s1.shown === 1 && s1.moments === target.all)
+        check(`the slot shows ONE of that round's ${target.all} awards (“${s1.text}”)`, !/Drag the line/.test(s1.text) && s1.shown === 1 && s1.moments === target.all && !!s1.award)
         check(`the big star is the award the slot shows (slot ${s1.award}, star ${s1.star})`, s1.award === s1.star)
         const after = await slotSize()
         check(`the chart and slot keep their size (${JSON.stringify(before)} → ${JSON.stringify(after)})`,
@@ -324,9 +363,36 @@ try {
           check('…still without moving the chart', Math.abs((await slotSize()).chart - before.chart) < 1)
         }
       }
+      // F61: the turn list - the dragged-to round, every player, what they did (from the fixture's log), on the chart
+      await listChecks(scrubAt, 'drag')
       await svg.focus()
       await page.keyboard.press('ArrowRight')
       check('→ moves the line a round', Number(await svg.getAttribute('data-scrub')) === Math.min(scrubAt + 1, Number(await svg.getAttribute('aria-valuemax'))))
+      const keyed = Number(await svg.getAttribute('data-scrub'))
+      if (keyed <= rounds) await listChecks(keyed, 'the → key')
+      // ...a round with no award: the slot under the key stays empty, and the same size
+      const moveTo = async (spot) => {
+        const now = Number(await svg.getAttribute('data-scrub'))
+        for (let i = now; i > spot; i--) await page.keyboard.press('ArrowLeft')
+        for (let i = now; i < spot; i++) await page.keyboard.press('ArrowRight')
+        await page.waitForTimeout(200)
+      }
+      const starred = await page.evaluate(() => [...document.querySelectorAll('[data-marker="award"], [data-marker="star"]')].map((m) => Number(m.dataset.x)))
+      const quiet = Array.from({ length: rounds }, (_, i) => i + 1).find((r) => !starred.includes(r))
+      if (quiet) {
+        await moveTo(quiet)
+        const s3 = await slotNow()
+        check(`a round with no award leaves the slot empty (round ${quiet}: “${s3.text}”)`, s3.text.trim() === '' && s3.moments === 0)
+        check('...without changing its size', Math.abs((await slotSize()).slot - before.slot) < 1)
+        await listChecks(quiet, 'a quiet round')
+      }
+      // The Tangles column: each player's tangle bonus, in turn order
+      await moveTo(rounds + 1)
+      const bonus = await listNow()
+      const wantBonus = order.map((seat) => (game.tangleMagic[seat] > 0 ? `+${game.tangleMagic[seat]}` : 'no bonus'))
+      check(`the Tangles column lists each player's bonus (${JSON.stringify(bonus?.rows.map((r) => r.text))} vs ${JSON.stringify(wantBonus)})`,
+        bonus?.title === 'Tangles' && bonus.rows.every((r, i) => r.text === wantBonus[i]) && bonus.inChart && bonus.clearOfKey)
+      await moveTo(scrubAt) // (back to the dragged-to round for the picture)
       if (!awards.count) check('no award → no stars', (await page.locator('[data-marker="star"], [data-marker="award"]').count()) === 0)
       else check(`a star per award on the chart (${awards.count})`, (await page.locator('[data-marker="star"], [data-marker="award"]').count()) === awards.count)
       const [chartBox, keyBox, captionBox] = await Promise.all(['.game-end-chart', '.game-end-key', '.game-end-caption'].map(box))

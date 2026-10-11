@@ -4,6 +4,11 @@
 //   await page.evaluate(recordAiDraft) — before the placement; then wait for window.__f50.done
 //   checkTravel({ check }, await page.evaluate(() => window.__f50))
 
+import { readFileSync } from 'node:fs'
+
+// The draft's carry style as saved (content/tuning/drag.json) — the AI's draft must look like a person's in it
+const DRAFT_STYLE = JSON.parse(readFileSync(new URL('../content/tuning/drag.json', import.meta.url), 'utf8')).styles.draft
+
 /** In the page: records the AI's next draft every frame — where the tray's waiting glyphling and the target hex are, where
  *  the floating piece is, and whether the glyphling is on the board yet — into window.__f50. */
 export function recordAiDraft() {
@@ -21,8 +26,9 @@ export function recordAiDraft() {
     rec.placedBefore = s.game.glyphlings.length
     const step = () => {
       const now = store.getState()
-      const img = document.querySelector('.game-drag-layer image')
-      rec.frames.push({ shown: img.getAttribute('visibility') === 'visible', ...centre(img), placed: now.game.glyphlings.length, travelling: now.botDraft !== null })
+      const img = document.querySelector('.game-drag-layer [data-bot-draft]') // (the AI's travelling glyphling — not the preview or the carried piece)
+      const home = document.querySelector('[data-draft="next"]')?.closest('[data-carried]')?.getAttribute('data-carried') ?? 'solid'
+      rec.frames.push({ shown: getComputedStyle(img).visibility === 'visible', ...centre(img), placed: now.game.glyphlings.length, travelling: now.botDraft !== null, home })
       if (now.botDraft) return requestAnimationFrame(step)
       rec.landedAt = now.game.glyphlings.find((g) => `${g.hex.q},${g.hex.r}` === key) ? key : null
       rec.done = true
@@ -40,5 +46,8 @@ export function checkTravel(h, t) {
   h.check("it leaves from the tray's waiting glyphling", moving.length > 0 && near(moving[0], t.from))
   h.check('it arrives on its hex', moving.length > 0 && near(moving[moving.length - 1], t.to))
   h.check('it is not on the board until it arrives (no pop)', t.frames.filter((f) => f.travelling).every((f) => f.placed === t.placedBefore))
+  // Same look as a person's draft (Muzzy 2026-10-10: "if the player's actions look a specific way, so too should the AI's"): its tray place shows the draft carry style's home (A = empty)
+  const want = { A: 'empty', B: 'ghost', C: 'solid', D: 'empty' }[DRAFT_STYLE]
+  h.check(`its tray place looks like a person's draft while it travels (style ${DRAFT_STYLE} → ${want})`, moving.length > 0 && moving.every((f) => f.home === want))
   h.check('then it is placed on that hex, and the floating piece is gone', t.landedAt !== null && !t.frames[t.frames.length - 1].shown)
 }

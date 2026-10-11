@@ -2,7 +2,8 @@
 //   Settings sit in titled sections that open and close (search/Section.tsx) — the file's "_sections", else one per
 //   file — with readable names from "_labels" and a help line from "_help" (how: tuningSections.ts). Chips at the top
 //   jump to a section. The Dev Kit's search box filters them while this tab is open (the `query` prop).
-//   true/false values get a checkbox; colours ("#rrggbb") a colour picker; other text is shown, not edited.
+//   true/false values get a checkbox; colours ("#rrggbb") a colour picker; text listed in the file's "_choices"
+//   { "key.path": ["A", "B"] or { "A": "A · readable" } } a dropdown; other text is shown, not edited.
 //   Slider ranges: the file's optional "_ranges" { "key.path": [min, max, step] }, else a guess (tuningLogic.ts).
 // Live: each change is sent to the game as it happens (liveTuning.ts) — the game shows it if it reads its tuning
 // through liveTuning / useLiveTuning. ↺ on a row = back to the saved value. A dot = changed, not saved yet.
@@ -119,6 +120,7 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '
                   savedValue={valueAt(saved[item.file], item.path)}
                   loadedValue={valueAt(loaded[item.file], item.path)}
                   ranges={values[item.file]._ranges}
+                  choices={values[item.file]._choices}
                   terms={terms}
                   onChange={(value) => change(item.file, item.path, value)}
                 />

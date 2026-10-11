@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { parseWordList } from '../engine/words'
-import { finishedGame, midGame, tiedGame } from './sampleGames'
+import { finishedGame, midGame, takeoverTurns, tiedGame } from './sampleGames'
 
 const words = parseWordList(readFileSync(new URL('../../public/words/words.csv', import.meta.url), 'utf8'))
 
@@ -18,6 +18,17 @@ describe('preview sample games', () => {
 
   it('is the same every time', () => {
     expect(finishedGame(3, words).game.magic).toEqual(finishedGame(3, words).game.magic)
+  })
+
+  it('the "a bot took over" sample: 3 of one player’s turns in a row, a third of the way in (F62)', () => {
+    const { game } = finishedGame(3, words)
+    const turns = takeoverTurns(game, 1)
+    const log = game.log!.turns
+    const rounds = turns.map((n) => log.find((t) => t.turnNo === n)!)
+    expect(rounds.map((t) => t.seat)).toEqual([1, 1, 1])
+    expect(rounds.map((t) => t.round - rounds[0].round)).toEqual([0, 1, 2])
+    expect(rounds[0].round).toBeGreaterThan(1)
+    expect(rounds[2].round).toBeLessThan(log.at(-1)!.round)
   })
 
   it('finds a 2-player game that ends in a tie', () => {

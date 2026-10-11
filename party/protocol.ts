@@ -30,6 +30,9 @@ export type Change = 'start' | 'draft' | 'turn' | 'refresh'
 /** At game over: the whole truth for the Magic reveal and the end table. */
 export interface Results {
   stats: PlayerStats[]
+  /** The log turns (turnNo) a bot played FOR its person (idle takeover, turn timer, left…) — the Story chart's bot band
+   *  (F62, serverGame.ts botTurns). Never a seat the host added as AI. Missing from a server older than F62: no band. */
+  botTurns?: number[]
 }
 
 /** One player's view of the game. Shaped like the real game, with everything secret taken OUT of the data. */

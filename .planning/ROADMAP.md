@@ -213,6 +213,28 @@ flowchart LR
   FW30[fw F30 Sound Board] --> F60
 ```
 
+## v0.10 — The Story tells the whole game  ✅ done 2026-10-10 (not released — needs the server redeploy at /deliver)
+Goal: the end screen's Story chart says what every player did each round and shows when a bot played for someone (Muzzy 2026-10-09/10).
+- ✅ F61 🎮 Turn-by-turn list on the Story chart: the chart's empty top-left lists each glyphling (stacked, up to 4) with the scrubbed round's play — words + Magic ("NEST +6"), "Refresh 3", moved only, a tangle mark; below the key = awards only. Includes the round-number fix for the shuffled turn order — should · needs: F26
+  why: the Story reads like a replay → "again?" (Fellowship), and players learn what scored
+- ✅ F62 🎮 Bot band on the Story chart: a thicker, darker band behind a player's line for the rounds a bot played for them (online idle takeover / turn timer / left); framework-first: every recorded move says who played it — should · needs: F52
+  why: the story is honest about who played — nobody's score looks like theirs when a bot made it
+
+## v0.11 — Dragging feels right  ✅ done 2026-10-10 (not released — with v0.10 on dev/drag)
+Goal: every drag (draft, plan a seed, tray reorder, move a glyphling) carries the piece in the style Muzzy picks after seeing them all live — no solid copy left behind by accident, wrong drops return home (Muzzy 2026-10-10).
+- ✅ F63 🎮 Carry styles in Glyphtender: drag.json picks per drag type A Pick it up · B Lift, mark home · C Aim · D Float + landings / returns; Dev Kit dropdowns — should · needs: fw F53 · sprint 23
+  why: one real piece at a time → the board reads honestly while you try things (Try freely, commit once)
+- ✅ F64 🎮 Target feedback: board highlight | ghost preview | tether; tray insertion marker | make room; magnetic snap — should · needs: fw F54, F63 · sprint 23
+- ✅ F65 ❓ Pick a style per drag type (Muzzy, after trying them) — answer: draft A · seed B · move B · reorder A; seed + move aim line (straight, a seed's from its glyphling); tray swap places (Muzzy 2026-10-10, approved) — should · needs: F63, F64 · sprint 23
+```mermaid
+flowchart LR
+  FW53[fw F53 Carry styles] --> F63[F63 Carry styles]
+  FW54[fw F54 Target feedback] --> F64[F64 Target feedback]
+  F63 --> F64
+  F63 --> F65[F65 Pick]
+  F64 --> F65
+```
+
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
@@ -221,6 +243,7 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-10 — → F63–F65 (v0.11). **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
   - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.
   - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
@@ -230,9 +253,7 @@ flowchart LR
   - After a game: "the best word you could have grown" (the AI already finds it) — learning payoff.
   - The night sky shifts dusk → midnight → dawn as the garden fills (one mood colour, fixed layout).
   - AI check: measure how the HUMAN plays against each personality (does the Strategist push people to turtle?); balance by match-up × skill.
-- 2026-10-09/10 — **Story chart upgrade** (Muzzy) — two parts, one feature:
-  - **Turn-by-turn list (2026-10-10):** as you scroll the Story, each round says what happened instead of "Round 17 — nothing happened": "Round 17 — Blue: NEST +6 · Yellow: F · Refresh 3" style. Placed in the chart's TOP-LEFT (always empty): the glyphlings in a vertically stacked list (room for 4 players), each with that round's words + Magic or refresh. The area below the key stays the awards (achievement) area.
-  - **Bot takeover band (2026-10-09):** when a bot plays for a human (idle takeover, turn timer, left), a thicker, darker band behind that player's line from the turn the bot took over until the human took back over. Needs the game log to record takeover start/end per seat.
+- 2026-10-09/10 — Story chart upgrade → F61 + F62 (v0.10).
 - 2026-10-08 — → F52. **Idle takeover with a warning bar** (Muzzy): online, 30 s without an action → a 30 s draining bar on THEIR screen ("Still there? A bot takes over soon" — concise); at 60 s a bot plays for them, mid-turn, as if they'd disconnected, until they act again. (Today: the server plays a turn for an idle player, a bot takes the seat after missedTurnsBeforeBot 2 — rooms.json.) Reworks B024's path. → make it a feature (/sprint).
 - 2026-10-08 — → F53. **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
 - 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.

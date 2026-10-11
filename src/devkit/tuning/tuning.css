@@ -31,6 +31,7 @@
 .tt-row-bool { grid-template-columns: 1fr 30px; }
 .tt-row-bool .tt-name { grid-column: auto; cursor: pointer; }
 .tt-row-text { grid-template-columns: 1fr; } /* name on its line, the text under it */
+.tt-row-choice { grid-template-columns: 1fr 30px; } /* name on its line, then the dropdown + ↺ */
 
 .tt-name { display: flex; align-items: center; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
 .tt-dot {
@@ -51,6 +52,16 @@
   padding: 4px 6px;
   font-family: ui-monospace, Consolas, monospace !important;
   font-size: 12px !important;
+}
+.tt-select {
+  width: 100%;
+  min-width: 0;
+  background: #0f1015;
+  color: #e6e6ee;
+  border: 1px solid #3a3c4a;
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-size: 12px;
 }
 .tt-text { color: #c9cad6; font-family: ui-monospace, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
 .tt-row-help { grid-column: 1 / -1; margin: 0; font-size: 11px; line-height: 1.35; color: #9a9bab; }

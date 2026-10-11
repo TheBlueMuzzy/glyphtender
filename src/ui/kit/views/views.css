@@ -4,4 +4,9 @@
   .kit-hand { display: block; flex: none; overflow: visible; }
   /* A piece shrinking away or growing in does it around its own middle, inside its place */
   .kit-hand-staged { transform-box: fill-box; transform-origin: center; }
+  /* Making room for a dragged piece: each place slides sideways by its own --kit-hand-shift (set by HandView) */
+  .kit-hand-room {
+    transform: translateX(var(--kit-hand-shift, 0));
+    transition: transform var(--kit-hand-room-time, 0s) var(--kit-hand-room-ease, ease-out);
+  }
 }

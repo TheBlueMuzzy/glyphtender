@@ -50,6 +50,22 @@ export function isAddedBot(seat: SeatRecord): boolean {
   return seat.persistentId.startsWith('bot:')
 }
 
+/**
+ * Who would play a move for this seat right now (rooms 0.5.0) — the same three words as the table kit's PlayedBy, so a
+ * game can put the answer straight on its move record:
+ * - 'seat'         — the seat's own person.
+ * - 'bot-for-seat' — a bot holds a person's seat for them (they idled, their turn timer ran out, they left, were kicked
+ *                    or stayed away too long). Ask at the moment the move is played: the person can take the seat back
+ *                    any time, and at game over watchersTakeBack turns idle-held seats human again.
+ * - 'bot'          — a bot the host added: a bot from the start, nobody to play for.
+ */
+export type PlayedBy = 'seat' | 'bot-for-seat' | 'bot'
+
+export function playedBy(seat: SeatRecord): PlayedBy {
+  if (seat.kind === 'human') return 'seat'
+  return isAddedBot(seat) ? 'bot' : 'bot-for-seat'
+}
+
 function makeSeat(room: RoomData, persistentId: string, name: string, kind: Seat['kind']): SeatRecord {
   room.seatsMade += 1
   return {

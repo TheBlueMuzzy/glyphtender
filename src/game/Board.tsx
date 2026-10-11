@@ -13,6 +13,9 @@
 // one word lit at a time, looping, with a "QUA +4" label — F25). After the cast lands the words SCORE one at a time in
 // that order (ScorePops.tsx: outline + "QUA", seed pops fly to the glyphling's growing total), then all of it fades.
 // MOVES glide from hex to hex (useGlide.ts) — a planned move, Undo, and moves made anywhere else.
+// A glyphling being DRAGGED (carried — carryState.ts, not "held") shows at home what its carry style says: itself,
+// a faint ghost or nothing (drag.json "move"), without the held ring. It stays touchable (data-glyph), so a drop back
+// home still finds it. data-carried on its group says which (e2e).
 // TURN TRAILS (TurnTrail.tsx, trail.ts), in the player's colour, under the pieces: the plan (dotted move path) and
 // another player's replayed turn (draws on before the glide). No cast arc; gone once the seed lands.
 // DANGER CUES (DangerCue.tsx): 1 move left = dashed thorny ring in the owner's colour · tangled = a vine wraps it
@@ -33,6 +36,7 @@ import { PLANNED_FILTER_ID } from './plannedLook'
 import { PlannedSeedFilter } from './PlannedSeedLook'
 import { RevealMarks } from './RevealMarks'
 import { useGlide } from './useGlide'
+import { originOf, useCarried } from './carryState'
 import { useTurnPulse } from './useTurnPulse'
 import { pulsingGlyphlings } from '../store/turnPulse'
 import { ScorePops } from './ScorePops'
@@ -59,6 +63,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const move = useGameStore((s) => s.move)
   const cast = useGameStore((s) => s.cast)
   const selected = useGameStore((s) => s.selected)
+  const carried = useCarried((s) => s.carried) // (a drag: the carried glyphling's home look)
   const flying = useGameStore((s) => s.flying)
   const landed = useGameStore((s) => s.landed)
   const revealAt = useGameStore((s) => s.revealAt)
@@ -111,7 +116,8 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
     () => game.glyphlings.map((g) => ({ id: g.id, hex: move?.glyphling === g.id ? move.to : g.hex })),
     [game.glyphlings, move],
   )
-  useGlide(svgRef, spots, timing, move?.glyphling ?? null)
+  const stepper = move && game.glyphlings.find((g) => g.id === move.glyphling)
+  useGlide(svgRef, spots, timing, move?.glyphling ?? null, stepper ? colours[colourOf(stepper.seat)] : undefined)
 
   // Whose turn: their movable glyphlings pulse gently until a move is planned
   const pulsing = useGameStore(useShallow(pulsingGlyphlings))
@@ -177,7 +183,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       <WordBorders planned={planned} grown={grown} grownKey={landed?.count ?? 0} colours={colours} />
 
       {moved && (
-        <image data-hex={hexKey(moved.hex)} href={glyphlingArt(moved.seat)} x={at(moved.hex).x - s} y={at(moved.hex).y - s}
+        <image data-hex={hexKey(moved.hex)} data-moved-from={moved.id} href={glyphlingArt(moved.seat)} x={at(moved.hex).x - s} y={at(moved.hex).y - s}
           width={2 * s} height={2 * s} opacity={colours.ghostOpacity} />
       )}
 
@@ -228,20 +234,24 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       {game.glyphlings.map((g, i) => {
         const hex = spots[i].hex
         const { x, y } = at(hex)
-        const held = selected?.kind === 'glyphling' && selected.id === g.id
+        const home = originOf(carried, { kind: 'glyphling', id: g.id })?.origin // carried away: ghost / empty at home
+        const held = selected?.kind === 'glyphling' && selected.id === g.id && !home
         const planned = move?.glyphling === g.id
-        const danger = held || planned ? undefined : inDanger.get(g.id) // held/planned rings win over the danger cue
+        const danger = held || planned || home ? undefined : inDanger.get(g.id) // held/planned rings win over the danger cue
+        const shown = home === 'empty' ? 0 : home === 'ghost' ? carried!.ghostOpacity : danger === 'tangled' ? colours.tangledDim : 1
         return (
-          <g key={g.id} data-glide={g.id}>
+          <g key={g.id} data-glide={g.id} data-carried={home}>
+            <g data-lift={g.id} className="game-lift">
             <g data-shake={g.id}>
               <g data-pulse={g.id} className="game-pulse">
                 <g data-hop={g.id} className="game-hop">
                   <image data-glyph={g.id} data-hex={hexKey(hex)} href={glyphlingArt(g.seat)} x={x - s} y={y - s} width={2 * s} height={2 * s}
-                    opacity={danger === 'tangled' ? colours.tangledDim : 1} />
+                    opacity={shown} />
                 </g>
               </g>
-              {held ? ring(hex, colours[colourOf(g.seat)], false) : planned && ring(hex, colours[colourOf(g.seat)], true)}
+              {held ? ring(hex, colours[colourOf(g.seat)], false) : planned && !home && ring(hex, colours[colourOf(g.seat)], true)}
               {danger && <DangerCue danger={danger} x={x} y={y} hex={HEX} owner={colours[colourOf(g.seat)]} colours={colours} glyphling={g.id} />}
+            </g>
             </g>
           </g>
         )

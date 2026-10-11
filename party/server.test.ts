@@ -17,7 +17,7 @@ import type { ServerMessage } from '../src/rooms/protocol'
 import settings from '../content/rooms.json'
 import { makeRules } from './glyphtenderRules'
 import { HIDDEN, type GameView, type OnlineAction, type OnlineOptions } from './protocol'
-import type { ServerGame } from './serverGame'
+import { botTurns, type ServerGame } from './serverGame'
 import { viewOf } from './views'
 import pace from '../content/ai/pace.json'
 import type { ThinkRequest } from '../src/ai/seatBrain'
@@ -764,4 +764,85 @@ describe('online server — the AI plays bot seats (F43)', () => {
     expect(server.game!.record.moves.filter((m) => m.seat === 1).length).toBeGreaterThan(5)
     conns[0].views().forEach(expectNoSecrets)
   })
+})
+
+// ─── Who played each turn (F62: the Story chart's bot band) ───────────────────────────────────────
+
+describe('online server — who played each turn (F62)', () => {
+  afterEach(() => {
+    aiSpy.requests = []
+    aiSpy.fail = false
+  })
+
+  /** A person plays a random move from their own view (the seat whose turn it is). */
+  function personPlays(server: Server, conns: FakeConnection[], rng: number): number {
+    const seat = server.game!.game.current
+    const view = conns[seat].lastView()!
+    const pick = randomAction(view.game, rng)
+    send(server, conns[seat], { kind: 'play', action: pick.action, version: view.version })
+    return pick.rng
+  }
+  const logTurns = (server: Server) => server.game!.game.log?.turns ?? []
+
+  it('idle takeover → the turns the bot played for her are sent at the end; after her tap they are hers again', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoom(2, {}, 7, true) // (the idle clock on, turn timer off)
+    let rng = 5
+    // The draft, played by both people; then wait until it's Yellow's move
+    for (let i = 0; i < 200 && (server.game!.game.phase === 'draft' || server.game!.game.current !== 0); i++) rng = personPlays(server, conns, rng)
+    expect(server.game!.game.phase).not.toBe('draft')
+    // Yellow idles: a bot plays for her for 3 of her turns (Blue plays his own at once)
+    vi.advanceTimersByTime(settings.idleTakeoverAfterMs)
+    expect(server.data.seats[0].kind).toBe('bot')
+    const byBot: number[] = []
+    for (let i = 0; i < 400 && byBot.length < 3; i++) {
+      const before = logTurns(server).length
+      if (server.game!.game.current === 0) vi.advanceTimersByTime(BOT_WAIT)
+      else rng = personPlays(server, conns, rng)
+      for (const t of logTurns(server).slice(before)) if (t.seat === 0) byBot.push(t.turnNo)
+    }
+    expect(byBot).toHaveLength(3)
+    // Blue's turn now (her 3rd turn just ended): she taps — her seat is hers again, and she plays on to the end
+    expect(server.game!.game.current).toBe(1)
+    server.onMessage(JSON.stringify({ type: 'active' }), conns[0])
+    expect(server.data.seats[0].kind).toBe('human')
+    for (let i = 0; i < 3000 && server.game!.game.phase !== 'over'; i++) rng = personPlays(server, conns, rng)
+    expect(server.game!.game.phase).toBe('over')
+    // Every client gets the same list with the results: exactly the bot's 3 turns, nothing of Blue's, none after her tap
+    for (const conn of conns) expect(conn.lastView()!.results!.botTurns).toEqual(byBot)
+    // The record says who played every move: her own before + after, the bot's for her in between; Blue always himself
+    const moves = server.game!.record.moves
+    expect(moves.filter((m) => m.seat === 1).every((m) => m.by === 'seat')).toBe(true)
+    expect(moves.filter((m) => m.by === 'bot-for-seat').every((m) => m.seat === 0)).toBe(true)
+    expect(moves.some((m) => m.seat === 0 && m.by === 'seat')).toBe(true)
+    conns.forEach((conn) => conn.views().forEach(expectNoSecrets)) // (the list comes only with the results)
+    // A room started before F62 (moves without "by"): nothing listed, no band
+    const old = server.game!.record.moves.map(({ seat, action }) => ({ seat, action }))
+    expect(botTurns({ ...server.game!, record: { ...server.game!.record, moves: old } })).toEqual([])
+  })
+
+  it('a player who leaves: every turn after it is a bot playing for them', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoom(2)
+    server.onMessage(JSON.stringify({ type: 'leave' }), conns[1])
+    let rng = 3
+    for (let i = 0; i < 3000 && server.game!.game.phase !== 'over'; i++) {
+      if (server.game!.game.current === 0) rng = personPlays(server, conns, rng)
+      else vi.advanceTimersByTime(BOT_WAIT)
+    }
+    expect(server.game!.game.phase).toBe('over')
+    const blues = logTurns(server).filter((t) => t.seat === 1).map((t) => t.turnNo)
+    expect(blues.length).toBeGreaterThan(3)
+    expect(conns[0].lastView()!.results!.botTurns).toEqual(blues)
+  })
+
+  it('an AI seat the host added is a bot from the start: its turns are never listed', () => {
+    vi.useFakeTimers()
+    const { server, conns } = startRoomWithAi(1, ['Survivor/FirstClass'], 4)
+    playWithBots(server, conns, 4)
+    const moves = server.game!.record.moves
+    expect(moves.filter((m) => m.seat === 1).every((m) => m.by === 'bot')).toBe(true)
+    expect(moves.filter((m) => m.seat === 0).every((m) => m.by === 'seat')).toBe(true)
+    expect(conns[0].lastView()!.results!.botTurns).toEqual([])
+  }, 30_000)
 })

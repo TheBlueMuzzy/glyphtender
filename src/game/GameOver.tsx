@@ -12,9 +12,10 @@
 // See board closes this so the finished garden is all there to look at. Esc and phone Back do the same.
 //   Results    the winner big, the others by place, the Highlights carousel under them (EndResults, EndHighlights)
 //   Story      everyone's Magic round by round, with the moments and every award marked; drag the line across it and
-//              what happened on that round shows in ONE fixed-size slot under the key (Muzzy, 2026-10-02: stacking
-//              "moves the story" — it mustn't): an award in its Highlights look, a tangle / lead change as a line;
-//              several on one round take turns by themselves (no dots, no arrows); the award showing is the big star
+//              the chart's top-left lists what each player did on that round (F61, StoryChart.tsx); the round's AWARDS
+//              show in ONE fixed-size slot under the key (Muzzy, 2026-10-02: stacking "moves the story" — it mustn't;
+//              2026-10-10: "leave the bottom area below the key as the achievement area") in their Highlights look,
+//              several on one round taking turns by themselves (no dots, no arrows); the award showing is the big star
 //   Scorecard  the breakdown, the best in each row tinted (EndScorecard.tsx)
 // Everything comes from the finished game's log (src/game/stats.ts). Words: en.json → game.gameOver; knobs:
 // content/tuning/endscreen.json.
@@ -30,7 +31,7 @@ import { AwardRow, EndHighlights } from './EndHighlights'
 import { EndResults } from './EndResults'
 import { EndScorecard } from './EndScorecard'
 import { frozen } from './freeze'
-import { markerCaption, tangleBonusCaption } from './endText'
+import { playsText, roundPlays, tangleBonusPlays } from './endText'
 import { playerName, winnerTitle } from './prompt'
 import { awardPoint, earnedAwards, scorecards, standings, storyChart, type ChartMarker } from './stats'
 import { SeatShape, StoryChart } from './StoryChart'
@@ -65,6 +66,7 @@ function useMedia(query: string): boolean {
 
 export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const game = useGameStore((s) => s.game)
+  const botTurns = useGameStore((s) => s.botTurns) // online: the turns a bot played for someone (F62)
   const me = useGameStore(youOf) // the "You" badge: online, my seat
   const colours = useGardenTuning()
   const tuning = useEndTuning()
@@ -81,10 +83,10 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const end = useMemo(() => {
     if (!game) return null
     const awards = earnedAwards(game, tuning)
-    const chart = storyChart(game, tuning.maxMarkers)
+    const chart = storyChart(game, tuning.maxMarkers, botTurns)
     const awardMarks = awards.map((a) => awardPoint(game, chart, a)).filter((m): m is ChartMarker => m !== null)
     return { ranked: standings(game), cards: scorecards(game), awards, chart, awardMarks }
-  }, [game, tuning])
+  }, [game, tuning, botTurns])
 
   // The page's size, and what the Story page has besides the chart (its key + caption): the chart takes what's left
   const pageBox = useRef<HTMLDivElement>(null)
@@ -172,18 +174,21 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
   if (!game || !end) return null
   const name = playerName
   const tabs = PAGES.map((p) => w.tabs[p])
-  // The scrub line's spot → what the slot shows: the round's moments (tangles, lead changes, awards) one at a time;
-  // the Tangles column: the bonus; a quiet round: just its name; untouched: how to use the line
-  const spotLabel = (x: number) => x > end.chart.rounds ? w.chart.tangles : x === 0 ? w.chart.start : fill(w.chart.spot, { round: x })
+  // The scrub line's spot → the turn list in the chart (what everyone did that round; the Tangles column: the bonus)
+  // and the slot under the key: that round's awards, one at a time (none: the slot stays, empty); untouched: how to
+  // use the line
+  const spotName = (x: number) => x > end.chart.rounds ? w.chart.tangles : x === 0 ? w.chart.start : fill(w.chart.spot, { round: x })
+  const playsAt = (x: number, room: number) => x === 0 || x > end.chart.rounds + 1 ? null
+    : { title: spotName(x), rows: x > end.chart.rounds ? tangleBonusPlays(game) : roundPlays(game, x, tuning.storyListMaxWordChars, room, botTurns) }
+  const spotLabel = (x: number) => {
+    const plays = playsAt(x, 200)
+    return plays ? playsText(plays.title, plays.rows, name) : spotName(x)
+  }
   const scrubbed = scrub !== null && scrub > end.chart.rounds + 1 ? null : scrub // (another game since)
-  const moments = scrubbed === null ? [] : [...end.chart.markers, ...end.awardMarks].filter((m) => m.x === scrubbed)
+  const moments = scrubbed === null ? [] : end.awardMarks.filter((m) => m.x === scrubbed)
   const moment = moments.length ? moments[momentAt % moments.length] : null
   const awardOf = (m: ChartMarker | null) => m?.kind === 'award' ? end.awards.find((a) => a.id === m.award && a.holder === m.seat) ?? null : null
   const slotAward = awardOf(moment)
-  const slotText = scrubbed === null ? w.chart.hint
-    : scrubbed > end.chart.rounds ? tangleBonusCaption(game, name)
-    : moment ? markerCaption(game, moment, end.awards, name)
-    : fill(w.chart.quiet, { round: spotLabel(scrubbed) })
   // The big star: the award the slot is showing (none showing → every star small)
   const star = slotAward ? moment : null
 
@@ -205,7 +210,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
                 <div ref={storyBox} className="game-end-story">
                   <StoryChart chart={end.chart} colours={colours} tuning={tuning} scrub={scrubbed} onScrub={moveLine}
                     height={chartHeight(pageSize.height, underChart, tuning.chartHeight)} awards={end.awardMarks} star={star}
-                    spotLabel={spotLabel} />
+                    spotLabel={spotLabel} playsAt={playsAt} />
                   {/* The key, right under the chart: each line's shape and colour, and whose it is */}
                   <Row gap="m" justify="center" className="game-end-key">
                     {end.ranked.map((s) => (
@@ -216,13 +221,23 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
                         <Text kind="label">{name(s.seat)}</Text>
                       </Row>
                     ))}
+                    {/* Online, when a bot played for someone: what the darker band behind a line means (F62) */}
+                    {end.chart.bands.length > 0 && (
+                      <Row gap="xs" className="kit-nowrap" data-bot-key>
+                        <svg className="game-end-key-shape" viewBox="0 0 16 16" aria-hidden="true">
+                          <line x1={2} y1={8} x2={14} y2={8} stroke="var(--muted)" strokeWidth={7} strokeLinecap="round" opacity={tuning.botBandOpacity} />
+                          <line x1={2} y1={8} x2={14} y2={8} stroke="var(--on-surface)" strokeWidth={2} strokeLinecap="round" />
+                        </svg>
+                        <Text kind="label">{w.chart.botBandKey}</Text>
+                      </Row>
+                    )}
                   </Row>
-                  {/* The slot: what happened where the line is — ONE thing at a time, always the same size, so the chart
-                      never moves (an award in its Highlights look; anything else as a line) */}
+                  {/* The slot: the awards earned where the line is — ONE at a time in its Highlights look, always the same
+                      size (empty on a round with none), so the chart never moves; before the line is touched, how to use it */}
                   <div className="game-end-caption" aria-live="polite" data-moments={moments.length}>
                     <div key={`${scrubbed}:${momentAt % Math.max(1, moments.length)}`} className="game-end-moment">
                       {slotAward ? <AwardRow award={slotAward} name={name} />
-                        : <Text kind={scrubbed === null ? 'caption' : 'body'}>{slotText}</Text>}
+                        : scrubbed === null && <Text kind="caption">{w.chart.hint}</Text>}
                     </div>
                   </div>
                 </div>

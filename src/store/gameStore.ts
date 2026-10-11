@@ -36,7 +36,7 @@ import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
 import { refreshTimes, type RefreshFx } from './refreshFx'
-import { moveInRack, placesOf, rackOf, refillRack, shuffleRack } from '../table/rack'
+import { moveInRack, placesOf, rackOf, refillRack, shuffleRack, swapInRack } from '../table/rack'
 import { landingSeconds } from './wordMarks'
 import type { Trail } from './trail'
 
@@ -101,6 +101,9 @@ export interface GameStore {
   handoff: Handoff | null
   /** Each player's best turn, longest word and words made, for the end table. */
   stats: PlayerStats[]
+  /** Online, once the game is over: the log turns (turnNo) a bot played FOR its person — the Story chart's bot band
+   *  (F62; the server's results.botTurns). Always [] in pass-and-play (its AI seats are bots from the start). */
+  botTurns: number[]
   /** How far the end-of-game Magic reveal has got (a step number in revealPlan.ts); null = not started. */
   revealAt: number | null
   /** Online only (null in pass-and-play). */
@@ -135,7 +138,8 @@ export interface GameStore {
   loadWords: (url: string) => Promise<void>
   setWords: (words: WordList) => void
   tapGlyphling: (id: number) => void
-  grabGlyphling: (id: number) => void
+  /** Hold a glyphling. `startOver` (a drag of the one already moved): its plan goes back to the start of the turn. */
+  grabGlyphling: (id: number, opts?: { startOver?: boolean }) => void
   tapSeed: (id: string) => void
   grabSeed: (id: string) => void
   tapHex: (hex: Hex) => void
@@ -150,7 +154,8 @@ export interface GameStore {
   startScoring: () => void
   /** The score sequence has faded away: play may go on (online: the views that waited are shown). */
   endScoring: () => void
-  moveTraySeed: (from: number, to: number) => void
+  /** Move the tray seed at place `from` to place `to`: it slides in there — or with `swap`, the two swap places. */
+  moveTraySeed: (from: number, to: number, swap?: boolean) => void
   shuffleTray: () => void
   /** Before a tap or drag does its thing: if the piece can't be touched it shakes "no" (nope.ts). True = refused. */
   refuseTap: (tap: Tap) => boolean
@@ -330,6 +335,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     options: null,
     handoff: null,
     stats: [],
+    botTurns: [],
     revealAt: null,
     online: null,
     waiting: false,
@@ -350,7 +356,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const seats = localSeats(players, text.game.players).map((seat, i): Seat => (bots.includes(i) ? { ...seat, kind: 'bot', ai: ai[i] ?? defaultAi() } : seat))
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
-        happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players),
+        happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players), botTurns: [],
         trayOrder: game.hands.map(rackOf),
       })
     },
@@ -388,12 +394,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (selected?.kind === 'glyphling' && selected.id === id) return set({ selected: null })
       get().grabGlyphling(id)
     },
-    grabGlyphling: (id) => {
+    grabGlyphling: (id, opts) => {
       const { game, move } = get()
       if (!game || !canPlayAt('play')) return
       if (!isCurrents(game, id)) return set({ note: 'notYours' })
       if (game.tangled.includes(id)) return set({ selected: null, note: 'tangled' })
-      if (move?.glyphling === id) return set({ selected: { kind: 'glyphling', id }, note: null })
+      if (move?.glyphling === id && !opts?.startOver) return set({ selected: { kind: 'glyphling', id }, note: null })
       set({ ...noPlan(), selected: { kind: 'glyphling', id } }) // a different glyphling: the old plan goes
     },
 
@@ -414,8 +420,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const { game, cast, move } = get()
       if (!game || !canPlayAt('play') || !move) return
       playSound('seed.pick')
-      // Picking up the targeted seed takes it back off the board
-      set({ selected: { kind: 'seed', id }, cast: cast?.seed === id ? null : cast, note: null })
+      // Picking up ANY seed (a tap or a drag) = a new decision: the seed aimed before goes back to the tray at once —
+      // one undo (Muzzy 2026-10-10: "we're essentially counting a click/drag as an undo to make another decision")
+      if (cast) playSound('seed.drop')
+      set({ selected: { kind: 'seed', id }, cast: null, note: null })
     },
 
     // Tap a hex: place (draft), move there, cast there, or take back what's planned there.
@@ -543,14 +551,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (fx) growIn({ seat: fx.seat, slots: fx.slots, newSlots, stage: 'in' }, () => { set({ refreshFx: null }); get().online?.resume() })
     },
 
-    moveTraySeed: (from, to) => {
+    moveTraySeed: (from, to, swap = false) => {
       const { game, trayOrder } = get()
       if (!game || !canPlay() || from === to) return
       // The drag referee: a seed may be reordered only after the move (B008), or while choosing what to refresh
       const seed: Piece = { kind: 'seed', id: trayOrder[game.current]?.[from] ?? TRAY_GAP }
       if (!playReferee(get()).judge(game.current, seed, { kind: 'tray', pos: to }).ok) return
       const order = [...trayOrder]
-      order[game.current] = moveInRack(order[game.current], from, to)
+      order[game.current] = (swap ? swapInRack : moveInRack)(order[game.current], from, to)
       playSound('seed.drop') // (it settles into its new place)
       set({ trayOrder: order })
     },
@@ -623,6 +631,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         happened: null, // a jump, not a change: nothing "just happened"
         seats, lastViewer: firstViewer(seats, game),
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
+        botTurns: [], // (a loaded game: nobody played for anyone — the Dev Kit's preview sets its own after)
         trayOrder: game.hands.map(rackOf),
       })
     },

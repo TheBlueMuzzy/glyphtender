@@ -169,6 +169,7 @@ try {
     h.check('the robot badge is on the turn bar', (await page.locator('[data-seat-status="ai"]').count()) === 1)
     await h.shot('3-ai-thinking', 100)
     await page.waitForFunction(() => window.__glyphtender.store.getState().botDraft !== null, null, { timeout: 10000, polling: 'raf' })
+    await page.waitForTimeout(120) // (mid-travel: lifted, on its way, its tray place in the draft style's look)
     await page.screenshot({ path: `${OUT}/ai-${size.name}-4-ai-draft-travel.png` })
     await page.waitForFunction(() => window.__f50?.done, null, { timeout: 5000 })
     const travel = await page.evaluate(() => window.__f50)

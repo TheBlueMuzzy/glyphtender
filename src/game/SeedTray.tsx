@@ -15,7 +15,13 @@
 // animates the "staged" places (Web Animations, never React state per frame). Reduce motion → the store skips it.
 // NO RE-SORT: a cast seed's place stays where it was — the drawn seed grows into it, or it stays empty (TRAY_GAP)
 // until a refresh fills it; the other seeds never shift (Muzzy 2026-10-01; Table rack.ts refillRack).
-// Taps and drags are handled by usePieceInput (data-hand / data-tray-pos / data-draft).
+// Taps and drags are handled by usePieceInput (data-hand / data-tray-pos / data-draft). While a seed or a draft glyphling
+// is CARRIED (a drag — carryState.ts, not "held"), its place shows what the drag's carry style says: itself, a faint
+// ghost or nothing (HandPlace.origin; drag.json), and no held ring — the piece is in the hand now.
+// WHERE A REORDERED SEED WILL GO (F64, drag.json targets.reorder; dropTarget.ts trayAim, set by usePieceInput): while a seed
+// is dragged onto another seed, an insertion marker (a slim bar in the player's colour, like the held ring) at the gap
+// it will slide into, or the seeds on each side of that gap make room (HandView makeRoomAt). Both stay inside the tray's
+// own box: the marker is drawn in the gap, making room only slides sideways — the tray never changes height (B013).
 // Sound: refresh.out as the set-aside seeds shrink, refresh.in as the new ones grow — only when it's THIS tray (the
 // viewer's) refreshing, so an AI's or another player's refresh stays as private as their seeds.
 import { useEffect } from 'react'
@@ -26,10 +32,12 @@ import { isMyTurn } from '../store/myTurn'
 import { isLocalHuman } from '../store/seats'
 import { viewerOf } from '../store/viewer'
 import { letterIn, TRAY_GAP } from '../store/turnPlan'
-import { HandView, type HandPlace, type RackLayout } from '../ui/kit'
+import { HandView, type HandPlace, type HandSpot, type RackLayout } from '../ui/kit'
 import { colourOf, glyphlingArt, seedArt } from './art'
+import { originOf, useCarried } from './carryState'
+import { useTrayAim } from './dropTarget'
 import { juiceFor, juiceSound } from './feel'
-import { useAnimTuning, useGardenTuning } from './useTuning'
+import { useAnimTuning, useDragTuning, useGardenTuning } from './useTuning'
 
 /** What sits in a place: a seed (its letter), or during the draft a glyphling still to place ("next" = the one to place now). */
 type Piece = { kind: 'seed'; letter: string } | { kind: 'glyphling'; next: boolean }
@@ -60,6 +68,9 @@ export function SeedTray({ layout, boxWidth }: Props) {
     if (stage === 'in') juiceSound('refreshGrow', 'refresh.in')
   }, [stage])
   const myTurn = useGameStore(isMyTurn) // online, the plan on the board may be another player's replay
+  const carried = useCarried((s) => s.carried) // (a drag: the carried piece's home look)
+  const aim = useTrayAim((s) => s.aim) // (a seed dragged onto another: where it will slide in)
+  const dragFeel = useDragTuning() // (make room's gap and time)
   const player = colours[colourOf(seat)]
   const { tile } = layout
 
@@ -76,6 +87,22 @@ export function SeedTray({ layout, boxWidth }: Props) {
     </g>
   )
 
+  // A place a dragged seed would swap into glows like a legal hex on the board (Board.tsx's drop mark, in the tray's size)
+  const swapGlow = (x: number, y: number) => (
+    <g pointerEvents="none" data-swap-target="">
+      <polygon points={hexCorners(x, y, tile / 2 * 1.16)} fill="none" stroke={player} strokeWidth={tile * 0.13} strokeOpacity={colours.dropStrength} strokeLinejoin="round" />
+      <polygon points={hexCorners(x, y, tile / 2 * 0.97)} fill={player} opacity={colours.dropStrength} />
+    </g>
+  )
+
+  // The insertion marker: a slim rounded bar in the player's colour with a soft glow round it (the held ring's look)
+  const marker = ({ x, y }: HandSpot) => (
+    <g pointerEvents="none" data-insert-marker="">
+      <rect x={x - tile * 0.09} y={y - tile * 0.42} width={tile * 0.18} height={tile * 0.84} rx={tile * 0.09} fill={player} opacity={0.3} />
+      <rect x={x - tile * 0.04} y={y - tile * 0.38} width={tile * 0.08} height={tile * 0.76} rx={tile * 0.04} fill={player} />
+    </g>
+  )
+
   // What is in each place, left to right (then the next row)
   let places: HandPlace<Piece>[]
   if (hidden) {
@@ -87,6 +114,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
       key: `draft-${pos}`,
       piece: { kind: 'glyphling', next: pos === 0 && (myTurn || aiDrafting) },
       attrs: { 'data-draft': pos === 0 ? 'next' : undefined },
+      ...(pos === 0 ? carriedHome(originOf(carried, { kind: 'draft' })) : {}),
     }))
   } else {
     // (pass-and-play, while the new seeds grow in: the refreshed hand, before the game moves on to the next player)
@@ -104,21 +132,30 @@ export function SeedTray({ layout, boxWidth }: Props) {
       if (inRefresh && stage === 'gone') return { key: `empty-${pos}` } // (online: waiting for the new seeds)
       const held = myTurn && ((selected?.kind === 'seed' && selected.id === id) || (stage !== 'in' && setAside.includes(id)))
       const waiting = !refreshing && (!myTurn || (game.phase === 'play' && !move))
-      return { ...seed, held, waiting, staged: inRefresh }
+      return { ...seed, held, waiting, staged: inRefresh, ...carriedHome(originOf(carried, { kind: 'seed', id })) }
     })
+    // SWAP PLACES (drag.json targets.reorder = swap): the seed under the dragged one leaves its place and shows, faint,
+    // at the dragged seed's home — where it will go. Both places keep their attributes (a drop still finds them).
+    if (aim?.look === 'swap' && places[aim.to]?.piece && places[aim.from]) {
+      const other = places[aim.to]
+      places[aim.from] = { key: `swap-ghost-${aim.from}`, piece: other.piece, attrs: places[aim.from].attrs, origin: 'ghost' }
+      places[aim.to] = { ...other, piece: undefined, held: false }
+    }
   }
 
   return (
     <HandView<Piece> layout={layout} boxWidth={boxWidth} className="game-tray" label="Seeds" hidden={hidden} places={places}
-      stage={stage}
-      motion={{ shrinkTime: timing.refreshShrinkTime, growTime: timing.refreshGrowTime, stagger: timing.refreshStagger, overshoot: juiceFor('refreshGrow').grow }}
-      renderEmpty={({ x, y }) => slot(x, y)}
-      renderPiece={({ piece, held, aimed }, { x, y }) => {
+      stage={stage} look={{ ghostOpacity: carried?.ghostOpacity, makeRoom: dragFeel.makeRoom }}
+      motion={{ shrinkTime: timing.refreshShrinkTime, growTime: timing.refreshGrowTime, stagger: timing.refreshStagger, overshoot: juiceFor('refreshGrow').grow, roomTime: dragFeel.roomTime }}
+      insertAt={aim?.look === 'marker' ? aim.gap : undefined} renderMarker={marker}
+      makeRoomAt={aim?.look === 'room' ? aim.gap : undefined}
+      renderEmpty={({ x, y, index }) => <>{slot(x, y)}{aim?.look === 'swap' && aim.to === index && swapGlow(x, y)}</>}
+      renderPiece={({ piece, held, aimed, origin }, { x, y }) => {
         if (!piece) return null
         if (piece.kind === 'glyphling') {
           return <>
             <image href={glyphlingArt(seat)} x={x - art / 2} y={y - art / 2} width={art} height={art} opacity={piece.next ? 1 : 0.55} />
-            {piece.next && ring(x, y, false)}
+            {piece.next && !origin && ring(x, y, false)}
           </>
         }
         if (aimed) return ring(x, y, true) // the seed is on the board: its place shows only the pulsing halo
@@ -129,3 +166,8 @@ export function SeedTray({ layout, boxWidth }: Props) {
       }} />
   )
 }
+
+// A carried piece's place: its home look from the carry style, and not held (a carried piece is in the hand, not on its
+// place — it neither lifts nor rings). A style whose home stays solid (C) keeps the place as it was.
+const carriedHome = (carried: ReturnType<typeof originOf>): Pick<HandPlace, 'origin' | 'held'> =>
+  carried?.origin ? { origin: carried.origin, held: false } : {}

@@ -17,7 +17,7 @@ import text from '../../content/text/en.json'
 import { fill, screens, toast } from '../ui/kit'
 import { closedMessage, useOnline, type Room } from '../ui/online/session'
 import { PreviewApp } from './PreviewApp'
-import { midGame, type SampleGame } from './sampleGames'
+import { midGame, takeoverTurns, type SampleGame } from './sampleGames'
 import { endGame, loadGame, playersOf, words } from './sampleStore'
 
 export { moments } from './moments'
@@ -91,10 +91,16 @@ export const previews: DevKitPreview[] = [
   },
   {
     id: 'end-table', label: 'End table', group: 'End of game',
-    note: 'The results, straight away (the reveal skipped)',
-    variants: END_VARIANTS,
+    note: 'The results, straight away (the reveal skipped). "Online, a bot took over": 3 players online, a bot played 3 rounds for Ada mid-game — the Story page’s darker band (F62)',
+    variants: [...END_VARIANTS, { id: 'online-bot', label: 'Online, a bot took over' }],
     async show({ variant }) {
-      showEndScreen(await endGame(variant))
+      if (variant !== 'online-bot') return showEndScreen(await endGame(variant))
+      const sample = await endGame('3p')
+      onlineGame(sample, [roomSeat(0), roomSeat(1), roomSeat(2)])
+      useGameStore.setState({ botTurns: takeoverTurns(sample.game, 1) }) // (what the server's results.botTurns would say)
+      useGameStore.getState().skipReveal()
+      screens.push('gameOver')
+      return <PreviewApp /> // (the game without its live connection: no server to end the sample online game)
     },
   },
   {

@@ -93,7 +93,8 @@ describe('the game log (log.ts)', () => {
         log.turns.forEach((t, i) => {
           if (i === 0) return expect(t.round).toBe(1)
           const prev = log.turns[i - 1]
-          expect(t.round).toBe(t.seat <= prev.seat ? prev.round + 1 : prev.round)
+          const order = state.turnOrder ?? [0, 1, 2, 3]
+          expect(t.round).toBe(order.indexOf(t.seat) <= order.indexOf(prev.seat) ? prev.round + 1 : prev.round)
           // each turn adds exactly its Magic to its own seat
           expect(t.totalsAfter.map((m, seat) => m - prev.totalsAfter[seat])).toEqual(t.totalsAfter.map((_, seat) => (seat === t.seat ? t.magic : 0)))
           expect(t.words.reduce((sum, w) => sum + w.magic, 0)).toBe(t.magic)
@@ -106,6 +107,20 @@ describe('the game log (log.ts)', () => {
       }
     })
   }
+
+  it('rounds follow the game’s shuffled turn order (F46), not seat numbers', () => {
+    // Order [2, 0, 1]: seat 2 starts each round, seat 1 ends it — two whole rounds = rounds 1,1,1,2,2,2
+    let state = newGame({ players: 3, seed: 5, turnOrder: [2, 0, 1] })
+    let rng = 5
+    while (state.phase !== 'over' && logOf(state).turns.length < 6) {
+      const pick = randomAction(state, rng)
+      rng = pick.rng
+      state = applyAt(state, pick.action, words)
+    }
+    const turns = logOf(state).turns.slice(0, 6)
+    expect(turns.map((t) => t.seat)).toEqual([2, 0, 1, 2, 0, 1])
+    expect(turns.map((t) => t.round)).toEqual([1, 1, 1, 2, 2, 2])
+  })
 
   it('a glyphling already stuck when the draft ends is not credited to the first turn (only that turn’s tangles count)', () => {
     // A hand-built draft (Dev Kit / test positions can put seeds down first): glyphling 0 boxed in by seeds,

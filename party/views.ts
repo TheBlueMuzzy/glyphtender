@@ -9,7 +9,7 @@
 import { feedViewFor, viewFor } from '../src/engine/rules'
 import type { GameState } from '../src/engine/types'
 import type { GameView, Results } from './protocol'
-import type { ServerGame } from './serverGame'
+import { botTurns, type ServerGame } from './serverGame'
 
 /** The game as `seat` may see it (seat -1 = someone not playing: sees no hand at all) — the rules' viewFor
  *  (src/engine/rules.ts), the same for every game played through the Table. */
@@ -19,7 +19,7 @@ export const hideSecrets = (game: GameState, seat: number): GameState => viewFor
 export function viewOf(state: ServerGame, seatId: string): GameView {
   const mySeat = state.seatIds.indexOf(seatId)
   const over = state.game.phase === 'over'
-  const results: Results | null = over ? { stats: state.stats } : null
+  const results: Results | null = over ? { stats: state.stats, botTurns: botTurns(state) } : null // (+ the turns a bot played for someone: F62)
   return {
     gameId: state.gameId,
     version: state.version,

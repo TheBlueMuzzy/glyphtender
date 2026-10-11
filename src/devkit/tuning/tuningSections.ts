@@ -11,6 +11,7 @@
 //                its settings. Sections with the SAME title in different files become one section.
 //                Settings left out go in a "<file>.json" section; a file with no _sections is one section.
 //   "_ranges":   slider ranges (tuningLogic.ts sliderRange)
+//   "_choices":  a dropdown for a text setting (tuningLogic.ts choicesFor)
 // The keys themselves never change for this — the game's code reads them.
 // content/devkit.json "sectionOrder": ["Board look", "Trails", …] = the order of the sections (others follow).
 import { filterSections, readableKey, type Section } from '../search/searchLogic'

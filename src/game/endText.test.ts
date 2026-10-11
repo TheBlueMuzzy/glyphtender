@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { newGame } from '../engine/setup'
 import type { LogTurn } from '../engine/types'
-import { awardText, bestCells, markerCaption, scorecardRows, tangleBonusCaption, turnCaption } from './endText'
+import { awardText, bestCells, playText, playsText, roundPlays, scorecardRows, tangleBonusPlays } from './endText'
 import type { Award, Scorecard } from './stats'
 
-const NB = String.fromCharCode(160) // the no-break space holding a caption's last two words together
+const NB = String.fromCharCode(160) // the no-break space holding an award's last two words together
 const names = ['Yellow', 'Blue', 'Purple', 'Pink']
 const name = (seat: number) => names[seat]
 const award = (id: Award['id'], values: Award['values'], holder = 0): Award => ({ id, holder, seats: [holder], moment: 3, values, effect: 1 })
@@ -29,22 +29,44 @@ describe('award words', () => {
   })
 })
 
-describe('chart captions', () => {
-  it('a cast that grew words, one that grew none, a move only', () => {
-    const words = [{ word: 'GARDEN', letters: [], owners: [], magic: 10, ownMagic: 2 }, { word: 'DEN', letters: [], owners: [], magic: 4, ownMagic: 1 }]
-    expect(turnCaption(turn({ words, magic: 14 }), name)).toBe('Round 4 · Blue cast N: GARDEN + DEN, +14')
-    expect(turnCaption(turn({}), name)).toBe('Round 4 · Blue cast N, no words')
-    expect(turnCaption(turn({ letter: null }), name)).toBe('Round 4 · Blue moved')
+describe('the Story chart turn list (F61)', () => {
+  const word = (w: string, magic: number) => ({ word: w, letters: [], owners: [], magic, ownMagic: 0 })
+  // 3 players, turn order [2, 0, 1]; round 4: Purple NEST · TEN +9, Yellow F then a refresh of 3, Blue moved and
+  // tangled Yellow's glyphling 0
+  const game = {
+    ...newGame({ players: 3, seed: 1, turnOrder: [2, 0, 1] }),
+    glyphlings: [0, 1, 2, 3, 4, 5].map((id) => ({ id, seat: Math.floor(id / 2), hex: { q: id, r: 0 } })),
+    log: { turns: [
+      turn({ turnNo: 10, seat: 2, words: [word('NEST', 6), word('TEN', 3)], magic: 9 }),
+      turn({ turnNo: 11, seat: 0, letter: 'F', refresh: true, refreshed: 3 }),
+      turn({ turnNo: 12, seat: 1, letter: null, newlyTangled: [0] }),
+    ], end: null },
+  }
+  const texts = (rows: ReturnType<typeof roundPlays>) => rows.map((r) => [r.seat, playText(r)])
+
+  it('one row per player in turn order: words + Magic, a cast then a refresh, a move + a tangle', () => {
+    const rows = roundPlays(game, 4, 8, 40)
+    expect(texts(rows)).toEqual([[2, 'NEST · TEN +9'], [0, 'F · Refresh 3'], [1, 'moved · tangled']])
+    expect(rows[2].knots).toEqual([{ owner: 0, by: 1 }])
   })
-  it('the tangle bonus at the end', () => {
-    const game = { ...newGame({ players: 3, seed: 1 }), tangleMagic: [6, 0, 3] }
-    expect(tangleBonusCaption(game, name)).toBe('Tangles: Yellow +6 · Purple +3')
-    expect(tangleBonusCaption({ ...game, tangleMagic: [0, 0, 0] }, name)).toBe('Tangles: nobody got a bonus')
+  it('online: a turn a bot played for its person ends "by a bot" (F62); the others don’t', () => {
+    expect(texts(roundPlays(game, 4, 8, 40, [10, 12]))).toEqual([[2, 'NEST · TEN +9 · by a bot'], [0, 'F · Refresh 3'], [1, 'moved · tangled · by a bot']])
   })
-  it('a tangle mark: who tangled whom, or their own', () => {
-    const game = { ...newGame({ players: 2, seed: 1 }), log: { turns: [turn({ turnNo: 7 })], end: null } }
-    expect(markerCaption(game, { kind: 'tangle', seat: 0, x: 4, turnNo: 7, by: 1, glyphling: 0 }, [], name)).toBe(`Round 4 · Blue tangled Yellow's${NB}glyphling`)
-    expect(markerCaption(game, { kind: 'tangle', seat: 1, x: 4, turnNo: 7, by: 1, glyphling: 2 }, [], name)).toBe(`Round 4 · Blue tangled their own${NB}glyphling`)
+  it('long words are cut (…) and words that do not fit become one …; the Magic always shows', () => {
+    const long = { ...game, log: { turns: [turn({ turnNo: 10, seat: 2, words: [word('GARDENING', 12), word('DEN', 3), word('GARDEN', 8)], magic: 23 })], end: null } }
+    expect(playText(roundPlays(long, 4, 8, 18)[0])).toBe('GARDENI… · DEN · … +23')
+  })
+  it('a cast with no words, Keep all, and players with no turn (all tangled / the game ended)', () => {
+    const quiet = { ...game, log: { turns: [turn({ turnNo: 10, seat: 2 }), turn({ turnNo: 11, seat: 0, refresh: true, refreshed: 0 })], end: null } }
+    // the game ended on Yellow's turn (the last in the log): Blue comes after Yellow in the order
+    expect(texts(roundPlays(quiet, 4, 8, 40))).toEqual([[2, 'N · no words'], [0, 'N · Refresh · kept all'], [1, 'no turn · the game ended']])
+    // a round before the last: a missing player was skipped (every glyphling tangled)
+    const later = { ...quiet, log: { turns: [...quiet.log.turns, turn({ turnNo: 12, round: 5, seat: 2 })], end: null } }
+    expect(texts(roundPlays(later, 4, 8, 40))[2]).toEqual([1, 'no turn · all tangled'])
+  })
+  it('the Tangles column: each player’s bonus; the whole round for screen readers', () => {
+    expect(tangleBonusPlays({ ...game, tangleMagic: [6, 0, 3] }).map(playText)).toEqual(['+3', '+6', 'no bonus'])
+    expect(playsText('Round 4', roundPlays(game, 4, 8, 40), name)).toBe('Round 4: Purple NEST · TEN +9; Yellow F · Refresh 3; Blue moved · tangled')
   })
 })
 

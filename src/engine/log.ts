@@ -66,8 +66,12 @@ export function logTurn(state: GameState, tangled: number[], refreshed: number |
   const turn = state.lastTurn
   if (!turn) return null
   const before = logOf(state).turns.at(-1)
-  // A new round each time play comes back round to the same or an earlier seat (seat 0 always starts)
-  const round = before ? (turn.seat <= before.seat ? before.round + 1 : before.round)
+  // A new round each time play comes back round to the same or an earlier place in this game's turn order
+  // (F46 shuffles the order, e.g. [2,0,1] — so places in the order, not seat numbers; a skipped tangled seat is fine)
+  // (setup.ts turnOrderOf, read here directly: setup.ts already imports this file)
+  const order = state.turnOrder ?? Array.from({ length: state.config.players }, (_, seat) => seat)
+  const place = (seat: number) => order.indexOf(seat)
+  const round = before ? (place(turn.seat) <= place(before.seat) ? before.round + 1 : before.round)
     : Math.floor(state.turnCount / state.config.players) + 1 // (a game saved before the log: a fair guess)
   const newlyTangled = tangled.filter((id) => !state.tangled.includes(id))
   return {

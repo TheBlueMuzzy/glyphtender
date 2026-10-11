@@ -8,7 +8,9 @@
 // turn bar shows 🤖 on its turn → F52: Ada idles on her turn (short test timings: TEST_IDLE_* vars on this server) →
 // the draining bar on her screen only → a bot plays for her (Bo: "Ada is idle" toast + 🤖) → she taps → seat back
 // (Bo: "Ada is back") → Bo LEAVES mid-game (B024: Ada gets "Bo left" + 🤖): the default AI (Survivor) plays his seat from then on →
-// Ada plays to the end against two AIs → the end table has all three names.
+// Ada plays to the end against two AIs → the end table has all three names → F62: the Story page has a darker band
+// behind Ada's line for exactly the turns the bot played for her (it plays 2 of her turns before she taps) and one
+// behind Bo's from where he left; none behind the Strategist's (an AI from the start).
 // Every WebSocket frame each browser receives is recorded: the run FAILS if one ever holds another player's seeds,
 // the bag, the log, the rng, the seed or any Magic before the game is over. Screenshots checked (nothing past an
 // edge, buttons ≥ 44 px), console clean.
@@ -188,6 +190,7 @@ try {
     }, 50)
   })
   const idleBar = ada.page.locator('.kit-idle .kit-idle-bar')
+  const takenAt = await ada.store((s) => s.game.turnCount) // (F62: her turn, not played yet — the bot plays it)
   const barShown = await idleBar.waitFor({ timeout: IDLE_WARN_MS + 5000 }).then(() => true, () => false)
   check('Ada idles on her turn: the draining bar shows on her screen', barShown)
   check('…and only on hers (not on Bo\'s)', (await bo.page.locator('.kit-idle').count()) === 0)
@@ -204,6 +207,10 @@ try {
   check('…and the bar is gone', (await idleBar.count()) === 0)
   await shot(ada, '2-idle-bot', 300)
   await bo.page.waitForFunction(() => window.__adaIdle.robot > 0 && window.__adaIdle.toasts.some((t) => /idle/.test(t)), null, { timeout: 8000 }).catch(() => {})
+  // F62: the bot plays two of Ada's turns (Bo plays his own); she taps on Bo's turn — the game waits for him, so
+  // nothing moves while she takes her seat back
+  await playUntil([bo], async () => (await bo.store(`(s) => s.game.phase === 'over' || s.game.turnCount >= ${takenAt + 4}`)) && (await myTurn(bo)), 120)
+  const backAt = await bo.store((s) => s.game.turnCount)
   await ada.page.mouse.click(8, 300) // any tap (here beside the board) → her seat is hers again
   const adaBack = await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.[0]?.kind === 'human', null, { timeout: 5000 }).then(() => true, () => false)
   check('Ada taps: her seat is hers again at once', adaBack)
@@ -229,6 +236,7 @@ try {
       if (document.querySelector('.game-turn-bar [data-seat-status="bot"]')) window.__boLeft.robot++
     }, 50)
   })
+  const leftAt = await bo.store((s) => s.game.turnCount) // (F62: his turn, not played: a bot plays it and all his others)
   await bo.tap(bo.page.getByRole('button', { name: 'Menu' }))
   await bo.tap(bo.page.getByRole('button', { name: /^Leave/ }).first())
   const confirm = bo.page.getByRole('dialog').getByRole('button', { name: /^Leave/ })
@@ -252,6 +260,25 @@ try {
   await ada.page.getByRole('dialog').getByRole('button', { name: 'New game' }).waitFor()
   await shot(ada, '4-end-table')
   for (const name of ['Ada', 'Bo', 'The Strategist']) check(`the end table has ${name}`, (await ada.page.getByRole('dialog').getByText(name, { exact: true }).count()) > 0)
+
+  // ---- F62: who played — the server's list of the turns a bot played FOR someone, and the Story page's bands ----
+  const end = await ada.store((s) => ({ botTurns: s.botTurns, turns: s.game.log.turns.map((t) => ({ turnNo: t.turnNo, round: t.round, seat: t.seat })) }))
+  const turnsOf = (seat, from, to = Infinity) => end.turns.filter((t) => t.seat === seat && t.turnNo > from && t.turnNo <= to)
+  const adaBot = turnsOf(0, takenAt, backAt), boBot = turnsOf(2, leftAt)
+  const listed = (seat) => end.botTurns.filter((n) => end.turns.find((t) => t.turnNo === n)?.seat === seat)
+  console.log(`     the bot played Ada's turns ${adaBot.map((t) => t.turnNo)} (rounds ${adaBot.map((t) => t.round)}); Bo's from turn ${boBot[0]?.turnNo}`)
+  check(`the bot played 2+ of Ada's turns while she was idle (${adaBot.length})`, adaBot.length >= 2)
+  check(`results.botTurns lists exactly Ada's bot turns (${listed(0)})`, listed(0).join() === adaBot.map((t) => t.turnNo).join())
+  check(`…and exactly Bo's turns after he left (${listed(2).length} of ${boBot.length})`, listed(2).join() === boBot.map((t) => t.turnNo).join())
+  check('…and never the Strategist’s (an AI from the start)', listed(1).length === 0)
+  await ada.tap(ada.page.getByRole('tab', { name: 'Story' }))
+  await ada.page.waitForTimeout(2500) // (the lines draw in; the bands fade in with the marks)
+  const bands = await ada.page.evaluate(() => [...document.querySelectorAll('[data-bot-band]')].map((b) => ({ seat: Number(b.dataset.botBand), from: Number(b.dataset.from), to: Number(b.dataset.to) })))
+  const want = [{ seat: 0, from: adaBot[0]?.round - 1, to: adaBot.at(-1)?.round }, { seat: 2, from: boBot[0]?.round - 1, to: boBot.at(-1)?.round }]
+  check(`the Story page: a band behind Ada's line over her bot rounds and one behind Bo's from where he left (${JSON.stringify(bands)} — want ${JSON.stringify(want)})`,
+    JSON.stringify([...bands].sort((a, b) => a.seat - b.seat)) === JSON.stringify(want))
+  check('…and the key says what the band means', (await ada.page.getByText('Bot played', { exact: true }).count()) === 1)
+  await shot(ada, '4-end-story-bot-band')
 
   // ---- the secrecy check over every frame each browser received ----
   for (const p of [ada, bo]) {
