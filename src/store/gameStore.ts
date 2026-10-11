@@ -419,8 +419,10 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const { game, cast, move } = get()
       if (!game || !canPlayAt('play') || !move) return
       playSound('seed.pick')
-      // Picking up the targeted seed takes it back off the board
-      set({ selected: { kind: 'seed', id }, cast: cast?.seed === id ? null : cast, note: null })
+      // Picking up ANY seed (a tap or a drag) = a new decision: the seed aimed before goes back to the tray at once —
+      // one undo (Muzzy 2026-10-10: "we're essentially counting a click/drag as an undo to make another decision")
+      if (cast) playSound('seed.drop')
+      set({ selected: { kind: 'seed', id }, cast: null, note: null })
     },
 
     // Tap a hex: place (draft), move there, cast there, or take back what's planned there.

@@ -162,6 +162,22 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     expect(dropKind({ ...store(), game: store().game! }, undefined)).toBeNull() // over the tray, off the board
   })
 
+  it('picking up another seed (tap or drag) takes the aimed one back to the tray at once — one undo', () => {
+    yellowToPlay()
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    store().tapSeed(seed(0))
+    store().tapHex(hexAt('C6-4'))
+    expect(store().cast).not.toBeNull()
+    store().grabSeed(seed(1)) // (a drag's pick-up)
+    expect(store().cast).toBeNull()
+    expect(store().move).not.toBeNull() // (the move stays: only the last decision is undone)
+    expect(store().selected).toEqual({ kind: 'seed', id: seed(1) })
+    store().tapHex(hexAt('C6-4'))
+    store().tapSeed(seed(0)) // (a tap's pick-up)
+    expect(store().cast).toBeNull()
+  })
+
   it('an aimed seed moves to another gold hex with one tap', () => {
     yellowToPlay()
     store().tapGlyphling(0)
