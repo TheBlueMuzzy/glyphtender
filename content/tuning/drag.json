@@ -12,7 +12,7 @@
     "flyTime": "How long the real piece takes to fly from home to the spot (C), or a wrongly dropped piece to fly back home (A, B, D), in seconds. Try 0.15–0.3.",
     "fadeTime": "How long a wrongly dropped piece takes to fade away (C), in seconds. Try 0.1–0.25.",
     "targets.draft": "What shows at the board while you drag a glyphling out of the tray (the draft). Highlight: the legal hex under the piece lights up. Ghost preview: a see-through copy of the piece sits on that hex (and the hex glows fainter). Aim line: a line with an arrow runs from the piece's home to your pointer (and the hex still lights up).",
-    "targets.seed": "What shows at the board while you drag a seed onto it. Highlight · Ghost preview · Aim line — see the draft setting above.",
+    "targets.seed": "What shows at the board while you drag a seed onto it. Highlight · Ghost preview · Aim line (a seed's starts at the glyphling that just moved — it casts the seed) — see the draft setting above.",
     "targets.move": "What shows at the board while you drag a glyphling on it. Highlight · Ghost preview · Aim line — see the draft setting above.",
     "targets.reorder": "What the tray shows while you drag a seed onto another seed in it. None: nothing extra. Insertion marker: a slim bar in your colour where the seed will slide in. Make room: the seeds on each side of that spot slide apart. Over an empty place neither shows — the seed just moves into it.",
     "snap": "How strongly a legal hex pulls the dragged piece once it's near — and letting go there lands on that hex. 0 = no pull. Try 0.3–0.7.",
@@ -89,7 +89,7 @@
     "styles.reorder": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
     "styles.move": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
     "targets.draft": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from home" },
-    "targets.seed": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from home" },
+    "targets.seed": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from the glyphling" },
     "targets.move": { "highlight": "Highlight the hex", "ghost": "Ghost preview on the hex", "tether": "Aim line from home" },
     "targets.reorder": { "none": "None", "marker": "Insertion marker", "room": "Make room" }
   },

@@ -183,6 +183,26 @@ try {
       await page.locator('.game-actions button', { hasText: 'Undo' }).click() // (takes the aim back, the move stays)
     }
 
+    // ---- a seed's aim line starts at the glyphling that casts it, not at the tray (Muzzy 2026-10-10) ----
+    {
+      await setTarget('seed', 'tether')
+      const pos = await store(`(s) => s.trayOrder[s.game.current].indexOf('${pick.seed}')`)
+      await pickUp(page.locator(`[data-tray-pos="${pos}"]`))
+      await goTo(await hexCentre(pick.hex))
+      const gap = await page.evaluate(() => {
+        const d = document.querySelector('[data-tether]').getAttribute('d') ?? ''
+        const [x, y] = (d.match(/^M\s*(-?[\d.]+)[ ,]+(-?[\d.]+)/) ?? []).slice(1).map(Number)
+        const layer = document.querySelector('.game-drag-layer').getBoundingClientRect()
+        const id = window.__glyphtender.store.getState().move.glyphling
+        const r = document.querySelector(`[data-glyph="${id}"]`).getBoundingClientRect()
+        return Math.hypot(layer.left + x - (r.left + r.width / 2), layer.top + y - (r.top + r.height / 2))
+      })
+      check(`${size.name} seed tether: starts at the moved glyphling (${Math.round(gap)} px off)`, gap < 3)
+      await page.mouse.up()
+      await dropDone()
+      await page.locator('.game-actions button', { hasText: 'Undo' }).click()
+    }
+
     // ---- magnetic snap: the glyphling dragged to just off a legal hex ----
     await undo() // (the move, so the glyphling can be dragged again)
     await setTarget('move', 'highlight')

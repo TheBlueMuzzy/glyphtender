@@ -54,6 +54,8 @@ type Spot = Point & { hex: Hex }
 
 interface Press {
   glyph?: number
+  /** Where the aim line (tether) starts: its home — or, for a seed, the glyphling that casts it. */
+  aimFrom?: Point
   /** Pressed a moved glyphling's start-of-turn ghost (its id): a TAP takes the move back, a DRAG picks it up again. */
   ghostOf?: number
   /** A tray seed's id. */
@@ -213,6 +215,10 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     // Its home, and its size there: the carried piece is the piece itself, lifted a little (drag.json liftScale)
     const homeBox = home?.getBoundingClientRect()
     p.home = centreOf(home) ?? pointerAt(e, p)
+    // Glyphtender's own twist (Muzzy 2026-10-10): a seed is CAST by the glyphling that just moved, so a seed's aim line
+    // starts at that glyphling, not at the tray
+    const caster = type === 'seed' && store().move ? document.querySelector(`[data-glyph="${store().move!.glyphling}"]`) : null
+    p.aimFrom = centreOf(caster) ?? p.home
     p.size ??= homeBox && homeBox.width > 0 ? homeBox.width : size
     img.setAttribute('href', art)
     img.setAttribute('width', String(p.size))
@@ -256,7 +262,7 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     else previewNow()?.hide()
     if (p.target === 'tether' && p.home && tether.current) {
       if (tether.current.showing) tether.current.update(at)
-      else tether.current.show(p.home, at)
+      else tether.current.show(p.aimFrom ?? p.home, at)
     }
   }
 
