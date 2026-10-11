@@ -10,11 +10,12 @@ import { Button, Card, Text } from '../controls'
 import { screens } from '../screens'
 
 // MODAL — a dialog box on top of whatever is open. actions = its buttons (bottom right).
-type ModalProps = { title: string; children?: ReactNode; actions?: ReactNode }
-export function Modal({ title, children, actions }: ModalProps) {
+// className: added to the box (kit-modal), for a block's own layout (Pause: kit-pause).
+type ModalProps = { title: string; children?: ReactNode; actions?: ReactNode; className?: string }
+export function Modal({ title, children, actions, className }: ModalProps) {
   return (
     <Screen dialog label={title}>
-      <Panel depth={2} gap="m" className="kit-modal">
+      <Panel depth={2} gap="m" className={className ? `kit-modal ${className}` : 'kit-modal'}>
         <Text kind="title">{title}</Text>
         {children}
         {actions && <Row gap="s" justify="end">{actions}</Row>}

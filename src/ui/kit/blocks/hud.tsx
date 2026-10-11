@@ -21,7 +21,7 @@ export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay,
     ? askConfirm({ title: w.quitTitle, message: w.quitMessage, danger: true, onConfirm: onQuit, words: { yes: w.quit } })
     : onQuit?.()
   return (
-    <Modal title={w.title}>
+    <Modal title={w.title} className="kit-pause">
       {note && <Text kind="caption">{note}</Text>}
       <Stack gap="s" className="kit-menu">
         <Button sound="back" onClick={onResume}>{w.resume}</Button>

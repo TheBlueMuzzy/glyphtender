@@ -14,6 +14,9 @@
   .kit-menu { inline-size: 22rem; max-inline-size: 100%; }
   .kit-wide { inline-size: 40rem; max-inline-size: 100%; }
   .kit-tall { block-size: 44rem; max-block-size: 100%; }
+  /* Desktop windows: a tall card grows to use the window (up to 52rem) before its list scrolls — at 1440×900 Settings
+     stopped on a half-cut row with ~100 px of empty screen above and below (0.7.0). Phones keep 44rem. */
+  @media (min-width: 40rem) and (min-height: 30rem) { .kit-tall { block-size: 52rem; } }
   .kit-menu .kit-button { inline-size: 100%; }
   /* A menu inside a dialog (Pause) fills the dialog's width, so the room left and right of the buttons is the
      dialog's own padding on both sides — even all round (it used to keep its 22rem and leave a wide gap on the right) */
@@ -22,10 +25,11 @@
   .kit-nowrap { flex-wrap: nowrap; }
   .kit-picture { display: block; inline-size: 100%; max-block-size: 12rem; object-fit: contain; }
 
-  /* Settings: a tab bar on wide screens, ◀ tab ▶ on phones */
+  /* Settings: a tab bar on wide screens, ◀ tab ▶ on phones — and on short screens (a phone on its side, a short window),
+     where six tabs wrapped onto two lines and left room for under two setting rows (0.7.0) */
   .kit-settings-picker { display: none; }
   .kit-settings-picker .kit-picker { inline-size: 100%; }
-  @media (max-width: 40rem) {
+  @media (max-width: 40rem), (max-height: 30rem) {
     .kit-settings-tabs { display: none; }
     .kit-settings-picker { display: block; }
   }
@@ -86,6 +90,34 @@
     .kit-results > :not(.kit-scroll) { grid-column: 1; }
     .kit-results > .kit-scroll { grid-column: 2; grid-row: 1 / -1; }
     .kit-results > .kit-row:last-child { align-self: end; justify-content: start; }
+  }
+  /* The same on a short, wide screen for the other cards that carry a list or a column of buttons (0.7.0) — the
+     words on the left, the rest on the right, so nothing hides below the card's edge:
+     Pause: title + note on the left, its buttons on the right (like the main menu).
+     Lobby room: code + Copy, the waiting line and Leave / Start on the left; the players (+ the host's rows) on the
+     right with the whole card's height — it showed a row and a half of players.
+     Lobby join: your name + Create on the left, "or join a friend's room" + the code boxes + Join on the right; along
+     the bottom Back on the left and a "couldn't join" message on the right, under the code it's about. */
+  @media (max-height: 30rem) and (min-width: 40rem) {
+    .kit-modal.kit-pause { display: grid; inline-size: 40rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+      grid-template-rows: auto minmax(0, 1fr); align-content: start; }
+    .kit-pause > :not(.kit-menu) { grid-column: 1; }
+    .kit-pause > .kit-menu { grid-column: 2; grid-row: 1 / -1; }
+    .kit-modal.kit-lobby-room { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      grid-template-rows: auto auto minmax(0, 1fr); align-content: start; }
+    .kit-lobby-room > :not(.kit-scroll) { grid-column: 1; }
+    .kit-lobby-room > .kit-row:first-child .kit-result-name > .kit-text { white-space: normal; } /* the code wraps, never "Room BA…" */
+    .kit-lobby-room > .kit-scroll { grid-column: 2; grid-row: 1 / -1; }
+    .kit-lobby-room > .kit-row:last-child { grid-row: 3; align-self: end; }
+    .kit-modal.kit-lobby-join { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto; column-gap: var(--gap-l); align-content: start; }
+    .kit-lobby-join > :is(:first-child, .kit-scroll) { grid-column: 1 / -1; }
+    .kit-lobby-join > .kit-text:not(:first-child) { grid-column: 2; grid-row: 3; align-self: center; }
+    .kit-lobby-join > .kit-row:last-child { grid-column: 1; grid-row: 3; }
+    .kit-lobby-join > .kit-scroll > .kit-stack { display: grid; grid-auto-flow: column; grid-template-rows: auto auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; column-gap: var(--gap-l); }
+    .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(n + 3) { grid-column: 1; }
+    .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(-n + 2) { grid-column: 2; }
   }
   /* Main menu: extra buttons (children) sit in the button column like the others */
   .kit-main-menu-extra { display: contents; }

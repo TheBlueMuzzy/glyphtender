@@ -39,7 +39,8 @@ export function Lobby(props: LobbyProps) {
   const w = { ...lobbyWords, ...props.words }
   return (
     <Screen label={w.title}>
-      <Panel depth={2} gap="m" className="kit-modal">
+      {/* kit-lobby-room / kit-lobby-join: their side-by-side layout on a phone on its side (blocks.css) */}
+      <Panel depth={2} gap="m" className={props.roomCode ? 'kit-modal kit-lobby-room' : 'kit-modal kit-lobby-join'}>
         {props.roomCode ? <Room {...props} w={w} roomCode={props.roomCode} /> : <JoinOrCreate {...props} w={w} />}
       </Panel>
     </Screen>

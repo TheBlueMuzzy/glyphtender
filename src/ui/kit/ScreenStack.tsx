@@ -5,8 +5,9 @@
 // Each screen is a component that returns a <Screen>. A dialog is just <Screen dialog> pushed on top.
 // Everything under the top screen is inert: it can't be clicked, tapped or focused. Open screens under the top one
 // are also hidden (so a Pause panel never peeks out from behind the Rules opened from it): only the top screen shows,
-// over one dim (a screen opened over another always dims, dialog or not); the one under it comes back when it closes.
-// The game (children) stays visible under the dim.
+// over one dim (a screen opened over another always dims, dialog or not — and so does the first screen opened over the
+// game's own layer, children: Settings over a main menu dims the menu like Pause dims the game); the one under it comes
+// back when it closes. The game (children) stays visible under the dim.
 //
 // overlay: for a game whose own view isn't built from kit Screens (a letterboxed canvas, its own HUD
 // with z-indexes). Put <ScreenStack overlay screens={…} /> next to the game, with no children:
@@ -85,11 +86,16 @@ export function ScreenStack({ screens, children, overlay }: ScreenStackProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [depth])
 
+  // overlay mode dims the game with the overlay itself; without children there's nothing under the first screen to dim
+  const dimsGame = !overlay && children != null && children !== false
   const open = stack.map((name, i) => {
     const Screen = screens[name]
     return (
-      // data-over: opened on top of another screen — it carries the dim (the one under it is hidden), there at once
-      <div key={`${i}-${name}`} className="kit-layer" data-over={i > 0 || undefined} ref={(el) => { layers.current[i + 1] = el }}>
+      // data-over: opened on top of another screen — it carries the dim (the one under it is hidden), there at once.
+      // data-dim: the first screen, opened over the game's own layer (a main menu, a lobby, the game) — dims it too,
+      // fading in like a dialog's, so every screen over another wears the same dim (0.7.0; before, only dialogs did)
+      <div key={`${i}-${name}`} className="kit-layer" data-over={i > 0 || undefined} data-dim={(i === 0 && dimsGame) || undefined}
+        ref={(el) => { layers.current[i + 1] = el }}>
         {Screen ? <Screen /> : null}
       </div>
     )
