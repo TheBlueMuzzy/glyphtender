@@ -16,7 +16,7 @@ Done when: first load, frame time and memory are measured against a budget (desk
 
 ## F67 🎨 Design pass
 Done when: every screen at phone portrait, phone landscape and desktop is reviewed against the UI-kit rules and the breathing-room rule, what's found is fixed, check:ui is clean of problems, and the screenshot checks pass.
-- [ ] 🤖 1. Shoot every screen (menu, New Game, game turn states, reveal, end pages, Pause, Settings, online lobby, Dev Kit off) at 390×844 · 844×390 · 1440×900 and review: edges, padding, overlaps, contrast, consistent motion — list in research/design-pass.md
+- [x] 🤖 1. Shoot every screen (menu, New Game, game turn states, reveal, end pages, Pause, Settings, online lobby, Dev Kit off) at 390×844 · 844×390 · 1440×900 and review: edges, padding, overlaps, contrast, consistent motion — list in research/design-pass.md
 - [ ] 🤖 2. Fix what the list finds (game CSS / kit options framework-first)
 - [ ] 🤖 3. B019 (P2) short window 768×343 · B017 (P3) online lobby sideways — fix if the pass touches them
 - [ ] 🤖 4. Area + full check; new guards for anything fixed
