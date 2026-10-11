@@ -4,6 +4,13 @@
 // Dev Kit edit applies from the next drag.
 import { liveTuning } from '../devkit/tuning/liveTuning'
 import dragFile from '../../content/tuning/drag.json'
+import type { TargetFeel } from '../ui/kit'
 
 export type DragType = keyof typeof dragFile.styles
 export const dragTuning = liveTuning('drag', dragFile)
+
+/** drag.json's target numbers, in the ui-kit's TargetFeel shape (read on every use, so a Dev Kit edit applies). */
+export const targetFeel = (): TargetFeel => {
+  const t = dragTuning.current
+  return { makeRoom: t.makeRoom, roomTime: t.roomTime, snapRadius: t.snapRadius, snapPull: t.snap, tetherBend: t.tetherBend, arrowSize: t.arrowSize }
+}

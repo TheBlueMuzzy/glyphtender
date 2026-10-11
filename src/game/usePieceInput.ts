@@ -26,12 +26,12 @@ import { useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import { hexKey, type Hex } from '../engine/hex'
 import { playSound } from '../audio'
 import { useGameStore } from '../store/gameStore'
-import { dragTuning, type DragType } from './dragTuning'
+import { dragTuning, targetFeel, type DragType } from './dragTuning'
 import { NEW_GLYPHLING, playReferee, targetsOf, type Piece } from '../store/referee'
 import { dropKind, letterIn } from '../store/turnPlan'
 import {
   carryStyle, createCarrier, createPreview, createTether, originWhileCarried, snapTarget,
-  type Carrier, type CarryStyle, type Point, type Preview, type TargetFeel, type Tether,
+  type Carrier, type CarryStyle, type Point, type Preview, type Tether,
 } from '../ui/kit'
 import { glyphlingArt, seedArt } from './art'
 import { endCarry, setCarried, setOriginLook, type Carried } from './carryState'
@@ -43,11 +43,6 @@ import type { LayoutTuning } from './useTuning'
 export type BoardTarget = 'highlight' | 'ghost' | 'tether'
 export type TrayTarget = 'none' | 'marker' | 'room'
 
-/** drag.json's target numbers, in the ui-kit's TargetFeel shape (read on every use, so a Dev Kit edit applies). */
-const targetFeel = (): TargetFeel => {
-  const t = dragTuning.current
-  return { makeRoom: t.makeRoom, roomTime: t.roomTime, snapRadius: t.snapRadius, snapPull: t.snap, tetherBend: t.tetherBend, arrowSize: t.arrowSize }
-}
 
 /** A legal hex and its centre (drag-layer px) — what magnetic snap may pull toward. */
 type Spot = Point & { hex: Hex }

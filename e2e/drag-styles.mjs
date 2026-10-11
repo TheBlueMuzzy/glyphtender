@@ -197,6 +197,11 @@ try {
       await glyph.click({ force: true })
       await option('move', 0).click({ force: true })
       const lifted = await page.evaluate((id) => document.querySelector(`[data-lift="${id}"]`).getAnimations().length > 0, mine)
+      // …and with an aim line for moves (drag.json targets.move = tether, Muzzy's pick), the glide draws it too
+      if (drag.targets.move === 'tether') { // (as saved in drag.json)
+        const aim = await page.evaluate(() => document.querySelector('.game-drag-layer [data-tether]').style.visibility)
+        check(`${size.name} planned move in ${style}: the aim line shows while it glides`, aim === 'visible')
+      }
       check(`${size.name} planned move in ${style}: ${style === 'C' ? 'glides as itself' : 'glides lifted, like a carried piece'}`, lifted === (style !== 'C'))
       await glidesDone()
       if (style === 'B') {
