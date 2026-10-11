@@ -101,8 +101,8 @@
   },
   "targets": {
     "draft": "highlight",
-    "seed": "ghost",
-    "move": "highlight",
+    "seed": "tether",
+    "move": "tether",
     "reorder": "none"
   },
   "ghostOpacity": 0.45,
@@ -116,7 +116,7 @@
   "snapRadius": 0.6,
   "makeRoom": 0.35,
   "roomTime": 0.15,
-  "tetherBend": 0.15,
+  "tetherBend": 0,
   "arrowSize": 12,
   "ghostGlow": 0.5
 }
