@@ -95,13 +95,18 @@ function aimLineOnTheWay(group: SVGGElement, seconds: number, colour: string | u
   const line = createTether(path, { color: colour, feel: targetFeel })
   line.show(centre(), centre()) // (the glide has just started: it is at its start)
   const start = performance.now()
+  const mine = ++aimLoop // (a newer glide's line takes over from this one)
+  const carrying = () => document.querySelector<SVGElement>('[data-carry]')?.style.visibility === 'visible'
   const follow = () => {
+    // Stop: a newer glide took over · a person started a drag (the line is theirs now) · the board closed
+    if (mine !== aimLoop || carrying() || !group.isConnected) return
     if (performance.now() - start >= seconds * 1000) return line.hide()
     line.update(centre())
     requestAnimationFrame(follow)
   }
   requestAnimationFrame(follow)
 }
+let aimLoop = 0
 
 /** If a glide is still running, how far the group is from where it was heading (else 0, 0). */
 function stillToGo(group: SVGGElement): Offset {
