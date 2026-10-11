@@ -83,7 +83,15 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const flipped = useGameSettings((s) => s.trayFlipped)
   // The margin round the edges (margins.ts; layout.json edgeMargin / edgeMarginShare)
   const edge = edgeMargin(space.width, space.height, layout.edgeMargin, layout.edgeMarginShare)
-  const room = stacked ? space.width - 2 * edge : Math.floor(space.width * layout.sidePanelShare)
+  // A short screen with the tray beside the board (a phone on its side, a short window — B019): two rows of seeds,
+  // a 2-line prompt and 2 rows of buttons don't fit under the turn bar. So there the column widens until the seeds lie
+  // in ONE row (layout.json sideShortHeight; never more than sideShortMaxShare of the width) — the prompt and the
+  // buttons get the width too, and the column needs about half the height. (The board only shrinks if it must.)
+  const short = !stacked && space.height < layout.sideShortHeight
+  const oneRow = rackLayout({ room: Infinity, tileWanted: hexPx, places: game.config.rules.handSize, tileMin: layout.trayTileMin, gap: layout.trayGap })
+  const sideRoom = Math.floor(space.width * layout.sidePanelShare)
+  const room = stacked ? space.width - 2 * edge
+    : short ? Math.max(sideRoom, Math.min(oneRow.width, Math.floor(space.width * layout.sideShortMaxShare))) : sideRoom
   const slots = game.phase === 'draft' ? 2 : game.config.rules.handSize
   const tray = rackLayout({ room, tileWanted: hexPx, places: slots, tileMin: layout.trayTileMin, gap: layout.trayGap })
   // The side column keeps ONE width all game (draft, turns, handoff, reveal, end): its share of the screen,
@@ -166,12 +174,12 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
       <svg ref={dragLayer} className="game-drag-layer" aria-hidden="true">
         {/* target looks under the carried piece (drag.json targets; usePieceInput): the aim line from home to the
             pointer, and the ghost preview — a see-through copy on the legal hex (its own image, never the planned seed) */}
-        <path ref={tetherPath} data-tether="" style={{ visibility: 'hidden' }} />
-        <image ref={previewImage} data-target-preview="" x={0} y={0} style={{ visibility: 'hidden' }} />
+        <path ref={tetherPath} data-tether="" visibility="hidden" />
+        <image ref={previewImage} data-target-preview="" x={0} y={0} visibility="hidden" />
         {/* an AI's (or online rival's) draft carried out of the tray in the draft style (useBotDraft — the ui-kit carrier) */}
-        <image ref={dragImage} data-bot-draft="" x={0} y={0} style={{ visibility: 'hidden' }} />
+        <image ref={dragImage} data-bot-draft="" x={0} y={0} visibility="hidden" />
         {/* the piece a person carries (usePieceInput; the ui-kit carrier moves it — visibility is its style) */}
-        <image ref={carryImage} data-carry="" x={0} y={0} style={{ visibility: 'hidden' }} />
+        <image ref={carryImage} data-carry="" x={0} y={0} visibility="hidden" />
       </svg>
     </div>
     <Handoff stacked={stacked} flipped={flipped} />

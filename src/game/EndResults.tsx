@@ -13,7 +13,7 @@
 import text from '../../content/text/en.json'
 import { logIsComplete } from '../engine/log'
 import type { GameState } from '../engine/types'
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Badge, Row, Stack, Text, fill, ordinal } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
 import type { Scorecard, Standing } from './stats'
@@ -93,9 +93,38 @@ function PlayerResult({ standing, card, size, colours, tuning, name, me }: {
         {/* the winner's "69 Magic" is the biggest thing on the screen; the others just their number */}
         <Text kind={size === 's' ? 'heading' : size === 'm' ? 'title' : 'display'}>{size === 's' ? standing.magic : fill(w.points, { n: standing.magic })}</Text>
         <SplitBar words={card.wordMagic} tangles={card.tangleMagic} colour={colours[colourOf(standing.seat)]} tangleColour={colours.vine} />
-        <Text kind="caption">{fill(w.split, { words: card.wordMagic, tangles: card.tangleMagic })}</Text>
+        <SplitLine words={card.wordMagic} tangles={card.tangleMagic} />
       </div>
     </div>
+  )
+}
+
+/** "Words 121 · Tangles 3" — on one line if it fits, else "Words 121" over "Tangles 3": each pair stays whole and the
+ *  dot only shows between pairs on the same line (never "· Tangles 3" starting a line or "Words 121 ·" left dangling).
+ *  The dot is only made invisible when the line wraps (it keeps its room), so hiding it can't un-wrap the line. */
+function SplitLine({ words, tangles }: { words: number; tangles: number }) {
+  const line = useRef<HTMLSpanElement>(null)
+  const [wrapped, setWrapped] = useState(false)
+  useLayoutEffect(() => {
+    const el = line.current
+    if (!el) return
+    const check = () => {
+      const [first, , last] = [...el.children] as HTMLElement[]
+      setWrapped(last.offsetTop > first.offsetTop + 1)
+    }
+    check()
+    const watch = new ResizeObserver(check)
+    watch.observe(el)
+    return () => watch.disconnect()
+  }, [words, tangles])
+  return (
+    <Text kind="caption">
+      <span ref={line} className="game-end-split-line" data-wrapped={wrapped || undefined}>
+        <span>{fill(w.splitWords, { words })}</span>
+        <span className="game-end-split-dot" aria-hidden="true">{w.splitDot}</span>
+        <span>{fill(w.splitTangles, { tangles })}</span>
+      </span>
+    </Text>
   )
 }
 

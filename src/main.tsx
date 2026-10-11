@@ -37,8 +37,15 @@ function startGame() {
 
   // Dev Kit (` key or triple-tap) — always in local dev; in release builds only while content/devkit.json
   // "inReleaseBuilds" is true (until 1.0). When both are false this import is dead code and never ships.
-  if (import.meta.env.DEV || __DEVKIT_IN_RELEASE__) {
+  // A release build loads it only once the first screen is up and the phone is idle (F66: it was 46 KB of the
+  // first screen's download and built its whole hidden panel before Play showed). Local dev: at once (e2e opens it early).
+  if (import.meta.env.DEV) {
     import('./devkit/mount').then((m) => m.mountDevKit())
+  } else if (__DEVKIT_IN_RELEASE__) {
+    const mount = () => import('./devkit/mount').then((m) => m.mountDevKit())
+    const whenIdle = () => ('requestIdleCallback' in window ? requestIdleCallback(mount, { timeout: 3000 }) : setTimeout(mount, 1000))
+    if (document.readyState === 'complete') whenIdle()
+    else addEventListener('load', whenIdle, { once: true })
   }
 
   // Dev only: window.__glyphtender for the e2e check and the console (src/game/devHook.ts)
