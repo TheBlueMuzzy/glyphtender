@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test still open — Muzzy) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -235,7 +235,7 @@ flowchart LR
   F64 --> F65
 ```
 
-## v0.12 — Beta audits  ✅ built 2026-10-11 (sprint 24, overnight) — releasing as v0.8.0
+## v0.12 — Beta audits  ✅ built 2026-10-11 (sprint 24, overnight) — released 2026-10-11 (v0.8.0)
 Goal: the beta label — the game loads fast, runs smooth and every screen passes a design check (accessibility parked — Muzzy 2026-10-09).
 - ✅ F66 ⚡ Optimize audit (slow phone 2.16 → 1.60 s to Play; research/optimize.md; npm run perf): measure first load / frame time / memory vs a budget (desktop + phone), fix the biggest costs, re-measure — must:beta · sprint 24
 - ✅ F67 🎨 Design pass (8 fixes on sideways / short screens, B019 + B017 fixed; UI kit 0.7.0; research/design-pass.md — taste calls logged for Muzzy): every screen at phone + desktop vs the UI-kit rules + breathing room; fix what's found; iPhone streaming-music test (Muzzy) — must:beta · sprint 24

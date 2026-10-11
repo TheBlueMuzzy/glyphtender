@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "build": 0,
   "history": [
     {
@@ -57,6 +57,11 @@
       "version": "0.7.0",
       "date": "2026-10-10",
       "summary": "Dragging feels right + the Story tells the whole game — pick up one real piece (seeds and glyphlings lift, land and fly home), straight aim lines, swap seeds in the tray, the AI moves like a person; the end Story lists every player's play each round and shows when a bot played for someone"
+    },
+    {
+      "version": "0.8.0",
+      "date": "2026-10-11",
+      "summary": "Beta audits — opens faster on phones (about half a second sooner on a slow phone, instantly on a second visit), and every menu fits a phone on its side or a short window: Pause, Play online, the lobby and Settings stay inside their cards, the prompt no longer runs into ☰, a bigger 4-player reveal board, tidier results stats, and menus dim the screen behind"
     }
   ]
 }
