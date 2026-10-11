@@ -173,8 +173,8 @@ async function menusAndGame(size) {
     await shot(page, size, 'game-refresh')
 
     // The ☰ Menu: Pause, then Rules
-    // (a click straight on the button: in a short window, 768×343, the prompt's words run over ☰ and would catch a real tap)
-    await page.getByRole('button', { name: 'Menu' }).first().dispatchEvent('click')
+    // (a real tap: B019 — in a short window, 768×343, the prompt's words used to run over ☰ and catch it)
+    await tap(page.getByRole('button', { name: 'Menu' }).first())
     await page.getByRole('button', { name: 'Rules' }).waitFor()
     await shot(page, size, 'pause')
     await tap(page.getByRole('button', { name: 'Rules' }))

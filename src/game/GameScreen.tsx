@@ -83,7 +83,15 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const flipped = useGameSettings((s) => s.trayFlipped)
   // The margin round the edges (margins.ts; layout.json edgeMargin / edgeMarginShare)
   const edge = edgeMargin(space.width, space.height, layout.edgeMargin, layout.edgeMarginShare)
-  const room = stacked ? space.width - 2 * edge : Math.floor(space.width * layout.sidePanelShare)
+  // A short screen with the tray beside the board (a phone on its side, a short window — B019): two rows of seeds,
+  // a 2-line prompt and 2 rows of buttons don't fit under the turn bar. So there the column widens until the seeds lie
+  // in ONE row (layout.json sideShortHeight; never more than sideShortMaxShare of the width) — the prompt and the
+  // buttons get the width too, and the column needs about half the height. (The board only shrinks if it must.)
+  const short = !stacked && space.height < layout.sideShortHeight
+  const oneRow = rackLayout({ room: Infinity, tileWanted: hexPx, places: game.config.rules.handSize, tileMin: layout.trayTileMin, gap: layout.trayGap })
+  const sideRoom = Math.floor(space.width * layout.sidePanelShare)
+  const room = stacked ? space.width - 2 * edge
+    : short ? Math.max(sideRoom, Math.min(oneRow.width, Math.floor(space.width * layout.sideShortMaxShare))) : sideRoom
   const slots = game.phase === 'draft' ? 2 : game.config.rules.handSize
   const tray = rackLayout({ room, tileWanted: hexPx, places: slots, tileMin: layout.trayTileMin, gap: layout.trayGap })
   // The side column keeps ONE width all game (draft, turns, handoff, reveal, end): its share of the screen,

@@ -1,10 +1,13 @@
 // MARGINS AND EVEN SPACING (Muzzy's playtest, 2026-10-01) — checked on the real screen at 7 sizes:
-//   phone 390×844 · 360×780 · phone on its side 844×390 · desktop windows 1066×1192 · 1099×846 · 1443×900 · 1920×1080
+//   phone 390×844 · 360×780 · phone on its side 844×390 · a short window 768×343 (B019) · desktop windows 1066×1192 · 1099×846 · 1443×900 · 1920×1080
 //   · a mid-game turn: the portrait, ☰, the board's hexes, the tray and the buttons are all at least MIN_EDGE from
 //     every edge of the window (bottom: the tray and buttons keep layout.json bottomRoom — B014)
 //   · board BESIDE the tray (wide screens): the gap edge→board and the gap tray→edge within 20% of each other, and
 //     the gap board→tray close to them too ("evenly spaced between the edges"); the portrait and ☰ line up with the
 //     tray's edges
+//   · B019: the prompt (its words and glyphling) never shares space with the turn bar (portrait + ☰) — at least
+//     PROMPT_CLEAR px below it — and nothing in the panel spills out of it: on the turn, a planned cast AND the refresh
+//     step (the longest prompt, "No Magic this turn — refresh seeds?", + its small line); then a REAL tap on ☰ opens Pause
 //   · the Pause menu: the room left and right of its buttons the same (±2 px), and the top about the same
 //   · the Dev Kit: the tool tabs on their own full-width row under the title + ✕ (all 5 fit on a desktop)
 // Screenshots of each (turn, pause, Dev Kit Tuning + Screens) go to the out folder.
@@ -18,10 +21,12 @@ import layout from '../content/tuning/layout.json' with { type: 'json' }
 const OUT = process.argv[2] ?? 'e2e-shots/margins'
 const PORT = Number(process.argv[3] ?? 5233)
 const MIN_EDGE = 12 // px: nothing the player looks at or touches closer to an edge than this
+const PROMPT_CLEAR = 4 // px: the prompt's top at least this far below the turn bar (B019)
 const SIZES = [
   { width: 390, height: 844, mobile: true },
   { width: 360, height: 780, mobile: true },
   { width: 844, height: 390, mobile: true },
+  { width: 768, height: 343, mobile: false, narrow: true }, // (a narrow window: the Dev Kit pages its tabs like a phone)
   { width: 1066, height: 1192, mobile: false },
   { width: 1099, height: 846, mobile: false },
   { width: 1443, height: 900, mobile: false },
@@ -47,6 +52,15 @@ function parts() {
     width: innerWidth,
     height: innerHeight,
   }
+}
+
+/** B019: how far the prompt sits under the turn bar, and how much the panel spills out of its box (runs in the page). */
+function promptRoom() {
+  const bar = document.querySelector('.game-turn-bar').getBoundingClientRect()
+  const row = document.querySelector('.game-prompt-row:not(.game-prompt-sizer)')
+  const real = [...row.children].map((e) => e.getBoundingClientRect()).filter((r) => r.height > 0)
+  const panel = document.querySelector('.game-panel')
+  return { words: row.textContent, below: Math.min(...real.map((r) => r.top)) - bar.bottom, spill: panel.scrollHeight - panel.clientHeight }
 }
 
 /** The Pause menu's room round its title and buttons (runs in the page). */
@@ -133,8 +147,33 @@ try {
       if (!lined) fail(`${name}: the portrait (${Math.round(m.portrait.left)}) and ☰ (${Math.round(m.menu.right)}) don't line up with the tray (${Math.round(m.seeds.left)}–${Math.round(m.seeds.right)})`)
     }
 
-    // The Pause menu: even padding round the title and buttons
-    await page.getByRole('button', { name: 'Menu' }).click()
+    // B019: the prompt clear of the turn bar — on the turn, a planned cast, and the refresh step (the longest prompt)
+    const promptClear = async (when) => {
+      const r = await page.evaluate(promptRoom)
+      if (r.below < PROMPT_CLEAR - 0.5) fail(`${name} ${when}: B019: the prompt "${r.words}" is ${Math.round(r.below)}px below the turn bar (needs ≥ ${PROMPT_CLEAR})`)
+      else if (r.spill > 1) fail(`${name} ${when}: B019: the panel's contents spill ${r.spill}px out of their box`)
+      else ok(`${name} ${when}: the prompt is ${Math.round(r.below)}px under the turn bar, nothing spills`)
+    }
+    await promptClear('turn')
+    const mine = await page.evaluate(() => { const s = window.__glyphtender.store.getState(); return s.game.glyphlings.filter((g) => g.seat === s.game.current).map((g) => g.id) })
+    await tap(page.locator(`[data-glyph="${mine[0]}"]`))
+    await tap(option('move', Math.floor((await optionCount('move')) / 2)))
+    const pick = await page.evaluate(() => window.__glyphtender.findCast(false))
+    if (!pick) throw new Error('no cast without Magic from this move')
+    const pos = await page.evaluate((seed) => { const s = window.__glyphtender.store.getState(); return s.trayOrder[s.game.current].indexOf(seed) }, pick.seed)
+    await tap(page.locator(`[data-tray-pos="${pos}"]`))
+    await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
+    await promptClear('planned')
+    await tap(page.locator('.game-actions button').last()) // Cast (no Magic) → the refresh step
+    await page.waitForFunction(() => window.__glyphtender.store.getState().game.phase === 'refresh', null, { timeout: 8000 })
+    await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx === null, null, { timeout: 8000 })
+    await page.waitForTimeout(300)
+    await page.screenshot({ path: `${OUT}/${name}-1b-refresh.png` })
+    await promptClear('refresh')
+
+    // The Pause menu — opened by a REAL tap on ☰ (B019: in a short window the prompt used to catch it): even padding
+    const menuButton = page.getByRole('button', { name: 'Menu' })
+    await (size.mobile ? menuButton.tap() : menuButton.click())
     await page.locator('.kit-modal .kit-menu').waitFor()
     await page.waitForTimeout(400)
     await page.screenshot({ path: `${OUT}/${name}-2-pause.png` })
@@ -168,8 +207,8 @@ try {
     if (!d.titleShown || !d.closeShown) fail(`${name}: Dev Kit title or ✕ missing`)
     if (!d.tabsBelow) fail(`${name}: the Dev Kit tabs aren't on their own row under the title`)
     if (d.tabsWidth < d.panelWidth - 24) fail(`${name}: the Dev Kit tabs row isn't the panel's full width (${Math.round(d.tabsWidth)} of ${Math.round(d.panelWidth)})`)
-    if (!size.mobile && d.shown < d.total) fail(`${name}: only ${d.shown} of ${d.total} Dev Kit tabs fit on a desktop`)
-    if (size.mobile && d.shown < 4) fail(`${name}: only ${d.shown} Dev Kit tabs fit per page on a phone (4 should)`)
+    if (!size.mobile && !size.narrow && d.shown < d.total) fail(`${name}: only ${d.shown} of ${d.total} Dev Kit tabs fit on a desktop`)
+    if ((size.mobile || size.narrow) && d.shown < 4) fail(`${name}: only ${d.shown} Dev Kit tabs fit per page on a phone (4 should)`)
     console.log(`${failures > failedBefore ? '     ' : 'ok   '}${name} Dev Kit: tabs row ${Math.round(d.tabsWidth)}/${Math.round(d.panelWidth)} px, ${d.shown} of ${d.total} tabs in view`)
     await toTab('Screens')
     await page.screenshot({ path: `${OUT}/${name}-4-devkit-screens.png` })

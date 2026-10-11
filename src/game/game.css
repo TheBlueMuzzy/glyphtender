@@ -124,7 +124,9 @@
     font-family: var(--font-numbers); font-weight: 800; paint-order: stroke; -webkit-text-stroke: 0.18em var(--on-primary); }
 
   .game-panel { grid-area: panel; display: flex; flex-direction: column; align-items: center; gap: var(--gap-s); min-block-size: 0; }
-  .game[data-layout="side"] .game-panel { justify-content: center; }
+  /* beside the board the panel sits in the middle of its row — "safe": if it's ever taller than the row, it hangs
+     DOWN from the row's top instead of rising into the turn bar above (B019: the prompt ran under the portrait and ☰) */
+  .game[data-layout="side"] .game-panel { justify-content: safe center; }
   .game-column-ruler { grid-area: panel; align-self: start; display: block; pointer-events: none; }
 
   /* The dragged piece floats in this layer, over everything, never catching taps itself */
@@ -146,7 +148,7 @@
   .game-reveal[data-size="xs"] { gap: var(--gap-xs); } /* the one-line cards on a phone on its side: rows close together */
   /* the score keeps to the card's right edge, in line on every card (the name stays left) */
   .game-reveal .kit-player-chip-score { margin-inline-start: auto; }
-  .game[data-phase="over"] .game-panel { justify-content: center; }
+  .game[data-phase="over"] .game-panel { justify-content: safe center; }
 
   /* After the reveal (data-ended): the finished garden, the chips, and the end bar along the whole bottom
      (EndBar.tsx) — in the same spot as on the end screen. The layouts keep their edge margins (top, left, right,
@@ -290,6 +292,13 @@
   .game-end-name { min-inline-size: 0; max-inline-size: 100%; }
   /* The place ribbon: drawn inside the glyphling's picture (EndResults.tsx), so it never moves the layout */
   .game-end-ribbon { filter: var(--glow); }
+  /* "Words 121 · Tangles 3" (EndResults.tsx SplitLine): each pair whole, the line breaks only between pairs; the dot is
+     invisible when it does (it keeps its room, so hiding it can't un-wrap the line) */
+  .game-end-split-line { display: inline-flex; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }
+  .game-end-split-line > * { white-space: nowrap; }
+  /* the dot takes no width (drawn centred between the two gaps), so a wrapped pair stays centred on its line */
+  .game-end-split-dot { inline-size: 0; display: flex; justify-content: center; }
+  .game-end-split-line[data-wrapped] > .game-end-split-dot { visibility: hidden; }
   .game-end-split { display: block; inline-size: 100%; max-inline-size: 10.67em; block-size: 0.44em; }
   /* the highlights: a carousel, one award at a time (EndHighlights.tsx) */
   .game-end-highlights { min-inline-size: 0; inline-size: 100%; max-inline-size: 40.89em; margin-inline: auto; }

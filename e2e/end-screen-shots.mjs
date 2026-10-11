@@ -6,7 +6,10 @@
 // See results (back).
 // Checks (Muzzy's notes, 2026-10-01):
 //   reveal  the Magic chips never overlap (B016), sit in one tidy centred group, Skip is a normal-size button (the
-//           hidden sizer copy behind each card — Reveal.tsx — isn't a chip)
+//           hidden sizer copy behind each card — Reveal.tsx — isn't a chip); the board's hexes span (phones) ≥ 75% of the
+//           window's shorter side (F67) and Skip stays on screen
+//   results each "Words N" / "Tangles N" stays whole: a stat line breaks only between the pairs, and then the dot
+//           between them isn't shown (F67)
 //   results the highlights' top is UNDER the players' bottom (never beside), at every size; the Highlights are a
 //           carousel showing ONE award (none earned → no Highlights at all); at 390×844 and 1440×900 it moves on by
 //           itself (carouselSeconds) and a tap moves it on AND holds it (carouselPauseSeconds) before it carries on;
@@ -50,6 +53,7 @@ const TUNING = JSON.parse(readFileSync('content/tuning/endscreen.json', 'utf8'))
 const TIMED = ['390x844', '1440x900'] // the sizes where the carousel's clock is checked too (it takes ~15 s a game)
 const EDGE = 12 // px: nothing closer than this to the window's edges
 const FILL = 0.7 // desktop: the page's content is at least this share of the window's height
+const BOARD_SHARE = 0.75 // the reveal: the board's hexes span at least this share of the window's shorter side
 mkdirSync(OUT, { recursive: true })
 
 /** Problems on the end screen: clipped / too close to the edges, small buttons, the page out of its box. */
@@ -164,6 +168,16 @@ try {
       check(`Skip is a normal-size button (${Math.round(skipBox.width)}×${Math.round(skipBox.height)})`, skipBox.height <= 60 && skipBox.width <= 200)
       const panelBox = await box('.game-panel')
       check('Skip is centred under the chips', Math.abs(skipBox.x + skipBox.width / 2 - (panelBox.x + panelBox.width / 2)) <= 3)
+      // The board gets the room (F67: the 4-player reveal's board was ~170 px wide at 390×844, under 4 tall cards):
+      // on a phone its hexes span ≥ BOARD_SHARE of the window's shorter side; everywhere Skip stays on screen
+      const hexes = await page.evaluate(() => {
+        const rs = [...document.querySelectorAll('.game-garden [data-hex]')].map((e) => e.getBoundingClientRect())
+        return { width: Math.max(...rs.map((r) => r.right)) - Math.min(...rs.map((r) => r.left)), height: Math.max(...rs.map((r) => r.bottom)) - Math.min(...rs.map((r) => r.top)) }
+      })
+      const short = Math.min(size.width, size.height)
+      const span = size.width < size.height ? hexes.width : hexes.height
+      if (size.mobile) check(`the reveal's board spans ${Math.round(span)} px = ${Math.round((span / short) * 100)}% of the window's shorter side (needs ≥ ${BOARD_SHARE * 100}% on a phone)`, span >= short * BOARD_SHARE)
+      check(`Skip is on screen (bottom at ${Math.round(skipBox.y + skipBox.height)} of ${size.height})`, skipBox.y + skipBox.height <= size.height - EDGE + 0.5)
       console.log(`ok   ${tag} 0-reveal`)
       await tap(skip)
 
@@ -263,6 +277,18 @@ try {
       }
       await fits('Results')
       await fills('Results', '.game-end-results')
+      // Each stat line: "Words N" and "Tangles N" each on ONE line, and the dot only shown between them on the same line
+      const statLines = await page.evaluate(() => [...document.querySelectorAll('.game-end-split-line')].map((line) => {
+        const [words, dot, tangles] = [...line.children]
+        const oneLine = (el) => el.getClientRects().length === 1 && el.getBoundingClientRect().height < parseFloat(getComputedStyle(el).fontSize) * 2
+        const wrapped = tangles.offsetTop > words.offsetTop + 1
+        return { text: line.textContent, whole: oneLine(words) && oneLine(tangles), dotShown: getComputedStyle(dot).visibility !== 'hidden', wrapped }
+      }))
+      check('a stat line under every player', statLines.length === game.magic.length)
+      for (const l of statLines) {
+        check(`"${l.text}": each pair stays on one line`, l.whole)
+        check(`"${l.text}": the dot only shows when both pairs share a line`, l.dotShown === !l.wrapped)
+      }
       await shot('1-results')
 
       // ---- Story: the chart, its key under it, the moment slot under the key; drag the line → its moments ----

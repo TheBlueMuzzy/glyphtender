@@ -14,7 +14,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { Avatar, HudText, Stack, Text } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
-import { playerName, promptFor, promptIconSeat, promptSizers } from './prompt'
+import { playerName, promptFor, promptIconSeat, promptSizers, revealSizers } from './prompt'
 import { useGardenTuning } from './useTuning'
 
 /** big: a roomy screen (big board hexes) — the prompt gets title-size words to match the big pieces.
@@ -24,7 +24,9 @@ export function PromptLine({ big, fixed, hangRoom = 0 }: { big: boolean; fixed: 
   const state = useGameStore()
   const { text, detail } = promptFor(state)
   const players = state.game?.config.players ?? 0
-  const sizers = !fixed ? { texts: [], detail: [] } : promptSizers(Array.from({ length: players }, (_, seat) => playerName(seat)))
+  const names = Array.from({ length: players }, (_, seat) => playerName(seat))
+  // (the Magic reveal: only its own lines — revealSizers)
+  const sizers = !fixed ? { texts: [], detail: [] } : state.game?.phase === 'over' ? revealSizers(names) : promptSizers(names)
   const size = big ? 'l' : 'm'
   const colours = useGardenTuning()
   const seat = promptIconSeat(state)
