@@ -1,10 +1,9 @@
 ## ▶ RESUME HERE
-2026-10-10 — **Released v0.7.0** (beta stage): v0.10 The Story (turn list + bot band; server redeployed) + v0.11 Dragging feels right (carry styles, straight aim lines, swap places, the AI moves like a person). Framework v0.6.0 released alongside. Next: /sprint (or /roadmap).
-**Ask Muzzy (carried):** AI aim hold · online AI named after the personality · no "Surprise me" online · first-time New Game = you + 1 AI? · F37 confirms.
-v0.10 (Story) is still unreleased: /deliver it whenever (server redeploy — party/ + src/rooms/server changed).
+2026-10-11 — **Sprint 24 (overnight, auto): Beta audits** on dev/beta — F66 optimize → F67 design pass → /deliver (Muzzy: "make sure you deliver it as well. i want to have it live by morning"). F37 closed (Muzzy kept all AI defaults).
+**Muzzy:** iPhone streaming-music test on the live link after release (F67 task 5).
 
 ## Where we are
-Stage: deliver · Milestone: v0.11 ✅ released · Sprint: none · Doing: released v0.7.0 · Branch: main · Version: 0.7.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.7.0, beta stage, online)
+Stage: develop · Milestone: v0.12 Beta audits · Sprint: 24 · Doing: F66 optimize · Branch: dev/beta · Version: 0.7.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.7.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

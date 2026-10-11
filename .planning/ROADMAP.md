@@ -135,7 +135,7 @@ flowchart LR
 
 ## v0.7 — AI opponents  ✅ released 2026-10-07 (v0.5.0)  (→ beta)
 Goal: play solo or fill any seat (2–4, local or online) with an AI that feels like a person — seven recognisable personalities and three skills, chosen in New Game, at human pace, with a little banter — each personality proven by its behaviour over hundreds of AI-vs-AI games. Design: `design/ai.md` + `../../framework/.planning/design/ai.md`. Framework-first: each framework slice (its F19–F24) is built there and switched on here in the same sprint.
-- 🟢 F37 ❓ AI calls: banter amount (big moments, rec.) · host adds AI online (yes, rec.) · portraits (seat glyphling for beta, rec.) — defaults in place, Muzzy confirms. (Settled 2026-10-05: three personalities — Scholar · Survivor · Strategist — in a rock-paper-scissors with fight · flight · focus modes.)
+- ✅ F37 ❓ AI calls (Muzzy 2026-10-11: keep all shipped defaults — aim hold · online AI named after the personality · no Surprise me online · seat-glyphling portrait · host adds AI online): banter amount (big moments, rec.) · host adds AI online (yes, rec.) · portraits (seat glyphling for beta, rec.) — defaults in place, Muzzy confirms. (Settled 2026-10-05: three personalities — Scholar · Survivor · Strategist — in a rock-paper-scissors with fight · flight · focus modes.)
   why: each one changes how the AI table feels (Fellowship, Hunted-but-cozy)
 - ✅ F38 🧱 AI plug: readings (hand quality, danger, fill, territory, end near), imagined seeds, beliefs' evidence (rivals' visible scoring), behaviour meters (reuse award detectors), candidate cut; time one decision on a phone — must:beta · needs: framework F19 · sprint 14 · built 2026-10-04 (autonomous)
 - ✅ F39 🧱 Goals + special decisions: 7 goal scorers (incl. territory in TRAP/ESCAPE), draft, refresh, "call it" self-tangle — must:beta · needs: F38 · sprint 14 · built 2026-10-04 (autonomous)
@@ -234,6 +234,11 @@ flowchart LR
   F63 --> F65[F65 Pick]
   F64 --> F65
 ```
+
+## v0.12 — Beta audits  🔨 sprint 24
+Goal: the beta label — the game loads fast, runs smooth and every screen passes a design check (accessibility parked — Muzzy 2026-10-09).
+- 🔨 F66 ⚡ Optimize audit: measure first load / frame time / memory vs a budget (desktop + phone), fix the biggest costs, re-measure — must:beta · sprint 24
+- 🔨 F67 🎨 Design pass: every screen at phone + desktop vs the UI-kit rules + breathing room; fix what's found; iPhone streaming-music test (Muzzy) — must:beta · sprint 24
 
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
