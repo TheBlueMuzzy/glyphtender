@@ -107,7 +107,7 @@
     "draft": "highlight",
     "seed": "tether",
     "move": "tether",
-    "reorder": "none"
+    "reorder": "swap"
   },
   "ghostOpacity": 0.45,
   "liftScale": 1.12,
