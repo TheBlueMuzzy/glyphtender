@@ -21,7 +21,8 @@
     "roomTime": "Make room: how long the tray's seeds take to slide apart (and back), in seconds. Try 0.1–0.2.",
     "tetherBend": "Aim line: how much it curves. 0 = straight. Try 0–0.25.",
     "arrowSize": "Aim line: its arrow head, in pixels. 0 = no head. Try 8–16.",
-    "ghostGlow": "With Ghost preview, how strongly the hex under it still glows (1 = as bright as Highlight, 0 = no glow). Try 0.3–0.6."
+    "ghostGlow": "With Ghost preview, how strongly the hex under it still glows (1 = as bright as Highlight, 0 = no glow). Try 0.3–0.6.",
+    "trayLeave": "A seed dragged out of the tray shows its board feedback (aim line, glow, snap) only once it is this far OUTSIDE the tray, in tray places (0.5 = half a seed). It goes again only when it comes right back into the tray — so nothing flickers at the edge. Try 0.3–1."
   },
   "_labels": {
     "styles.draft": "Drag style: draft (glyphling out of the tray)",
@@ -45,7 +46,8 @@
     "roomTime": "Drag: make room time (seconds)",
     "tetherBend": "Drag: aim line curve (0 = straight)",
     "arrowSize": "Drag: aim line arrow size (px)",
-    "ghostGlow": "Drag: hex glow under a ghost preview (0–1)"
+    "ghostGlow": "Drag: hex glow under a ghost preview (0–1)",
+    "trayLeave": "Drag: how far out of the tray before the board shows (× seed)"
   },
   "_sections": {
     "Dragging": [
@@ -64,7 +66,8 @@
       "roomTime",
       "tetherBend",
       "arrowSize",
-      "ghostGlow"
+      "ghostGlow",
+      "trayLeave"
     ]
   },
   "_ranges": {
@@ -81,7 +84,8 @@
     "roomTime": [0, 0.5, 0.01],
     "tetherBend": [0, 0.5, 0.01],
     "arrowSize": [0, 30, 1],
-    "ghostGlow": [0, 1, 0.05]
+    "ghostGlow": [0, 1, 0.05],
+    "trayLeave": [0, 2, 0.05]
   },
   "_choices": {
     "styles.draft": { "A": "A · Pick it up", "B": "B · Lift, mark home", "C": "C · Aim", "D": "D · Float" },
@@ -118,5 +122,6 @@
   "roomTime": 0.15,
   "tetherBend": 0,
   "arrowSize": 12,
-  "ghostGlow": 0.5
+  "ghostGlow": 0.5,
+  "trayLeave": 0.5
 }

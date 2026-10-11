@@ -198,6 +198,33 @@ try {
         return Math.hypot(layer.left + x - (r.left + r.width / 2), layer.top + y - (r.top + r.height / 2))
       })
       check(`${size.name} seed tether: starts at the moved glyphling (${Math.round(gap)} px off)`, gap < 3)
+      // Only once WELL out of the tray (drag.json trayLeave × a tray place); off again only back inside the tray
+      const way = await page.evaluate((leave) => {
+        const r = document.querySelector('.game-tray').getBoundingClientRect()
+        const tile = document.querySelector('.game-tray [data-tray-pos]').getBoundingClientRect().width
+        const b = document.querySelector('.game-board').getBoundingClientRect()
+        const from = { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+        const to = { x: b.left + b.width / 2, y: b.top + b.height / 2 }
+        const len = Math.hypot(to.x - from.x, to.y - from.y), dir = { x: (to.x - from.x) / len, y: (to.y - from.y) / len }
+        // where the line from the tray's middle toward the board's leaves the tray's box
+        const exits = [dir.x > 0 ? (r.right - from.x) / dir.x : dir.x < 0 ? (r.left - from.x) / dir.x : Infinity,
+          dir.y > 0 ? (r.bottom - from.y) / dir.y : dir.y < 0 ? (r.top - from.y) / dir.y : Infinity]
+        const exit = Math.min(...exits)
+        const at = (d) => ({ x: from.x + dir.x * (exit + d), y: from.y + dir.y * (exit + d) })
+        return { inside: at(-tile * 0.3), near: at(tile * leave * 0.4), far: at(tile * leave * 1.8 + 4) }
+      }, tuning.trayLeave)
+      const lineShows = () => page.evaluate(() => document.querySelector('[data-tether]').style.visibility === 'visible')
+      await goTo(way.inside)
+      check(`${size.name} seed tether: none while still in the tray`, !(await lineShows()))
+      await goTo(way.near)
+      check(`${size.name} seed tether: none just outside the tray (inside the leave distance)`, !(await lineShows()))
+      await goTo(way.far)
+      check(`${size.name} seed tether: shows once well out of the tray`, await lineShows())
+      await goTo(way.near)
+      check(`${size.name} seed tether: stays while it hovers near the tray's edge (no flicker)`, await lineShows())
+      await goTo(way.inside)
+      check(`${size.name} seed tether: gone again back inside the tray`, !(await lineShows()))
+      await goTo(await hexCentre(pick.hex))
       await page.mouse.up()
       await dropDone()
       await page.locator('.game-actions button', { hasText: 'Undo' }).click()

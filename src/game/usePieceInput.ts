@@ -49,6 +49,8 @@ type Spot = Point & { hex: Hex }
 
 interface Press {
   glyph?: number
+  /** A seed drag: is it well out of the tray (board feedback on)? See outOfTray. */
+  outOfTray?: boolean
   /** Where the aim line (tether) starts: its home — or, for a seed, the glyphling that casts it. */
   aimFrom?: Point
   /** Pressed a moved glyphling's start-of-turn ghost (its id): a TAP takes the move back, a DRAG picks it up again. */
@@ -281,6 +283,18 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     setTrayAim({ gap: insertGap(from, to), look: look === 'room' ? 'room' : 'marker' })
   }
 
+  // Is a dragged seed well out of the tray? It counts as out once it is drag.json trayLeave × a tray place beyond the
+  // tray's box, and as back in only once it is inside the box again (two edges, so hovering at one never flickers)
+  const outOfTray = (e: PointerEvent, p: Press) => {
+    const tray = document.querySelector('.game-tray')
+    if (!tray) return true
+    const r = tray.getBoundingClientRect()
+    const tile = document.querySelector('.game-tray [data-tray-pos]')?.getBoundingClientRect().width ?? 0
+    const y = e.clientY - (p.touch ? layout.dragLift : 0)
+    const beyond = Math.max(r.left - e.clientX, e.clientX - r.right, r.top - y, y - r.bottom) // (< 0 = inside)
+    return p.outOfTray ? beyond > 0 : beyond > dragTuning.current.trayLeave * tile
+  }
+
   // Pressed on the moved glyphling's start-of-turn spot (its ghost — or an option circle drawn over it)? Its id
   const movedFrom = (hex: Hex | undefined) => {
     const { game, move } = store()
@@ -313,13 +327,25 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     if (!p.dragging) return
     const at = pointerAt(e, p)
     const under = underPiece(e, p)
-    // In play, a seed over ANOTHER tray place is being reordered; back over the board it's aimed again
+    // A seed in play: over ANOTHER tray place it's being reordered; once it is well OUT of the tray it's aimed at the
+    // board. In between (its own place, the gaps, the tray's edge) nothing switches — so nothing flickers (Muzzy
+    // 2026-10-10: the aim line only once it's "sufficiently enough outside the seed tray")
     if (p.hand !== undefined && store().game?.phase === 'play') {
+      p.outOfTray = outOfTray(e, p)
       const pos = under ? numberAttr(under, 'data-tray-pos') : undefined
-      const type: DragType = pos !== undefined && pos !== p.trayPos ? 'reorder' : 'seed'
-      if (type !== p.type) carryAs(p, type, at)
+      const type: DragType | undefined = p.outOfTray ? 'seed' : pos !== undefined && pos !== p.trayPos ? 'reorder' : undefined
+      if (type && type !== p.type) carryAs(p, type, at)
     }
-    if (p.type === 'reorder') {
+    if (p.hand !== undefined && !p.outOfTray) {
+      // Still in (or near) the tray: no board feedback at all — only the tray's own (a reorder's target look)
+      p.snapped = undefined
+      showDropTarget(undefined, null)
+      previewNow()?.hide()
+      tether.current?.hide()
+      carrierNow()?.move(at)
+      if (p.type === 'reorder') showTrayTarget(p, under)
+      else setTrayAim(null)
+    } else if (p.type === 'reorder') {
       // In the tray: no board target (no glow, ghost or tether — and no snap), the tray shows where it would go
       p.snapped = undefined
       showDropTarget(undefined, null)
@@ -343,7 +369,9 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     const dropped = underPiece(e, p)
     const trayPos = dropped ? numberAttr(dropped, 'data-tray-pos') : undefined
     // (a legal hex that has pulled the piece in — magnetic snap — is where it lands, even if the pointer is just off it)
-    const hex = trayPos === undefined ? (p.snapped?.hex ?? hexAttr(dropped)) : undefined
+    // (a seed still in or near the tray showed no board feedback, so it can't land on the board either: it goes back)
+    const nearTray = p.hand !== undefined && s.game?.phase === 'play' && !p.outOfTray
+    const hex = trayPos === undefined && !nearTray ? (p.snapped?.hex ?? hexAttr(dropped)) : undefined
     const from = p.trayPos
     let target: Point | null = null // where a legal drop lands (null = it goes back)
     let commit = () => {} // what a legal drop does, once it has landed
