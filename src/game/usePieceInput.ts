@@ -41,7 +41,7 @@ import type { LayoutTuning } from './useTuning'
 
 /** What the board shows at the target of a board drag (draft · seed · move), and the tray at a reorder's. */
 export type BoardTarget = 'highlight' | 'ghost' | 'tether'
-export type TrayTarget = 'none' | 'marker' | 'room'
+export type TrayTarget = 'none' | 'marker' | 'room' | 'swap'
 
 
 /** A legal hex and its centre (drag-layer px) — what magnetic snap may pull toward. */
@@ -271,6 +271,12 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     const from = p.trayPos
     const onSeed = !!place?.hasAttribute('data-hand') && to !== undefined && from !== undefined && to !== from && p.hand !== undefined &&
       !!game && playReferee(store()).judge(game.current, { kind: 'seed', id: p.hand }, { kind: 'tray', pos: to }).ok
+    // Swap places: over ANY other place the referee allows (a seed swaps, an empty place is just moved into)
+    if (look === 'swap') {
+      const ok = to !== undefined && from !== undefined && to !== from && p.hand !== undefined && !!game &&
+        playReferee(store()).judge(game.current, { kind: 'seed', id: p.hand }, { kind: 'tray', pos: to }).ok
+      return setTrayAim(ok ? { look: 'swap', from: from!, to: to! } : null)
+    }
     if (look === 'none' || !onSeed || from === undefined || to === undefined) return setTrayAim(null)
     setTrayAim({ gap: insertGap(from, to), look: look === 'room' ? 'room' : 'marker' })
   }
@@ -346,7 +352,8 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
       // Tray reorder — the referee: a seed may be reordered only after the move (B008), or while choosing what to refresh
       const ok = trayPos !== from && playReferee(s).judge(game.current, { kind: 'seed', id: p.hand }, { kind: 'tray', pos: trayPos }).ok
       if (ok) target = centreOf(document.querySelector(`[data-tray-pos="${trayPos}"] polygon`))
-      commit = () => store().moveTraySeed(from, trayPos)
+      const swap = dragTuning.current.targets.reorder === 'swap'
+      commit = () => store().moveTraySeed(from, trayPos, swap)
     } else if (game && hex) {
       // A board hex — the referee's answer, the same as the glow's
       if (dropKind({ ...s, game }, hex) !== null) target = centreOf(document.querySelector(`.game-garden [data-hex="${hexKey(hex)}"]`))

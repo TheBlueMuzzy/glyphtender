@@ -133,7 +133,7 @@ try {
       check(`${size.name} Dev Kit: Tuning → Dragging has a draft target dropdown (${names.join(' / ')})`,
         names.join('|') === 'Highlight the hex|Ghost preview on the hex|Aim line from home')
       const reorder = await page.locator('select[aria-label="targets.reorder"]').locator('option').allTextContents()
-      check(`${size.name} Dev Kit: … and a tray reorder one (${reorder.join(' / ')})`, reorder.join('|') === 'None|Insertion marker|Make room')
+      check(`${size.name} Dev Kit: … and a tray reorder one (${reorder.join(' / ')})`, reorder.join('|') === 'None|Insertion marker|Make room|Swap places')
       await dropdown.selectOption('ghost')
       await page.screenshot({ path: `${OUT}/${size.name}-devkit-targets.png` })
       await page.keyboard.press('Escape')
@@ -338,6 +338,30 @@ try {
     check(`${size.name} tray none: no marker, nothing slides`, (await marker()) === null && (await shifts()).every((n) => n === 0))
     await page.mouse.up()
     await dropDone()
+    await putDown()
+
+    // swap places (Muzzy 2026-10-10): place 0 over place 2 → place 2 glows and its seed shows, faint, at place 0; the
+    // drop swaps the two and nothing else moves
+    await setTarget('reorder', 'swap')
+    const before = await store((s) => [...s.trayOrder[s.game.current]])
+    await pickUp(page.locator('[data-tray-pos="0"]'))
+    await goTo(place2)
+    const swap = await page.evaluate(() => ({
+      glowAt: document.querySelector('[data-swap-target]')?.closest('[data-tray-pos]')?.getAttribute('data-tray-pos') ?? null,
+      artAt2: document.querySelectorAll('[data-tray-pos="2"] image').length,
+      ghostAt0: (() => { const g = document.querySelector('[data-tray-pos="0"] [data-carried-from]'); return g ? Number(g.getAttribute('opacity')) : null })(),
+    }))
+    check(`${size.name} tray swap: the place under it glows (place ${swap.glowAt})`, swap.glowAt === '2')
+    check(`${size.name} tray swap: the seed there leaves its place`, swap.artAt2 === 0)
+    check(`${size.name} tray swap: and shows, faint, at the dragged seed's home (opacity ${swap.ghostAt0})`, swap.ghostAt0 !== null && swap.ghostAt0 < 1)
+    check(`${size.name} tray swap: the tray keeps its height`, Math.abs((await trayHeight()) - height) < 0.5)
+    await page.screenshot({ path: `${OUT}/${size.name}-tray-swap-mid.png` })
+    await page.mouse.up()
+    await dropDone()
+    const after = await store((s) => [...s.trayOrder[s.game.current]])
+    const swapped = [...before]; [swapped[0], swapped[2]] = [swapped[2], swapped[0]]
+    check(`${size.name} tray swap: the drop swaps the two, nothing else moves`, after.join() === swapped.join())
+    check(`${size.name} tray swap: the glow is gone after the drop`, (await page.locator('[data-swap-target]').count()) === 0)
     await putDown()
 
     check(`${size.name}: no console errors${errors.length ? ` (${errors.slice(0, 3).join(' | ')})` : ''}`, errors.length === 0)

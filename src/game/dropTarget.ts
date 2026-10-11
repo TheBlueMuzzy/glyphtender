@@ -6,7 +6,7 @@
 // copy of the piece on the hex is the main "here", the glow ring round it just marks the hex.
 // THE TRAY (F64): while a seed is dragged onto another seed in the tray, `trayAim` says where it will slide in (the gap
 // moveInRack will put it in) and how the tray shows it — an insertion marker or the seeds making room (SeedTray.tsx,
-// ui-kit HandView). It changes only when the gap changes, never per pointer move.
+// ui-kit HandView) — or, swapping, which two places swap. It changes only when that changes, never per pointer move.
 import { create } from 'zustand'
 import { hexToPixel, type Hex } from '../engine/hex'
 import { HEX } from './useThrow'
@@ -26,14 +26,18 @@ export function showDropTarget(hex: Hex | undefined, kind: 'move' | 'cast' | nul
 }
 
 /** Where a seed dragged in the tray will go: a gap (0 = before the first place, n = after place n-1) and its look. */
-export type TrayAim = { gap: number; look: 'marker' | 'room' }
+export type TrayAim =
+  | { gap: number; look: 'marker' | 'room' }
+  /** Swap places (Muzzy 2026-10-10): the place under the seed glows; the seed there shows, faint, at the dragged
+   *  seed's home — where it will go. A drop swaps the two (Table rack.ts swapInRack). */
+  | { look: 'swap'; from: number; to: number }
 
 export const useTrayAim = create<{ aim: TrayAim | null }>(() => ({ aim: null }))
 
 /** Set (or clear) the tray's aim — only when it changed. */
 export function setTrayAim(aim: TrayAim | null) {
   const old = useTrayAim.getState().aim
-  if (old?.gap === aim?.gap && old?.look === aim?.look) return
+  if (JSON.stringify(old) === JSON.stringify(aim)) return
   useTrayAim.setState({ aim })
 }
 

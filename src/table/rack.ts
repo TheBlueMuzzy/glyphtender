@@ -3,7 +3,8 @@
 // A rack is a row of places. The player arranges it; the rules don't care about the order (pieces are named by id),
 // so the order lives with the screen. The promise players feel: NOTHING SHIFTS ON ITS OWN. A piece that's played
 // leaves an empty place (GAP); new pieces fill empty places left to right; pieces you kept stay exactly where you
-// put them. Drag a piece onto another to slide it in there, onto an empty place to just move it.
+// put them. Drag a piece onto another to slide it in there (moveInRack) — or, in a game that prefers it, to SWAP the
+// two (swapInRack) — and onto an empty place to just move it.
 // The Hand view (framework ui-kit, "rack" preset) draws a rack order.
 
 /** An empty place on the rack. Never a real piece id. */
@@ -25,6 +26,14 @@ export function moveInRack(order: RackOrder, from: number, to: number): RackOrde
   }
   const [picked] = next.splice(from, 1)
   next.splice(to, 0, picked)
+  return next
+}
+
+/** The order with the pieces at places `from` and `to` swapped (onto an empty place: it just moves there). Nothing
+ *  else moves. */
+export function swapInRack(order: RackOrder, from: number, to: number): RackOrder {
+  const next = [...order]
+  ;[next[from], next[to]] = [next[to], next[from]]
   return next
 }
 

@@ -87,6 +87,14 @@ export function SeedTray({ layout, boxWidth }: Props) {
     </g>
   )
 
+  // A place a dragged seed would swap into glows like a legal hex on the board (Board.tsx's drop mark, in the tray's size)
+  const swapGlow = (x: number, y: number) => (
+    <g pointerEvents="none" data-swap-target="">
+      <polygon points={hexCorners(x, y, tile / 2 * 1.16)} fill="none" stroke={player} strokeWidth={tile * 0.13} strokeOpacity={colours.dropStrength} strokeLinejoin="round" />
+      <polygon points={hexCorners(x, y, tile / 2 * 0.97)} fill={player} opacity={colours.dropStrength} />
+    </g>
+  )
+
   // The insertion marker: a slim rounded bar in the player's colour with a soft glow round it (the held ring's look)
   const marker = ({ x, y }: HandSpot) => (
     <g pointerEvents="none" data-insert-marker="">
@@ -126,6 +134,13 @@ export function SeedTray({ layout, boxWidth }: Props) {
       const waiting = !refreshing && (!myTurn || (game.phase === 'play' && !move))
       return { ...seed, held, waiting, staged: inRefresh, ...carriedHome(originOf(carried, { kind: 'seed', id })) }
     })
+    // SWAP PLACES (drag.json targets.reorder = swap): the seed under the dragged one leaves its place and shows, faint,
+    // at the dragged seed's home — where it will go. Both places keep their attributes (a drop still finds them).
+    if (aim?.look === 'swap' && places[aim.to]?.piece && places[aim.from]) {
+      const other = places[aim.to]
+      places[aim.from] = { key: `swap-ghost-${aim.from}`, piece: other.piece, attrs: places[aim.from].attrs, origin: 'ghost' }
+      places[aim.to] = { ...other, piece: undefined, held: false }
+    }
   }
 
   return (
@@ -134,7 +149,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
       motion={{ shrinkTime: timing.refreshShrinkTime, growTime: timing.refreshGrowTime, stagger: timing.refreshStagger, overshoot: juiceFor('refreshGrow').grow, roomTime: dragFeel.roomTime }}
       insertAt={aim?.look === 'marker' ? aim.gap : undefined} renderMarker={marker}
       makeRoomAt={aim?.look === 'room' ? aim.gap : undefined}
-      renderEmpty={({ x, y }) => slot(x, y)}
+      renderEmpty={({ x, y, index }) => <>{slot(x, y)}{aim?.look === 'swap' && aim.to === index && swapGlow(x, y)}</>}
       renderPiece={({ piece, held, aimed, origin }, { x, y }) => {
         if (!piece) return null
         if (piece.kind === 'glyphling') {

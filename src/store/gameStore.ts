@@ -36,7 +36,7 @@ import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
 import { refreshTimes, type RefreshFx } from './refreshFx'
-import { moveInRack, placesOf, rackOf, refillRack, shuffleRack } from '../table/rack'
+import { moveInRack, placesOf, rackOf, refillRack, shuffleRack, swapInRack } from '../table/rack'
 import { landingSeconds } from './wordMarks'
 import type { Trail } from './trail'
 
@@ -154,7 +154,8 @@ export interface GameStore {
   startScoring: () => void
   /** The score sequence has faded away: play may go on (online: the views that waited are shown). */
   endScoring: () => void
-  moveTraySeed: (from: number, to: number) => void
+  /** Move the tray seed at place `from` to place `to`: it slides in there — or with `swap`, the two swap places. */
+  moveTraySeed: (from: number, to: number, swap?: boolean) => void
   shuffleTray: () => void
   /** Before a tap or drag does its thing: if the piece can't be touched it shakes "no" (nope.ts). True = refused. */
   refuseTap: (tap: Tap) => boolean
@@ -550,14 +551,14 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (fx) growIn({ seat: fx.seat, slots: fx.slots, newSlots, stage: 'in' }, () => { set({ refreshFx: null }); get().online?.resume() })
     },
 
-    moveTraySeed: (from, to) => {
+    moveTraySeed: (from, to, swap = false) => {
       const { game, trayOrder } = get()
       if (!game || !canPlay() || from === to) return
       // The drag referee: a seed may be reordered only after the move (B008), or while choosing what to refresh
       const seed: Piece = { kind: 'seed', id: trayOrder[game.current]?.[from] ?? TRAY_GAP }
       if (!playReferee(get()).judge(game.current, seed, { kind: 'tray', pos: to }).ok) return
       const order = [...trayOrder]
-      order[game.current] = moveInRack(order[game.current], from, to)
+      order[game.current] = (swap ? swapInRack : moveInRack)(order[game.current], from, to)
       playSound('seed.drop') // (it settles into its new place)
       set({ trayOrder: order })
     },
