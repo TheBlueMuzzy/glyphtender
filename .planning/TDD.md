@@ -151,6 +151,12 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D89 · 2026-10-10 · Tray reorder can SWAP two seeds (F64)
+  Proposed by: Muzzy ("we can also add a 'swap places' version")   Options: slide in (moveInRack) + marker / room /
+  none · swap
+  Chose: added swap as a 4th tray look: over another place it glows like a legal hex, the seed there shows faint at the
+  dragged seed's home, the drop swaps (framework Table rack.ts swapInRack, table 0.7.1) — what you see is what the drop
+  does (D86's rule). Over an empty place it just moves there.
 D88 · 2026-10-10 · A seed's aim line starts at the glyphling that just moved (F64)
   Proposed by: Muzzy ("could we break frame a bit… just for this project have it come from the glyphling that was just
   moved")   Options: from the seed's home in the tray (the kit's default) / from the casting glyphling
