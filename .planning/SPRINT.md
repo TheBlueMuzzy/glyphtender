@@ -12,7 +12,7 @@ Done when: first load, frame time and memory are measured against a budget (desk
 - [x] 🤖 2. Audio (8.2 MB of public/audio): only what the first screen needs loads first; music streams; nothing oversized (vite.config.ts PWA precache, src/audio)
 - [x] 🤖 3. Code (garden 254 KB · style 225 KB · main 167 KB): split what the first screen doesn't need; no Dev Kit / sims code in live builds (vite.config.ts, src/main.tsx)
 - [x] 🤖 4. Fix the next-biggest cost the measurements find; re-measure; record before → after
-- [ ] 🤖 5. Full check (looks + plays the same)
+- [x] 🤖 5. Full check (looks + plays the same) — 27/27 + e2e:update PASS at 2db2698
 
 ## F67 🎨 Design pass
 Done when: every screen at phone portrait, phone landscape and desktop is reviewed against the UI-kit rules and the breathing-room rule, what's found is fixed, check:ui is clean of problems, and the screenshot checks pass.

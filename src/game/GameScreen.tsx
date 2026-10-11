@@ -166,12 +166,12 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
       <svg ref={dragLayer} className="game-drag-layer" aria-hidden="true">
         {/* target looks under the carried piece (drag.json targets; usePieceInput): the aim line from home to the
             pointer, and the ghost preview — a see-through copy on the legal hex (its own image, never the planned seed) */}
-        <path ref={tetherPath} data-tether="" style={{ visibility: 'hidden' }} />
-        <image ref={previewImage} data-target-preview="" x={0} y={0} style={{ visibility: 'hidden' }} />
+        <path ref={tetherPath} data-tether="" visibility="hidden" />
+        <image ref={previewImage} data-target-preview="" x={0} y={0} visibility="hidden" />
         {/* an AI's (or online rival's) draft carried out of the tray in the draft style (useBotDraft — the ui-kit carrier) */}
-        <image ref={dragImage} data-bot-draft="" x={0} y={0} style={{ visibility: 'hidden' }} />
+        <image ref={dragImage} data-bot-draft="" x={0} y={0} visibility="hidden" />
         {/* the piece a person carries (usePieceInput; the ui-kit carrier moves it — visibility is its style) */}
-        <image ref={carryImage} data-carry="" x={0} y={0} style={{ visibility: 'hidden' }} />
+        <image ref={carryImage} data-carry="" x={0} y={0} visibility="hidden" />
       </svg>
     </div>
     <Handoff stacked={stacked} flipped={flipped} />
