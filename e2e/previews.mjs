@@ -6,7 +6,13 @@
 // (no WebSocket, no POST from any frame), and the real Pause menu still there at the end. No scroll bar sideways
 // anywhere in the Dev Kit or a preview's bar: rows that don't fit are dot carousels (◀ ▶ + dots) — checked on the
 // phone: the tool tabs page with ▶ / ◀ and the selected tab is always whole in view.
-// Stacked screens (Rules over Pause, …): only the top open screen shows (UI kit 0.2.8).
+// Stacked screens (Rules over Pause, …): only the top open screen shows (UI kit 0.2.8), and every open screen dims
+// what's under it — the first one over the game / home page too (UI kit 0.7.0).
+// SHORT SCREENS (F67, UI kit 0.7.0): at 844×390 (a phone on its side) and 768×343 (a short window), each card screen
+// (Pause, Rules, Settings, Play online, Couldn't join, the lobby) keeps its buttons INSIDE the card and on the screen —
+// a button may only be out of view inside a scroll box; Pause shows all four buttons, Play online shows Join, the
+// 4-seat lobby shows all four seats, Settings shows the ◀ tab ▶ picker (not a tab bar), and a screen over the home
+// page dims it.
 // Starts its OWN dev server (default port 5197 — never Muzzy's 5180) and closes only that one.
 //   npm run e2e:previews [outDir] [port]
 import { mkdirSync } from 'node:fs'
@@ -18,6 +24,19 @@ const PORT = Number(process.argv[3] ?? 5197)
 const SIZES = [
   { name: 'phone', width: 390, height: 844, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
+]
+// Short screens: each card screen is checked there for buttons inside the card (cardFit)
+const SHORT_SIZES = [
+  { width: 844, height: 390, mobile: true },
+  { width: 768, height: 343, mobile: false },
+]
+const SHORT_PREVIEWS = [ // [name, devkit-preview=…, what must show]
+  ['pause', 'pause&variant=offline', { visible: ['Back to the garden', 'Settings', 'Rules', 'Leave game'] }],
+  ['pause-online', 'pause&variant=online', { visible: ['Leave game'] }],
+  ['rules', 'rules', {}],
+  ['join-error', 'join-error&variant=no_room', { visible: ['Join', 'Back'] }],
+  ['lobby-host4', 'lobby&variant=host4', { seats: 4, visible: ['Leave', 'Start game'] }],
+  ['lobby-guest4', 'lobby&variant=guest4', { seats: 4, visible: ['Leave'] }],
 ]
 // How long to let a preview play before its picture (the reveal is staged; the rest only settle)
 const SETTLE_MS = { reveal: 2500, handoff: 800 }
@@ -40,6 +59,64 @@ function realMoment() {
     history: history.state,
     url: location.href,
   })
+}
+
+/** The top open screen's card (a kit Panel in its centre): its buttons and inputs must sit inside the card and on the
+ *  screen, unless a scroll box inside the card holds them (then scrolling reaches them). wants.visible: buttons that
+ *  must be in full view (not scrolled away); wants.seats: that many lobby seats in full view; wants.picker: Settings
+ *  shows ◀ tab ▶, not a tab bar; wants.dims: the screen dims what's under it. Runs in the page. */
+function cardFit(wants) {
+  const problems = []
+  const layers = [...document.querySelectorAll('.kit-layer')]
+  const top = layers.at(-1)
+  const card = top?.querySelector('[data-slot="center"] > .kit-panel')
+  if (!card) return { card: '-', problems: ['no card on the top screen'] }
+  const c = card.getBoundingClientRect()
+  const r = (n) => Math.round(n)
+  if (c.top < 0 || c.left < 0 || c.bottom > innerHeight || c.right > innerWidth) problems.push(`the card runs off the screen (${r(c.left)},${r(c.top)} → ${r(c.right)},${r(c.bottom)})`)
+  // In full view: inside every box that clips it (scroll boxes, the card) and on the screen
+  const inView = (el) => {
+    const b = el.getBoundingClientRect()
+    if (b.top < -0.5 || b.left < -0.5 || b.bottom > innerHeight + 0.5 || b.right > innerWidth + 0.5) return false
+    for (let box = el.parentElement; box && box !== top; box = box.parentElement) {
+      if (getComputedStyle(box).overflowY === 'visible') continue
+      const v = box.getBoundingClientRect()
+      if (b.top < v.top - 0.5 || b.bottom > v.bottom + 0.5) return false
+    }
+    return true
+  }
+  const scrolledIn = (el) => { // held by a scroll box that really scrolls (the card itself counts)
+    for (let box = el.parentElement; box && box !== card.parentElement; box = box.parentElement) {
+      const y = getComputedStyle(box).overflowY
+      if ((y === 'auto' || y === 'scroll') && box.scrollHeight > box.clientHeight + 1) return true
+    }
+    return false
+  }
+  for (const el of card.querySelectorAll('button, input')) {
+    const b = el.getBoundingClientRect()
+    if (!b.width || getComputedStyle(el).visibility !== 'visible') continue
+    const name = (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 24)
+    if (!scrolledIn(el) && (b.top < c.top - 0.5 || b.bottom > c.bottom + 0.5)) problems.push(`"${name}" hangs outside the card`)
+    if (!scrolledIn(el) && !inView(el)) problems.push(`"${name}" is cut off`)
+  }
+  for (const label of wants.visible ?? []) {
+    const el = [...card.querySelectorAll('button')].find((b) => b.textContent.trim() === label)
+    if (!el) problems.push(`no "${label}" button`)
+    else if (!inView(el)) problems.push(`"${label}" is not in view`)
+  }
+  if (wants.seats) {
+    const avatars = [...card.querySelectorAll('.kit-scroll .kit-avatar')].slice(0, wants.seats)
+    const shown = avatars.filter(inView).length
+    if (shown < wants.seats) problems.push(`only ${shown} of ${wants.seats} seats in view`)
+  }
+  if (wants.picker) {
+    const shows = (sel) => { const el = card.querySelector(sel); return !!el && getComputedStyle(el).display !== 'none' }
+    if (shows('.kit-settings-tabs') || !shows('.kit-settings-picker')) problems.push('Settings shows a tab bar, not the ◀ tab ▶ picker')
+  }
+  if (wants.dims && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(getComputedStyle(top.querySelector('.kit-screen')).backgroundColor)) {
+    problems.push('the screen does not dim the home page under it')
+  }
+  return { card: `${r(c.top)}→${r(c.bottom)} of ${innerHeight}`, problems }
 }
 
 /** Dev Kit parts that scroll sideways (there should be none — carousels instead), and carousel items cut in half
@@ -178,8 +255,9 @@ try {
         fail(`${name}: ${stack.open} screens open and not only the top one shows (${JSON.stringify(stack.shown)})`)
       }
       if (item.id === 'rules' && stack.open !== 2) fail(`${name}: expected Pause + Rules open (got ${stack.open})`)
-      // …and the top one carries the dim over the game (the dim of the one under it is hidden with it)
-      if (stack.open > 1 && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(stack.topDim)) fail(`${name}: the top screen doesn't dim the game`)
+      // …and the top one carries the dim over the game (the dim of the one under it is hidden with it). One screen over
+      // the game / home page dims it too (UI kit 0.7.0 — New Game / Settings / Play online didn't, Credits did)
+      if (stack.open > 0 && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(stack.topDim)) fail(`${name}: the top screen doesn't dim the game`)
       await page.screenshot({ path: `${OUT}/${size.name}-${String(n + 1).padStart(2, '0')}-${name}.png` })
       shots++
       ;(await page.evaluate(sidewaysProblems)).forEach((p) => fail(`${name} preview bar: ${p}`))
@@ -219,6 +297,40 @@ try {
     if (sockets.length) fail(`WebSockets opened: ${sockets.join(', ')}`)
     if (sends.length) fail(`requests that send: ${sends.join(', ')}`)
     if (errors.length) fail(`console errors: ${errors.slice(0, 5).join(' | ')}`)
+    await page.close()
+  }
+
+  // ---- Short screens: cards keep their buttons inside (F67) ----
+  for (const size of SHORT_SIZES) {
+    console.log(`--- short ${size.width}×${size.height}`)
+    const at = `${size.width}x${size.height}`
+    const open = async (query) => {
+      const page = await browser.newPage({ viewport: { width: size.width, height: size.height }, isMobile: size.mobile, hasTouch: size.mobile })
+      await page.goto(`http://127.0.0.1:${PORT}/${query}`)
+      return page
+    }
+    const check = async (page, name, wants = {}) => {
+      await page.evaluate(() => document.fonts.ready)
+      await page.waitForTimeout(500)
+      const fit = await page.evaluate(cardFit, wants)
+      fit.problems.forEach((p) => fail(`${name} @${at}: ${p}`))
+      await page.screenshot({ path: `${OUT}/short-${at}-${name}.png` })
+      shots++
+      if (!fit.problems.length) console.log(`  ok   ${name} (card ${fit.card})`)
+    }
+    for (const [name, query, wants] of SHORT_PREVIEWS) {
+      const page = await open(`?devkit-preview=${query}`)
+      await page.waitForFunction(() => window.__devkitPreview?.ready, null, { timeout: 20000 })
+      await check(page, name, wants)
+      await page.close()
+    }
+    // From the home page: Settings and Play online (one screen over the home page — it must dim it)
+    const page = await open('')
+    await page.getByRole('button', { name: 'Settings' }).click()
+    await check(page, 'settings', { picker: true, dims: true })
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'Play online' }).click()
+    await check(page, 'online', { visible: ['Join'], dims: true })
     await page.close()
   }
 } finally {

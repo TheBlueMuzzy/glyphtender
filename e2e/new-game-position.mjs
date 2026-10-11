@@ -1,8 +1,9 @@
 // NEW GAME OPENS CENTRED, THEN ONLY GROWS DOWN (F58 — Muzzy 2026-10-10: "it should start in the center and only
 // expand downwards"; UI kit 0.4.4 <Screen scroll>). At 5 sizes, a fresh New Game (2 players, both people):
 //   · on open the panel is in the middle: the gap above it = the gap below it (±4 px) — or, when it's taller than the
-//     window (small phone, phone on its side), it starts at the top (the screen's padding + the empty top row's gap,
-//     as before) and the screen scrolls
+//     window (small phone, phone on its side), it starts at the top (the screen's padding + the empty top row's gap;
+//     on a short screen — 30rem tall or less — just the padding: there a card takes the empty rows too, UI kit 0.7.0)
+//     and the screen scrolls
 //   · Players + to the most (2 → 4) and then the 2nd seat Person → AI (its picker rows appear): the Players + button
 //     stays at the same y every time (±1 px) — the rows grow underneath it, the top never moves
 //   · AI → Person and Players − back to 2: rows go away underneath, + still at the same y
@@ -41,7 +42,7 @@ function measure() {
   const style = getComputedStyle(screen)
   return {
     top: p.top - s.top, bottom: s.bottom - p.bottom, plusY: plus.top,
-    padTop: parseFloat(style.paddingTop), rowGap: parseFloat(style.rowGap),
+    padTop: parseFloat(style.paddingTop), rowGap: parseFloat(style.rowGap), short: matchMedia('(max-height: 30rem)').matches,
     margin: parseFloat(getComputedStyle(screen.querySelector('[data-slot="center"]')).marginTop), scrolls: screen.scrollHeight > screen.clientHeight + 1, scrollTop: screen.scrollTop,
   }
 }
@@ -72,8 +73,9 @@ try {
     await page.screenshot({ path: `${OUT}/${name}-1-open.png` })
 
     if (open.scrolls) {
-      ok(open.margin === 0 && Math.abs(open.top - open.padTop - open.rowGap) <= 1,
-        `${name}: taller than the window → starts at the top (gap ${round(open.top)} = padding ${open.padTop} + row gap ${open.rowGap}) and scrolls`)
+      const rowGap = open.short ? 0 : open.rowGap // (a short screen: the card takes the empty top row and its gap)
+      ok(open.margin === 0 && Math.abs(open.top - open.padTop - rowGap) <= 1,
+        `${name}: taller than the window → starts at the top (gap ${round(open.top)} = padding ${open.padTop} + row gap ${rowGap}) and scrolls`)
     } else {
       ok(Math.abs(open.top - open.bottom) <= CENTRE_SLACK, `${name}: opens centred — gap above ${round(open.top)} · below ${round(open.bottom)}`)
     }
