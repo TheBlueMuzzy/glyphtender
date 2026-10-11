@@ -56,7 +56,8 @@ try {
     const setStyle = (type, letter) => {
       styles[type] = letter
       return page.evaluate((data) => window.dispatchEvent(new CustomEvent('devkit:tuning', { detail: { file: 'drag', data } })),
-        { ...drag, styles: { ...styles } })
+        // (the tray's target look off: 'swap places' shows the other seed at home on purpose — this checks the carry style's own home look)
+        { ...drag, styles: { ...styles }, targets: { ...drag.targets, reorder: 'none' } })
     }
 
     // The carried piece and a piece's home look, read in the page

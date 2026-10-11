@@ -220,12 +220,12 @@ Goal: the end screen's Story chart says what every player did each round and sho
 - ✅ F62 🎮 Bot band on the Story chart: a thicker, darker band behind a player's line for the rounds a bot played for them (online idle takeover / turn timer / left); framework-first: every recorded move says who played it — should · needs: F52
   why: the story is honest about who played — nobody's score looks like theirs when a bot made it
 
-## v0.11 — Dragging feels right  ← current
+## v0.11 — Dragging feels right  ✅ done 2026-10-10 (not released — with v0.10 on dev/drag)
 Goal: every drag (draft, plan a seed, tray reorder, move a glyphling) carries the piece in the style Muzzy picks after seeing them all live — no solid copy left behind by accident, wrong drops return home (Muzzy 2026-10-10).
-- 🎛️ F63 🎮 Carry styles in Glyphtender: drag.json picks per drag type A Pick it up · B Lift, mark home · C Aim · D Float + landings / returns; Dev Kit dropdowns — should · needs: fw F53 · sprint 23
+- ✅ F63 🎮 Carry styles in Glyphtender: drag.json picks per drag type A Pick it up · B Lift, mark home · C Aim · D Float + landings / returns; Dev Kit dropdowns — should · needs: fw F53 · sprint 23
   why: one real piece at a time → the board reads honestly while you try things (Try freely, commit once)
-- 🎛️ F64 🎮 Target feedback: board highlight | ghost preview | tether; tray insertion marker | make room; magnetic snap — should · needs: fw F54, F63 · sprint 23
-- 🔨 F65 ❓ Pick a style per drag type (Muzzy, after trying them) — should · needs: F63, F64 · sprint 23
+- ✅ F64 🎮 Target feedback: board highlight | ghost preview | tether; tray insertion marker | make room; magnetic snap — should · needs: fw F54, F63 · sprint 23
+- ✅ F65 ❓ Pick a style per drag type (Muzzy, after trying them) — answer: draft A · seed B · move B · reorder A; seed + move aim line (straight, a seed's from its glyphling); tray swap places (Muzzy 2026-10-10, approved) — should · needs: F63, F64 · sprint 23
 ```mermaid
 flowchart LR
   FW53[fw F53 Carry styles] --> F63[F63 Carry styles]

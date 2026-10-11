@@ -34,9 +34,9 @@ Done when: board drops can show highlight | ghost preview | tether, tray reorder
 - [x] 🤖 4. e2e + phone/desktop screenshots at every size; Full check
 
 ## F65 ❓ Pick a style per drag type
-- [ ] 🙋 1. Try them on phone + desktop with the Dev Kit "Dragging" dropdowns, pick per drag type
+- [x] 🙋 1. Try them on phone + desktop with the Dev Kit "Dragging" dropdowns, pick per drag type — Muzzy 2026-10-10: draft A · seed B · move B · reorder A; targets draft highlight · seed + move aim line (straight) · tray swap places · snap 0.5 · trayLeave 0.5
   Ask Muzzy: in play a seed drag switches to the "reorder" style while it's over another tray place (seed C → reorder A: home goes empty, carried turns solid) — keep the switch as a signal, or one look per drag?
-- [ ] 🤖 2. Lock the picks in drag.json, update GDD controls section + framework design note
+- [x] 🤖 2. Lock the picks in drag.json, update GDD controls section + framework design note (GDD "How dragging feels"; framework design/ui-kit.md §4b)
 
 ## Notes
 - Muzzy 2026-10-10, more picks + rules while trying it: seed + move targets = aim line, straight (tetherBend 0); a seed's aim line starts at the glyphling that just moved (D88); a planned cast leaves a dotted glyphling → seed line like the move's (cast shade; replays too); the AI's move glide shows the aim line too (AI looks human); **a click/drag counts as one undo** — picking up another seed sends the aimed one back to the tray, re-grabbing the moved glyphling starts over from the turn's start (D87).
