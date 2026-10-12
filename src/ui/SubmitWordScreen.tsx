@@ -2,7 +2,7 @@
 // through that seed that aren't words yet (store/submitChoices.ts), longest first; a tap sends one (ui/online/wordOutbox.ts)
 // and says "Word submitted" — always the same, new or not (Muzzy 2026-10-11). Words: en.json → game.submitWord.
 import { useState } from 'react'
-import { Button, Modal, Stack, Text, fill, screens, toast } from './kit'
+import { Button, Modal, ScrollArea, Stack, Text, fill, screens, toast } from './kit'
 import { useGameStore } from '../store/gameStore'
 import { plannedStretches, submitChoices, type SubmitChoices } from '../store/submitChoices'
 import { sendWord } from './online/wordOutbox'
@@ -36,11 +36,14 @@ export function SubmitWordScreen() {
       {choices.kind === 'list' && (
         <>
           <Text kind="caption">{w.pick}</Text>
-          <Stack gap="s">
-            {choices.words.map((word) => (
-              <Button key={word} variant="secondary" loading={sending === word} disabled={sending !== null} onClick={() => send(word)}>{word}</Button>
-            ))}
-          </Stack>
+          {/* the list scrolls inside the card on a short screen, so Back always stays in sight */}
+          <ScrollArea label={w.title}>
+            <Stack gap="s">
+              {choices.words.map((word) => (
+                <Button key={word} variant="secondary" loading={sending === word} disabled={sending !== null} onClick={() => send(word)}>{word}</Button>
+              ))}
+            </Stack>
+          </ScrollArea>
         </>
       )}
       {choices.kind === 'tooShort' && <Text>{tooShort}</Text>}

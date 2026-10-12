@@ -71,8 +71,9 @@ export function installDevHook() {
     },
     /** Submit a word e2e (F69): plays random legal actions until the player to move can plant a seed whose Submit a word
      *  picker shows `kind` ('list' = 3+ letter non-words · 'tooShort' = only 2-letter ones), jumps the store there and
-     *  returns that turn (glyphling, move-to hex, seed id, target hex, the picker's words) — or null. */
-    findSubmitTurn(kind: 'list' | 'tooShort', seed = 1) {
+     *  returns that turn (glyphling, move-to hex, seed id, target hex, the picker's words) — or null.
+     *  `minWords`: a 'list' must offer at least this many words. */
+    findSubmitTurn(kind: 'list' | 'tooShort', seed = 1, minWords = 1) {
       const { game, words, stats, online } = useGameStore.getState()
       if (!game || !words || online) return null
       let state = game
@@ -85,7 +86,7 @@ export function installDevHook() {
                 for (const { id: seedId } of state.hands[state.current]) {
                   const stretches = plannedStretches(state, { glyphling: g.id, to }, { seed: seedId, target })
                   const choices = stretches && submitChoices(stretches, words)
-                  if (choices?.kind !== kind) continue
+                  if (choices?.kind !== kind || (choices.kind === 'list' && choices.words.length < minWords)) continue
                   useGameStore.getState().loadState(state, stats)
                   return { glyphling: g.id, to: hexKey(to), seed: seedId, target: hexKey(target), words: choices.kind === 'list' ? choices.words : [] }
                 }
