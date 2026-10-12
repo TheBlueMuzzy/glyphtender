@@ -1,9 +1,9 @@
 ## ▶ RESUME HERE
-2026-10-11 — **Released v0.8.0 (beta) — v0.12 Beta audits ✅** (sprint 24, overnight, Muzzy asked for the release before bed). F66: opens faster (slow phone 2.16 → 1.60 s to Play; `npm run perf`). F67: menus fit sideways phones / short windows (UI kit 0.7.0), prompt clear of ☰ (B019), lobby sideways (B017), bigger 4p reveal board, tidy stat pairs. Taste calls left for Muzzy: research/design-pass.md "Logged for Muzzy". Next: /sprint.
-**Muzzy:** iPhone streaming-music test on the live link (music keeps playing / resumes after a call, silent switch) · F66 + F67 released without your OK (you asked for it live by morning) — look them over.
+2026-10-11 — **Sprint 25: Fair words** on dev/fair-words — F68 clean the word list → F69 Submit a word (Pause → Cloudflare) → F70 Dev Kit Words tab (Open / Yes / No). Plan + Muzzy's exact calls in SPRINT.md Notes. v0.8.0 is live.
+**Muzzy:** iPhone streaming-music test on the live link · F66 + F67 went out without your OK — look them over.
 
 ## Where we are
-Stage: deliver · Milestone: v0.12 Beta audits ✅ · Sprint: — · Doing: — · Branch: main · Version: 0.8.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.8.0, beta stage, online)
+Stage: develop · Milestone: v0.13 Fair words · Sprint: 25 · Doing: F68 — building · Branch: dev/fair-words · Version: 0.8.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.8.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
