@@ -1,17 +1,17 @@
 // ROOM SERVER — the base a game's party/server.ts builds on.  (Server — no React, no Dev Kit, no browser code.)
 //
 //   // party/server.ts
-//   import type * as Party from 'partykit/server'
 //   import { RoomServer } from '../src/rooms/server/roomServer'
+//   import type { PartyRoom } from '../src/rooms/server/roomServer'
 //   import settings from '../content/rooms.json'
 //   import { myGameRules } from './myGameRules'
-//   export default class MyGameServer extends RoomServer<State, Options, Action, View, Event> implements Party.Server {
-//     constructor(party: Party.Room) { super(party, myGameRules, settings) }
+//   export default class MyGameServer extends RoomServer<State, Options, Action, View, Event> {
+//     constructor(party: PartyRoom) { super(party, myGameRules, settings) }
 //   }
 //
-// PartyKit calls onConnect / onMessage / onClose. This class runs the room (seats.ts has the rules
-// for seats and host) and calls the game's rules (gameRules.ts) for everything about the game itself.
-// One PartyKit room = one room code. Everything is in memory: if the room is cleared, it's gone.
+// party/worker.ts (PartyServer on Cloudflare) calls onConnect / onMessage / onClose / onError. This class runs
+// the room (seats.ts has the rules for seats and host) and calls the game's rules (gameRules.ts) for everything
+// about the game itself. One room = one room code. Everything is in memory: if the room is cleared, it's gone.
 import { parseClientMessage } from '../protocol'
 import type { ClientMessage, CloseReason, ErrorCode, ServerMessage } from '../protocol'
 import type { GameRules, RoomTools, SeatChange } from './gameRules'
@@ -24,8 +24,9 @@ import { readSettings } from './settings'
 import type { RoomSettings } from './settings'
 import { Timers } from './timers'
 
-// The bits of PartyKit this class uses. PartyKit's own Party.Room / Party.Connection fit these,
-// and tests pass simple fakes — so none of this needs a live PartyKit to be tested.
+// The bits of the host this class uses. PartyServer's Connection fits PartyConnection; party/worker.ts builds
+// the PartyRoom ({ id, getConnection } via LiveConnections). Tests pass simple fakes — so none of this needs
+// a live server to be tested.
 export interface PartyConnection {
   id: string
   send(message: string): void
@@ -100,7 +101,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     }
   }
 
-  // ─── PartyKit calls these ─────────────────────────────────────────
+  // ─── party/worker.ts calls these ──────────────────────────────────
 
   onConnect(connection: PartyConnection): void {
     // Nothing yet — the player's first message ("join") says who they are.

@@ -9,7 +9,7 @@
 import { Server, getServerByName, routePartykitRequest } from 'partyserver'
 import type { Connection } from 'partyserver'
 import GlyphtenderServer, { loadWords } from './server'
-import { LiveConnections } from './liveConnections'
+import { LiveConnections } from '../src/rooms/server/liveConnections'
 import { PLAYER, seedIfEmpty, type SubmittedWord, type WordRows, type WordStatus } from './submittedWords'
 import { handleWords } from './wordsRoutes'
 // The words kept out of the official list (F68), bundled as text (scripts/server-words.mjs copies it here before each build)

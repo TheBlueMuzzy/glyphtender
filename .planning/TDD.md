@@ -21,7 +21,7 @@ flowchart LR
   Dict[(Dictionary\npublic/words)] --> Engine
   Data[(content/*.json\nboards, bag, tuning, text, style)] --> Engine
   Data --> View
-  Engine <-->|same code| Server[PartyKit server\nparty/]
+  Engine <-->|same code| Server[PartyServer (Cloudflare)\nparty/]
   Kit[UI kit screens\nsrc/ui/kit] --> View
 ```
 - **Rules engine** (`src/engine/`) — the whole game as pure functions: `applyAction(state, action, words) → state` (the word list is passed in — too big to live in the state) plus `checkAction` (why an action is illegal, or null), `legalDraftHexes`, `legalMoves`, `legalCasts`, `previewTurn` (words + Magic for the Cast button), `findWords`, `tangledIds`. No React, no screen, no network. Seeded random (bag order, refresh put-backs; the generator's position lives in the state) so a game can be replayed from its seed + action list.
@@ -72,7 +72,7 @@ flowchart LR
 - **Word list on the server**: bundled as text. esbuild has no .csv loader, so `scripts/server-words.mjs` copies `public/words/words.csv` → `party/words.gen.txt` (gitignored) before every build (`wrangler.json` → `build.command`; `rules` reads .txt as Text). Server bundle **915 KB minified / 293 KB gzipped** (Workers free limit: 3 MB gzipped).
 - **Device**: my seat plans exactly as pass-and-play; Cast posts at once and the throw flies; the view is applied when the seed lands (if it's late, it asks again every 3 s). Other seats' turns replay on the old view (glide → throw after `glideSeconds` → land → new view + sprout), queued in order. No handoff online. A reload goes straight back to the seat (room code in sessionStorage). Party host = `VITE_PARTY_HOST`, else the page's host + wrangler.json's dev port.
 - **Screens**: main menu → Play online → name + Create / Join (kit Lobby) → lobby (kit Lobby + the host's options: Garden Auto/Small/Large, 2-letter words, Turn timer, Word indicators) → the game → end table (New game = the host takes everyone to the lobby, where the host starts again; a guest's New game says "Waiting for the host…" · Menu = leave). Sprint 06 removed Play again. Connection lost → the kit's Reconnecting box.
-- **Tests**: `party/server.test.ts` (fake PartyKit + the real rooms module: whole games with every view checked for secrets; refusals; timer + bots) · `src/store/onlinePlay.test.ts` (the store against a fake room, incl. a whole game) · `npm run e2e:online` (two browsers + its own wrangler dev on 1995 + Vite on 5311; every received WebSocket frame checked for secrets; reload, host drop, rejoin, reveal + end table on both).
+- **Tests**: `party/server.test.ts` (fake host + the real rooms module: whole games with every view checked for secrets; refusals; timer + bots) · `src/store/onlinePlay.test.ts` (the store against a fake room, incl. a whole game) · `npm run e2e:online` (two browsers + its own wrangler dev on 1995 + Vite on 5311; every received WebSocket frame checked for secrets; reload, host drop, rejoin, reveal + end table on both).
 **Timers**
 | Timer | Length | Owned by | Starts when | On expiry |
 |---|---|---|---|---|
@@ -135,7 +135,7 @@ flowchart LR
 | Art | runeblossoms + glyphlings ≤ 256 px WebP (originals are 2000 px) | organize-assets |
 | Audio (beta) | sound effects ≤ ~500 KB, loaded after the first screen (not in first load); music streamed, cached on first play | /deliver quick check |
 | AI turn (beta) | < 1 s on a phone, in a Web Worker | timing test |
-| Network | 1 action + N views per turn; PartyKit free tier | server logs |
+| Network | 1 action + N views per turn; Cloudflare Workers free plan | server logs |
 
 ## 6. Security & fairness
 - Online: clients only send *intentions*; the server's engine decides. Clients never receive other hands, the bag order or Magic totals — so a cheater can't read them.
@@ -156,6 +156,11 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D92 · 2026-10-12 · LiveConnections moves into the rooms kit (0.6.0); PartyServer is every game's online host
+  Why: PartyKit's hosted platform shuts down 23 Oct 2026, so the framework rooms module now installs Glyphtender's setup
+  (party/worker.ts + wrangler.json) for every game, and the late-close guard every PartyServer game needs went into the kit.
+  Chose: worker.ts imports it from src/rooms/server/liveConnections.ts; party/liveConnections.ts deleted; party/liveConnections.test.ts
+  stays (it checks the guard with Glyphtender's own rules). Same code — behaviour unchanged; the next party:deploy picks it up.
 D91 · 2026-10-12 · Word switches: ONE word list with B / V tags, a game keeps its switches, the host's rule online (F71)
   Proposed by: Muzzy ("the accepted words … the main word list just needs updating with those as well … when I go to
   the word tab, i should really only see undecided ones") + Claude   Options: separate british.csv / vulgar.csv loaded
@@ -623,9 +628,9 @@ D46 · 2026-09-30 · The online server runs on Muzzy's own Cloudflare (PartyServ
   (free plan, a *.workers.dev address) / another host (Fly, Render — new tooling, sleeps on free tiers).
   Chose: PartyServer — the rooms module only ever needed {id, getConnection}, so worker.ts is a 30-line adapter and
   RoomServer, the client and every test stayed the same. Dev uses `wrangler dev` too, so local = live. SQLite-backed
-  Durable Object class "Main" (free plan) → /parties/main/<code>, PartySocket's default path. Roll Better stays on PartyKit.
+  Durable Object class "Main" (free plan) → /parties/main/<code>, PartySocket's default path. Roll Better stays on PartyKit (Roll Better moved too, 2026-10-12 — PartyKit's hosted platform shut down 23 Oct).
   Gotchas (pre-release review): PartyServer's connection list drops a reconnected phone's NEW socket when the old one
-  closes late (same id) → party/liveConnections.ts keeps the server's own list (guarded by liveConnections.test.ts);
+  closes late (same id) → LiveConnections keeps the server's own list (guarded by liveConnections.test.ts; since D92 it lives in the rooms kit, src/rooms/server/liveConnections.ts);
   onError is passed on. An empty in-memory Durable Object is evicted after ~1–2 min, so keepEmptyRoomMs (5 min) is an
   upper bound, not a promise — same as PartyKit was.
 D45 · 2026-09-30 · The planned seed: keep the brightness gap, change the colour — "moonlit" (B010 reopened)

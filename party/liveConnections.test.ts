@@ -4,7 +4,7 @@ import settings from '../content/rooms.json'
 import { parseWordList } from '../src/engine/words'
 import { RoomServer, type PartyConnection } from '../src/rooms/server/roomServer'
 import { makeRules } from './glyphtenderRules'
-import { LiveConnections } from './liveConnections'
+import { LiveConnections } from '../src/rooms/server/liveConnections'
 
 const replies: string[] = []
 const socket = (id: string): PartyConnection => ({ id, send: (m) => replies.push(m), close: () => {} })

@@ -4,12 +4,12 @@ import PartySocket from 'partysocket'
 import { getTabId } from './identity'
 import type { ClientMessage } from './protocol'
 
-/** The port `npm run party:dev` uses (partykit.json "port"). */
+/** The port `npm run party:dev` uses (wrangler.json "dev" → "port"). */
 export const LOCAL_PARTY_PORT = 1999
 
 /**
  * Where the room server is.
- * - Live build: VITE_PARTY_HOST (e.g. "glyphtender.thebluemuzzy.partykit.dev"), set when building.
+ * - Live build: VITE_PARTY_HOST (e.g. "glyphtender.joebrogno.workers.dev"), set when building.
  * - Local dev: the same computer that served the page, port 1999 — so a phone on the Wi-Fi
  *   (http://192.168.x.x:5173) reaches the PC's server too. Leave VITE_PARTY_HOST unset for local dev.
  */
