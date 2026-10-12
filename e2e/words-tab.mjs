@@ -3,7 +3,7 @@
 // (Alphabetical Open | Alphabetical Yes | Alphabetical No)".
 // Against a stand-in word server (this script's own, port 1986 — never the live one): ` → Words → the rows come from
 // content/words/submitted.csv plus the server's new player word (open, at the top A–Z) → click a box: open → yes → no
-// (rows don't jump while clicking) → search "rooster" finds COCK + COCKS by their notes → Save → words.csv gains the yes
+// + the V button → vulgar (rows don't jump while clicking) → search "rooster" finds COCK + COCKS by their notes → Save → words.csv gains the yes
 // word (with a Zipf score) and loses the no word, submitted.csv is re-sorted open | yes | no, the stand-in server got the
 // marks with the admin key, and the list re-sorts. Both word files are put back afterwards, whatever happens.
 // Starts its OWN dev server (default port 5432 — never Muzzy's) and closes only that one.
@@ -75,20 +75,22 @@ try {
   // Each row's state, from its box's label ("COCK: Open (click for Yes)")
   const states = (await page.locator('.devkit-body:not([hidden]) .rv-row').evaluateAll((rows) => rows.map((r) => r.getAttribute('aria-label'))))
     .map((l) => l.match(/^(\w+): (\w+)/).slice(1, 3))
-  const groups = ['Open', 'Yes', 'No'].map((s) => states.filter(([, st]) => st === s).map(([w]) => w))
+  const groups = ['Open', 'Yes', 'No', 'British', 'Vulgar'].map((s) => states.filter(([, st]) => st === s).map(([w]) => w))
   const inOrder = states.map(([w]) => w).join() === groups.flat().join()
   const azEach = groups.every((g) => [...g].sort().join() === g.join())
-  if (!inOrder || !azEach) fail(`order: open | yes | no ${inOrder}, A–Z in each ${azEach}`)
-  else ok(`order: ${groups[0].length} open A–Z, then ${groups[1].length} yes, then ${groups[2].length} no`)
+  if (!inOrder || !azEach) fail(`order: open | yes | no | british | vulgar ${inOrder}, A–Z in each ${azEach}`)
+  else ok(`order: ${groups[0].length} open A–Z, then ${groups[1].length} yes, ${groups[2].length} no, ${groups[3].length} british, ${groups[4].length} vulgar`)
 
-  // APT: open → yes. COCK: open → yes → no. Rows mustn't move while clicking.
+  // HELLER: open → yes. ENDER: open → yes → no. PALMER: the V button → vulgar (B / V = Muzzy's toggle marks, 2026-10-12).
+  // Rows mustn't move while clicking.
   const before = await rowWords(page)
-  await box(page, 'APT').click()
-  await box(page, 'COCK').click()
-  await box(page, 'COCK').click()
+  await box(page, 'HELLER').click()
+  await box(page, 'ENDER').click()
+  await box(page, 'ENDER').click()
+  await page.getByRole('button', { name: 'PALMER: mark Vulgar' }).click()
   const label = (w) => box(page, w).getAttribute('aria-label')
-  if (!/^APT: Yes/.test(await label('APT')) || !/^COCK: No/.test(await label('COCK'))) fail(`marks: APT "${await label('APT')}", COCK "${await label('COCK')}"`)
-  else ok('one click = yes, two = no')
+  if (!/^HELLER: Yes/.test(await label('HELLER')) || !/^ENDER: No/.test(await label('ENDER')) || !/^PALMER: Vulgar/.test(await label('PALMER'))) fail(`marks: HELLER "${await label('HELLER')}", ENDER "${await label('ENDER')}", PALMER "${await label('PALMER')}"`)
+  else ok('one click = yes, two = no, the V button = vulgar')
   if ((await rowWords(page)).join() !== before.join()) fail('rows moved while clicking')
   else ok('rows stay put until Save')
   await page.screenshot({ path: `${OUT}/words-marked.png` })
@@ -106,21 +108,21 @@ try {
   await page.getByRole('button', { name: /^Save/ }).click()
   await page.waitForFunction(() => /saved|Saved/.test(document.querySelector('.devkit-body:not([hidden]) .devkit-status')?.textContent ?? ''), null, { timeout: 30000 }).catch(() => {})
   const official = readFileSync('public/words/words.csv', 'utf8')
-  const apt = official.match(/^APT,(\d+\.\d\d)$/m)
-  if (!apt || Number(apt[1]) <= 0) fail(`words.csv has no APT with a Zipf score (${apt?.[0] ?? 'missing'})`)
-  else ok(`words.csv: APT added (${apt[0]})`)
-  if (/^COCK,/m.test(official)) fail('words.csv still has COCK')
-  else ok('words.csv: COCK taken out')
+  const apt = official.match(/^HELLER,(\d+\.\d\d)$/m)
+  if (!apt || Number(apt[1]) <= 0) fail(`words.csv has no HELLER with a Zipf score (${apt?.[0] ?? 'missing'})`)
+  else ok(`words.csv: HELLER added (${apt[0]})`)
+  if (/^(ENDER|PALMER),/m.test(official)) fail('words.csv has ENDER or PALMER')
+  else ok('words.csv: no ENDER (no) or PALMER (vulgar)')
   const submitted = readFileSync('content/words/submitted.csv', 'utf8').split('\n')
   const status = (w) => submitted.find((l) => l.startsWith(`${w},`))?.split(',')[1]
-  if (status('APT') !== 'yes' || status('COCK') !== 'no' || status('AAAGLIMMER') !== 'open') fail(`submitted.csv: APT ${status('APT')}, COCK ${status('COCK')}, AAAGLIMMER ${status('AAAGLIMMER')}`)
-  else ok('submitted.csv: APT yes, COCK no, the player word kept as open')
+  if (status('HELLER') !== 'yes' || status('ENDER') !== 'no' || status('PALMER') !== 'vulgar' || status('AAAGLIMMER') !== 'open') fail(`submitted.csv: HELLER ${status('HELLER')}, ENDER ${status('ENDER')}, PALMER ${status('PALMER')}, AAAGLIMMER ${status('AAAGLIMMER')}`)
+  else ok('submitted.csv: HELLER yes, ENDER no, PALMER vulgar, the player word kept as open')
   const sent = received.at(-1)?.changes ?? []
-  if (!sent.some((c) => c.word === 'APT' && c.status === 'yes') || !sent.some((c) => c.word === 'COCK' && c.status === 'no')) fail(`the server got ${JSON.stringify(sent)}`)
+  if (!sent.some((c) => c.word === 'HELLER' && c.status === 'yes') || !sent.some((c) => c.word === 'ENDER' && c.status === 'no') || !sent.some((c) => c.word === 'PALMER' && c.status === 'vulgar')) fail(`the server got ${JSON.stringify(sent)}`)
   else ok('the word server got the marks (with the admin key)')
   const after = await rowWords(page)
-  if (after.indexOf('APT') < after.indexOf('AAAGLIMMER') || after.indexOf('COCK') < after.indexOf('APT')) fail('the list did not re-sort after Save')
-  else ok('re-sorted after Save: APT among yes, COCK among no')
+  if (after.indexOf('HELLER') < after.indexOf('AAAGLIMMER') || after.indexOf('ENDER') < after.indexOf('HELLER') || after.indexOf('PALMER') < after.indexOf('ENDER')) fail('the list did not re-sort after Save')
+  else ok('re-sorted after Save: HELLER among yes, ENDER among no, PALMER among vulgar')
   await page.screenshot({ path: `${OUT}/words-saved.png` })
 
   // Only the game's own page may save (any other page could otherwise use the server key through the dev server)

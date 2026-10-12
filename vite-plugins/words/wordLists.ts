@@ -1,17 +1,18 @@
 // THE TWO WORD FILES, as plain functions (F70) — used by the Words tab's dev-server endpoints (wordsVite.ts).
 //   public/words/words.csv      the official list: WORD,zipf — one per line, sorted
 //   content/words/submitted.csv every word Muzzy has decided on or still has to: word,status,category,added,note
-//     status: open (not decided yet) · yes (in the official list) · no (kept out for good)
+//     status: open (not decided yet) · yes (in the official list) · no (kept out for good) · british / vulgar (out of
+//     the list until F71's Settings toggles — Dev Kit B / V)
 // Nothing here touches the disk or the network, so it's easy to test (wordLists.test.ts).
 import { csvFields } from '../../party/csv'
+import { KEPT_OUT, STATUSES, type WordStatus } from '../../party/submittedWords'
 
 export { csvFields }
 
-export type Status = 'open' | 'yes' | 'no'
+export type Status = WordStatus
 export type SubmittedRow = { word: string; status: Status; category: string; added: string; note: string }
 export type Change = { id: string; status: Status }
 
-const STATUSES: Status[] = ['open', 'yes', 'no']
 const isStatus = (value: unknown): value is Status => STATUSES.includes(value as Status)
 
 const csvField = (value: string) => (/[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value)
@@ -26,7 +27,7 @@ export function parseSubmitted(text: string): SubmittedRow[] {
   return rows
 }
 
-/** Open A–Z, then yes A–Z, then no A–Z — the order Muzzy asked for (2026-10-11). */
+/** Open A–Z, then yes A–Z, then no A–Z, then british, vulgar — the order Muzzy asked for (2026-10-11). */
 export function sortSubmitted(rows: SubmittedRow[]): SubmittedRow[] {
   return [...rows].sort((a, b) => STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status) || (a.word < b.word ? -1 : a.word > b.word ? 1 : 0))
 }
@@ -63,7 +64,7 @@ export function mergeServerRows(rows: SubmittedRow[], server: unknown[]): Submit
   return merged
 }
 
-/** Muzzy's marks → both files. yes = in the official list (with its Zipf score), no = out of it, open = left as it is. */
+/** Muzzy's marks → both files. yes = in the official list (with its Zipf score), no / british / vulgar = out of it, open = left as it is. */
 export function applyChanges(rows: SubmittedRow[], official: Map<string, string>, changes: Change[], zipfOf: (words: string[]) => Record<string, number>) {
   const byWord = new Map(rows.map((r) => [r.word, { ...r }]))
   const valid = changes.filter((c) => byWord.has(c.id) && isStatus(c.status))
@@ -72,7 +73,7 @@ export function applyChanges(rows: SubmittedRow[], official: Map<string, string>
   const adding = valid.filter((c) => c.status === 'yes' && !words.has(c.id)).map((c) => c.id)
   const scores = adding.length ? zipfOf(adding) : {}
   for (const w of adding) words.set(w, (scores[w] ?? 0).toFixed(2))
-  for (const c of valid) if (c.status === 'no') words.delete(c.id)
+  for (const c of valid) if (KEPT_OUT.includes(c.status)) words.delete(c.id)
   return { rows: [...byWord.values()], official: words, applied: valid }
 }
 

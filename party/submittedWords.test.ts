@@ -96,6 +96,16 @@ describe('POST /words/submit', () => {
     submitWord(rows, 'QQQC', official, TODAY, numbers)
     expect(rows.get('QQQC')?.status).toBe('open')
   })
+
+  it('takes the toggle marks too (British, Vulgar — Muzzy 2026-10-12), and a vulgar word sent again stays dropped', () => {
+    const rows = memoryRows()
+    submitWord(rows, 'QQQA', official, TODAY, submit)
+    submitWord(rows, 'QQQB', official, TODAY, submit)
+    expect(reviewWords(rows, [{ word: 'QQQA', status: 'vulgar' }, { word: 'QQQB', status: 'british' }])).toEqual({ changed: 2 })
+    expect(submitWord(rows, 'QQQA', official, TODAY, submit)).toEqual({ ok: true })
+    expect(rows.get('QQQA')?.status).toBe('vulgar')
+    expect(rows.get('QQQB')?.status).toBe('british')
+  })
 })
 
 describe('admin: GET /words/list and POST /words/review (Muzzy only)', () => {

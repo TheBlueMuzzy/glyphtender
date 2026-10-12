@@ -42,10 +42,10 @@ describe('the official word list (public/words/words.csv)', () => {
     expect(words.has('ZYGOTESAA')).toBe(false)
   })
 
-  it('agrees with content/words/submitted.csv: no "no" word is in the list, every "yes" word is', () => {
+  it('agrees with content/words/submitted.csv: no "no" / british / vulgar word is in the list, every "yes" word is', () => {
     expect(submitted.length).toBeGreaterThan(0)
     for (const [word, status] of submitted) {
-      if (status === 'no') expect(words.has(word), word).toBe(false)
+      if (['no', 'british', 'vulgar'].includes(status)) expect(words.has(word), word).toBe(false)
       if (status === 'yes') expect(words.has(word), word).toBe(true)
     }
   })

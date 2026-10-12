@@ -1,5 +1,6 @@
 // THE SUBMITTED WORDS LIST (F69) — every word players sent from Pause → Submit a word, plus every word kept out of the
-// official list (content/words/submitted.csv: slurs, swears, abbreviations… — F68), each Open, Yes or No.
+// official list (content/words/submitted.csv: slurs, swears, abbreviations… — F68), each Open, Yes or No — or British /
+// Vulgar: real words kept out of the list until F71's Settings toggles (British Spelling, Vulgar words — both off by default).
 // Muzzy reviews the Open ones in the Dev Kit Words tab (F70). Knows nothing about Cloudflare: the rows live wherever
 // a WordRows says — the Words Durable Object's SQLite (worker.ts) live, a plain Map in the tests.
 // The web addresses (/words/submit, /words/list, /words/review) are in ./wordsRoutes.ts.
@@ -7,8 +8,11 @@ import type { WordList } from '../src/engine/types'
 import submit from '../content/words/submit.json'
 import { csvFields } from './csv'
 
-export type WordStatus = 'open' | 'yes' | 'no'
-export const STATUSES: readonly WordStatus[] = ['open', 'yes', 'no']
+export type WordStatus = 'open' | 'yes' | 'no' | 'british' | 'vulgar'
+/** In the order the file sorts them (Muzzy 2026-10-11/12): Open, Yes, No, then the toggle words. */
+export const STATUSES: readonly WordStatus[] = ['open', 'yes', 'no', 'british', 'vulgar']
+/** Not in the official word list: No for good, British + Vulgar until their toggles exist (F71). */
+export const KEPT_OUT: readonly WordStatus[] = ['no', 'british', 'vulgar']
 
 /** One row of the list — the same columns as content/words/submitted.csv. */
 export interface SubmittedWord {

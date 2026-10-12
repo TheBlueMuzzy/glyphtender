@@ -1,25 +1,35 @@
 // The Review list tab's thinking, kept apart from its looks so it can be tested (reviewLogic.test.ts, in the framework).
 // Nothing here touches the page.
 import { matchesAll, searchTerms } from '../search/searchLogic'
-import type { ReviewChange, ReviewItem, ReviewStatus } from './reviewTypes'
+import type { ExtraMark, ReviewChange, ReviewItem, ReviewStatus } from './reviewTypes'
 
-/** One click moves a row on: Open → Yes → No → Open. */
+/** One click on a row moves it on: Open → Yes → No → Open. A row on an extra mark goes back to Open. */
 export function nextStatus(status: ReviewStatus): ReviewStatus {
   if (status === 'open') return 'yes'
   if (status === 'yes') return 'no'
   return 'open'
 }
 
-/** How each status reads on screen (and to a screen reader). */
-export const STATUS_NAMES: Record<ReviewStatus, string> = { open: 'Open', yes: 'Yes', no: 'No' }
+const BASE_NAMES: Record<string, string> = { open: 'Open', yes: 'Yes', no: 'No' }
 
-const GROUP_ORDER: Record<ReviewStatus, number> = { open: 0, yes: 1, no: 2 }
+/** How a status reads on screen (and to a screen reader): Open / Yes / No, or the extra mark's name. */
+export function statusName(status: ReviewStatus, extras: ExtraMark[] = []): string {
+  return BASE_NAMES[status] ?? extras.find((m) => m.id === status)?.name ?? status
+}
 
-/** Open first, then Yes, then No; A–Z inside each. Returns a new list (the one given is left alone). */
-export function sortReview(items: ReviewItem[]): ReviewItem[] {
+/** Sort place: Open, Yes, No, then the extra marks in the game's order; anything unknown last. */
+function groupOrder(status: ReviewStatus, extras: ExtraMark[]): number {
+  const base = ['open', 'yes', 'no'].indexOf(status)
+  if (base >= 0) return base
+  const extra = extras.findIndex((m) => m.id === status)
+  return extra >= 0 ? 3 + extra : 99
+}
+
+/** Open first, then Yes, then No, then the extra marks; A–Z inside each. Returns a new list (the one given is left alone). */
+export function sortReview(items: ReviewItem[], extras: ExtraMark[] = []): ReviewItem[] {
   return [...items].sort(
     (a, b) =>
-      GROUP_ORDER[a.status] - GROUP_ORDER[b.status] ||
+      groupOrder(a.status, extras) - groupOrder(b.status, extras) ||
       a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }) ||
       a.id.localeCompare(b.id),
   )
@@ -31,13 +41,20 @@ export type Marks = Record<string, ReviewStatus>
 /** A row's status as shown right now: its unsaved mark, else what's saved. */
 export const shownStatus = (item: ReviewItem, marks: Marks): ReviewStatus => marks[item.id] ?? item.status
 
-/** Click a row: its next status — and the mark goes away if that lands back on the saved one. */
-export function toggleMark(item: ReviewItem, marks: Marks): Marks {
-  const next = nextStatus(shownStatus(item, marks))
+/** Show this row as `status` — the mark goes away if that's the saved one. */
+function markAs(item: ReviewItem, marks: Marks, status: ReviewStatus): Marks {
   const updated = { ...marks }
-  if (next === item.status) delete updated[item.id]
-  else updated[item.id] = next
+  if (status === item.status) delete updated[item.id]
+  else updated[item.id] = status
   return updated
+}
+
+/** Click a row: its next status (Open → Yes → No → Open). */
+export const toggleMark = (item: ReviewItem, marks: Marks): Marks => markAs(item, marks, nextStatus(shownStatus(item, marks)))
+
+/** Press an extra mark's letter: the row takes that mark — or, if it already shows it, goes back to Open. */
+export function pickExtra(item: ReviewItem, marks: Marks, extra: string): Marks {
+  return markAs(item, marks, shownStatus(item, marks) === extra ? 'open' : extra)
 }
 
 /** What Save sends: only the rows that changed, in list order. */
@@ -46,15 +63,20 @@ export function listChanges(items: ReviewItem[], marks: Marks): ReviewChange[] {
 }
 
 /** After a good Save: the marks become the saved statuses, and the list sorts again. */
-export const applyChanges = (items: ReviewItem[], marks: Marks): ReviewItem[] =>
-  sortReview(items.map((item) => (item.id in marks ? { ...item, status: marks[item.id] } : item)))
+export const applyChanges = (items: ReviewItem[], marks: Marks, extras: ExtraMark[] = []): ReviewItem[] =>
+  sortReview(items.map((item) => (item.id in marks ? { ...item, status: marks[item.id] } : item)), extras)
 
-/** "412 open · 6 yes · 502 no — 3 unsaved" (counting what's shown, unsaved marks included). */
-export function countsLine(items: ReviewItem[], marks: Marks): string {
-  const counts = { open: 0, yes: 0, no: 0 }
-  for (const item of items) counts[shownStatus(item, marks)]++
+/** "412 open · 6 yes · 502 no · 14 british — 3 unsaved" (counting what's shown, unsaved marks included). */
+export function countsLine(items: ReviewItem[], marks: Marks, extras: ExtraMark[] = []): string {
+  const counts: Record<string, number> = { open: 0, yes: 0, no: 0 }
+  for (const m of extras) counts[m.id] = 0
+  for (const item of items) {
+    const now = shownStatus(item, marks)
+    counts[now] = (counts[now] ?? 0) + 1
+  }
+  const parts = [`${counts.open} open`, `${counts.yes} yes`, `${counts.no} no`, ...extras.map((m) => `${counts[m.id]} ${m.name.toLowerCase()}`)]
   const unsaved = Object.keys(marks).length
-  const line = `${counts.open} open · ${counts.yes} yes · ${counts.no} no`
+  const line = parts.join(' · ')
   return unsaved > 0 ? `${line} — ${unsaved} unsaved` : line
 }
 
@@ -66,10 +88,10 @@ export function searchReview(items: ReviewItem[], query: string): ReviewItem[] {
 }
 
 /** Copy for Claude: the unsaved changes in plain words (the live build can't save, so this is how they get kept). */
-export function reviewForClaude(game: string, tab: string, items: ReviewItem[], marks: Marks, liveBuild: boolean): string {
+export function reviewForClaude(game: string, tab: string, items: ReviewItem[], marks: Marks, liveBuild: boolean, extras: ExtraMark[] = []): string {
   const changes = items.filter((item) => item.id in marks)
   if (changes.length === 0) return `No unsaved ${tab} review changes in the Dev Kit (${game}).`
   const status = liveBuild ? 'marked in the live build, NOT saved — please write them in' : 'NOT saved yet'
-  const lines = changes.map((item) => `- ${item.label}: ${STATUS_NAMES[item.status]} → ${STATUS_NAMES[marks[item.id]]}`)
+  const lines = changes.map((item) => `- ${item.label}: ${statusName(item.status, extras)} → ${statusName(marks[item.id], extras)}`)
   return [`${tab} review changes from the Dev Kit (${game}) — ${status}:`, ...lines].join('\n')
 }

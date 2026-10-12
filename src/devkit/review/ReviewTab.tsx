@@ -1,5 +1,7 @@
 // REVIEW LIST TOOL — a list of things to look at one by one and mark Open / Yes / No (Glyphtender: submitted words).
 //   Each row is one button: click it (or Space / Enter) and its box goes Open (empty) → Yes (✓) → No (✗) → Open.
+//   A game's extra marks (extraMarks, e.g. B = British, V = vulgar) are small letter buttons at the row's end: press one
+//   and the box shows that letter; press it again = back to Open. They sort after No, in the game's order.
 //   Order: Open first, then Yes, then No, A–Z inside each. The list does NOT move while you click (rows never jump
 //   under the cursor) — it sorts again when it loads and after a Save. A dot = changed, not saved yet.
 //   Save hands the game ONLY the changed rows (its save(changes)). If that fails, the reason shows and the changes stay.
@@ -10,9 +12,9 @@ import { CAN_SAVE, copyText } from '../saveContent'
 import { Highlight, SearchCount } from '../search/Section'
 import { searchTerms } from '../search/searchLogic'
 import {
-  applyChanges, countsLine, listChanges, nextStatus, reviewForClaude, searchReview, shownStatus, sortReview, STATUS_NAMES, toggleMark, type Marks,
+  applyChanges, countsLine, listChanges, nextStatus, pickExtra, reviewForClaude, searchReview, shownStatus, sortReview, statusName, toggleMark, type Marks,
 } from './reviewLogic'
-import type { ReviewItem, ReviewTabOptions } from './reviewTypes'
+import type { ExtraMark, ReviewItem, ReviewTabOptions } from './reviewTypes'
 import './review.css'
 
 type Status = { kind: 'ok' | 'error' | 'info'; text: string }
@@ -21,9 +23,12 @@ type Props = Omit<ReviewTabOptions, 'id'> & {
   query?: string // the Dev Kit search box's text (DevKit.tsx passes it while this tab is open); '' = show everything
 }
 
-const BOX_MARK = { open: '', yes: '✓', no: '✗' } // what the box shows for each status
+const BOX_MARK: Record<string, string> = { open: '', yes: '✓', no: '✗' } // what the box shows (an extra mark shows its letter)
+const NO_EXTRAS: ExtraMark[] = []
 
-export function ReviewTab({ label, load, save, what = 'item', query = '' }: Props) {
+export function ReviewTab({ label, load, save, what = 'item', extraMarks = NO_EXTRAS, query = '' }: Props) {
+  const extras = extraMarks
+  const nameOf = (status: string) => statusName(status, extras)
   const [items, setItems] = useState<ReviewItem[] | null>(null) // as saved, in the order shown (null = loading)
   const [loadProblem, setLoadProblem] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0) // Retry bumps it, which loads again
@@ -36,13 +41,13 @@ export function ReviewTab({ label, load, save, what = 'item', query = '' }: Prop
   useEffect(() => {
     let live = true
     load().then(
-      (list) => live && setItems(sortReview(list)),
+      (list) => live && setItems(sortReview(list, extras)),
       (e: unknown) => live && setLoadProblem(e instanceof Error ? e.message : String(e)),
     )
     return () => {
       live = false
     }
-  }, [load, attempt])
+  }, [load, attempt, extras])
 
   function retry() {
     setLoadProblem(null)
@@ -68,9 +73,9 @@ export function ReviewTab({ label, load, save, what = 'item', query = '' }: Prop
     setStatus({ kind: 'info', text: 'Saving…' })
     try {
       await save(changes)
-      setItems(applyChanges(items, marks)) // the marks become the saved statuses, and the list sorts again
+      setItems(applyChanges(items, marks, extras)) // the marks become the saved statuses, and the list sorts again
       setMarks({})
-      setStatus({ kind: 'ok', text: `Saved ${changes.length} — sorted again (Open · Yes · No).` })
+      setStatus({ kind: 'ok', text: `Saved ${changes.length} — sorted again (${['Open', 'Yes', 'No', ...extras.map((m) => m.name)].join(' · ')}).` })
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save — your changes are still here: ${e instanceof Error ? e.message : String(e)}` })
     } finally {
@@ -80,7 +85,7 @@ export function ReviewTab({ label, load, save, what = 'item', query = '' }: Prop
 
   async function copyForClaude() {
     if (!items) return
-    const text = reviewForClaude(document.title, label, items, marks, !CAN_SAVE)
+    const text = reviewForClaude(document.title, label, items, marks, !CAN_SAVE, extras)
     if (await copyText(text)) {
       setCopyFallback(null)
       setStatus({ kind: 'ok', text: 'Copied — paste it into your chat with Claude.' })
@@ -96,10 +101,10 @@ export function ReviewTab({ label, load, save, what = 'item', query = '' }: Prop
   return (
     <div className="rv">
       <SearchCount query={query} found={shown.length} what={what} where={label} />
-      <p className="rv-counts" role="status">{countsLine(items, marks)}</p>
+      <p className="rv-counts" role="status">{countsLine(items, marks, extras)}</p>
       {terms.length === 0 && (
         <p className="rv-legend">
-          Click to change: ☐ open → ✓ yes → ✗ no · <span className="dk-dot" /> = not saved yet · sorts again after Save
+          Click to change: ☐ open → ✓ yes → ✗ no{extras.map((m) => ` · ${m.letter} = ${m.name.toLowerCase()}`).join('')} · <span className="dk-dot" /> = not saved yet · sorts again after Save
         </p>
       )}
       {items.length === 0 && <p className="devkit-not-plugged">Nothing to review yet.</p>}
@@ -116,16 +121,30 @@ export function ReviewTab({ label, load, save, what = 'item', query = '' }: Prop
                 data-status={now}
                 disabled={saving}
                 onClick={() => setMarks((m) => toggleMark(item, m))}
-                aria-label={`${item.label}: ${STATUS_NAMES[now]} (click for ${STATUS_NAMES[nextStatus(now)]})${changed ? ', not saved yet' : ''}`}
-                title={`${STATUS_NAMES[now]} — click for ${STATUS_NAMES[nextStatus(now)]}`}
+                aria-label={`${item.label}: ${nameOf(now)} (click for ${nameOf(nextStatus(now))})${changed ? ', not saved yet' : ''}`}
+                title={`${nameOf(now)} — click for ${nameOf(nextStatus(now))}`}
               >
-                <span className="rv-box" aria-hidden="true">{BOX_MARK[now]}</span>
+                <span className="rv-box" aria-hidden="true">{BOX_MARK[now] ?? extras.find((m) => m.id === now)?.letter ?? '?'}</span>
                 <span className="rv-text">
                   <span className="rv-label"><Highlight text={item.label} terms={terms} /></span>
                   {item.detail && <span className="rv-detail"><Highlight text={item.detail} terms={terms} /></span>}
                 </span>
                 {changed && <span className="dk-dot" title="Changed, not saved yet" />}
               </button>
+              {extras.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className="rv-extra"
+                  aria-pressed={now === m.id}
+                  disabled={saving}
+                  onClick={() => setMarks((marks) => pickExtra(item, marks, m.id))}
+                  aria-label={`${item.label}: ${now === m.id ? `${m.name} — press for Open` : `mark ${m.name}`}`}
+                  title={now === m.id ? `${m.name} — press again for Open` : `Mark ${m.name}`}
+                >
+                  {m.letter}
+                </button>
+              ))}
             </li>
           )
         })}

@@ -17,7 +17,7 @@ import { registerDevKitGame } from '../devkit/devkitGame'
 import { soundTab } from '../devkit/sound/soundTabEntry'
 import { glyphtenderAi } from './aiDevKit'
 import { glyphtenderAdapter } from './glyphtenderAdapter'
-import { loadWords, saveWordMarks } from './wordsDevKit'
+import { loadWords, saveWordMarks, WORD_TOGGLES } from './wordsDevKit'
 
 // Plugs Glyphtender into the Dev Kit's Snapshots + Bug capture tabs (this file only loads with the Dev Kit)
 registerDevKitGame(glyphtenderAdapter)
@@ -25,5 +25,5 @@ registerDevKitGame(glyphtenderAdapter)
 export const gameTabs: DevKitTab[] = [
   aiTab(glyphtenderAi),
   soundTab(getAudio, { file: audioJson }),
-  reviewTab({ id: 'words', label: 'Words', what: 'word', load: loadWords, save: saveWordMarks }),
+  reviewTab({ id: 'words', label: 'Words', what: 'word', load: loadWords, save: saveWordMarks, extraMarks: WORD_TOGGLES }),
 ]

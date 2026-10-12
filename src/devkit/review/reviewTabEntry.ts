@@ -5,6 +5,7 @@
 //   export const gameTabs = [reviewTab({ id: 'words', label: 'Words', what: 'word', load: loadWords, save: saveWordMarks })]
 //
 // load() gives every row as saved now ({ id, label, status: 'open' | 'yes' | 'no', detail? }, reviewTypes.ts);
+// extraMarks (optional): the game's marks beyond Open / Yes / No, e.g. [{ id: 'british', letter: 'B', name: 'British' }].
 // save(changes) gets only the rows Muzzy changed ({ id, status }[]) and writes them however the game keeps them.
 // Both throw (or reject) with a plain reason if they can't — the tab shows it.
 import { createElement } from 'react'
@@ -13,11 +14,11 @@ import { ReviewTab } from './ReviewTab'
 import type { ReviewTabOptions } from './reviewTypes'
 
 export function reviewTab(options: ReviewTabOptions): DevKitTab {
-  const { id, label, load, save, what } = options
+  const { id, label, load, save, what, extraMarks } = options
   return {
     id,
     label,
     // The Dev Kit hands the open tab its search text as `query` (this tab filters its rows by label and detail)
-    Panel: ({ query }) => createElement(ReviewTab, { label, load, save, what, query }),
+    Panel: ({ query }) => createElement(ReviewTab, { label, load, save, what, extraMarks, query }),
   }
 }

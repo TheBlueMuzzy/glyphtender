@@ -22,11 +22,16 @@ Done when: the Dev Kit Words tab lists the submitted list with a 3-state box per
 - [x] 🤖 1. Framework first (Dev Kit 0.11.0, framework 451fd1c): devkit "review list" tab — 3-state rows, search, sort on save (framework devkit, VERSION bump, its checks)
 - [x] 🤖 2. Glyphtender plug: loads from Cloudflare, Save → Cloudflare + words.csv (Yes words, wordfreq Zipf) + submitted.csv
 - [x] 🤖 3. e2e: the tab (e2e:words-tab) (toggle, sort, search, save)
-- [ ] 🙋 4. Muzzy: first pass through the Open words (audit forms + "both" words)
+- [x] 🤖 4. Claude's passes through the Open words with Muzzy's rules (d7ec38a, e218559, + this): 452 → 20 open
+- [x] 🤖 5. Dev Kit 0.12.0 (framework 7dd00f3): the review tab takes a game's extra marks — B = British, V = vulgar (letter buttons per row, sort after No); game + server statuses british / vulgar (kept out of words.csv until F71); e2e:words-tab presses V
+- [x] 🤖 6. Full British list: SCOWL wbritish minus wamerican → 1,480 British spellings as B (+ PILLOCK, PRAT, MINGER); British swears as V (ARSE, BOLLOCKS, BUGGER, TOSSER…); DREAMT + BURQA yes
+- [ ] 🙋 7. Muzzy: the last Open words (16 slur-or-word + HELLER?, SKEETER, PALMER — the e2e flips HELLER/ENDER/PALMER only on its own copy)
 
 Check: npm run check:full + the new e2e · words.csv SHA test updated with a logged commit · AI signoff re-run.
 Ask Muzzy: —
 Notes:
+- Word rules (Muzzy 2026-10-12): it's a spelling game — a word's ordinary -S / -ED / -ING forms are in if the word is. Only correct spellings (ACCIDENTLY no). Plurals that aren't normally counted out (ADVICES, EQUIPMENTS, INFORMATIONS, FEEDBACKS) — but LEARNINGS-type real usage in. Names that are also words in (JAPAN = japanning). British spellings + vulgar words: real, but behind Settings toggles (F71, both off by default); British swears are V, not B ("swears are generally universal"). "If you're unsure, leave it for me."
+- Second-pass slip, fixed: filing swears as vulgar overwrote their notes (COCK "rooster") — e2e:words-tab's search caught it; notes restored from d7ec38a.
 - F69 + F70 built (2026-10-12 overnight, auto — Muzzy: "I'm going to bed. auto until you finish this"). Full check at daa03eb: 25/30, the 5 fails were the change itself — Pause row label wrapped on phones (pass, pass4 → row now always pressable, its screen says "Place a seed first…"), the 8th Dev Kit tab pushed the desktop row into a carousel (margins, devkit-ai → Dev Kit 0.11.1 panel 480 px; devkit-ai finds its tab on any page), screenshots = meant (Pause row, credit line; re-recorded). Re-run of those 5: ALL PASS. Code review (b770d16..daa03eb): 3 real bugs fixed in 61e683f — Words Save accepted any web page (now Origin = Host + JSON only, like the Dev Kit Save), a failed send of marks was never re-sent (every Save now re-sends what the server disagrees with — else its open count only grows and it stops taking words at 5000), server + Dev Kit read quoted CSV notes differently (one reader, party/csv.ts). Round trip on a local server: submit GLIMMEROUS → Words tab shows it open → Yes → words.csv + the server both say yes.
 - At 768×343 the picker shows 2 choices and scrolls for the rest (Back always in sight) — fine for now.
 - Local setup on the PC (gitignored): `.dev.vars` + `.env.local` hold the same WORDS_ADMIN_KEY; `.env.local` WORDS_SERVER points at the PC's own server (127.0.0.1:1997 — "localhost" can miss it on Windows) until /deliver, which sets the live secret (`npx wrangler secret put WORDS_ADMIN_KEY`, same key) and removes that WORDS_SERVER line.
