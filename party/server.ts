@@ -18,7 +18,7 @@ import wordsText from './words.gen.txt'
 
 // Read once per server copy, the first time a game needs it (~0.9 MB of text → a few ms)
 let words: WordList | null = null
-const loadWords = () => (words ??= parseWordList(wordsText))
+export const loadWords = () => (words ??= parseWordList(wordsText))
 
 const rules = makeRules({ words: loadWords })
 

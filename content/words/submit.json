@@ -1,0 +1,14 @@
+{
+  "_help": {
+    "minLetters": "Pause → Submit a word: the fewest letters a submitted word may have (Muzzy 2026-10-11: 3 — the 2-letter words are settled by Scrabble). Shorter stretches show \"Submitted words must be 3 or more letters\"; the server refuses them too.",
+    "maxLetters": "The most letters a submitted word may have — the longest word the board can hold (the word list stops at 15 too).",
+    "pickerMax": "How many stretches of letters the Submit a word picker lists at most (longest first).",
+    "maxOpenPlayerWords": "The online server keeps at most this many player-submitted words waiting (Open) for Muzzy's review; past it, new ones are dropped (the player still sees \"Word submitted\"). Stops a flood filling the list. The server bundles this file: a change needs a server rebuild.",
+    "queueMax": "Words a device keeps to send later when it's offline (oldest dropped past this)."
+  },
+  "minLetters": 3,
+  "maxLetters": 15,
+  "pickerMax": 8,
+  "maxOpenPlayerWords": 5000,
+  "queueMax": 20
+}
