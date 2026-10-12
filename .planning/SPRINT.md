@@ -25,10 +25,18 @@ Done when: the Dev Kit Words tab lists the submitted list with a 3-state box per
 - [x] 🤖 4. Claude's passes through the Open words with Muzzy's rules (d7ec38a, e218559, + this): 452 → 20 open
 - [x] 🤖 5. Dev Kit 0.12.0 (framework 7dd00f3): the review tab takes a game's extra marks — B = British, V = vulgar (letter buttons per row, sort after No); game + server statuses british / vulgar (kept out of words.csv until F71); e2e:words-tab presses V
 - [x] 🤖 6. Full British list: SCOWL wbritish minus wamerican → 1,480 British spellings as B (+ PILLOCK, PRAT, MINGER); British swears as V (ARSE, BOLLOCKS, BUGGER, TOSSER…); DREAMT + BURQA yes
-- [ ] 🙋 7. Muzzy: the last Open words (16 slur-or-word + HELLER?, SKEETER, PALMER — the e2e flips HELLER/ENDER/PALMER only on its own copy)
+- [x] 🙋 7. Muzzy: the last Open words (done 2026-10-12, 2565dcb — 0 open) (16 slur-or-word + HELLER?, SKEETER, PALMER — the e2e flips HELLER/ENDER/PALMER only on its own copy)
 
 Check: npm run check:full + the new e2e · words.csv SHA test updated with a logged commit · AI signoff re-run.
 Ask Muzzy: —
+## F71 ⚙️ Word toggles (Muzzy 2026-10-12: "yes on settings. go.")
+Done when: Settings has British Spelling + Vulgar Words switches (off by default); on = those words count for scoring, the preview and the AI; a game keeps the settings it started with; online the host's settings rule the room and the lobby says so.
+- [ ] 🤖 1. Word files: british.csv + vulgar.csv (WORD,zipf) kept in step with submitted.csv by the Words tab Save; tests
+- [ ] 🤖 2. Engine + store: the game's word list = official + the switched-on extras, fixed at game start; AI uses it
+- [ ] 🤖 3. Settings rows + en.json words; online: host's settings in the room, lobby line; server word lists
+- [ ] 🤖 4. Tests + e2e (British on → COLOUR scores; online host → guest), GDD/TDD
+- [x] 🤖 5. AI skill levels on the new list: Zipf cut-offs are absolute (same wordfreq scale) — counts 3 → 21,827, 2 → 44,471, all 64,147; arena + ladder re-run
+
 Notes:
 - Word rules (Muzzy 2026-10-12): it's a spelling game — a word's ordinary -S / -ED / -ING forms are in if the word is. Only correct spellings (ACCIDENTLY no). Plurals that aren't normally counted out (ADVICES, EQUIPMENTS, INFORMATIONS, FEEDBACKS) — but LEARNINGS-type real usage in. Names that are also words in (JAPAN = japanning). British spellings + vulgar words: real, but behind Settings toggles (F71, both off by default); British swears are V, not B ("swears are generally universal"). "If you're unsure, leave it for me."
 - Second-pass slip, fixed: filing swears as vulgar overwrote their notes (COCK "rooster") — e2e:words-tab's search caught it; notes restored from d7ec38a.

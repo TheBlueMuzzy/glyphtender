@@ -8,7 +8,7 @@
     "topN": "…and picks among at most this many of them, weighted by how good they are. Fewer = sharper.",
     "wobble": "0–1: widens every trait range around its centre — a less skilled player is less consistent.",
     "beliefNoise": "0–1: how blurry its guess of everyone's secret Magic is. Higher = misreads who's winning more often (and calls the game wrong more often).",
-    "extras.zipf": "Vocabulary: it only AIMS for words at least this common (Zipf score; 3 ≈ 22k words, 2 ≈ 44k, 0 = all 63k). The personality's vocabulary modifier is added. Any word it makes by accident still counts."
+    "extras.zipf": "Vocabulary: it only AIMS for words at least this common (Zipf score; 3 ≈ 22k words, 2 ≈ 44k, 0 = all 64k — plus British / vulgar words when their Settings switches are on). The personality's vocabulary modifier is added. Any word it makes by accident still counts."
   },
   "_labels": {
     "id": "Name (code)",
