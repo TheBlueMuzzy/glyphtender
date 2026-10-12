@@ -68,6 +68,7 @@ flowchart LR
 - **Glyphtender's messages** ride inside it (`party/protocol.ts`): player → `{ kind: 'play', action, version }` or `{ kind: 'sync' }`; server → a `GameView` `{ gameId, version, mySeat, names, change, by, game, turnEndsAt, results }`. `game` is GameState-shaped (the store, board, previews and danger cues work unchanged): other hands and the bag are '?' × count, rng + seed 0, every Magic zeroed until `phase: 'over'`; then `game` is the whole truth and `results.stats` the end table (gathered on the server).
 - **Server checks** (`glyphtenderRules.ts`): shape (the rooms checks helpers) → a seat in this game → its turn → `version` = the server's → the engine's `checkAction` → `applyAction`. Every refusal is a plain-English Error; the state is unchanged.
 - **The server's own turns** (`turnClock.ts`, F43 / D79): the real AI plays them — `aiAction` asks `seatBrain.ts` (the same thinking as the phone's worker) with ONLY `viewFor(game, seat)`, checks the answer with the rules, and falls back to the greedy bot ("keep all" on a refresh) if the AI fails, logged. A bot seat plays one action per paced step (`pace.json` Normal: draft · move + cast · refresh — the refresh is its own step); a timed-out or idle person's seat goes to the bot until they tap (D83). Which AI: a host-added seat's room `profile` ("Scholar/Archmage", `party/aiSeats.ts`), else `defaultAi` (Survivor at First Class). The pauses come from their own secret number (`ServerGame.paceRng`, never sent). The host adds AI seats in the lobby: rooms `add_bot` carries the profile, `botProfile` checks it and names the seat after the personality ("The Survivor", "The Survivor 2"). Tests: server.test (the AI seat's requests = exactly its view, never the log; lobby profiles; pace; fallback) · `npm run e2e:online-ai`.
+- **Submitted words (F69, D90)** — Pause → **Submit a word** (greyed "· place a seed first" until a seed is placed, not cast) → `src/ui/SubmitWordScreen.tsx`, a kit Modal listing the stretches through the planned seed (`store/submitChoices.ts` on the engine's `stretchesThrough` — same leylines and reading direction as findWords; not words, 3+ letters, longest first, ≤ 8; only 2-letter ones → "Submitted words must be 3 or more letters"). A tap → `src/ui/online/wordOutbox.ts`: `POST <party host>/words/submit {word}` (text/plain, no CORS preflight) → always "Word submitted"; unreachable / offline / no server → kept in localStorage (`glyphtender:wordsToSend`, ≤ queueMax) and sent on the next app start + the `online` event. Server: `party/worker.ts` sends `/words/*` to ONE Durable Object, **`Words`** (named "submitted", its own SQLite table `words`; wrangler.json binding + migration v2; `/parties/words/…` is shut), which fills itself from the bundled `content/words/submitted.csv` on first use. The rules + addresses are Cloudflare-free (`party/submittedWords.ts`, `party/wordsRoutes.ts`; tests `party/submittedWords.test.ts`): `POST /words/submit` (A–Z, ≤ 15 letters, body ≤ 1 KB; < 3 → 400 `too-short`; in the official list or on the list already, any status → `{ok:true}` and nothing added; else Open · category player · today; past `maxOpenPlayerWords` Open player rows → ok + dropped; CORS open on this route only) · admin `GET /words/list` → `{ words }` · `POST /words/review {changes:[{word,status}]}` → `{ ok, changed }`, both need `Authorization: Bearer <WORDS_ADMIN_KEY>` (constant-time compare; no key on the server = 403, wrong = 401; no CORS). Local key: gitignored `.dev.vars` (`WORDS_ADMIN_KEY=…`); live: `npx wrangler secret put WORDS_ADMIN_KEY` at /deliver. e2e: `npm run e2e:submit-word` (ports 5435 / 1989).
 - **Word list on the server**: bundled as text. esbuild has no .csv loader, so `scripts/server-words.mjs` copies `public/words/words.csv` → `party/words.gen.txt` (gitignored) before every build (`wrangler.json` → `build.command`; `rules` reads .txt as Text). Server bundle **915 KB minified / 293 KB gzipped** (Workers free limit: 3 MB gzipped).
 - **Device**: my seat plans exactly as pass-and-play; Cast posts at once and the throw flies; the view is applied when the seed lands (if it's late, it asks again every 3 s). Other seats' turns replay on the old view (glide → throw after `glideSeconds` → land → new view + sprout), queued in order. No handoff online. A reload goes straight back to the seat (room code in sessionStorage). Party host = `VITE_PARTY_HOST`, else the page's host + wrangler.json's dev port.
 - **Screens**: main menu → Play online → name + Create / Join (kit Lobby) → lobby (kit Lobby + the host's options: Garden Auto/Small/Large, 2-letter words, Turn timer, Word indicators) → the game → end table (New game = the host takes everyone to the lobby, where the host starts again; a guest's New game says "Waiting for the host…" · Menu = leave). Sprint 06 removed Play again. Connection lost → the kit's Reconnecting box.
@@ -112,6 +113,9 @@ flowchart LR
 | `content/ai/feel-targets.json` | each personality's feel targets (D72): `personalities.<Id>` = [{ meter (src/ai/meters.ts), op `>=` `<=` `tableBest` `tableWorst` `nearAverage` `neverExtreme`, value?, label }] + `all` = [{ check, min?, max?, label }] | Dev Kit → AI / Obsidian |
 | `content/ai/pace.json` | think times per action kind (draft, moveCast, refresh: min/max s), speeds (slow 0.5 · normal 1 · fast 2 · instant 0 = no wait), timeBudgetMs. Tuning-tab format (_labels/_sections/_ranges by path), edited in the AI tab's "AI: pace" section (plugged in as a settings file; Watch reads its think times) | Dev Kit → AI / Obsidian |
 | `content/credits.json` | fonts, word list, sounds | Dev Kit → Sound (Add to credits) / organize-assets |
+| `content/words/submitted.csv` | every word kept out of the official list (F68) — word, status open/yes/no, category, added, note; seeds the server's submitted list on first use (F69) | Dev Kit → Words (F70) / Obsidian |
+| `content/words/submit.json` | Submit a word (F69): minLetters 3, maxLetters 15, pickerMax 8 (picker rows), maxOpenPlayerWords 5000 (server cap on waiting player words), queueMax 20 (offline words kept on a device). The server bundles it: a change needs a server rebuild | Obsidian |
+| server: `Words` Durable Object | the live submitted list (SQLite table `words`, same columns as submitted.csv) — players' new words land here as Open | Dev Kit → Words (F70) via `/words/list` + `/words/review` |
 
 ## 4. Standards
 - **Folders:** `src/engine` (rules, pure + tests) · `src/store` (incl. seats) · `src/game` (board, tray, layout) · `src/screens` (kit screens wired up) · `src/ui/kit` (installed, never edited) · `src/devkit` (installed) · `src/devkit-game` (our tabs) · `party/` · `content/` · `public/art` · `sketches/` (prototypes — throwaway) · `e2e/`.
@@ -138,7 +142,8 @@ flowchart LR
 - Pass-and-play is on trust (it's one device).
 - Dev Kit tools that affect play (Snapshots restore, bag editing) are offline-only: the adapter's `canRestore` is false in an online game and the dev hook's `playRest` / `playUntilDanger` do nothing (the server owns the game).
 - Online input checks: the rooms module refuses junk and messages over 16 KB; Glyphtender's checks refuse wrong shapes, other seats, stale versions and illegal moves. Names are trimmed to 16 characters. The persistentId (which owns a seat) is never sent to other players.
-- No secrets in the repo; `.env` gitignored.
+- No secrets in the repo; `.env` and `.dev.vars` gitignored.
+- Submitted words (F69): anyone may POST a word (size + A–Z checked, the Open pile capped); reading or changing the list needs WORDS_ADMIN_KEY (a Worker secret, never in the game's code) — only the Dev Kit's dev server sends it.
 
 ## 7. Compliance & legal (general audience — not made for kids)
 - [ ] Privacy policy page (`public/privacy.html`, as Roll Better)
@@ -151,6 +156,18 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D90 · 2026-10-12 · Submitted words live in their own Durable Object on the rooms server (F69)
+  Proposed by: Muzzy ("This all lives on cloudflare") + Claude   Options: a KV namespace · D1 · a Durable Object
+  (SQLite) on the existing worker · a separate worker
+  Chose: a `Words` Durable Object on the same worker (wrangler migration v2), ONE copy named "submitted", its rows in
+  SQLite, seeded from the bundled submitted.csv when empty. No new service or account setup, strongly consistent (a
+  repeat check can't race), and the rules + web addresses are plain functions (submittedWords.ts / wordsRoutes.ts)
+  tested without Cloudflare, like server.ts vs worker.ts. The player always sees "Word submitted" (Muzzy); admin
+  routes behind a Worker secret with no CORS, for the Dev Kit's server only (F70). Offline words wait in localStorage.
+  The picker offers every non-word stretch through the planned seed (not only whole runs) so a player can pick the
+  word they meant inside a longer line. Seeding happens once: later edits to submitted.csv reach the live list
+  through the Dev Kit Words tab (F70), not by redeploying.
+
 D89 · 2026-10-10 · Tray reorder can SWAP two seeds (F64)
   Proposed by: Muzzy ("we can also add a 'swap places' version")   Options: slide in (moveInRack) + marker / room /
   none · swap
