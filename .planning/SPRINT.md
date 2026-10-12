@@ -20,8 +20,8 @@ Done when: Pause → Submit a word lists the 3+ letter non-word stretches throug
 ## F70 🔧 Dev Kit Words tab
 Done when: the Dev Kit Words tab lists the submitted list with a 3-state box per word (Open → Yes → No), Open on top, Save re-sorts A–Z Open | Yes | No, search works, and Save writes Cloudflare + words.csv (Yes, with Zipf) + submitted.csv.
 - [x] 🤖 1. Framework first (Dev Kit 0.11.0, framework 451fd1c): devkit "review list" tab — 3-state rows, search, sort on save (framework devkit, VERSION bump, its checks)
-- [ ] 🤖 2. Glyphtender plug: loads from Cloudflare, Save → Cloudflare + words.csv (Yes words, wordfreq Zipf) + submitted.csv
-- [ ] 🤖 3. e2e: the tab (toggle, sort, search, save)
+- [x] 🤖 2. Glyphtender plug: loads from Cloudflare, Save → Cloudflare + words.csv (Yes words, wordfreq Zipf) + submitted.csv
+- [x] 🤖 3. e2e: the tab (e2e:words-tab) (toggle, sort, search, save)
 - [ ] 🙋 4. Muzzy: first pass through the Open words (audit forms + "both" words)
 
 Check: npm run check:full + the new e2e · words.csv SHA test updated with a logged commit · AI signoff re-run.
