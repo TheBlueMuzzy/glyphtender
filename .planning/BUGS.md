@@ -1,5 +1,5 @@
 # Glyphtender — Bugs
-Open: 5 (P0 0 · P1 0 · P2 2 · P3 3)
+Open: 4 (P0 0 · P1 0 · P2 2 · P3 2)
 ## Open
 ### B025 · P3 · watching · found 2026-10-09 by check:full (sprint 19, dev/audio) · e2e:game desktop (test, not the game as far as known)
 Steps: `npm run check:full` (3 checks at a time) · Expected: game-shots desktop 12-pause / 14-flipped show the game in play · Actual: 2 of 4 loaded runs found the game already in the Magic reveal (Skip shown, tray 0 px) after the indicators-off cast — the danger garden ended the game. Alone: passes; the last full run: 23/23 PASS; the same 3 checks on main passed once. No Math.random use on the branch (audio has its own dice). Suspect: playUntilDanger(3 + tries) + timing under load picks a garden where the cast tangles the last glyphling. Next time it fails: save the store state at 13-indicators-off.
@@ -12,14 +12,15 @@ Steps: `node e2e/online-shots.mjs` (or check:full) · Expected: passes · Actual
 ### B009 · P2 · can't reproduce (Muzzy's device OK 2026-09-30 — test-only touch emulation) · found 2026-09-30 by e2e:game while fixing B008 · v0.0.0.2 · e2e phones (touch emulation)
 The first tap on Cast after a touch drag isn't heard (phone sizes in e2e:game)
 Steps: e2e:game phone-tall/phone-wide turn 2 — drag the glyphling by finger (CDP touch), aim a seed, tap Cast · Expected: the seed is thrown · Actual: pointerdown/pointerup/touchend reach the button but the browser sends no click, so turn 2 never casts on phones and the next "turn" finishes it (hidden until now; desktop is fine, and with no touch drag first the tap works). Not known yet whether a real phone does this or it's the test's touch emulation — check on a phone: drag a glyphling, drag/tap a seed onto a hex, tap Cast once
-### B001 · P3 · open · found 2026-09-30 in F05 · v0.0.0 · word list data
+### B004 · P3 · open · found 2026-09-30 in F08
+Dragging a seed only to reorder the tray (mid-turn, after a move) leaves it picked up with gold hexes lit, and cancels an existing aim. Design question: should a reorder drag drop the selection?
+## Fixed (newest first)
+### B001 · P3 · fixed 2026-10-11 (sprint 25, F68) · Guarded by: src/engine/words.test.ts (ZYGOTES in, ZYGOTESAA out) · found 2026-09-30 in F05 · v0.0.0 · word list data
 ZYGOTES isn't a word; "ZYGOTESAA" is
 Steps: play ZYGOTES · Expected: scores · Actual: not in the list; the list has `ZYGOTESAA,0.00` instead.
 Cause: the original's "+218 missing words" commit (8522a373, 2025-12-22) appended "AA…" to a file whose last line (ZYGOTES) had no newline, gluing them together. AA itself is also in the list (AA,4.01), so only ZYGOTES is lost.
 Fix waiting on Muzzy (precious data — never changed without his OK): split the line into `ZYGOTES` (Zipf from the original 5353eaca list, or 0.00) and drop the duplicate AA. Related question: the list ends with 7 later additions — AIDS, AWOL, CHINA, FRENCH, JAPAN, MOROCCO, ROMAN (proper nouns/abbreviations the cleanup removed elsewhere) — keep?
-### B004 · P3 · open · found 2026-09-30 in F08
-Dragging a seed only to reorder the tray (mid-turn, after a move) leaves it picked up with gold hexes lit, and cancels an existing aim. Design question: should a reorder drag drop the selection?
-## Fixed (newest first)
+Fixed: the list is rebuilt by scripts/words/build-submitted.py — ZYGOTES is back (Zipf 1.81), ZYGOTESAA and the duplicate AA are gone; the 7 tail words (AIDS, AWOL, CHINA, FRENCH, JAPAN, MOROCCO, ROMAN) are sorted in and wait in the Words tab as Open ("name or word") for Muzzy.
 ### B019 · P2 · fixed 2026-10-11 in 5a734f6 (sprint 24, F67) · Guarded by: e2e/layout-margins.mjs (768×343 added: the prompt ≥ 4 px under the turn bar, nothing spills, Pause opened by a real tap) + e2e/shots.mjs (real tap on ☰, the click workaround removed) — short browser window 768×343
 Cause: beside the board the side panel's contents were up to 39 px taller than its row on short screens, and the panel CENTRES them, so the overflow rose under the turn portrait and ☰. Fix: a short side layout (free height < layout.json sideShortHeight 500) lays the seeds in ONE row in a wider column (≤ sideShortMaxShare 0.55 of the width) — about half the height; the panel centres "safely" (justify-content: safe center), so anything too tall hangs downward, never into the turn bar.
 In a short window the prompt's words run over the ☰ Menu button and the turn portrait, so a tap on ☰ lands on the prompt

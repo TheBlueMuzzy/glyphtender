@@ -8,24 +8,29 @@ const file = readFileSync(new URL('../../public/words/words.csv', import.meta.ur
 const words = parseWordList(file.toString('utf8'))
 const atLeast = (z: number) => [...words.values()].filter((v) => v >= z).length
 
+// The list as cleaned in F68 (sprint 25, 2026-10-11, scripts/words/build-submitted.py): the original's words.txt
+// (git blob 3280512a) with slurs + swears out, six lost words back and ZYGOTESAA split (B001) — every word kept
+// out is in content/words/submitted.csv with its category. Changes are deliberate commits: update the hash here.
+const submitted = readFileSync(new URL('../../content/words/submitted.csv', import.meta.url), 'utf8')
+  .split('\n').slice(1).filter(Boolean).map((line) => line.split(','))
+
 describe('the official word list (public/words/words.csv)', () => {
-  it('is the original words.txt, byte for byte', () => {
-    // SHA-256 of Assets/Resources/words.txt in glyphtender-original (git blob 3280512a).
-    expect(createHash('sha256').update(file).digest('hex')).toBe('7dd3b759bafa5c4a97c52d28ca29171d04b20e8e5337489d71a2deb48cc8e59e')
+  it('is the F68 cleaned list, byte for byte', () => {
+    expect(createHash('sha256').update(file).digest('hex')).toBe('85919d01c4f6a18257768c530a5ef891c931ceaa84d17c27beacf252b9a03334')
   })
 
   it('has the known Zipf tiers', () => {
-    expect(atLeast(5)).toBe(1000)
-    expect(atLeast(4)).toBe(6342)
-    expect(atLeast(3)).toBe(21805)
-    expect(atLeast(2)).toBe(43997)
+    expect(atLeast(5)).toBe(997)
+    expect(atLeast(4)).toBe(6334)
+    expect(atLeast(3)).toBe(21773)
+    expect(atLeast(2)).toBe(43952)
   })
 
-  it('has 63,657 words: the file has 63,656 line breaks and no line break after the last word (ROMAN)', () => {
-    expect(file.toString('utf8').split('\n').length - 1).toBe(63656)
-    expect(file.toString('utf8').endsWith('ROMAN,4.50')).toBe(true)
-    expect(words.size).toBe(63657)
-    expect(atLeast(0)).toBe(63657)
+  it('has 63,602 words, one per line, sorted', () => {
+    const lines = file.toString('utf8').split('\n').filter(Boolean)
+    expect(lines.length).toBe(63602)
+    expect(words.size).toBe(63602)
+    expect([...lines].sort()).toEqual(lines)
   })
 
   it('knows common words and their Zipf scores', () => {
@@ -35,9 +40,22 @@ describe('the official word list (public/words/words.csv)', () => {
     expect(words.has('XYZZY')).toBe(false)
   })
 
-  it('keeps the original’s quirk: ZYGOTES is glued onto a stray AA line (it’s "ZYGOTESAA" — not changed, see SPRINT notes)', () => {
-    expect(words.has('ZYGOTES')).toBe(false)
-    expect(words.has('ZYGOTESAA')).toBe(true)
+  it('ZYGOTES is a word again and the glued "ZYGOTESAA" is gone (B001)', () => {
+    expect(words.has('ZYGOTES')).toBe(true)
+    expect(words.has('ZYGOTESAA')).toBe(false)
+  })
+
+  it('agrees with content/words/submitted.csv: no "no" word is in the list, every "yes" word is', () => {
+    expect(submitted.length).toBeGreaterThan(0)
+    for (const [word, status] of submitted) {
+      if (status === 'no') expect(words.has(word), word).toBe(false)
+      if (status === 'yes') expect(words.has(word), word).toBe(true)
+    }
+  })
+
+  it('keeps out slurs and swears, keeps words that are only sometimes rude for Muzzy to decide', () => {
+    for (const w of ['NIGGER', 'FAGGOT', 'FUCK', 'SHIT', 'CUNT']) expect(words.has(w), w).toBe(false)
+    for (const w of ['COCK', 'CHINA', 'TIT']) expect(words.has(w), w).toBe(true)
   })
 })
 
