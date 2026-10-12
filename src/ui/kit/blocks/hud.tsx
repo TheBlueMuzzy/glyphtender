@@ -10,12 +10,14 @@ import { fill } from './words'
 
 // PAUSE — a dialog over the game. Resume closes it; Quit asks first (turn off with confirmQuit={false}).
 // note: one quiet caption line under the title, above the buttons (e.g. this game's settings: "Small garden · 2-letter words off").
+// items (0.8.0): the game's own rows, after How to play and before Quit (e.g. "Submit a word"); disabled rows stay visible.
 export const pauseWords = { title: 'Paused', resume: 'Resume', settings: 'Settings', howToPlay: 'How to play', quit: 'Quit', quitTitle: 'Quit this game?', quitMessage: 'Your progress in this round will be lost.' }
 type PauseProps = {
   onResume?: () => void; onSettings?: () => void; onHowToPlay?: () => void; onQuit?: () => void
   confirmQuit?: boolean; note?: ReactNode; words?: Partial<typeof pauseWords>
+  items?: { label: ReactNode; onClick: () => void; disabled?: boolean }[]
 }
-export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay, onQuit, confirmQuit = true, note, words }: PauseProps) {
+export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay, onQuit, confirmQuit = true, note, words, items = [] }: PauseProps) {
   const w = { ...pauseWords, ...words }
   const quit = () => confirmQuit && onQuit
     ? askConfirm({ title: w.quitTitle, message: w.quitMessage, danger: true, onConfirm: onQuit, words: { yes: w.quit } })
@@ -27,6 +29,7 @@ export function Pause({ onResume = () => screens.pop(), onSettings, onHowToPlay,
         <Button sound="back" onClick={onResume}>{w.resume}</Button>
         {onSettings && <Button variant="secondary" onClick={onSettings}>{w.settings}</Button>}
         {onHowToPlay && <Button variant="secondary" onClick={onHowToPlay}>{w.howToPlay}</Button>}
+        {items.map((item, i) => <Button key={i} variant="secondary" disabled={item.disabled} onClick={item.onClick}>{item.label}</Button>)}
         {onQuit && <Button variant="danger" onClick={quit}>{w.quit}</Button>}
       </Stack>
     </Modal>
