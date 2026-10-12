@@ -10,6 +10,7 @@ import { LobbyScreen } from './online/LobbyScreen'
 import { OnlineStartScreen } from './online/OnlineStartScreen'
 import { useOnline } from './online/session'
 import { useGameStore } from '../store/gameStore'
+import { plannedStretches } from '../store/submitChoices'
 import text from '../../content/text/en.json'
 import credits from '../../content/credits.json'
 import version from '../../version.json'
@@ -59,8 +60,8 @@ export function CreditsScreen() {
   return <Credits people={text.credits.people} assets={credits} />
 }
 
-// PAUSE — the Menu button in the game: back to the garden, the Rules, Settings, or leave (asks first). Under the title:
-// "2-letter words: on/off" for this game (F53).
+// PAUSE — the Menu button in the game: back to the garden, the Rules, Settings, Submit a word (F69), or leave (asks
+// first). Under the title: "2-letter words: on/off" for this game (F53).
 export function PauseScreen() {
   useAudioSnapshot(getAudio(), 'paused') // the garden goes quiet and muffled while paused (content/audio.json snapshots)
   // Online: the title carries the room code ("Paused · Room BAKU"), so it's always one tap away
@@ -70,7 +71,14 @@ export function PauseScreen() {
   // The one setting you can't see while playing (F53 — Muzzy 2026-10-08): are 2-letter words allowed this game?
   const twoLetter = useGameStore((s) => (s.game ? s.game.config.rules.minWordLength <= 2 : null))
   const note = twoLetter === null ? undefined : twoLetter ? text.game.pauseNote.twoLetterOn : text.game.pauseNote.twoLetterOff
-  return <Pause words={w} note={note} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={leaveToMenu} />
+  // Submit a word (F69): only with a seed placed but not cast — its letters are what gets submitted
+  const seedPlanned = useGameStore((s) => !!s.words && plannedStretches(s.game, s.move, s.cast) !== null)
+  const submitRow = {
+    label: seedPlanned ? text.game.submitWord.pauseRow : text.game.submitWord.pauseRowNeedsSeed,
+    disabled: !seedPlanned,
+    onClick: () => screens.push('submitWord'),
+  }
+  return <Pause words={w} note={note} items={[submitRow]} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={leaveToMenu} />
 }
 
 // RULES — a short how-to-play in three pages (words: en.json → game.rules), opened from Pause.

@@ -76,6 +76,16 @@
       "twoLetterOn": "2-letter words: on",
       "twoLetterOff": "2-letter words: off"
     },
+    "submitWord": {
+      "pauseRow": "Submit a word",
+      "pauseRowNeedsSeed": "Submit a word · place a seed first",
+      "title": "Submit a word",
+      "pick": "Not a word yet? Pick the one you meant.",
+      "sent": "Word submitted",
+      "tooShort": "Submitted words must be {n} or more letters",
+      "none": "No new letters line up with your seed.",
+      "back": "Back"
+    },
     "gameOver": {
       "label": "The end of the game",
       "tabs": {

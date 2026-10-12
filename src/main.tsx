@@ -9,6 +9,7 @@ import { settings } from './ui/gameSettings'
 import { startFullscreen } from './ui/fullscreen'
 import { freezeScreen, frozen } from './game/freeze'
 import { startSound } from './game/sound'
+import { startWordOutbox } from './ui/online/wordOutbox'
 
 // Dev only: ?freeze holds the screen still for the before / after screenshots (src/game/freeze.ts)
 if (frozen) freezeScreen()
@@ -34,6 +35,9 @@ function startGame() {
 
   // Full screen: phones go full screen on a tap (Settings → Display → Full screen); src/ui/fullscreen.ts
   startFullscreen(() => loadSettings(settings))
+
+  // Pause → Submit a word: words that couldn't be sent last time (offline) go now, and when the phone is back online
+  startWordOutbox()
 
   // Dev Kit (` key or triple-tap) — always in local dev; in release builds only while content/devkit.json
   // "inReleaseBuilds" is true (until 1.0). When both are false this import is dead code and never ships.
