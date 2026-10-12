@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "build": 0,
   "history": [
     {
@@ -67,6 +67,11 @@
       "version": "0.9.0",
       "date": "2026-10-12",
       "summary": "Fair words: a cleaner word list (slurs and swears out, lost words back, missing -s/-ed/-ing forms in), Pause → Submit a word, British spelling + Vulgar words as New Game / lobby options, Dev Kit Words tab"
+    },
+    {
+      "version": "0.9.1",
+      "date": "2026-10-12",
+      "summary": "The live site no longer logs an error on load (the Dev Kit's Words tab asked the PC-only dev server)"
     }
   ]
 }
