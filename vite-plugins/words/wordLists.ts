@@ -3,6 +3,9 @@
 //   content/words/submitted.csv every word Muzzy has decided on or still has to: word,status,category,added,note
 //     status: open (not decided yet) · yes (in the official list) · no (kept out for good)
 // Nothing here touches the disk or the network, so it's easy to test (wordLists.test.ts).
+import { csvFields } from '../../party/csv'
+
+export { csvFields }
 
 export type Status = 'open' | 'yes' | 'no'
 export type SubmittedRow = { word: string; status: Status; category: string; added: string; note: string }
@@ -10,25 +13,6 @@ export type Change = { id: string; status: Status }
 
 const STATUSES: Status[] = ['open', 'yes', 'no']
 const isStatus = (value: unknown): value is Status => STATUSES.includes(value as Status)
-
-/** One CSV line → its fields ("quoted, fields" keep their commas). */
-export function csvFields(line: string): string[] {
-  const fields: string[] = []
-  let field = ''
-  let quoted = false
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i]
-    if (quoted) {
-      if (c === '"' && line[i + 1] === '"') { field += '"'; i++ }
-      else if (c === '"') quoted = false
-      else field += c
-    } else if (c === '"') quoted = true
-    else if (c === ',') { fields.push(field); field = '' }
-    else field += c
-  }
-  fields.push(field)
-  return fields
-}
 
 const csvField = (value: string) => (/[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value)
 
@@ -90,6 +74,17 @@ export function applyChanges(rows: SubmittedRow[], official: Map<string, string>
   for (const w of adding) words.set(w, (scores[w] ?? 0).toFixed(2))
   for (const c of valid) if (c.status === 'no') words.delete(c.id)
   return { rows: [...byWord.values()], official: words, applied: valid }
+}
+
+/** Words whose mark on the online server isn't the file's (a save whose marks didn't reach it, or the server's own
+ *  seed being older than the file) — every save sends these, so the server catches up. */
+export function outOfStep(rows: SubmittedRow[], server: unknown[]): Change[] {
+  const onServer = new Map<string, unknown>()
+  for (const entry of server) {
+    const e = entry as Partial<SubmittedRow>
+    if (typeof e.word === 'string') onServer.set(e.word.toUpperCase(), e.status)
+  }
+  return rows.filter((r) => onServer.has(r.word) && onServer.get(r.word) !== r.status).map((r) => ({ id: r.word, status: r.status }))
 }
 
 /** What the Dev Kit's review list shows for a row. */

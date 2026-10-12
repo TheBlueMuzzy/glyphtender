@@ -123,6 +123,11 @@ try {
   else ok('re-sorted after Save: APT among yes, COCK among no')
   await page.screenshot({ path: `${OUT}/words-saved.png` })
 
+  // Only the game's own page may save (any other page could otherwise use the server key through the dev server)
+  const outsider = await fetch(`http://127.0.0.1:${PORT}/__words/save`, { method: 'POST', headers: { origin: 'https://some-other-site.example', 'content-type': 'text/plain' }, body: '{"changes":[{"id":"APT","status":"no"}]}' })
+  if (outsider.status !== 403) fail(`a save from another site got ${outsider.status}, not 403`)
+  else ok('a save from another site is refused (403)')
+
   if (errors.length) fail(`console errors: ${errors.join(' | ')}`)
 } catch (error) {
   fail(String(error))

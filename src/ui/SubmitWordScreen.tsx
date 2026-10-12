@@ -1,4 +1,4 @@
-// SUBMIT A WORD (F69) — opened from Pause while a seed is planned (placed, not cast). Lists the stretches of letters
+// SUBMIT A WORD (F69) — opened from Pause; works on the planned seed (placed, not cast) — none yet → it says so. Lists the stretches of letters
 // through that seed that aren't words yet (store/submitChoices.ts), longest first; a tap sends one (ui/online/wordOutbox.ts)
 // and says "Word submitted" — always the same, new or not (Muzzy 2026-10-11). Words: en.json → game.submitWord.
 import { useState } from 'react'
@@ -10,10 +10,11 @@ import text from '../../content/text/en.json'
 import submit from '../../content/words/submit.json'
 
 /** What to offer right now (read once when the screen opens — the game holds still under Pause). */
-function choicesNow(): SubmitChoices {
+function choicesNow(): SubmitChoices | { kind: 'noSeed' } {
   const { game, move, cast, words } = useGameStore.getState()
   const stretches = plannedStretches(game, move, cast)
-  return stretches && words ? submitChoices(stretches, words) : { kind: 'none' }
+  if (!stretches) return { kind: 'noSeed' }
+  return words ? submitChoices(stretches, words) : { kind: 'none' }
 }
 
 export function SubmitWordScreen() {
@@ -48,6 +49,7 @@ export function SubmitWordScreen() {
       )}
       {choices.kind === 'tooShort' && <Text>{tooShort}</Text>}
       {choices.kind === 'none' && <Text>{w.none}</Text>}
+      {choices.kind === 'noSeed' && <Text>{w.placeSeed}</Text>}
     </Modal>
   )
 }

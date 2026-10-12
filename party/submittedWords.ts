@@ -5,6 +5,7 @@
 // The web addresses (/words/submit, /words/list, /words/review) are in ./wordsRoutes.ts.
 import type { WordList } from '../src/engine/types'
 import submit from '../content/words/submit.json'
+import { csvFields } from './csv'
 
 export type WordStatus = 'open' | 'yes' | 'no'
 export const STATUSES: readonly WordStatus[] = ['open', 'yes', 'no']
@@ -35,14 +36,14 @@ export interface WordRows {
 /** The category of a word a player sent. */
 export const PLAYER = 'player'
 
-/** content/words/submitted.csv → rows (header: word,status,category,added,note; the note may hold commas). */
+/** content/words/submitted.csv → rows (header: word,status,category,added,note; a "quoted" field may hold commas). */
 export function parseSubmittedCsv(text: string): SubmittedWord[] {
   const rows: SubmittedWord[] = []
   for (const line of text.split(/\r?\n/).slice(1)) {
     if (!line.trim()) continue
-    const [word = '', status = '', category = '', added = '', ...note] = line.split(',')
+    const [word = '', status = '', category = '', added = '', note = ''] = csvFields(line)
     if (!/^[A-Z]+$/.test(word) || !STATUSES.includes(status as WordStatus)) continue
-    rows.push({ word, status: status as WordStatus, category, added, note: note.join(',') })
+    rows.push({ word, status: status as WordStatus, category, added, note })
   }
   return rows
 }

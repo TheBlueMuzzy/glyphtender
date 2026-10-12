@@ -1,5 +1,5 @@
 // SUBMIT A WORD (F69) THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — a phone (390×844) in a pass-and-play game:
-// 1. no seed planned → Pause's "Submit a word" row is greyed ("· place a seed first")
+// 1. no seed planned → Pause's "Submit a word" row still opens; its screen says to place a seed first
 // 2. a seed planned whose letters aren't a word → the row works → the picker lists exactly the stretches the engine
 //    finds (3+ letters, not words, longest first) → Pause + picker shot at 390×844, 844×390, 768×343, 1440×900
 //    (nothing clipped, buttons ≥ 44 px)
@@ -92,11 +92,14 @@ try {
   await act(`(s) => s.startGame({ players: 2, seed: 11, hideSeeds: false })`)
   await page.waitForTimeout(300)
 
-  // ---- 1. no seed planned: the row is there, greyed, with the hint ----
+  // ---- 1. no seed planned: the row opens a screen that says to place a seed first (a greyed row's hint wrapped) ----
   await openPause()
-  const needsSeed = button('Submit a word · place a seed first')
-  check('no seed planned → "Submit a word · place a seed first", greyed', (await needsSeed.count()) === 1 && (await needsSeed.isDisabled()))
+  check('no seed planned → the row is there and pressable', (await button('Submit a word').count()) === 1 && (await button('Submit a word').isEnabled()))
   await shot('1-pause-no-seed')
+  await tap(button('Submit a word'))
+  await page.waitForTimeout(300)
+  check('… and its screen says "Place a seed first"', await page.getByText(/Place a seed first/).isVisible())
+  await shot('1b-submit-no-seed')
   await closeAll()
 
   // ---- 2. a seed planned: the picker lists the engine's stretches ----

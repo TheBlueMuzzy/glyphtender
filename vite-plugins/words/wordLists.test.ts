@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { applyChanges, csvFields, mergeServerRows, parseOfficial, parseSubmitted, reviewItem, writeOfficial, writeSubmitted } from './wordLists'
+import { parseSubmittedCsv } from '../../party/submittedWords'
+import { applyChanges, csvFields, mergeServerRows, outOfStep, parseOfficial, parseSubmitted, reviewItem, writeOfficial, writeSubmitted } from './wordLists'
 
 const file = [
   'word,status,category,added,note',
@@ -46,6 +47,21 @@ describe('the Words tab’s word files (F70)', () => {
     expect(writeOfficial(result.official)).toBe('AA,4.01\nAPT,3.46\nWRY,2.86\n')
     expect(result.applied.map((c) => c.id)).toEqual(['APT', 'COCK', 'WRY'])
     expect(result.rows.find((r) => r.word === 'COCK')!.status).toBe('no')
+  })
+
+  it('finds the marks the online server missed (a failed send), so the next save sends them too', () => {
+    const rows = parseSubmitted(file)
+    const server = [{ word: 'COCK', status: 'open' }, { word: 'WRY', status: 'yes' }, { word: 'FUCK', status: 'open' }, { word: 'ZZZ', status: 'no' }]
+    expect(outOfStep(rows, server)).toEqual([{ id: 'FUCK', status: 'no' }])
+    expect(outOfStep(rows, [])).toEqual([]) // server out of reach: nothing to compare
+  })
+
+  it('reads a quoted note the same way the online server does (one shared reader, party/csv.ts)', () => {
+    const line = 'ASS,open,swear or word,2026-10-11,"donkey, ""the"" animal"'
+    const csv = `word,status,category,added,note\n${line}\n`
+    expect(parseSubmitted(csv)[0].note).toBe('donkey, "the" animal')
+    expect(parseSubmittedCsv(csv)[0].note).toBe('donkey, "the" animal')
+    expect(writeSubmitted(parseSubmitted(csv)).split('\n')[1]).toBe(line)
   })
 
   it('shows a row as the review list wants it', () => {

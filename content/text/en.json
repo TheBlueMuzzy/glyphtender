@@ -78,7 +78,7 @@
     },
     "submitWord": {
       "pauseRow": "Submit a word",
-      "pauseRowNeedsSeed": "Submit a word · place a seed first",
+      "placeSeed": "Place a seed first (don't cast it), then come back here to pick its letters.",
       "title": "Submit a word",
       "pick": "Not a word yet? Pick the one you meant.",
       "sent": "Word submitted",

@@ -10,7 +10,6 @@ import { LobbyScreen } from './online/LobbyScreen'
 import { OnlineStartScreen } from './online/OnlineStartScreen'
 import { useOnline } from './online/session'
 import { useGameStore } from '../store/gameStore'
-import { plannedStretches } from '../store/submitChoices'
 import text from '../../content/text/en.json'
 import credits from '../../content/credits.json'
 import version from '../../version.json'
@@ -71,13 +70,9 @@ export function PauseScreen() {
   // The one setting you can't see while playing (F53 — Muzzy 2026-10-08): are 2-letter words allowed this game?
   const twoLetter = useGameStore((s) => (s.game ? s.game.config.rules.minWordLength <= 2 : null))
   const note = twoLetter === null ? undefined : twoLetter ? text.game.pauseNote.twoLetterOn : text.game.pauseNote.twoLetterOff
-  // Submit a word (F69): only with a seed placed but not cast — its letters are what gets submitted
-  const seedPlanned = useGameStore((s) => !!s.words && plannedStretches(s.game, s.move, s.cast) !== null)
-  const submitRow = {
-    label: seedPlanned ? text.game.submitWord.pauseRow : text.game.submitWord.pauseRowNeedsSeed,
-    disabled: !seedPlanned,
-    onClick: () => screens.push('submitWord'),
-  }
+  // Submit a word (F69): always there; with no seed placed, its screen says to place one first (a greyed row's hint
+  // wrapped onto two lines on a phone)
+  const submitRow = { label: text.game.submitWord.pauseRow, onClick: () => screens.push('submitWord') }
   return <Pause words={w} note={note} items={[submitRow]} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={leaveToMenu} />
 }
 

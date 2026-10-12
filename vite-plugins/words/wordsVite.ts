@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { join } from 'node:path'
 import type { Plugin } from 'vite'
-import { applyChanges, mergeServerRows, parseOfficial, parseSubmitted, reviewItem, writeOfficial, writeSubmitted, type Change } from './wordLists'
+import { applyChanges, mergeServerRows, outOfStep, parseOfficial, parseSubmitted, reviewItem, writeOfficial, writeSubmitted, type Change } from './wordLists'
 
 export const LIST_URL = '/__words/list'
 export const SAVE_URL = '/__words/save'
@@ -49,17 +49,32 @@ async function list(req: IncomingMessage, res: ServerResponse, files: Files, onl
   }
 }
 
+/** Only the game's own page may save (like the Dev Kit's Save): the dev server is on the Wi-Fi (--host), and any web
+ *  page Muzzy has open could otherwise POST here and use the server key. A same-page fetch sends Origin = this server. */
+function refused(req: IncomingMessage): [number, string] | null {
+  if (req.method !== 'POST') return [405, 'POST only']
+  let originHost = ''
+  try { originHost = new URL(req.headers.origin ?? '').host } catch { /* no or bad Origin */ }
+  if (!originHost || originHost !== req.headers.host) return [403, 'Save only from the game page']
+  if (!String(req.headers['content-type'] ?? '').startsWith('application/json')) return [415, 'application/json only']
+  return null
+}
+
 async function save(req: IncomingMessage, res: ServerResponse, files: Files, online: Online) {
-  if (req.method !== 'POST') return reply(res, 405, { error: 'POST only' })
+  const refusal = refused(req)
+  if (refusal) return reply(res, refusal[0], { error: refusal[1] })
   try {
     const body = JSON.parse(await readBody(req)) as { changes?: Change[] }
     if (!Array.isArray(body.changes)) return reply(res, 400, { error: 'changes must be a list' })
     // New player words the file hasn't seen yet are merged in first, so a mark on one of them is kept.
-    const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), await serverRows(online))
+    const server = await serverRows(online)
+    const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), server)
     const result = applyChanges(rows, parseOfficial(readFileSync(files.official, 'utf8')), body.changes, zipfScores)
     writeFileSync(files.official, writeOfficial(result.official), 'utf8')
     writeFileSync(files.submitted, writeSubmitted(result.rows), 'utf8')
-    await sendMarks(online, result.applied)
+    // This save's marks, plus any older mark the server missed (else its open count only grows and it stops taking words)
+    const missed = outOfStep(result.rows, server).filter((c) => !result.applied.some((a) => a.id === c.id))
+    await sendMarks(online, [...result.applied, ...missed])
     reply(res, 200, { saved: result.applied.length })
   } catch (error) {
     reply(res, 500, { error: `Couldn't save the word files: ${String(error)}` })
