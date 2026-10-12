@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test still open — Muzzy) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test still open — Muzzy) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -240,12 +240,12 @@ Goal: the beta label — the game loads fast, runs smooth and every screen passe
 - ✅ F66 ⚡ Optimize audit (slow phone 2.16 → 1.60 s to Play; research/optimize.md; npm run perf): measure first load / frame time / memory vs a budget (desktop + phone), fix the biggest costs, re-measure — must:beta · sprint 24
 - ✅ F67 🎨 Design pass (8 fixes on sideways / short screens, B019 + B017 fixed; UI kit 0.7.0; research/design-pass.md — taste calls logged for Muzzy): every screen at phone + desktop vs the UI-kit rules + breathing room; fix what's found; iPhone streaming-music test (Muzzy) — must:beta · sprint 24
 
-## v0.13 — Fair words  🔨 sprint 25 — built 2026-10-12, waiting for Muzzy
+## v0.13 — Fair words  ✅ released 2026-10-12 (v0.9.0)
 Goal: the word list is fair — no slurs or swears, nothing missing by mistake, players submit words from Pause, Muzzy approves them in the Dev Kit (Muzzy 2026-10-11).
-- 🔨 F68 🧹 (built — waiting for Muzzy's look + his first pass in the Words tab) Clean the word list: submitted.csv of every word kept out (with categories, to explain to players), slurs + swears out, lost words back (B001 ZYGOTES, WRY, THY…), audit of missing -S/-ED/-ING forms → Open, licence + docs right (never TWL — SCOWL) — should · sprint 25
-- 🔨 F69 (built — waiting for Muzzy) 💬 Submit a word: Pause → stretches through the planned seed → "Word submitted"; Cloudflare keeps new words as Open, repeats dropped silently; < 3 letters refused — should · needs: F68 · sprint 25
-- 🔨 F70 (built — waiting for Muzzy) 🔧 Dev Kit Words tab: 3-state Open / Yes / No, Open on top, Save re-sorts, search; Save → Cloudflare + words.csv + submitted.csv — should · needs: F68, F69, fw review-list tab · sprint 25
-- 🔨 F71 ⚙️ Word switches: **British spelling** + **Vulgar words** as table options in New Game and the host's lobby (like 2-letter words; off at first), fixed per game; words.csv tags B / V; Words tab B / V marks (Dev Kit 0.12.x) — could · sprint 25 · needs: F68, F70
+- ✅ F68 🧹 Clean the word list: submitted.csv of every word kept out (with categories, to explain to players), slurs + swears out, lost words back (B001 ZYGOTES, WRY, THY…), audit of missing -S/-ED/-ING forms → Open, licence + docs right (never TWL — SCOWL) — should · sprint 25
+- ✅ F69 💬 Submit a word: Pause → stretches through the planned seed → "Word submitted"; Cloudflare keeps new words as Open, repeats dropped silently; < 3 letters refused — should · needs: F68 · sprint 25
+- ✅ F70 🔧 Dev Kit Words tab: 3-state Open / Yes / No, Open on top, Save re-sorts, search; Save → Cloudflare + words.csv + submitted.csv — should · needs: F68, F69, fw review-list tab · sprint 25
+- ✅ F71 ⚙️ Word switches: **British spelling** + **Vulgar words** as table options in New Game and the host's lobby (like 2-letter words; off at first), fixed per game; words.csv tags B / V; Words tab B / V marks (Dev Kit 0.12.x) — could · sprint 25 · needs: F68, F70
 
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
