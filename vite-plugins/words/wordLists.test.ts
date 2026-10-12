@@ -37,17 +37,42 @@ describe('the Words tab’s word files (F70)', () => {
     expect(merged.at(-1)).toMatchObject({ status: 'open', category: 'player', added: '2026-10-12' })
   })
 
-  it('yes adds a word with its Zipf score, no takes it out, open leaves the list alone', () => {
-    const result = applyChanges(parseSubmitted(file), parseOfficial(official), [
-      { id: 'APT', status: 'yes' },
-      { id: 'COCK', status: 'no' },
-      { id: 'WRY', status: 'open' },
-      { id: 'NOT-IN-FILE', status: 'yes' },
-    ], zipf)
-    expect(writeOfficial(result.official)).toBe('AA,4.01\nAPT,3.46\nWRY,2.86\n')
-    expect(result.applied.map((c) => c.id)).toEqual(['APT', 'COCK', 'WRY'])
-    expect(result.rows.find((r) => r.word === 'COCK')!.status).toBe('no')
+  it('F71: a server word already in words.csv (plain, B or V) never comes back as a new open row', () => {
+    const inList = parseOfficial('AA,4.01\nCOLOUR,4.49,B\nTITS,3.10,V\n')
+    const merged = mergeServerRows([], [
+      { word: 'COLOUR', status: 'british' }, { word: 'TITS', status: 'vulgar' }, { word: 'AA', status: 'yes' }, { word: 'GLIMMEROUS', status: 'open' },
+    ], inList)
+    expect(merged.map((r) => r.word)).toEqual(['GLIMMEROUS'])
   })
+
+  it('yes / B / V move a word into words.csv (plain / ,B / ,V) with its Zipf and out of submitted.csv; no takes it out and stays; open stays', () => {
+    const asked: string[][] = []
+    const result = applyChanges(parseSubmitted(file + 'COLOUR,open,british spelling,2026-10-12,\nBUM,open,swear or word,2026-10-12,\n'), parseOfficial(official), [
+      { id: 'APT', status: 'yes' }, // new → wordfreq is asked
+      { id: 'COCK', status: 'vulgar' }, // already in words.csv → keeps its score, gains the V tag
+      { id: 'COLOUR', status: 'british' },
+      { id: 'BUM', status: 'no' },
+      { id: 'NOT-IN-FILE', status: 'yes' },
+    ], (words) => (asked.push(words), zipf(words)))
+    expect(asked).toEqual([['APT', 'COLOUR']])
+    expect(writeOfficial(result.official)).toBe('AA,4.01\nAPT,3.46\nCOCK,3.90,V\nCOLOUR,3.46,B\nWRY,2.86\n')
+    expect(result.applied.map((c) => c.id)).toEqual(['APT', 'COCK', 'COLOUR', 'BUM'])
+    // left in the check-against list: the No words (FUCK, BUM) — WRY's old yes row was folded in too
+    expect(result.rows.map((r) => `${r.word} ${r.status}`)).toEqual(['FUCK no', 'BUM no'])
+  })
+
+  it('a save with no marks folds rows accepted before 2026-10-12 (yes / british / vulgar) and keeps open + no', () => {
+    const rows = parseSubmitted(file + 'MATHS,british,british,2026-10-11,\nTIT,vulgar,swear or word,2026-10-11,a small bird\n')
+    const result = applyChanges(rows, parseOfficial(official), [], zipf)
+    expect(writeOfficial(result.official)).toBe('AA,4.01\nCOCK,3.90\nMATHS,3.46,B\nTIT,3.46,V\nWRY,2.86\n')
+    expect(result.rows.map((r) => r.word)).toEqual(['COCK', 'APT', 'FUCK'])
+  })
+
+  it('a No on a tagged word takes it out of words.csv', () => {
+    const result = applyChanges(parseSubmitted(file), parseOfficial('COCK,3.90,V\n'), [{ id: 'COCK', status: 'no' }], zipf)
+    expect(result.official.has('COCK')).toBe(false)
+  })
+
 
   it('finds the marks the online server missed (a failed send), so the next save sends them too', () => {
     const rows = parseSubmitted(file)

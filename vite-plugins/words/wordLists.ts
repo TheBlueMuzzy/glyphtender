@@ -1,11 +1,11 @@
-// THE TWO WORD FILES, as plain functions (F70) — used by the Words tab's dev-server endpoints (wordsVite.ts).
-//   public/words/words.csv      the official list: WORD,zipf — one per line, sorted
-//   content/words/submitted.csv every word Muzzy has decided on or still has to: word,status,category,added,note
-//     status: open (not decided yet) · yes (in the official list) · no (kept out for good) · british / vulgar (out of
-//     the list until F71's Settings toggles — Dev Kit B / V)
+// THE WORD FILES, as plain functions (F70) — used by the Words tab's dev-server endpoints (wordsVite.ts).
+//   public/words/words.csv      the official list: WORD,zipf — one per line, sorted; F71: WORD,zipf,B (British spelling)
+//                               or WORD,zipf,V (vulgar) = counted only when that Settings switch is on
+//   content/words/submitted.csv the check-against list (Muzzy 2026-10-12): word,status,category,added,note — only words
+//     still undecided (open) or kept out for good (no, with why). Accepted words (Dev Kit Yes / B / V) move to words.csv.
 // Nothing here touches the disk or the network, so it's easy to test (wordLists.test.ts).
 import { csvFields } from '../../party/csv'
-import { KEPT_OUT, STATUSES, type WordStatus } from '../../party/submittedWords'
+import { STATUSES, type WordStatus } from '../../party/submittedWords'
 
 export { csvFields }
 
@@ -27,7 +27,7 @@ export function parseSubmitted(text: string): SubmittedRow[] {
   return rows
 }
 
-/** Open A–Z, then yes A–Z, then no A–Z, then british, vulgar — the order Muzzy asked for (2026-10-11). */
+/** Open A–Z, then no A–Z — the order Muzzy asked for (2026-10-11; yes / british / vulgar rows no longer stay in the file). */
 export function sortSubmitted(rows: SubmittedRow[]): SubmittedRow[] {
   return [...rows].sort((a, b) => STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status) || (a.word < b.word ? -1 : a.word > b.word ? 1 : 0))
 }
@@ -37,22 +37,25 @@ export function writeSubmitted(rows: SubmittedRow[]): string {
   return ['word,status,category,added,note', ...lines].join('\n') + '\n'
 }
 
+/** words.csv → word → the rest of its line: "4.49" (plain) or "4.49,B" / "4.23,V" (tagged, F71). */
 export function parseOfficial(text: string): Map<string, string> {
   const words = new Map<string, string>()
   for (const line of text.replace(/\r/g, '').split('\n')) {
-    const [word, zipf] = line.split(',')
-    if (word && zipf !== undefined) words.set(word.trim().toUpperCase(), zipf.trim())
+    const comma = line.indexOf(',')
+    if (comma > 0) words.set(line.slice(0, comma).trim().toUpperCase(), line.slice(comma + 1).trim())
   }
   return words
 }
 
+/** words.csv: sorted, one WORD,zipf[,tag] per line. */
 export function writeOfficial(words: Map<string, string>): string {
   return [...words.keys()].sort().map((w) => `${w},${words.get(w)}`).join('\n') + '\n'
 }
 
-/** The file's rows plus any word players sent that the file doesn't have yet (new submissions start open). */
-export function mergeServerRows(rows: SubmittedRow[], server: unknown[]): SubmittedRow[] {
-  const known = new Set(rows.map((r) => r.word))
+/** The file's rows plus any word players sent that the file doesn't have yet (new submissions start open). A word
+ *  already in words.csv (plain, B or V) never comes back: the server still remembers it as yes / british / vulgar. */
+export function mergeServerRows(rows: SubmittedRow[], server: unknown[], official: ReadonlyMap<string, string> = new Map()): SubmittedRow[] {
+  const known = new Set([...rows.map((r) => r.word), ...official.keys()])
   const merged = [...rows]
   for (const entry of server) {
     const e = entry as Partial<SubmittedRow>
@@ -64,21 +67,36 @@ export function mergeServerRows(rows: SubmittedRow[], server: unknown[]): Submit
   return merged
 }
 
-/** Muzzy's marks → both files. yes = in the official list (with its Zipf score), no / british / vulgar = out of it, open = left as it is. */
+/** The marks that ACCEPT a word (Muzzy 2026-10-12): it goes into words.csv — plain, or tagged B / V for the Settings
+ *  switches (F71) — and leaves submitted.csv, which keeps only what's still undecided (open) or kept out (no). */
+export const ACCEPTED: Partial<Record<Status, '' | 'B' | 'V'>> = { yes: '', british: 'B', vulgar: 'V' }
+const isAccepted = (status: Status) => ACCEPTED[status] !== undefined
+
+/** Muzzy's marks → the word files. yes / british / vulgar = into words.csv (plain / ,B / ,V) with its Zipf score, and out
+ *  of submitted.csv · no = out of words.csv, stays in submitted.csv as no · open = stays, words.csv left as it is.
+ *  Any row still marked yes / british / vulgar in the file (from before 2026-10-12) is folded in the same way, so a save
+ *  with no marks tidies the file. A Zipf score already in words.csv is kept; only new words ask wordfreq (zipfOf). */
 export function applyChanges(rows: SubmittedRow[], official: Map<string, string>, changes: Change[], zipfOf: (words: string[]) => Record<string, number>) {
   const byWord = new Map(rows.map((r) => [r.word, { ...r }]))
   const valid = changes.filter((c) => byWord.has(c.id) && isStatus(c.status))
   for (const c of valid) byWord.get(c.id)!.status = c.status
   const words = new Map(official)
-  const adding = valid.filter((c) => c.status === 'yes' && !words.has(c.id)).map((c) => c.id)
-  const scores = adding.length ? zipfOf(adding) : {}
-  for (const w of adding) words.set(w, (scores[w] ?? 0).toFixed(2))
-  for (const c of valid) if (KEPT_OUT.includes(c.status)) words.delete(c.id)
+  const folding = [...byWord.values()].filter((r) => isAccepted(r.status))
+  const unscored = folding.map((r) => r.word).filter((w) => !words.has(w))
+  const scores = unscored.length ? zipfOf(unscored) : {}
+  for (const r of folding) {
+    const zipf = words.get(r.word)?.split(',')[0] ?? (scores[r.word] ?? 0).toFixed(2)
+    const tag = ACCEPTED[r.status]
+    words.set(r.word, tag ? `${zipf},${tag}` : zipf)
+    byWord.delete(r.word)
+  }
+  for (const c of valid) if (c.status === 'no') words.delete(c.id)
   return { rows: [...byWord.values()], official: words, applied: valid }
 }
 
 /** Words whose mark on the online server isn't the file's (a save whose marks didn't reach it, or the server's own
- *  seed being older than the file) — every save sends these, so the server catches up. */
+ *  seed being older than the file) — every save sends these, so the server catches up. Only rows still in the file
+ *  are compared (an accepted word has left it). */
 export function outOfStep(rows: SubmittedRow[], server: unknown[]): Change[] {
   const onServer = new Map<string, unknown>()
   for (const entry of server) {

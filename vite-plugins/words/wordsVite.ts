@@ -1,7 +1,9 @@
 // THE WORDS TAB'S DEV-SERVER ENDPOINTS (F70) — Glyphtender's own (the Dev Kit's review list tab is the framework's).
 // Dev server only (`npm run dev`), never in a build:
-//   GET  /__words/list   content/words/submitted.csv + any new words players sent to the online server
-//   POST /__words/save   body { changes: [{ id: "WORD", status: "open" | "yes" | "no" }] } → both word files + the server
+//   GET  /__words/list   the OPEN words only (Muzzy's checklist): submitted.csv's open rows + new words players sent to
+//                        the online server (never one already in words.csv)
+//   POST /__words/save   body { changes: [{ id: "WORD", status: "open" | "yes" | "no" | "british" | "vulgar" }] } → yes / B / V
+//                        go into words.csv (plain / ,B / ,V) and leave submitted.csv; no stays there (wordLists.ts) + the server
 // The online server's admin key never reaches the browser: it's read here, from .env.local (gitignored):
 //   WORDS_ADMIN_KEY=<the key set with `npx wrangler secret put WORDS_ADMIN_KEY`>
 //   WORDS_SERVER=https://glyphtender.joebrogno.workers.dev   (optional — that's the default)
@@ -13,7 +15,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { join } from 'node:path'
 import type { Plugin } from 'vite'
-import { applyChanges, mergeServerRows, outOfStep, parseOfficial, parseSubmitted, reviewItem, writeOfficial, writeSubmitted, type Change } from './wordLists'
+import { applyChanges, mergeServerRows, outOfStep, parseOfficial, parseSubmitted, reviewItem, writeOfficial, writeSubmitted, type Change, type SubmittedRow } from './wordLists'
 
 export const LIST_URL = '/__words/list'
 export const SAVE_URL = '/__words/save'
@@ -28,7 +30,7 @@ export function words(settings: Settings = {}): Plugin {
     apply: 'serve',
     configureServer(server) {
       const root = server.config.root
-      const files = { submitted: join(root, 'content/words/submitted.csv'), official: join(root, 'public/words/words.csv') }
+      const files = wordFiles(root)
       const online = { key: settings.key, server: (settings.server || LIVE_SERVER).replace(/\/$/, '') }
       server.middlewares.use(LIST_URL, (req, res) => void list(req, res, files, online))
       server.middlewares.use(SAVE_URL, (req, res) => void save(req, res, files, online))
@@ -37,13 +39,30 @@ export function words(settings: Settings = {}): Plugin {
 }
 
 type Files = { submitted: string; official: string }
+
+/** Where the word files live under the project root. */
+export const wordFiles = (root: string): Files => ({
+  submitted: join(root, 'content/words/submitted.csv'),
+  official: join(root, 'public/words/words.csv'),
+})
+
+/** Writes both word files from the marks: accepted words (yes / B / V) into words.csv and out of submitted.csv.
+ *  Also the one-off fold of the rows accepted before 2026-10-12: scripts/words/fold-accepted.mjs. */
+export function writeWordFiles(files: Files, rows: SubmittedRow[], changes: Change[]) {
+  const result = applyChanges(rows, parseOfficial(readFileSync(files.official, 'utf8')), changes, zipfScores)
+  writeFileSync(files.official, writeOfficial(result.official), 'utf8')
+  writeFileSync(files.submitted, writeSubmitted(result.rows), 'utf8')
+  return result
+}
 type Online = { key?: string; server: string }
 
 async function list(req: IncomingMessage, res: ServerResponse, files: Files, online: Online) {
   if (req.method !== 'GET') return reply(res, 405, { error: 'GET only' })
   try {
-    const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), await serverRows(online))
-    reply(res, 200, rows.map(reviewItem))
+    // Only the undecided words: the tab is Muzzy's checklist (2026-10-12) — No stays in the file, not in the tab
+    const official = parseOfficial(readFileSync(files.official, 'utf8'))
+    const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), await serverRows(online), official)
+    reply(res, 200, rows.filter((r) => r.status === 'open').map(reviewItem))
   } catch (error) {
     reply(res, 500, { error: `Couldn't read the word files: ${String(error)}` })
   }
@@ -68,10 +87,8 @@ async function save(req: IncomingMessage, res: ServerResponse, files: Files, onl
     if (!Array.isArray(body.changes)) return reply(res, 400, { error: 'changes must be a list' })
     // New player words the file hasn't seen yet are merged in first, so a mark on one of them is kept.
     const server = await serverRows(online)
-    const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), server)
-    const result = applyChanges(rows, parseOfficial(readFileSync(files.official, 'utf8')), body.changes, zipfScores)
-    writeFileSync(files.official, writeOfficial(result.official), 'utf8')
-    writeFileSync(files.submitted, writeSubmitted(result.rows), 'utf8')
+    const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), server, parseOfficial(readFileSync(files.official, 'utf8')))
+    const result = writeWordFiles(files, rows, body.changes)
     // This save's marks, plus any older mark the server missed (else its open count only grows and it stops taking words)
     const missed = outOfStep(result.rows, server).filter((c) => !result.applied.some((a) => a.id === c.id))
     await sendMarks(online, [...result.applied, ...missed])
