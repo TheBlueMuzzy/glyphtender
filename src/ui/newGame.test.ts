@@ -40,6 +40,15 @@ describe('new game choices', () => {
     expect(loadChoices(storage).twoLetterWords).toBe(true)
   })
 
+  it('British spelling + vulgar words (F71): table options, off at first, remembered; an old save without them = off', () => {
+    expect(defaultChoices()).toMatchObject({ britishWords: false, vulgarWords: false })
+    const storage = memory()
+    saveChoices({ ...defaultChoices(), britishWords: true }, storage)
+    expect(loadChoices(storage)).toMatchObject({ britishWords: true, vulgarWords: false })
+    const old = memory({ 'glyphtender:new-game': JSON.stringify({ players: 2, boardName: 'small' }) })
+    expect(loadChoices(old)).toMatchObject({ britishWords: false, vulgarWords: false })
+  })
+
   it('a player who saved "hide seeds" on keeps it (the default is off)', () => {
     const storage = memory()
     saveChoices({ ...defaultChoices(), hideSeeds: true }, storage)

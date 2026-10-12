@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { getBoard } from './boards'
 import { DIRECTIONS, addHex, type Hex } from './hex'
-import { findWords } from './wordFinder'
+import { findWords, stretchesThrough } from './wordFinder'
 import { parseWordList } from './words'
 import { hexAt, position, wordsOf, type SeedPlan } from './testkit'
 import type { RuleNumbers } from './types'
@@ -108,5 +108,27 @@ describe('plain Q and minimum length', () => {
   it('min length 2 by default; the "3" table option drops 2-seed words', () => {
     expect(wordsMade('C6-3', S, ['A', 'T'], 1, wordsOf('AT'))).toEqual(['AT'])
     expect(wordsMade('C6-3', S, ['A', 'T'], 1, wordsOf('AT'), { minWordLength: 3 })).toEqual([])
+  })
+})
+
+describe('stretches through a seed (F69 Submit a word)', () => {
+  const glyphlings = { 0: 'C1-1', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }
+  it('every unbroken 2+ piece holding the seed, read like words, on every leyline', () => {
+    // A vertical C-A-T with the A as the new seed, plus an O to the A's NE (SW → NE reads A then O)
+    const cat = line('C6-2', S, ['C', 'A', 'T'])
+    const a = cat.hexes[1]
+    const o = addHex(a, DIRECTIONS[NE])
+    const s = position({ glyphlings, seeds: [{ ...cat.plan, [getBoard('small').label(o)]: 'O' }] })
+    expect(stretchesThrough(s, a).sort()).toEqual(['AO', 'AT', 'CA', 'CAT'])
+  })
+
+  it('stops at a gap and only reads one way', () => {
+    const s = position({ glyphlings, seeds: [{ 'C6-1': 'C', 'C6-2': 'A', 'C6-3': 'T', 'C6-5': 'D', 'C6-6': 'O', 'C6-7': 'G' }] })
+    expect(stretchesThrough(s, hexAt('C6-6')).sort()).toEqual(['DO', 'DOG', 'OG'])
+  })
+
+  it('a seed with no neighbours in a line has none', () => {
+    const s = position({ glyphlings, seeds: [{ 'C6-3': 'X' }] })
+    expect(stretchesThrough(s, hexAt('C6-3'))).toEqual([])
   })
 })

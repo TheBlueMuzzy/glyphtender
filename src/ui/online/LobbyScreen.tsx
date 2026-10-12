@@ -36,6 +36,7 @@ export function LobbyScreen() {
     id: seat.id, name: seat.name, ready: seat.ready, color: colours[colourOf(i)], avatar: glyphlingArt(i),
     ...(seat.kind === 'bot' && { detail: fill(w.lobby.aiDetail, { skill: skillName(aiOf(seat.profile).skill) }), bot: true }),
   }))
+  // The host's table options (2-letter words, British spelling, vulgar words…) go with Start and rule the room
   const start = () => {
     saveOnlineOptions(options)
     room.start(options)
@@ -79,6 +80,12 @@ function TableOptions({ options, onChange }: { options: OnlineOptions; onChange:
       </ListRow>
       <ListRow label={w.options.twoLetterWords} detail={w.options.twoLetterDetail}>
         <Toggle label={w.options.twoLetterWords} on={options.minWordLength <= 2} onChange={(on) => onChange({ ...options, minWordLength: on ? 2 : 3 })} />
+      </ListRow>
+      <ListRow label={w.options.britishWords} detail={w.options.britishDetail}>
+        <Toggle label={w.options.britishWords} on={options.britishWords === true} onChange={(on) => onChange({ ...options, britishWords: on })} />
+      </ListRow>
+      <ListRow label={w.options.vulgarWords} detail={w.options.vulgarDetail}>
+        <Toggle label={w.options.vulgarWords} on={options.vulgarWords === true} onChange={(on) => onChange({ ...options, vulgarWords: on })} />
       </ListRow>
       <ListRow label={w.options.timer} detail={w.options.timerDetail}>
         <Selector label={w.options.timer} options={timers.map(timerLabel)} value={timerLabel(options.turnSeconds)}

@@ -22,7 +22,10 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf
 const wordList = words.parseWordList(read('public/words/words.csv'))
 const INPUT_FILES = ['public/words/words.csv', 'content/data/boards.json', 'content/tuning/rules.json']
 // JSON files are compared by their values (not spacing, and not the Dev Kit's _labels / _sections notes).
-const values = (f) => (f.endsWith('.json') ? JSON.stringify(JSON.parse(read(f)), (k, v) => (k.startsWith('_') ? undefined : v)) : read(f).replace(/\r\n/g, '\n'))
+// words.csv: only the plain words — the recorded games play with both F71 switches off, so B / V lines never change them.
+const plainWords = (text) => text.split('\n').filter((line) => !/,[BV]$/.test(line)).join('\n')
+const values = (f) => (f.endsWith('.json') ? JSON.stringify(JSON.parse(read(f)), (k, v) => (k.startsWith('_') ? undefined : v))
+  : f === 'public/words/words.csv' ? plainWords(read(f).replace(/\r\n/g, '\n')) : read(f).replace(/\r\n/g, '\n'))
 const inputs = Object.fromEntries(INPUT_FILES.map((f) => [f, golden.hashText(values(f))]))
 const DIR = new URL('../golden/', import.meta.url)
 const fileOf = (s) => `${s.players}p-${s.board}-${s.player}.json`

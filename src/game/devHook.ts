@@ -3,10 +3,14 @@
 // until the garden tangles, to reach the end screen quickly. The jumps do nothing in an online game (the server owns it).
 import { legalCasts, legalMoves, previewTurn } from '../engine/engine'
 import { glyphtenderRules } from '../engine/rules'
-import { hexKey } from '../engine/hex'
+import { hexKey, sameHex } from '../engine/hex'
+import { getBoard } from '../engine/boards'
+import { hexAt, position } from '../engine/testkit'
 import { randomAction } from '../engine/sim'
 import { useGameStore } from '../store/gameStore'
 import { castOptions } from '../store/turnPlan'
+import { plannedStretches, submitChoices } from '../store/submitChoices'
+import { queuedWords } from '../ui/online/wordOutbox'
 import { addTurn } from '../store/stats'
 import { dangers } from '../store/danger'
 import { revealSteps } from '../store/revealPlan'
@@ -21,6 +25,32 @@ export function installDevHook() {
     online: useOnline,
     /** The sound engine (musicState(), snapshots(), setConfig() — the audio e2e). */
     audio: getAudio,
+    /** Pause → Submit a word: the words waiting on this device to be sent (offline) — the submit-word e2e. */
+    queuedWords,
+    /** F71 e2e (word switches): jumps to a hand-made Small-board position in which Yellow can spell `word` down column
+     *  C5 — its first letters already planted (Blue's), the last one in Yellow's hand — keeping THIS game's word
+     *  switches (config.extraWords). Returns the turn to plan (glyphling, move-to hex, seed id, target hex), or null. */
+    castWord(word: string) {
+      const { game, online } = useGameStore.getState()
+      if (!game || online) return null
+      const letters = word.toUpperCase().split('')
+      const cells = letters.map((_, i) => `C5-${i + 1}`)
+      const planted = Object.fromEntries(letters.slice(0, -1).map((letter, i) => [cells[i], letter]))
+      const target = hexAt(cells.at(-1)!)
+      const board = getBoard('small')
+      const free = board.cells.map((h) => board.label(h)).filter((label) => !cells.includes(label))
+      for (const start of free) {
+        const far = free.filter((label) => label !== start && /^C(1|11)-/.test(label)) // the others out of the way
+        const made = position({ glyphlings: { 0: start, 1: far[0], 2: far[1], 3: far[2] }, seeds: [{}, planted], hands: [[letters.at(-1)!, 'E'], ['E']], bag: ['A', 'B', 'C'] })
+        const state: GameState = { ...made, config: { ...made.config, ...(game.config.extraWords && { extraWords: game.config.extraWords }) } }
+        for (const to of legalMoves(state, 0)) {
+          if (!legalCasts(state, 0, to).some((hex) => sameHex(hex, target))) continue
+          useGameStore.getState().loadState(state)
+          return { glyphling: 0, to: hexKey(to), seed: state.hands[0][0].id, target: hexKey(target) }
+        }
+      }
+      return null
+    },
     /** For the planned move: a seed (its id) and target hex that make Magic (or, with false, none). */
     findCast(wantMagic: boolean) {
       const { game, move, words } = useGameStore.getState()
@@ -54,6 +84,37 @@ export function installDevHook() {
                     glyphling: g.id, to: hexKey(to), seed, target: hexKey(target),
                     words: made.map((w) => ({ word: w.word, magic: w.magic, hexes: w.hexes.map(hexKey) })),
                   }
+                }
+              }
+            }
+          }
+        }
+        const pick = randomAction(state, rng)
+        rng = pick.rng
+        state = glyphtenderRules(words).apply(state, state.current, pick.action).state
+      }
+      return null
+    },
+    /** Submit a word e2e (F69): plays random legal actions until the player to move can plant a seed whose Submit a word
+     *  picker shows `kind` ('list' = 3+ letter non-words · 'tooShort' = only 2-letter ones), jumps the store there and
+     *  returns that turn (glyphling, move-to hex, seed id, target hex, the picker's words) — or null.
+     *  `minWords`: a 'list' must offer at least this many words. */
+    findSubmitTurn(kind: 'list' | 'tooShort', seed = 1, minWords = 1) {
+      const { game, words, stats, online } = useGameStore.getState()
+      if (!game || !words || online) return null
+      let state = game
+      let rng = seed
+      for (let i = 0; i < 400 && state.phase !== 'over'; i++) {
+        if (state.phase === 'play' && state.turnCount >= 4) {
+          for (const g of state.glyphlings.filter((x) => x.seat === state.current && !state.tangled.includes(x.id))) {
+            for (const to of legalMoves(state, g.id)) {
+              for (const target of legalCasts(state, g.id, to)) {
+                for (const { id: seedId } of state.hands[state.current]) {
+                  const stretches = plannedStretches(state, { glyphling: g.id, to }, { seed: seedId, target })
+                  const choices = stretches && submitChoices(stretches, words)
+                  if (choices?.kind !== kind || (choices.kind === 'list' && choices.words.length < minWords)) continue
+                  useGameStore.getState().loadState(state, stats)
+                  return { glyphling: g.id, to: hexKey(to), seed: seedId, target: hexKey(target), words: choices.kind === 'list' ? choices.words : [] }
                 }
               }
             }

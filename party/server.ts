@@ -8,8 +8,7 @@ import { RoomServer } from '../src/rooms/server/roomServer'
 import type { PartyRoom } from '../src/rooms/server/roomServer'
 import type { RoomSettings } from '../src/rooms/server/settings'
 import settings from '../content/rooms.json'
-import { parseWordList } from '../src/engine/words'
-import type { WordList } from '../src/engine/types'
+import { everyWordIn, parseWordFile, wordListFor, type WordFile } from '../src/engine/words'
 import { makeRules } from './glyphtenderRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
 import type { ServerGame } from './serverGame'
@@ -17,10 +16,14 @@ import type { ServerGame } from './serverGame'
 import wordsText from './words.gen.txt'
 
 // Read once per server copy, the first time a game needs it (~0.9 MB of text → a few ms)
-let words: WordList | null = null
-const loadWords = () => (words ??= parseWordList(wordsText))
+let wordFile: WordFile | null = null
+const theFile = () => (wordFile ??= parseWordFile(wordsText))
+/** EVERY word in the list, B / V ones too — Pause → Submit a word drops a word that's already a word in any way, whatever
+ *  the player's switches (Muzzy 2026-10-12: "you can't submit words that already show up as words"). */
+export const loadWords = () => everyWordIn(theFile())
 
-const rules = makeRules({ words: loadWords })
+// A game's moves are checked with ITS list: the official words + the B / V words the host switched on (F71)
+const rules = makeRules({ words: (extras) => wordListFor(theFile(), extras) })
 
 export default class GlyphtenderServer extends RoomServer<ServerGame, OnlineOptions, OnlineAction, GameView, never> {
   /** `testSettings`: e2e only — shorter room timings for a test server (worker.ts reads them from wrangler dev --var). */

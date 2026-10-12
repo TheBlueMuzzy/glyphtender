@@ -3,5 +3,6 @@
 import { kitScreens } from './kit'
 import { CreditsScreen, GameOverDialog, OnlineStartScreen, PauseScreen, RulesScreen, SettingsScreen } from './menus'
 import { NewGameScreen } from './NewGameScreen'
+import { SubmitWordScreen } from './SubmitWordScreen'
 
-export const menuScreens = { ...kitScreens, settings: SettingsScreen, credits: CreditsScreen, pause: PauseScreen, gameOver: GameOverDialog, newGame: NewGameScreen, rules: RulesScreen, online: OnlineStartScreen }
+export const menuScreens = { ...kitScreens, settings: SettingsScreen, credits: CreditsScreen, pause: PauseScreen, gameOver: GameOverDialog, newGame: NewGameScreen, rules: RulesScreen, online: OnlineStartScreen, submitWord: SubmitWordScreen }

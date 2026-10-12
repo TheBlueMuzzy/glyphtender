@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultOnlineOptions, loadOnlineOptions, saveOnlineOptions } from './onlineOptions'
+import { defaultOnlineOptions, loadOnlineOptions, saveOnlineOptions, wordSwitchesLine } from './onlineOptions'
 
 // A pretend browser storage
 const memory = () => {
@@ -15,8 +15,8 @@ describe('the host’s online table options', () => {
 
   it('remembers the last choices, and falls back where a saved value no longer fits', () => {
     const storage = memory()
-    saveOnlineOptions({ boardName: 'large', minWordLength: 3, turnSeconds: 90, wordIndicators: false }, storage)
-    expect(loadOnlineOptions(storage)).toEqual({ boardName: 'large', minWordLength: 3, turnSeconds: 90, wordIndicators: false })
+    saveOnlineOptions({ boardName: 'large', minWordLength: 3, turnSeconds: 90, wordIndicators: false, britishWords: false, vulgarWords: false }, storage)
+    expect(loadOnlineOptions(storage)).toEqual({ boardName: 'large', minWordLength: 3, turnSeconds: 90, wordIndicators: false, britishWords: false, vulgarWords: false })
     storage.setItem('glyphtender:online-options', JSON.stringify({ boardName: 'huge', minWordLength: 9, turnSeconds: 45, wordIndicators: 'yes' }))
     expect(loadOnlineOptions(storage)).toEqual(defaultOnlineOptions())
     storage.setItem('glyphtender:online-options', 'not json')
@@ -27,7 +27,23 @@ describe('the host’s online table options', () => {
     const storage = memory()
     storage.setItem('glyphtender:online-options', JSON.stringify({ boardName: 'auto', minWordLength: 2, turnSeconds: 0, wordIndicators: true }))
     expect(loadOnlineOptions(storage).minWordLength).toBe(3)
-    saveOnlineOptions({ boardName: 'auto', minWordLength: 2, turnSeconds: 0, wordIndicators: true }, storage)
+    saveOnlineOptions({ ...defaultOnlineOptions(), minWordLength: 2 }, storage)
     expect(loadOnlineOptions(storage).minWordLength).toBe(2)
+  })
+})
+
+describe('F71: the host’s word switches', () => {
+  it('are lobby table options like 2-letter words: off at first (rules.json), the host’s last choice remembered', () => {
+    expect(defaultOnlineOptions()).toMatchObject({ britishWords: false, vulgarWords: false })
+    const storage = memory()
+    saveOnlineOptions({ ...defaultOnlineOptions(), vulgarWords: true }, storage)
+    expect(loadOnlineOptions(storage)).toMatchObject({ britishWords: false, vulgarWords: true })
+  })
+
+  it('the lobby / Pause line: nothing when both are off', () => {
+    expect(wordSwitchesLine(undefined)).toBeNull()
+    expect(wordSwitchesLine({ british: false })).toBeNull()
+    expect(wordSwitchesLine({ vulgar: true })).toBe('Vulgar words on')
+    expect(wordSwitchesLine({ british: true, vulgar: true })).toBe('British spelling on · Vulgar words on')
   })
 })

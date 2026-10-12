@@ -86,9 +86,17 @@ try {
       await panel.waitFor({ state: 'attached' }) // the Dev Kit loads a moment after the page
       await page.keyboard.press('Backquote')
       const tab = page.getByRole('tab', { name: 'AI', exact: true })
-      // (The game's own tabs come last: on a narrow panel that's the last carousel page.)
-      const lastPage = panel.locator('.devkit-tabs .dk-carousel-dot').last()
-      if (await lastPage.count()) await lastPage.click()
+      // (The game's own tabs come last — AI, Sound, Words: on a narrow panel try the carousel pages from the last one back.)
+      const dots = panel.locator('.devkit-tabs .dk-carousel-dot')
+      const inView = () => tab.evaluate((t) => {
+        const view = t.closest('.dk-carousel-view')?.getBoundingClientRect()
+        const box = t.getBoundingClientRect()
+        return !view || (box.left >= view.left - 1 && box.right <= view.right + 1)
+      })
+      for (let i = (await dots.count()) - 1; i >= 0 && !(await inView()); i--) {
+        await dots.nth(i).click()
+        await page.waitForTimeout(250)
+      }
       await tab.click()
       await page.getByLabel('Personality', { exact: true }).selectOption('Strategist')
     }

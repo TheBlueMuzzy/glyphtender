@@ -26,7 +26,9 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['online4', 'e2e/online-four.mjs', 'e2e-shots 5405 1994'],
   ['online-ai', 'e2e/online-ai.mjs', 'e2e-shots 5416 1993'], // (F43: AI seats online — lobby add / remove, the server's AI, idle takeover)
   ['screenshots', 'e2e/shots.mjs', 'check'], // (always port 5250)
-  ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'], // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)
+  ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'],
+  ['submit-word', 'e2e/submit-word.mjs', 'e2e-shots 5435 1989'], // (F69: Pause → Submit a word → the server's list; repeat, offline queue, < 3 letters) // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)
+  ['word-switches', 'e2e/word-switches.mjs', 'e2e-shots 5437 1984'], // (F71: Settings → British Spelling / Vulgar Words — a game keeps its switches; COLOUR scores only with British on; online the host's rule the room)
   ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 7 sizes)
   ['pass4', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5403 4'],
   ['game', 'e2e/game-shots.mjs', 'e2e-shots 5401'],
@@ -49,6 +51,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
 const ALONE = [
   ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
   ['devkit-sound', 'e2e/devkit-sound.mjs', 'e2e-shots/devkit-sound 5418'], // (Sound tab: adds a test MP3 + saves audio.json, then puts both back; the 8 moments)
+  ['words-tab', 'e2e/words-tab.mjs', 'e2e-shots/words-tab 5432'], // (Words tab: a stand-in word server on 1986; saves both word files, then puts them back)
 ]
 
 const args = process.argv.slice(2)

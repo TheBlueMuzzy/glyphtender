@@ -24,7 +24,14 @@ export interface GameConfig {
   /** Random seed: the same seed + the same actions = the same game. */
   seed: number
   rules: RuleNumbers
+  /** F71: the extra words this game counts (Settings → British Spelling / Vulgar Words, fixed at game start; online the
+   *  host's). Missing (old saves, both off) = neither — the plain list. Only switches that are ON are written. */
+  extraWords?: ExtraWords
 }
+
+/** The extra word lists (words.csv lines tagged B / V — src/engine/words.ts). */
+export type ExtraWordList = 'british' | 'vulgar'
+export type ExtraWords = Partial<Record<ExtraWordList, boolean>>
 
 export interface Glyphling {
   /** 0,1 = seat 0's pair; 2,3 = seat 1's pair; and so on (id = seat × 2 + which). */

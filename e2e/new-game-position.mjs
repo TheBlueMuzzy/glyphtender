@@ -112,7 +112,13 @@ try {
       await page.setViewportSize({ width: size.width, height: size.height - 150 })
       await page.waitForTimeout(300)
       const resized = await page.evaluate(measure)
-      ok(Math.abs(resized.top - resized.bottom) <= CENTRE_SLACK, `${name}: window resized to ${size.width}x${size.height - 150} → centred again (gap above ${round(resized.top)} · below ${round(resized.bottom)})`)
+      if (resized.scrolls) { // (taller than the shorter window — F71's two rows did it at 1440x750: top + scroll, as on open)
+        const rowGap = resized.short ? 0 : resized.rowGap
+        ok(Math.abs(resized.top - resized.padTop - rowGap) <= 1,
+          `${name}: window resized to ${size.width}x${size.height - 150} → taller than it, so it starts at the top (gap ${round(resized.top)}) and scrolls`)
+      } else {
+        ok(Math.abs(resized.top - resized.bottom) <= CENTRE_SLACK, `${name}: window resized to ${size.width}x${size.height - 150} → centred again (gap above ${round(resized.top)} · below ${round(resized.bottom)})`)
+      }
     }
 
     if (errors.length) fail(`${name}: console errors: ${errors.join(' | ')}`)

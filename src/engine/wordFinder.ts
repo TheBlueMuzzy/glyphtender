@@ -68,3 +68,21 @@ export function findWords(state: GameState, at: Hex, words: WordList): FoundWord
   }
   return found
 }
+
+/**
+ * Every stretch of letters through the seed on `at` (F69 "Submit a word"): on each leyline, every unbroken piece of
+ * its run that holds that seed and is 2+ seeds long, read the same way findWords reads. Words AND non-words — the
+ * caller picks. No repeats, in leyline order.
+ */
+export function stretchesThrough(state: GameState, at: Hex): string[] {
+  const found = new Set<string>()
+  for (const dir of LEYLINES) {
+    const run = runThrough(state, at, dir)
+    const letters = run.map((h) => spell(state.seeds[hexKey(h)].letter))
+    const newSeed = run.findIndex((h) => hexKey(h) === hexKey(at))
+    for (let start = 0; start <= newSeed; start++) {
+      for (let end = Math.max(newSeed, start + 1); end < run.length; end++) found.add(letters.slice(start, end + 1).join(''))
+    }
+  }
+  return [...found]
+}

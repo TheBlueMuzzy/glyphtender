@@ -76,6 +76,16 @@
       "twoLetterOn": "2-letter words: on",
       "twoLetterOff": "2-letter words: off"
     },
+    "submitWord": {
+      "pauseRow": "Submit a word",
+      "placeSeed": "Place a seed first (don't cast it), then come back here to pick its letters.",
+      "title": "Submit a word",
+      "pick": "Not a word yet? Pick the one you meant.",
+      "sent": "Word submitted",
+      "tooShort": "Submitted words must be {n} or more letters",
+      "none": "No new letters line up with your seed.",
+      "back": "Back"
+    },
     "gameOver": {
       "label": "The end of the game",
       "tabs": {
@@ -277,6 +287,10 @@
     "boardDetail": "Small for 2–3 · Large for 4",
     "twoLetterWords": "2-letter words",
     "twoLetterDetail": "Off: words need 3+ letters",
+    "britishWords": "British spelling",
+    "britishDetail": "Count UK spellings like COLOUR",
+    "vulgarWords": "Vulgar words",
+    "vulgarDetail": "Count swear words",
     "hideSeeds": "Hide seeds between turns",
     "hideSeedsDetail": "Pass the device between turns",
     "wordIndicators": "Word indicators",
@@ -317,12 +331,20 @@
       "addAi": "Add AI",
       "aiDetail": "🤖 {skill}"
     },
+    "wordSwitches": {
+      "britishOn": "British spelling on",
+      "vulgarOn": "Vulgar words on"
+    },
     "options": {
       "board": "Garden",
       "auto": "Auto",
       "boardDetail": "Auto: Small for 2–3 · Large for 4",
       "twoLetterWords": "2-letter words",
       "twoLetterDetail": "Off: words need 3+ letters",
+      "britishWords": "British spelling",
+      "britishDetail": "Count UK spellings like COLOUR",
+      "vulgarWords": "Vulgar words",
+      "vulgarDetail": "Count swear words",
       "timer": "Turn timer",
       "timerOff": "Off",
       "timerSeconds": "{n} s",
