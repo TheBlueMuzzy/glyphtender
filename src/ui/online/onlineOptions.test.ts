@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultOnlineOptions, loadOnlineOptions, saveOnlineOptions, withHostWordSwitches, wordSwitchesLine } from './onlineOptions'
+import { defaultOnlineOptions, loadOnlineOptions, saveOnlineOptions, wordSwitchesLine } from './onlineOptions'
 
 // A pretend browser storage
 const memory = () => {
@@ -33,11 +33,11 @@ describe('the host’s online table options', () => {
 })
 
 describe('F71: the host’s word switches', () => {
-  it('go with Start from the host’s Settings (never remembered as a lobby choice)', () => {
-    expect(withHostWordSwitches(defaultOnlineOptions(), { british: true })).toMatchObject({ britishWords: true, vulgarWords: false })
+  it('are lobby table options like 2-letter words: off at first (rules.json), the host’s last choice remembered', () => {
+    expect(defaultOnlineOptions()).toMatchObject({ britishWords: false, vulgarWords: false })
     const storage = memory()
     saveOnlineOptions({ ...defaultOnlineOptions(), vulgarWords: true }, storage)
-    expect(loadOnlineOptions(storage).vulgarWords).toBe(false)
+    expect(loadOnlineOptions(storage)).toMatchObject({ britishWords: false, vulgarWords: true })
   })
 
   it('the lobby / Pause line: nothing when both are off', () => {

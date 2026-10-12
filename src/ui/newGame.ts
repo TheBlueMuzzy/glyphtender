@@ -10,7 +10,6 @@ import { pickTurnOrder } from '../engine/setup'
 import { useGameStore } from '../store/gameStore'
 import type { AiPick } from '../store/seats'
 import { screens } from './kit'
-import { useGameSettings } from './gameSettings'
 import { leaveOnline, onlineBackToLobby } from './online/session'
 
 /** What the new-game screen asks. */
@@ -20,6 +19,10 @@ export interface NewGameChoices {
   boardName: string
   /** On = 2-letter words make Magic (min word length 2); off = words need 3 letters or more. */
   twoLetterWords: boolean
+  /** F71: words.csv's British (B) and vulgar (V) words count in this game — like the 2-letter option, a table rule
+   *  fixed for the whole game (Muzzy 2026-10-12: "it's just like the 2-letter option"). */
+  britishWords: boolean
+  vulgarWords: boolean
   /** Pass-and-play: hide each player's seeds between turns. */
   hideSeeds: boolean
   /** On = made words get a white border, Cast shows "+N" and the Magic pops. Off = players spot words themselves. */
@@ -58,7 +61,8 @@ const defaultSeats = (): SeatChoice[] => Array.from({ length: MAX_PLAYERS }, () 
 /** First time: 2 players on their default board, 2-letter words as rules.json says, seeds NOT hidden (players opt in),
  *  word indicators on, every seat a person. */
 export const defaultChoices = (): NewGameChoices => ({
-  players: MIN_PLAYERS, boardName: defaultBoardFor(MIN_PLAYERS), twoLetterWords: rulesJson.twoLetterWordsAtStart === 1, hideSeeds: false, wordIndicators: true,
+  players: MIN_PLAYERS, boardName: defaultBoardFor(MIN_PLAYERS), twoLetterWords: rulesJson.twoLetterWordsAtStart === 1,
+  britishWords: rulesJson.britishWordsAtStart === 1, vulgarWords: rulesJson.vulgarWordsAtStart === 1, hideSeeds: false, wordIndicators: true,
   seats: defaultSeats(),
 })
 
@@ -110,6 +114,8 @@ export function loadChoices(storage: Storage | null = browserStorage()): NewGame
     return {
       players, boardName,
       twoLetterWords: typeof saved.twoLetterWords === 'boolean' && saved.twoLetterSave === TWO_LETTER_SAVES_SINCE ? saved.twoLetterWords : fallback.twoLetterWords,
+      britishWords: typeof saved.britishWords === 'boolean' ? saved.britishWords : fallback.britishWords,
+      vulgarWords: typeof saved.vulgarWords === 'boolean' ? saved.vulgarWords : fallback.vulgarWords,
       hideSeeds: typeof saved.hideSeeds === 'boolean' ? saved.hideSeeds : fallback.hideSeeds,
       wordIndicators: typeof saved.wordIndicators === 'boolean' ? saved.wordIndicators : fallback.wordIndicators,
       // the first seat is always you (New Game has no row for it) — an older save with an AI there comes back as a person
@@ -156,7 +162,7 @@ export function startNewGame(choices: NewGameChoices) {
   useGameStore.getState().startGame({
     players: choices.players, boardName: choices.boardName, seed: randomSeed(), turnOrder: e2ePlainOrder ? undefined : pickTurnOrder(choices.players, randomSeed()),
     minWordLength: choices.twoLetterWords ? 2 : 3, hideSeeds: choices.hideSeeds, wordIndicators: choices.wordIndicators,
-    extraWords: useGameSettings.getState().extraWords, // Settings → British Spelling / Vulgar Words, fixed for this game (F71)
+    extraWords: { british: choices.britishWords, vulgar: choices.vulgarWords }, // fixed for this game (F71)
     ...aiSeatsOf(choices),
   })
 }

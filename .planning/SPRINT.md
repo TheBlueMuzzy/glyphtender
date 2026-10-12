@@ -30,13 +30,15 @@ Done when: the Dev Kit Words tab lists the submitted list with a 3-state box per
 Check: npm run check:full + the new e2e · words.csv SHA test updated with a logged commit · AI signoff re-run.
 Ask Muzzy: —
 ## F71 ⚙️ Word toggles (Muzzy 2026-10-12: "yes on settings. go.")
-Done when: Settings has British Spelling + Vulgar Words switches (off by default); on = those words count for scoring, the preview and the AI; a game keeps the settings it started with; online the host's settings rule the room and the lobby says so.
+Done when: New Game and the host's lobby have British spelling + Vulgar words switches (off at first — moved out of Settings, Muzzy 2026-10-12: "it's just like the 2-letter option"); on = those words count for scoring, the preview and the AI; a game keeps what it started with; online the host's lobby choice rules the room.
 - [x] 🤖 1. Word files (changed plan, Muzzy 2026-10-12): ONE words.csv with B / V tags (`WORD,zipf,B|V`); submitted.csv = only open + no; the Words tab lists only open words and Save moves Yes / B / V into words.csv; Dev Kit 0.12.2; tests (4a1ce71)
 - [x] 🤖 2. Engine + store: the game's word list = official + the switched-on B / V words, fixed at game start (config.extraWords); AI (worker + on-page) uses it; Settings rows (cd5cdc2)
 - [x] 🤖 3. Online: host's switches go with Start, server checks moves + plays its AI with the game's list, Submit a word drops any B / V word; host's lobby line + Pause note; en.json online.wordSwitches (f2e7617)
 - [x] 🤖 4. Tests + e2e:word-switches (British on → COLOUR scores; online host Vulgar → guest), GDD/TDD (2bb2e3c + docs)
 - [x] 🤖 5. AI skill levels on the new list: Zipf cut-offs are absolute (same wordfreq scale) — counts 3 → 21,827, 2 → 44,471, all 64,147; arena + ladder re-run
 - [x] 🤖 6. Settings → Difficulty switched off (`"on": false`) — Muzzy: "doesn't feel like it applies … we handle difficulty per AI opponent at lobby setup". Nothing read it (no code to remove) (cd5cdc2)
+
+- [x] 🤖 7. Moved the switches from Settings to New Game + the host's lobby (Muzzy: "it's just like the 2-letter option"); rules.json britishWordsAtStart / vulgarWordsAtStart; e2e:word-switches through New Game + lobby; New Game card now scrolls at 1440x750 (e2e:new-game knows that case)
 
 Notes:
 - F71 (2026-10-12): the switches live in Settings but each game copies them into its config at start — everything (rules, preview, AI, server) reads the game's list, never Settings, so golden games + old saves are untouched (golden's input fingerprint now skips B / V lines). Fold migration: 2,211 accepted rows left submitted.csv → words.csv now 65,752 lines (plain 64,147 · B 1,502 · V 103), submitted.csv 585 rows (all no — 0 open). Guests can't see the switches in the LOBBY (the rooms module shares no options before Start) — they see them in Pause once the game starts; the host's lobby shows the line. CUNT is V (Muzzy's mark), so it counts with Vulgar on; slurs never. The B / V words load with the one file (+~30 KB) — no second fetch. Also unused in Settings → Gameplay: Game speed, Tips, Ask before ending a turn (nothing reads them — Muzzy may want them off too).

@@ -51,6 +51,12 @@ export function NewGameScreen() {
           <ListRow label={w.twoLetterWords} detail={w.twoLetterDetail}>
             <Toggle label={w.twoLetterWords} on={choices.twoLetterWords} onChange={(on) => change({ twoLetterWords: on })} />
           </ListRow>
+          <ListRow label={w.britishWords} detail={w.britishDetail}>
+            <Toggle label={w.britishWords} on={choices.britishWords} onChange={(on) => change({ britishWords: on })} />
+          </ListRow>
+          <ListRow label={w.vulgarWords} detail={w.vulgarDetail}>
+            <Toggle label={w.vulgarWords} on={choices.vulgarWords} onChange={(on) => change({ vulgarWords: on })} />
+          </ListRow>
           <ListRow label={w.hideSeeds} detail={w.hideSeedsDetail}>
             <Toggle label={w.hideSeeds} on={choices.hideSeeds} onChange={(on) => change({ hideSeeds: on })} />
           </ListRow>
