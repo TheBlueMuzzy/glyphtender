@@ -245,6 +245,7 @@ Goal: the word list is fair — no slurs or swears, nothing missing by mistake, 
 - 🔨 F68 🧹 (built — waiting for Muzzy's look + his first pass in the Words tab) Clean the word list: submitted.csv of every word kept out (with categories, to explain to players), slurs + swears out, lost words back (B001 ZYGOTES, WRY, THY…), audit of missing -S/-ED/-ING forms → Open, licence + docs right (never TWL — SCOWL) — should · sprint 25
 - 🔨 F69 (built — waiting for Muzzy) 💬 Submit a word: Pause → stretches through the planned seed → "Word submitted"; Cloudflare keeps new words as Open, repeats dropped silently; < 3 letters refused — should · needs: F68 · sprint 25
 - 🔨 F70 (built — waiting for Muzzy) 🔧 Dev Kit Words tab: 3-state Open / Yes / No, Open on top, Save re-sorts, search; Save → Cloudflare + words.csv + submitted.csv — should · needs: F68, F69, fw review-list tab · sprint 25
+- ⏳ F71 ⚙️ Word toggles in Settings: **British Spelling** and **Vulgar words**, both off by default (Muzzy 2026-10-12). Words stay in submitted.csv as no + category `british` / `swear` until then; on = they count. Needs: which seat's setting rules an online game (host's?), a fuller British list (COLOUR, HONOUR… — SCOWL has a British variant), maybe Dev Kit marks beyond Yes/No/Open (B, V) — could · needs: F68, F70
 
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could

@@ -1,117 +1,31 @@
 word,status,category,added,note
-ALLS,open,missing form,2026-10-11,
-ASS,open,swear or word,2026-10-11,donkey
-ASSES,open,swear or word,2026-10-11,donkeys
-BALLY,open,missing form,2026-10-11,
-BASTARD,open,swear or word,2026-10-11,illegitimate child
-BASTARDS,open,swear or word,2026-10-11,
-BITCH,open,swear or word,2026-10-11,female dog
-BITCHED,open,swear or word,2026-10-11,complained
-BITCHES,open,swear or word,2026-10-11,female dogs
-BITCHING,open,swear or word,2026-10-11,complaining
-BITCHY,open,swear or word,2026-10-11,
-BOOB,open,swear or word,2026-10-11,a fool
-BOOBS,open,swear or word,2026-10-11,
-BUNGHOLE,open,swear or word,2026-10-11,hole in a barrel
-CATHOLICS,open,missing form,2026-10-11,
 CHINK,open,slur or word,2026-10-11,a small gap
 CHINKS,open,slur or word,2026-10-11,small gaps
-COCK,open,swear or word,2026-10-11,rooster
-COCKS,open,swear or word,2026-10-11,roosters
 COOLIE,open,slur or word,2026-10-11,
 COOLIES,open,slur or word,2026-10-11,
 COON,open,slur or word,2026-10-11,raccoon
 COONS,open,slur or word,2026-10-11,raccoons
-COUNSELLING,open,missing form,2026-10-11,
-CRAP,open,swear or word,2026-10-11,
-CRAPPY,open,swear or word,2026-10-11,
-CRAPS,open,swear or word,2026-10-11,the dice game
 CRIPPLE,open,slur or word,2026-10-11,to disable
 CRIPPLES,open,slur or word,2026-10-11,
-CUM,open,swear or word,2026-10-11,with (cum laude)
-DAMN,open,swear or word,2026-10-11,condemn
-DAMNED,open,swear or word,2026-10-11,
-DAMNS,open,swear or word,2026-10-11,
-DICK,open,swear or word,2026-10-11,detective
-DICKS,open,swear or word,2026-10-11,detectives
-DOSS,open,missing form,2026-10-11,
-EASTER,open,missing form,2026-10-11,
-EMPHASISED,open,missing form,2026-10-11,
-EMPHASISES,open,missing form,2026-10-11,
-EMPHASISING,open,missing form,2026-10-11,
-ENDER,open,missing form,2026-10-11,
-EQUIPMENTS,open,missing form,2026-10-11,
-FEMMES,open,missing form,2026-10-11,
-FISTING,open,missing form,2026-10-11,
-FRENCH,open,name or word,2026-10-11,to cut in strips
-GERMANS,open,missing form,2026-10-11,
-GLOVER,open,missing form,2026-10-11,
-GODDAMN,open,swear or word,2026-10-11,
-HADES,open,missing form,2026-10-11,
-HARPER,open,missing form,2026-10-11,
-HELLER,open,missing form,2026-10-11,
-HIGHLANDER,open,missing form,2026-10-11,
-INFORMATIONS,open,missing form,2026-10-11,
-JAPAN,open,name or word,2026-10-11,lacquer
-KNACKERED,open,missing form,2026-10-11,
-LIBS,open,missing form,2026-10-11,
-LOOS,open,missing form,2026-10-11,
-MACS,open,missing form,2026-10-11,
-MATHS,open,missing form,2026-10-11,
 MIDGET,open,slur or word,2026-10-11,
 MIDGETS,open,slur or word,2026-10-11,
-MOLLY,open,missing form,2026-10-11,
-MORALES,open,missing form,2026-10-11,
-MOROCCO,open,name or word,2026-10-11,goat leather
-NUTTER,open,missing form,2026-10-11,
-PARKER,open,missing form,2026-10-11,
-PATER,open,missing form,2026-10-11,
-PECKER,open,missing form,2026-10-11,
-POLY,open,missing form,2026-10-11,
-PREDOMINATELY,open,missing form,2026-10-11,
-PRESSER,open,missing form,2026-10-11,
-PRICK,open,swear or word,2026-10-11,a small hole
-PRICKS,open,swear or word,2026-10-11,small holes
-PUBES,open,missing form,2026-10-11,
-PUSSY,open,swear or word,2026-10-11,cat
-QUAKER,open,missing form,2026-10-11,
 QUEER,open,slur or word,2026-10-11,strange; reclaimed
 QUEERS,open,slur or word,2026-10-11,
 RETARD,open,slur or word,2026-10-11,to slow down
 RETARDED,open,slur or word,2026-10-11,slowed down
 RETARDS,open,slur or word,2026-10-11,slows down
-RIMMER,open,missing form,2026-10-11,
-ROMAN,open,name or word,2026-10-11,upright type
-ROMANS,open,missing form,2026-10-11,
-ROUNDERS,open,missing form,2026-10-11,
-SKEETER,open,missing form,2026-10-11,
-SKINNER,open,missing form,2026-10-11,
-SOUNDERS,open,missing form,2026-10-11,
 SPASTIC,open,slur or word,2026-10-11,medical term
-SPILLER,open,missing form,2026-10-11,
-STRIDER,open,missing form,2026-10-11,
-TENNER,open,missing form,2026-10-11,
-TIT,open,swear or word,2026-10-11,a small bird
-TITS,open,swear or word,2026-10-11,small birds
-TRIER,open,missing form,2026-10-11,
-VAGINAS,open,missing form,2026-10-11,
-WALLY,open,missing form,2026-10-11,
-WARNER,open,missing form,2026-10-11,
-WILDING,open,missing form,2026-10-11,
-WILLY,open,missing form,2026-10-11,
 AAS,yes,missing form,2026-10-11,
 ABLED,yes,missing form,2026-10-12,-s/-ed/-ing form
 ABS,yes,missing form,2026-10-11,
 ABSORBER,yes,missing form,2026-10-11,
 ABSORBERS,yes,missing form,2026-10-12,-s/-ed/-ing form
-ACCIDENTLY,yes,missing form,2026-10-11,
 ACCREDITATIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 ACTIVATIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 ADHESIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 ADMIN,yes,short form or word,2026-10-11,
 ADOPTER,yes,missing form,2026-10-11,
 ADOPTERS,yes,missing form,2026-10-12,-s/-ed/-ing form
-ADVICES,yes,missing form,2026-10-11,
 AGGRESSIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 AGONIST,yes,missing form,2026-10-11,
 AGONISTS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -225,7 +139,7 @@ CORPORATES,yes,missing form,2026-10-12,-s/-ed/-ing form
 COUPLER,yes,missing form,2026-10-11,
 COUPLERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 COUPONING,yes,missing form,2026-10-12,-s/-ed/-ing form
-COVERAGES,yes,missing form,2026-10-12,-s/-ed/-ing form
+CRAPS,yes,swear or word,2026-10-11,the dice game
 CRAWLER,yes,missing form,2026-10-11,
 CRAWLERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 CREDENTIALED,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -306,9 +220,9 @@ FAIRING,yes,missing form,2026-10-11,
 FANDOMS,yes,missing form,2026-10-11,
 FANGED,yes,missing form,2026-10-12,-s/-ed/-ing form
 FARMLANDS,yes,missing form,2026-10-12,-s/-ed/-ing form
-FEEDBACKS,yes,missing form,2026-10-12,-s/-ed/-ing form
 FELLERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 FEMINISMS,yes,missing form,2026-10-12,-s/-ed/-ing form
+FEMMES,yes,missing form,2026-10-11,
 FIBROIDS,yes,missing form,2026-10-12,-s/-ed/-ing form
 FINNED,yes,missing form,2026-10-12,-s/-ed/-ing form
 FIRINGS,yes,missing form,2026-10-11,
@@ -322,6 +236,7 @@ FOOTERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 FORWARDERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 FOWLER,yes,missing form,2026-10-11,
 FOWLERS,yes,missing form,2026-10-12,-s/-ed/-ing form
+FRENCH,yes,name or word,2026-10-11,to cut in strips
 FRESHENER,yes,missing form,2026-10-11,
 FRESHENERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 FRICTIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -346,6 +261,7 @@ GIVER,yes,missing form,2026-10-11,
 GIVERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 GLAZER,yes,missing form,2026-10-11,
 GLAZERS,yes,missing form,2026-10-12,-s/-ed/-ing form
+GLOVER,yes,missing form,2026-10-11,
 GLUTES,yes,missing form,2026-10-12,-s/-ed/-ing form
 GLYPHS,yes,missing form,2026-10-11,
 GOER,yes,missing form,2026-10-11,
@@ -357,7 +273,9 @@ GRAINED,yes,missing form,2026-10-11,
 GRANITES,yes,missing form,2026-10-12,-s/-ed/-ing form
 GRASSLANDS,yes,missing form,2026-10-11,
 GRIDLOCKED,yes,missing form,2026-10-12,-s/-ed/-ing form
+HADES,yes,missing form,2026-10-11,
 HAIRSTYLING,yes,missing form,2026-10-12,-s/-ed/-ing form
+HARPER,yes,missing form,2026-10-11,
 HARRIER,yes,missing form,2026-10-11,
 HARRIERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 HAST,yes,missing form,2026-10-11,
@@ -403,10 +321,10 @@ ISSUERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 JACKETED,yes,missing form,2026-10-12,-s/-ed/-ing form
 JAMMER,yes,missing form,2026-10-11,
 JAMMERS,yes,missing form,2026-10-12,-s/-ed/-ing form
+JAPAN,yes,name or word,2026-10-11,lacquer
 JOURNALING,yes,missing form,2026-10-12,-s/-ed/-ing form
 JURIED,yes,missing form,2026-10-12,-s/-ed/-ing form
 JURISDICTIONS,yes,missing form,2026-10-11,
-KARMAS,yes,missing form,2026-10-12,-s/-ed/-ing form
 KINETICS,yes,missing form,2026-10-11,
 KITTED,yes,missing form,2026-10-12,-s/-ed/-ing form
 LANDERS,yes,missing form,2026-10-11,
@@ -414,13 +332,11 @@ LASHINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LATENCIES,yes,missing form,2026-10-12,-s/-ed/-ing form
 LAVAS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LAWYERING,yes,missing form,2026-10-12,-s/-ed/-ing form
-LEADERSHIPS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LEAKER,yes,missing form,2026-10-11,
 LEAKERS,yes,missing form,2026-10-12,-s/-ed/-ing form
-LEARNINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LEGALITIES,yes,missing form,2026-10-12,-s/-ed/-ing form
-LEGISLATIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LENSING,yes,missing form,2026-10-12,-s/-ed/-ing form
+LIBS,yes,missing form,2026-10-11,
 LIFTER,yes,missing form,2026-10-11,
 LIFTERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LIMBED,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -430,11 +346,11 @@ LIMITERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LIPPED,yes,missing form,2026-10-11,
 LITERATURES,yes,missing form,2026-10-11,
 LOADINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
-LOGICS,yes,missing form,2026-10-11,
 LOOKER,yes,missing form,2026-10-11,
 LOOKERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LOOKUPS,yes,missing form,2026-10-12,-s/-ed/-ing form
 LOOPER,yes,missing form,2026-10-11,
+MACS,yes,missing form,2026-10-11,
 MAGMAS,yes,missing form,2026-10-12,-s/-ed/-ing form
 MAGNETICS,yes,missing form,2026-10-12,-s/-ed/-ing form
 MANGAS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -447,7 +363,10 @@ MEDS,yes,missing form,2026-10-12,-s/-ed/-ing form
 MESSAGED,yes,missing form,2026-10-11,
 MESSAGING,yes,missing form,2026-10-11,
 METALLICS,yes,missing form,2026-10-12,-s/-ed/-ing form
+MOLLY,yes,missing form,2026-10-11,
 MONEYS,yes,missing form,2026-10-11,
+MORALES,yes,missing form,2026-10-11,
+MOROCCO,yes,name or word,2026-10-11,goat leather
 MORPHOLOGICALLY,yes,missing form,2026-10-11,
 MORPHOLOGIES,yes,missing form,2026-10-12,-s/-ed/-ing form
 MUMS,yes,missing form,2026-10-11,
@@ -489,6 +408,7 @@ PLEASER,yes,missing form,2026-10-11,
 PLEASERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PNEUMATICS,yes,missing form,2026-10-12,-s/-ed/-ing form
 POETICS,yes,missing form,2026-10-11,
+POLY,yes,missing form,2026-10-11,
 POPPER,yes,missing form,2026-10-11,
 POPPERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 POUNDER,yes,missing form,2026-10-11,
@@ -496,6 +416,7 @@ POUNDERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PRANKED,yes,missing form,2026-10-12,-s/-ed/-ing form
 PRANKING,yes,missing form,2026-10-12,-s/-ed/-ing form
 PREDICTORS,yes,missing form,2026-10-11,
+PREDOMINATELY,yes,missing form,2026-10-11,
 PRESENTERS,yes,missing form,2026-10-11,
 PROCUREMENTS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PROF,yes,short form or word,2026-10-11,
@@ -515,7 +436,6 @@ RAMPING,yes,missing form,2026-10-11,
 REALIGNED,yes,missing form,2026-10-12,-s/-ed/-ing form
 REALIGNING,yes,missing form,2026-10-12,-s/-ed/-ing form
 REALIZATIONS,yes,missing form,2026-10-11,
-REASONINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
 RECEIVABLES,yes,missing form,2026-10-11,
 RECOGNITIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 RECONFIGURING,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -537,6 +457,7 @@ REV,yes,short form or word,2026-10-11,to speed up an engine
 RIDDLER,yes,missing form,2026-10-11,
 RIDDLERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 ROADWORKS,yes,missing form,2026-10-12,-s/-ed/-ing form
+ROMAN,yes,name or word,2026-10-11,upright type
 ROOMIES,yes,missing form,2026-10-12,-s/-ed/-ing form
 ROPER,yes,missing form,2026-10-11,
 ROPERS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -571,6 +492,7 @@ SHIFTERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 SHORTHANDED,yes,missing form,2026-10-12,-s/-ed/-ing form
 SHORTLISTED,yes,missing form,2026-10-12,-s/-ed/-ing form
 SILICONES,yes,missing form,2026-10-12,-s/-ed/-ing form
+SKINNER,yes,missing form,2026-10-11,
 SLASHER,yes,missing form,2026-10-11,
 SLASHERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 SLAYED,yes,missing form,2026-10-11,
@@ -583,6 +505,7 @@ SNOWBOARDER,yes,missing form,2026-10-11,
 SNOWBOARDERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 SONICS,yes,missing form,2026-10-11,
 SOULED,yes,missing form,2026-10-12,-s/-ed/-ing form
+SOUNDERS,yes,missing form,2026-10-11,
 SPACER,yes,missing form,2026-10-11,
 SPACERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 SPARKLY,yes,missing form,2026-10-11,
@@ -593,7 +516,6 @@ SPRINGER,yes,missing form,2026-10-11,
 SPRINGERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 STEALER,yes,missing form,2026-10-11,
 STEALERS,yes,missing form,2026-10-12,-s/-ed/-ing form
-STORAGES,yes,missing form,2026-10-12,-s/-ed/-ing form
 STUNNER,yes,missing form,2026-10-11,
 STUNNERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 STYLINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -632,14 +554,15 @@ TOPPER,yes,missing form,2026-10-11,
 TOPPERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 TOXICITIES,yes,missing form,2026-10-12,-s/-ed/-ing form
 TOXICS,yes,missing form,2026-10-12,-s/-ed/-ing form
-TRAININGS,yes,missing form,2026-10-11,
 TRAMPOLINING,yes,missing form,2026-10-12,-s/-ed/-ing form
 TRIBALS,yes,missing form,2026-10-12,-s/-ed/-ing form
+TRIER,yes,missing form,2026-10-11,
 TUITIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 ULTIMATES,yes,missing form,2026-10-12,-s/-ed/-ing form
 UNABASHEDLY,yes,missing form,2026-10-11,
 UNDERAGED,yes,missing form,2026-10-12,-s/-ed/-ing form
 UNSURPRISINGLY,yes,missing form,2026-10-11,
+VAGINAS,yes,missing form,2026-10-11,
 VELVETS,yes,missing form,2026-10-12,-s/-ed/-ing form
 VENOMS,yes,missing form,2026-10-12,-s/-ed/-ing form
 VERIFICATIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -650,6 +573,7 @@ VOLATILES,yes,missing form,2026-10-12,-s/-ed/-ing form
 WAISTED,yes,missing form,2026-10-11,
 WAITRESSING,yes,missing form,2026-10-12,-s/-ed/-ing form
 WANDERINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
+WARNER,yes,missing form,2026-10-11,
 WAVEFORMS,yes,missing form,2026-10-11,
 WEARABLES,yes,missing form,2026-10-11,
 WEIRDED,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -657,6 +581,7 @@ WHEELERS,yes,missing form,2026-10-11,
 WHISPERER,yes,missing form,2026-10-11,
 WHISPERERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 WICKING,yes,missing form,2026-10-12,-s/-ed/-ing form
+WILDING,yes,missing form,2026-10-11,
 WINDER,yes,missing form,2026-10-11,
 WINDERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 WINDINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -671,13 +596,16 @@ ZYGOTES,yes,lost by mistake,2026-10-11,restored 2026-10-11
 ABBR,no,abbreviation,2026-10-11,
 ABBREV,no,abbreviation,2026-10-11,
 ABBREVS,no,abbreviation,2026-10-11,
+ACCIDENTLY,no,missing form,2026-10-11,
 ACCT,no,abbreviation,2026-10-11,
 ACKNOWLEDGEMENTS,no,over 15 letters,2026-10-11,
 ADMINISTRATIVELY,no,over 15 letters,2026-10-11,
 ADV,no,abbreviation,2026-10-11,
+ADVICES,no,missing form,2026-10-11,
 AFFAIRES,no,missing form,2026-10-11,
 AGRICULTURALISTS,no,over 15 letters,2026-10-11,
 AIS,no,missing form,2026-10-11,
+ALLS,no,missing form,2026-10-11,
 ALS,no,missing form,2026-10-11,
 ANESTHESIOLOGIST,no,over 15 letters,2026-10-11,
 ANESTHESIOLOGISTS,no,over 15 letters,2026-10-11,
@@ -689,6 +617,8 @@ ARGUS,no,missing form,2026-10-11,
 ARISTOCRATICALLY,no,over 15 letters,2026-10-11,
 ARS,no,missing form,2026-10-11,
 ARTERIOSCLEROSIS,no,over 15 letters,2026-10-11,
+ASS,no,swear,2026-10-11,vulgar toggle later (F71)
+ASSES,no,swear,2026-10-11,vulgar toggle later (F71)
 ASSHOLE,no,swear,2026-10-11,
 ASSHOLES,no,swear,2026-10-11,
 AUTHORITARIANISM,no,over 15 letters,2026-10-11,
@@ -696,28 +626,40 @@ AUTHORITATIVENESS,no,over 15 letters,2026-10-11,
 AUTOBIOGRAPHICAL,no,over 15 letters,2026-10-11,
 AVG,no,abbreviation,2026-10-11,
 AWOL,no,name or word,2026-10-11,absent without leave
+BALLY,no,british,2026-10-11,British Spelling toggle later (F71)
 BAPTIST,no,proper noun,2026-10-11,
 BAS,no,missing form,2026-10-11,
+BASTARD,no,swear,2026-10-11,vulgar toggle later (F71)
+BASTARDS,no,swear,2026-10-11,vulgar toggle later (F71)
 BIBLE,no,proper noun,2026-10-11,
 BIBLICAL,no,proper noun,2026-10-11,
 BIGS,no,missing form,2026-10-11,
 BIS,no,missing form,2026-10-11,
+BITCH,no,swear,2026-10-11,vulgar toggle later (F71)
+BITCHED,no,swear,2026-10-11,vulgar toggle later (F71)
+BITCHES,no,swear,2026-10-11,vulgar toggle later (F71)
+BITCHING,no,swear,2026-10-11,vulgar toggle later (F71)
+BITCHY,no,swear,2026-10-11,vulgar toggle later (F71)
 BLATTER,no,missing form,2026-10-11,
 BLDG,no,abbreviation,2026-10-11,
 BLOODTHIRSTINESS,no,over 15 letters,2026-10-11,
 BLVD,no,abbreviation,2026-10-11,
+BOOB,no,swear,2026-10-11,vulgar toggle later (F71)
+BOOBS,no,swear,2026-10-11,vulgar toggle later (F71)
 BOS,no,missing form,2026-10-11,
 BPM,no,abbreviation,2026-10-11,
 BULGER,no,missing form,2026-10-11,
 BULLSHIT,no,swear,2026-10-11,
 BULLSHITS,no,swear,2026-10-11,
 BUND,no,missing form,2026-10-11,
+BUNGHOLE,no,swear,2026-10-11,vulgar toggle later (F71)
 BUREAUCRATICALLY,no,over 15 letters,2026-10-11,
 CA,no,abbreviation,2026-10-11,
 CANTANKEROUSNESS,no,over 15 letters,2026-10-11,
 CARR,no,missing form,2026-10-11,
 CATASTROPHICALLY,no,over 15 letters,2026-10-11,
 CATES,no,missing form,2026-10-11,
+CATHOLICS,no,missing form,2026-10-11,
 CC,no,roman numeral,2026-10-11,
 CF,no,abbreviation,2026-10-11,
 CH,no,abbreviation,2026-10-11,
@@ -744,6 +686,8 @@ CLXIX,no,roman numeral,2026-10-11,
 CLXVI,no,roman numeral,2026-10-11,
 CLXVII,no,roman numeral,2026-10-11,
 CM,no,roman numeral,2026-10-11,
+COCK,no,swear,2026-10-11,vulgar toggle later (F71)
+COCKS,no,swear,2026-10-11,vulgar toggle later (F71)
 COLES,no,missing form,2026-10-11,
 COMMERCIALIZATION,no,over 15 letters,2026-10-11,
 COMPARTMENTALIZE,no,over 15 letters,2026-10-11,
@@ -766,6 +710,7 @@ CONVERSATIONALIST,no,over 15 letters,2026-10-11,
 CONVERSATIONALISTS,no,over 15 letters,2026-10-11,
 CONVERSATIONALLY,no,over 15 letters,2026-10-11,
 CORP,no,abbreviation,2026-10-11,
+COUNSELLING,no,british,2026-10-11,British Spelling toggle later (F71)
 COUNTERATTACKING,no,over 15 letters,2026-10-11,
 COUNTERBALANCING,no,over 15 letters,2026-10-11,
 COUNTERCLOCKWISE,no,over 15 letters,2026-10-11,
@@ -776,6 +721,9 @@ COUNTERREVOLUTION,no,over 15 letters,2026-10-11,
 COUNTERREVOLUTIONARIES,no,over 15 letters,2026-10-11,
 COUNTERREVOLUTIONARY,no,over 15 letters,2026-10-11,
 COUNTERREVOLUTIONS,no,over 15 letters,2026-10-11,
+COVERAGES,no,missing form,2026-10-12,-s/-ed/-ing form
+CRAP,no,swear,2026-10-11,vulgar toggle later (F71)
+CRAPPY,no,swear,2026-10-11,vulgar toggle later (F71)
 CRIS,no,missing form,2026-10-11,
 CROWDER,no,missing form,2026-10-11,
 CRYPTOCURRENCIES,no,over 15 letters,2026-10-11,
@@ -783,11 +731,15 @@ CRYSTALLOGRAPHIC,no,over 15 letters,2026-10-11,
 CS,no,abbreviation,2026-10-11,
 CT,no,abbreviation,2026-10-11,
 CU,no,abbreviation,2026-10-11,
+CUM,no,swear,2026-10-11,vulgar toggle later (F71)
 CUNT,no,swear,2026-10-11,
 CUNTS,no,swear,2026-10-11,
 DAGO,no,slur,2026-10-11,
 DAGOES,no,slur,2026-10-11,
 DAGOS,no,slur,2026-10-11,
+DAMN,no,swear,2026-10-11,vulgar toggle later (F71)
+DAMNED,no,swear,2026-10-11,vulgar toggle later (F71)
+DAMNS,no,swear,2026-10-11,vulgar toggle later (F71)
 DARKIE,no,slur,2026-10-11,
 DARKIES,no,slur,2026-10-11,
 DARKY,no,slur,2026-10-11,
@@ -802,8 +754,10 @@ DEPARTMENTALIZED,no,over 15 letters,2026-10-11,
 DEPARTMENTALIZES,no,over 15 letters,2026-10-11,
 DEPARTMENTALIZING,no,over 15 letters,2026-10-11,
 DEPT,no,abbreviation,2026-10-11,
+DICK,no,swear,2026-10-11,vulgar toggle later (F71)
 DICKHEAD,no,swear,2026-10-11,
 DICKHEADS,no,swear,2026-10-11,
+DICKS,no,swear,2026-10-11,vulgar toggle later (F71)
 DISADVANTAGEOUSLY,no,over 15 letters,2026-10-11,
 DISCOMBOBULATING,no,over 15 letters,2026-10-11,
 DISCONTINUATIONS,no,over 15 letters,2026-10-11,
@@ -816,10 +770,12 @@ DISPROPORTIONATELY,no,over 15 letters,2026-10-11,
 DISQUALIFICATION,no,over 15 letters,2026-10-11,
 DISQUALIFICATIONS,no,over 15 letters,2026-10-11,
 DOR,no,missing form,2026-10-11,
+DOSS,no,british,2026-10-11,British Spelling toggle later (F71)
 DYKE,no,slur,2026-10-11,
 DYKES,no,slur,2026-10-11,
 DZ,no,abbreviation,2026-10-11,
 EA,no,abbreviation,2026-10-11,
+EASTER,no,missing form,2026-10-11,
 EDS,no,short form or word,2026-10-11,educations
 ELECTROCARDIOGRAM,no,over 15 letters,2026-10-11,
 ELECTROCARDIOGRAMS,no,over 15 letters,2026-10-11,
@@ -831,12 +787,17 @@ ELECTROENCEPHALOGRAPH,no,over 15 letters,2026-10-11,
 ELECTROENCEPHALOGRAPHS,no,over 15 letters,2026-10-11,
 ELECTROMAGNETISM,no,over 15 letters,2026-10-11,
 ELS,no,missing form,2026-10-11,
+EMPHASISED,no,british,2026-10-11,British Spelling toggle later (F71)
+EMPHASISES,no,british,2026-10-11,British Spelling toggle later (F71)
+EMPHASISING,no,british,2026-10-11,British Spelling toggle later (F71)
+ENDER,no,missing form,2026-10-11,
 ENS,no,missing form,2026-10-11,
 ENTHUSIASTICALLY,no,over 15 letters,2026-10-11,
 ENVIRONMENTALISM,no,over 15 letters,2026-10-11,
 ENVIRONMENTALIST,no,over 15 letters,2026-10-11,
 ENVIRONMENTALISTS,no,over 15 letters,2026-10-11,
 EPISCOPAL,no,proper noun,2026-10-11,
+EQUIPMENTS,no,missing form,2026-10-11,
 ERS,no,missing form,2026-10-11,
 ESS,no,missing form,2026-10-11,
 EST,no,short form or word,2026-10-11,a training course
@@ -852,6 +813,8 @@ FAGGOTS,no,slur,2026-10-11,
 FAGGOTY,no,slur,2026-10-11,
 FAGS,no,slur,2026-10-11,
 FAS,no,missing form,2026-10-11,
+FEEDBACKS,no,missing form,2026-10-12,-s/-ed/-ing form
+FISTING,no,swear,2026-10-11,vulgar toggle later (F71)
 FL,no,abbreviation,2026-10-11,
 FLIBBERTIGIBBETS,no,over 15 letters,2026-10-11,
 FR,no,abbreviation,2026-10-11,
@@ -866,7 +829,9 @@ FUCKS,no,swear,2026-10-11,
 FWD,no,abbreviation,2026-10-11,
 GASTROINTESTINAL,no,over 15 letters,2026-10-11,
 GED,no,missing form,2026-10-11,
+GERMANS,no,missing form,2026-10-11,
 GM,no,abbreviation,2026-10-11,
+GODDAMN,no,swear,2026-10-11,vulgar toggle later (F71)
 GOOK,no,slur,2026-10-11,
 GOOKS,no,slur,2026-10-11,
 GOR,no,missing form,2026-10-11,
@@ -881,8 +846,10 @@ GYPPING,no,slur,2026-10-11,
 GYPS,no,slur,2026-10-11,
 HALFBREED,no,slur,2026-10-11,
 HALFBREEDS,no,slur,2026-10-11,
+HELLER,no,missing form,2026-10-11,
 HERES,no,missing form,2026-10-11,
 HGT,no,abbreviation,2026-10-11,
+HIGHLANDER,no,missing form,2026-10-11,
 HILLER,no,missing form,2026-10-11,
 HIST,no,missing form,2026-10-11,
 HONKEY,no,slur,2026-10-11,
@@ -923,6 +890,7 @@ INDISCRIMINATELY,no,over 15 letters,2026-10-11,
 INDISTINGUISHABLE,no,over 15 letters,2026-10-11,
 INDUSTRIALIZATION,no,over 15 letters,2026-10-11,
 INEXTINGUISHABLE,no,over 15 letters,2026-10-11,
+INFORMATIONS,no,missing form,2026-10-11,
 INSTITUTIONALIZE,no,over 15 letters,2026-10-11,
 INSTITUTIONALIZED,no,over 15 letters,2026-10-11,
 INSTITUTIONALIZES,no,over 15 letters,2026-10-11,
@@ -959,12 +927,14 @@ JEWS,no,slur,2026-10-11,
 JIZZ,no,swear,2026-10-11,
 JIZZES,no,swear,2026-10-11,
 JOES,no,missing form,2026-10-11,
+KARMAS,no,missing form,2026-10-12,-s/-ed/-ing form
 KC,no,abbreviation,2026-10-11,
 KEIR,no,missing form,2026-10-11,
 KG,no,abbreviation,2026-10-11,
 KIKE,no,slur,2026-10-11,
 KIKES,no,slur,2026-10-11,
 KM,no,abbreviation,2026-10-11,
+KNACKERED,no,british,2026-10-11,British Spelling toggle later (F71)
 KORS,no,missing form,2026-10-11,
 KS,no,abbreviation,2026-10-11,
 LACS,no,missing form,2026-10-11,
@@ -974,14 +944,19 @@ LAR,no,missing form,2026-10-11,
 LAUDER,no,missing form,2026-10-11,
 LB,no,abbreviation,2026-10-11,
 LBS,no,abbreviation,2026-10-11,
+LEADERSHIPS,no,missing form,2026-10-12,-s/-ed/-ing form
 LEAR,no,missing form,2026-10-11,
+LEARNINGS,no,missing form,2026-10-12,-s/-ed/-ing form
 LEGER,no,missing form,2026-10-11,
+LEGISLATIONS,no,missing form,2026-10-12,-s/-ed/-ing form
 LIBER,no,missing form,2026-10-11,
 LIGHTHEARTEDNESS,no,over 15 letters,2026-10-11,
 LII,no,roman numeral,2026-10-11,
 LIS,no,missing form,2026-10-11,
 LISTER,no,missing form,2026-10-11,
 LIX,no,roman numeral,2026-10-11,
+LOGICS,no,missing form,2026-10-11,
+LOOS,no,british,2026-10-11,British Spelling toggle later (F71)
 LOWES,no,missing form,2026-10-11,
 LS,no,abbreviation,2026-10-11,
 LUGER,no,missing form,2026-10-11,
@@ -997,6 +972,7 @@ MAIR,no,missing form,2026-10-11,
 MARSHALLS,no,missing form,2026-10-11,
 MATER,no,missing form,2026-10-11,
 MATERIALISTICALLY,no,over 15 letters,2026-10-11,
+MATHS,no,british,2026-10-11,British Spelling toggle later (F71)
 MAYS,no,missing form,2026-10-11,
 MELODRAMATICALLY,no,over 15 letters,2026-10-11,
 MEMS,no,missing form,2026-10-11,
@@ -1059,6 +1035,7 @@ NONPROFESSIONALS,no,over 15 letters,2026-10-11,
 NONPROLIFERATION,no,over 15 letters,2026-10-11,
 NONREPRESENTATIONAL,no,over 15 letters,2026-10-11,
 NUS,no,missing form,2026-10-11,
+NUTTER,no,british,2026-10-11,British Spelling toggle later (F71)
 OLDS,no,missing form,2026-10-11,
 OMER,no,missing form,2026-10-11,
 ONS,no,missing form,2026-10-11,
@@ -1075,11 +1052,14 @@ PACS,no,missing form,2026-10-11,
 PALMER,no,missing form,2026-10-11,
 PARAPROFESSIONAL,no,over 15 letters,2026-10-11,
 PARAPROFESSIONALS,no,over 15 letters,2026-10-11,
+PARKER,no,missing form,2026-10-11,
 PARLIAMENTARIANS,no,over 15 letters,2026-10-11,
 PARR,no,missing form,2026-10-11,
 PARTICULARIZATION,no,over 15 letters,2026-10-11,
+PATER,no,british,2026-10-11,British Spelling toggle later (F71)
 PCT,no,abbreviation,2026-10-11,
 PD,no,abbreviation,2026-10-11,
+PECKER,no,swear,2026-10-11,vulgar toggle later (F71)
 PED,no,missing form,2026-10-11,
 PENNER,no,missing form,2026-10-11,
 PERSONIFICATIONS,no,over 15 letters,2026-10-11,
@@ -1102,19 +1082,26 @@ POWS,no,missing form,2026-10-11,
 PP,no,abbreviation,2026-10-11,
 PRAISEWORTHINESS,no,over 15 letters,2026-10-11,
 PREDETERMINATION,no,over 15 letters,2026-10-11,
+PRESSER,no,missing form,2026-10-11,
 PRESUMPTUOUSNESS,no,over 15 letters,2026-10-11,
+PRICK,no,swear,2026-10-11,vulgar toggle later (F71)
+PRICKS,no,swear,2026-10-11,vulgar toggle later (F71)
 PROGNOSTICATIONS,no,over 15 letters,2026-10-11,
 PROST,no,missing form,2026-10-11,
 PROTESTANT,no,proper noun,2026-10-11,
 PSYCHOTHERAPISTS,no,over 15 letters,2026-10-11,
 PT,no,abbreviation,2026-10-11,
+PUBES,no,swear,2026-10-11,vulgar toggle later (F71)
+PUSSY,no,swear,2026-10-11,vulgar toggle later (F71)
 PWN,no,short form or word,2026-10-11,gamer slang
 QT,no,abbreviation,2026-10-11,
+QUAKER,no,missing form,2026-10-11,
 RAMBUNCTIOUSNESS,no,over 15 letters,2026-10-11,
 RAND,no,missing form,2026-10-11,
 RATIONALIZATIONS,no,over 15 letters,2026-10-11,
 RAZER,no,missing form,2026-10-11,
 REACHER,no,missing form,2026-10-11,
+REASONINGS,no,missing form,2026-10-12,-s/-ed/-ing form
 REDD,no,missing form,2026-10-11,
 REDDING,no,missing form,2026-10-11,
 REDSKIN,no,slur,2026-10-11,
@@ -1125,7 +1112,10 @@ REINTERPRETATIONS,no,over 15 letters,2026-10-11,
 REPRESENTATIONAL,no,over 15 letters,2026-10-11,
 RES,no,missing form,2026-10-11,
 RESPONSIBILITIES,no,over 15 letters,2026-10-11,
+RIMMER,no,swear,2026-10-11,vulgar toggle later (F71)
 RM,no,abbreviation,2026-10-11,
+ROMANS,no,missing form,2026-10-11,
+ROUNDERS,no,british,2026-10-11,British Spelling toggle later (F71)
 RPM,no,abbreviation,2026-10-11,
 RPS,no,abbreviation,2026-10-11,
 RS,no,abbreviation,2026-10-11,
@@ -1149,6 +1139,7 @@ SHITTING,no,swear,2026-10-11,
 SHITTY,no,swear,2026-10-11,
 SHORTSIGHTEDNESS,no,over 15 letters,2026-10-11,
 SHRIVER,no,missing form,2026-10-11,
+SKEETER,no,missing form,2026-10-11,
 SLATER,no,missing form,2026-10-11,
 SLUT,no,swear,2026-10-11,
 SLUTS,no,swear,2026-10-11,
@@ -1161,13 +1152,16 @@ SPIC,no,slur,2026-10-11,
 SPICS,no,slur,2026-10-11,
 SPIK,no,slur,2026-10-11,
 SPIKS,no,slur,2026-10-11,
+SPILLER,no,missing form,2026-10-11,
 SQ,no,abbreviation,2026-10-11,
 SQUAW,no,slur,2026-10-11,
 SQUAWS,no,slur,2026-10-11,
+STORAGES,no,missing form,2026-10-12,-s/-ed/-ing form
 STOVER,no,missing form,2026-10-11,
 STRAIGHTFORWARDLY,no,over 15 letters,2026-10-11,
 STRAIGHTJACKETED,no,over 15 letters,2026-10-11,
 STRAIGHTJACKETING,no,over 15 letters,2026-10-11,
+STRIDER,no,missing form,2026-10-11,
 SUPERCONDUCTIVITY,no,over 15 letters,2026-10-11,
 SYNCHRONIZATIONS,no,over 15 letters,2026-10-11,
 TALLIS,no,missing form,2026-10-11,
@@ -1178,13 +1172,17 @@ TEL,no,short form or word,2026-10-11,an ancient mound
 TELECOMMUNICATION,no,over 15 letters,2026-10-11,
 TELECOMMUNICATIONS,no,over 15 letters,2026-10-11,
 TELECONFERENCING,no,over 15 letters,2026-10-11,
+TENNER,no,british,2026-10-11,British Spelling toggle later (F71)
 THANKSGIVING,no,proper noun,2026-10-11,
 THERES,no,missing form,2026-10-11,
 TINTINNABULATION,no,over 15 letters,2026-10-11,
 TINTINNABULATIONS,no,over 15 letters,2026-10-11,
 TIS,no,missing form,2026-10-11,
+TIT,no,swear,2026-10-11,vulgar toggle later (F71)
+TITS,no,swear,2026-10-11,vulgar toggle later (F71)
 TOD,no,missing form,2026-10-11,
 TODAYS,no,missing form,2026-10-11,
+TRAININGS,no,missing form,2026-10-11,
 TRANNIES,no,slur,2026-10-11,
 TRANNY,no,slur,2026-10-11,
 TRANSCENDENTALISM,no,over 15 letters,2026-10-11,
@@ -1221,6 +1219,7 @@ VIII,no,roman numeral,2026-10-11,
 VOL,no,abbreviation,2026-10-11,
 VS,no,abbreviation,2026-10-11,
 WALES,no,proper noun,2026-10-11,
+WALLY,no,british,2026-10-11,British Spelling toggle later (F71)
 WANK,no,swear,2026-10-11,
 WANKED,no,swear,2026-10-11,
 WANKER,no,swear,2026-10-11,
@@ -1239,6 +1238,7 @@ WHORES,no,swear,2026-10-11,
 WHORING,no,swear,2026-10-11,
 WIFES,no,missing form,2026-10-11,
 WILDERS,no,missing form,2026-10-11,
+WILLY,no,swear,2026-10-11,vulgar toggle later (F71)
 WK,no,abbreviation,2026-10-11,
 WOG,no,slur,2026-10-11,
 WOGS,no,slur,2026-10-11,

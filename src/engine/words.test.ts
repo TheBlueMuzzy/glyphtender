@@ -50,9 +50,9 @@ describe('the official word list (public/words/words.csv)', () => {
     }
   })
 
-  it('keeps out slurs and swears, keeps words that are only sometimes rude for Muzzy to decide', () => {
-    for (const w of ['NIGGER', 'FAGGOT', 'FUCK', 'SHIT', 'CUNT']) expect(words.has(w), w).toBe(false)
-    for (const w of ['COCK', 'CHINA', 'TIT']) expect(words.has(w), w).toBe(true)
+  it('keeps out slurs and swears (rude-or-word ones too, until the vulgar toggle), keeps names that are also words', () => {
+    for (const w of ['NIGGER', 'FAGGOT', 'FUCK', 'SHIT', 'CUNT', 'COCK', 'TIT']) expect(words.has(w), w).toBe(false)
+    for (const w of ['CHINA', 'JAPAN']) expect(words.has(w), w).toBe(true)
   })
 })
 
