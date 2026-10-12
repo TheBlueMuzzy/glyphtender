@@ -1,0 +1,181 @@
+// WORD SWITCHES (F71) — Settings → Gameplay → British Spelling / Vulgar Words (both off by default), through the real
+// screens and a real local server:
+// 1. Settings → Gameplay shows both switches, off — shots at 390×844, 844×390, 768×343, 1440×900 (nothing clipped)
+// 2. British on → New game → the game's config + word list have it → a hand-made turn (devHook castWord) spells COLOUR:
+//    the Cast button previews Magic, and after the throw COLOUR is one of the turn's words, Magic scored
+// 3. mid-game, Settings → British off: THIS game keeps COLOUR (a game keeps the switches it started with)
+// 4. the next game (British off): the same turn does NOT make COLOUR
+// 5. online: the host has Vulgar on → the host's lobby says "Vulgar words on" → Start → the guest's game has it
+//    (config + word list: COCK) and the guest's Pause says so
+// Console clean. Starts its OWN `wrangler dev` (default port 1984, its own .wrangler/state-e2e-<port>) and Vite
+// (default 5437) and stops only those.
+//   npm run e2e:word-switches [outDir] [vitePort] [partyPort]
+import { mkdirSync } from 'node:fs'
+import { makePlayer, problems, startServers } from './online-kit.mjs'
+
+const OUT = process.argv[2] ?? 'e2e-shots'
+const VITE_PORT = Number(process.argv[3] ?? 5437)
+const PARTY_PORT = Number(process.argv[4] ?? 1984)
+const SETTINGS_KEY = 'kit-settings:' // the kit's Settings slot for a page at "/"
+mkdirSync(OUT, { recursive: true })
+
+let failures = 0
+const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
+const check = (what, ok) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if (!ok) failures++ }
+
+const { browser, stop } = await startServers(VITE_PORT, PARTY_PORT, 'npm run e2e:word-switches e2e-shots <vitePort> <partyPort>')
+
+/** A context whose saved Settings start with `values` (Full screen off: this check resizes the window). */
+async function contextWith(size, values = {}) {
+  const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, isMobile: !!size.mobile, hasTouch: !!size.mobile })
+  await context.addInitScript(([key, values]) => {
+    if (sessionStorage.getItem('e2e-seeded')) return // (only the first page load: later changes come from the screens)
+    sessionStorage.setItem('e2e-seeded', '1')
+    localStorage.setItem(key, JSON.stringify({ ...JSON.parse(localStorage.getItem(key) ?? '{}'), fullscreen: false, ...values }))
+  }, [SETTINGS_KEY, values])
+  return context
+}
+
+const watchErrors = (page) => {
+  const errors = []
+  page.on('console', (m) => m.type() === 'error' && !/Failed to load resource/.test(m.text()) && errors.push(m.text()))
+  page.on('pageerror', (e) => errors.push(e.message))
+  return errors
+}
+
+try {
+  // ───────────── pass-and-play: Settings → British Spelling ─────────────
+  {
+    const context = await contextWith({ width: 390, height: 844, mobile: true })
+    const page = await context.newPage()
+    const errors = watchErrors(page)
+    const store = (fn) => page.evaluate(`(${fn})(window.__glyphtender.store.getState())`)
+    const hook = (fn) => page.evaluate(`(${fn})(window.__glyphtender)`)
+    const button = (name) => page.getByRole('button', { name, exact: true })
+    const switchOf = (name) => page.getByRole('switch', { name })
+    const toGameplay = async () => {
+      const nextTab = page.locator('.kit-screen .kit-picker').first().getByRole('button').last()
+      for (let i = 0; i < 8 && (await page.locator('.kit-picker-value', { hasText: /^Gameplay$/ }).count()) === 0; i++) await nextTab.click()
+    }
+    const setBritish = async (on) => {
+      if ((await switchOf('British Spelling').getAttribute('aria-checked')) !== String(on)) await switchOf('British Spelling').click()
+      check(`Settings → British Spelling is ${on ? 'on' : 'off'}`, (await switchOf('British Spelling').getAttribute('aria-checked')) === String(on))
+    }
+    // Plays the hand-made COLOUR turn by the store's real actions; gives back the turn's words
+    const playColour = async () => {
+      const turn = await hook(`(h) => h.castWord('COLOUR')`)
+      if (!turn) { fail('castWord found no COLOUR turn'); return { words: [], cast: '' } }
+      const hex = (key) => { const [q, r] = key.split(',').map(Number); return `{ q: ${q}, r: ${r} }` }
+      await store(`(s) => s.tapGlyphling(${turn.glyphling})`)
+      await store(`(s) => s.tapHex(${hex(turn.to)})`)
+      await page.waitForTimeout(600)
+      await store(`(s) => s.tapSeed('${turn.seed}')`)
+      await store(`(s) => s.tapHex(${hex(turn.target)})`)
+      await page.waitForTimeout(400)
+      const cast = (await page.getByRole('button', { name: /^Cast/ }).first().textContent().catch(() => '')) ?? ''
+      const before = await store((s) => s.game.turnCount)
+      await store(`(s) => s.startCast()`)
+      await page.waitForFunction((n) => window.__glyphtender.store.getState().game.turnCount > n, before, { timeout: 10000 }).catch(() => fail('the cast never landed'))
+      return { words: await store((s) => s.game.lastTurn?.words.map((w) => w.word) ?? []), magic: await store((s) => s.game.lastTurn?.magic ?? 0), cast }
+    }
+
+    await page.goto(`http://127.0.0.1:${VITE_PORT}/`)
+    await button('Settings').click()
+    await toGameplay()
+    check('Settings → Gameplay: British Spelling + Vulgar Words, both off by default',
+      (await switchOf('British Spelling').getAttribute('aria-checked')) === 'false' && (await switchOf('Vulgar Words').getAttribute('aria-checked')) === 'false')
+    check('Settings → Gameplay: no Difficulty row (difficulty is per AI seat)', (await page.getByText('Difficulty', { exact: true }).count()) === 0)
+    for (const [width, height] of [[390, 844], [844, 390], [768, 343], [1440, 900]]) {
+      await page.setViewportSize({ width, height })
+      await page.waitForTimeout(400)
+      await switchOf('Vulgar Words').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(200)
+      await page.screenshot({ path: `${OUT}/word-switches-settings@${width}x${height}.png` })
+      const found = await page.evaluate(problems)
+      found.forEach((p) => fail(`settings ${width}x${height}: ${p}`))
+      console.log(`${found.length ? 'FAIL' : 'ok  '} shot settings (Gameplay) ${width}x${height}`)
+    }
+    await page.setViewportSize({ width: 390, height: 844 })
+    await setBritish(true)
+    await page.keyboard.press('Escape')
+
+    // New game with British on
+    await button('Play').click()
+    await page.getByRole('button', { name: 'Start' }).click()
+    await page.waitForFunction(() => window.__glyphtender.store.getState().wordsStatus === 'ready' && window.__glyphtender.store.getState().game, null, { timeout: 15000 })
+    check('the new game started with British on (config.extraWords)', await store((s) => JSON.stringify(s.game.config.extraWords) === '{"british":true}'))
+    check('the game’s word list has COLOUR, not COCK', await store((s) => s.words.has('COLOUR') && !s.words.has('COCK')))
+
+    // Mid-game: British off in Settings — this game keeps it
+    await button('Menu').click()
+    await button('Settings').click()
+    await toGameplay()
+    await setBritish(false)
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(300)
+    check('mid-game switch-off: this game still counts COLOUR', await store((s) => s.game.config.extraWords?.british === true && s.words.has('COLOUR')))
+
+    const on = await playColour()
+    check(`British on: the cast preview shows Magic ("${on.cast.trim()}")`, /\+\d/.test(on.cast))
+    check(`British on: COLOUR scored (${on.words.join(', ')}; ${on.magic} Magic)`, on.words.includes('COLOUR') && on.magic > 0)
+    await page.screenshot({ path: `${OUT}/word-switches-colour.png` })
+
+    // The next game: British is off now
+    await page.goto(`http://127.0.0.1:${VITE_PORT}/`)
+    await button('Play').click()
+    await page.getByRole('button', { name: 'Start' }).click()
+    await page.waitForFunction(() => window.__glyphtender.store.getState().wordsStatus === 'ready' && window.__glyphtender.store.getState().game, null, { timeout: 15000 })
+    check('the next game: British off (no extraWords)', await store((s) => s.game.config.extraWords === undefined && !s.words.has('COLOUR')))
+    const off = await playColour()
+    check(`British off: the same turn does not make COLOUR (${off.words.join(', ') || 'no words'})`, !off.words.includes('COLOUR'))
+    if (errors.length) fail(`pass-and-play: console errors: ${errors.join(' | ')}`)
+    await context.close()
+  }
+
+  // ───────────── online: the host's Vulgar Words rules the room ─────────────
+  {
+    const hostSize = { width: 390, height: 844, mobile: true }
+    const guestSize = { width: 390, height: 844, mobile: true }
+    const ada = makePlayer('Ada', await contextWith(hostSize, { vulgarWords: true }), hostSize, { vitePort: VITE_PORT, out: OUT, fail })
+    const bo = makePlayer('Bo', await contextWith(guestSize), guestSize, { vitePort: VITE_PORT, out: OUT, fail })
+    await ada.open()
+    await ada.tap(ada.page.getByRole('button', { name: 'Play online' }))
+    await ada.page.getByRole('textbox', { name: 'Your name' }).fill('Ada')
+    await ada.tap(ada.page.getByRole('button', { name: 'Create a room' }))
+    await ada.page.getByText(/^Room [A-Z]{4}$/).waitFor({ timeout: 10000 })
+    const code = await ada.room((s) => s.code)
+    check('the host’s lobby says "Vulgar words on" (plain text)', (await ada.page.getByText('Vulgar words on', { exact: true }).count()) === 1
+      && (await ada.page.getByRole('button', { name: 'Vulgar words on' }).count()) === 0)
+    await ada.page.getByText('Vulgar words on', { exact: true }).scrollIntoViewIfNeeded()
+    await ada.shot('host-lobby', 400, 'word-switches')
+
+    await bo.open()
+    await bo.tap(bo.page.getByRole('button', { name: 'Play online' }))
+    await bo.page.getByRole('textbox', { name: 'Your name' }).fill('Bo')
+    await bo.page.locator('.kit-roomcode-box').first().click()
+    await bo.page.keyboard.type(code.toLowerCase())
+    await bo.tap(bo.page.getByRole('button', { name: 'Join', exact: true }))
+    await bo.page.getByRole('button', { name: 'I’m ready' }).waitFor({ timeout: 10000 })
+    await bo.tap(bo.page.getByRole('button', { name: 'I’m ready' }))
+    await ada.page.waitForFunction(() => !document.querySelector('.kit-modal button:last-child')?.disabled, null, { timeout: 10000 })
+    await ada.tap(ada.page.getByRole('button', { name: 'Start game' }))
+    for (const p of [ada, bo]) await p.page.waitForFunction(() => window.__glyphtender.store.getState().wordsStatus === 'ready' && window.__glyphtender.store.getState().game, null, { timeout: 15000 })
+    for (const p of [ada, bo]) {
+      check(`${p.name}'s game has the host's Vulgar Words on`, await p.store((s) => JSON.stringify(s.game.config.extraWords) === '{"vulgar":true}'))
+      check(`${p.name}'s word list counts COCK (and not COLOUR)`, await p.store((s) => s.words.has('COCK') && !s.words.has('COLOUR')))
+    }
+    await bo.tap(bo.page.getByRole('button', { name: 'Menu', exact: true }))
+    await bo.page.getByRole('button', { name: 'Back to the garden' }).waitFor({ timeout: 3000 })
+    check('the guest’s Pause says "Vulgar words on"', (await bo.page.getByRole('dialog').getByText(/Vulgar words on/).count()) > 0)
+    await bo.shot('guest-pause', 400, 'word-switches')
+    for (const p of [ada, bo]) if (p.errors.length) fail(`${p.name}: console errors: ${p.errors.join(' | ')}`)
+  }
+} catch (error) {
+  fail(String(error))
+} finally {
+  await stop()
+}
+
+console.log(failures ? `\n✗ word switches e2e: ${failures} failed` : '\n✓ word switches e2e passed')
+process.exit(failures ? 1 : 0)

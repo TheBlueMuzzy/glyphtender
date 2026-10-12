@@ -1,5 +1,7 @@
 // THE WORDS TAB (F70) — Muzzy reviews player-submitted words (and the words the F68 clean-up left open) in the
-// framework's review list tab: Open → Yes → No per word, Save writes both word files (vite-plugins/words/wordsVite.ts).
+// framework's review list tab: Open → Yes → No → B → V per word. It lists ONLY the open (undecided) words — a checklist
+// (Muzzy 2026-10-12); Save moves Yes / B / V words into words.csv (plain / ,B / ,V) and out of submitted.csv, No stays
+// there, and the tab reloads (Dev Kit 0.12.2) so decided words leave it (vite-plugins/words/wordsVite.ts).
 import type { ExtraMark, ReviewChange, ReviewItem } from '../devkit/review/reviewTypes'
 
 /** Words that are real but kept out until F71's Settings toggles (both off by default) — Muzzy 2026-10-12.
