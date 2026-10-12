@@ -1,24 +1,4 @@
 word,status,category,added,note
-CHINK,open,slur or word,2026-10-11,a small gap
-CHINKS,open,slur or word,2026-10-11,small gaps
-COOLIE,open,slur or word,2026-10-11,
-COOLIES,open,slur or word,2026-10-11,
-COON,open,slur or word,2026-10-11,raccoon
-COONS,open,slur or word,2026-10-11,raccoons
-CRIPPLE,open,slur or word,2026-10-11,to disable
-CRIPPLES,open,slur or word,2026-10-11,
-ENDER,open,missing form,2026-10-11,
-HELLER,open,missing form,2026-10-11,
-MIDGET,open,slur or word,2026-10-11,
-MIDGETS,open,slur or word,2026-10-11,
-PALMER,open,missing form,2026-10-11,
-QUEER,open,slur or word,2026-10-11,strange; reclaimed
-QUEERS,open,slur or word,2026-10-11,
-RETARD,open,slur or word,2026-10-11,to slow down
-RETARDED,open,slur or word,2026-10-11,slowed down
-RETARDS,open,slur or word,2026-10-11,slows down
-SKEETER,open,missing form,2026-10-11,
-SPASTIC,open,slur or word,2026-10-11,medical term
 AAS,yes,missing form,2026-10-11,
 ABLED,yes,missing form,2026-10-12,-s/-ed/-ing form
 ABS,yes,missing form,2026-10-11,
@@ -107,6 +87,8 @@ CHEMISTRIES,yes,missing form,2026-10-12,-s/-ed/-ing form
 CHESTED,yes,missing form,2026-10-11,
 CHINA,yes,name or word,2026-10-11,porcelain
 CHINAS,yes,missing form,2026-10-12,-s/-ed/-ing form
+CHINK,yes,slur or word,2026-10-11,a small gap
+CHINKS,yes,slur or word,2026-10-11,small gaps
 CHUNKING,yes,missing form,2026-10-12,-s/-ed/-ing form
 CLADDING,yes,missing form,2026-10-11,
 CLADDINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -152,6 +134,8 @@ CRAWLERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 CREDENTIALED,yes,missing form,2026-10-12,-s/-ed/-ing form
 CREDENTIALING,yes,missing form,2026-10-12,-s/-ed/-ing form
 CRICKETING,yes,missing form,2026-10-11,
+CRIPPLE,yes,slur or word,2026-10-11,to disable
+CRIPPLES,yes,slur or word,2026-10-11,
 CRUSHER,yes,missing form,2026-10-11,
 CRUSHERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 CURATED,yes,missing form,2026-10-11,
@@ -297,6 +281,7 @@ HEARTBREAKER,yes,missing form,2026-10-11,
 HEARTBREAKERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 HEARTED,yes,missing form,2026-10-11,
 HEATHERS,yes,missing form,2026-10-12,-s/-ed/-ing form
+HELLER,yes,missing form,2026-10-11,
 HELLS,yes,missing form,2026-10-11,
 HELMED,yes,missing form,2026-10-11,
 HELMETED,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -406,6 +391,7 @@ OUTGOINGS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PACER,yes,missing form,2026-10-11,
 PACERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PAIRINGS,yes,missing form,2026-10-11,
+PALMER,yes,missing form,2026-10-11,
 PARSERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PARTICIPATIONS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PASSERS,yes,missing form,2026-10-11,
@@ -444,6 +430,8 @@ PUNISHER,yes,missing form,2026-10-11,
 PUNISHERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 PYX,yes,lost by mistake,2026-10-11,restored 2026-10-11
 QUANTITATIVELY,yes,missing form,2026-10-11,
+QUEER,yes,slur or word,2026-10-11,strange; reclaimed
+QUEERS,yes,slur or word,2026-10-11,
 QUEUEING,yes,missing form,2026-10-11,
 RAISER,yes,missing form,2026-10-11,
 RAISERS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -528,6 +516,7 @@ SOUNDERS,yes,missing form,2026-10-11,
 SPACER,yes,missing form,2026-10-11,
 SPACERS,yes,missing form,2026-10-12,-s/-ed/-ing form
 SPARKLY,yes,missing form,2026-10-11,
+SPASTIC,yes,slur or word,2026-10-11,medical term
 SPILLER,yes,missing form,2026-10-11,
 SPLITTER,yes,missing form,2026-10-11,
 SPLITTERS,yes,missing form,2026-10-12,-s/-ed/-ing form
@@ -713,6 +702,8 @@ CONTRADISTINCTIONS,no,over 15 letters,2026-10-11,
 CONVERSATIONALIST,no,over 15 letters,2026-10-11,
 CONVERSATIONALISTS,no,over 15 letters,2026-10-11,
 CONVERSATIONALLY,no,over 15 letters,2026-10-11,
+COON,no,slur or word,2026-10-11,raccoon
+COONS,no,slur or word,2026-10-11,raccoons
 CORP,no,abbreviation,2026-10-11,
 COUNTERATTACKING,no,over 15 letters,2026-10-11,
 COUNTERBALANCING,no,over 15 letters,2026-10-11,
@@ -775,6 +766,7 @@ ELECTROENCEPHALOGRAPH,no,over 15 letters,2026-10-11,
 ELECTROENCEPHALOGRAPHS,no,over 15 letters,2026-10-11,
 ELECTROMAGNETISM,no,over 15 letters,2026-10-11,
 ELS,no,missing form,2026-10-11,
+ENDER,no,missing form,2026-10-11,
 ENS,no,missing form,2026-10-11,
 ENTHUSIASTICALLY,no,over 15 letters,2026-10-11,
 ENVIRONMENTALISM,no,over 15 letters,2026-10-11,
@@ -1075,6 +1067,7 @@ SENTIMENTALIZING,no,over 15 letters,2026-10-11,
 SER,no,missing form,2026-10-11,
 SHORTSIGHTEDNESS,no,over 15 letters,2026-10-11,
 SHRIVER,no,missing form,2026-10-11,
+SKEETER,no,missing form,2026-10-11,
 SOONERS,no,missing form,2026-10-11,
 SOVIET,no,proper noun,2026-10-11,
 SPAZ,no,slur,2026-10-11,
@@ -2731,6 +2724,8 @@ BULLSHITS,vulgar,swear,2026-10-11,
 BUNGHOLE,vulgar,swear or word,2026-10-11,hole in a barrel
 COCK,vulgar,swear or word,2026-10-11,rooster
 COCKS,vulgar,swear or word,2026-10-11,roosters
+COOLIE,vulgar,slur or word,2026-10-11,
+COOLIES,vulgar,slur or word,2026-10-11,
 CRAP,vulgar,swear or word,2026-10-11,
 CRAPPY,vulgar,swear or word,2026-10-11,
 CUM,vulgar,swear or word,2026-10-11,with (cum laude)
@@ -2755,6 +2750,8 @@ JIZZ,vulgar,swear,2026-10-11,
 JIZZES,vulgar,swear,2026-10-11,
 KNOBHEAD,vulgar,swear,2026-10-12,British swear
 KNOBHEADS,vulgar,swear,2026-10-12,British swear
+MIDGET,vulgar,slur or word,2026-10-11,
+MIDGETS,vulgar,slur or word,2026-10-11,
 MOTHERFUCKER,vulgar,swear,2026-10-11,
 MOTHERFUCKERS,vulgar,swear,2026-10-11,
 PECKER,vulgar,swear,2026-10-11,
@@ -2766,6 +2763,9 @@ PRICK,vulgar,swear or word,2026-10-11,a small hole
 PRICKS,vulgar,swear or word,2026-10-11,small holes
 PUBES,vulgar,swear,2026-10-11,
 PUSSY,vulgar,swear or word,2026-10-11,cat
+RETARD,vulgar,slur or word,2026-10-11,to slow down
+RETARDED,vulgar,slur or word,2026-10-11,slowed down
+RETARDS,vulgar,slur or word,2026-10-11,slows down
 RIMMER,vulgar,swear,2026-10-11,
 SHIT,vulgar,swear,2026-10-11,
 SHITS,vulgar,swear,2026-10-11,
