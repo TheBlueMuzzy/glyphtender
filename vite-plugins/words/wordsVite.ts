@@ -76,7 +76,7 @@ async function serverRows(online: Online): Promise<unknown[]> {
     const response = await fetch(`${online.server}/words/list`, { headers: { authorization: `Bearer ${online.key}` } })
     if (!response.ok) throw new Error(`the server said ${response.status}`)
     const data = (await response.json()) as unknown
-    const rows = Array.isArray(data) ? data : (data as { rows?: unknown[] }).rows
+    const rows = Array.isArray(data) ? data : (data as { words?: unknown[] }).words // the server answers { words: [...] }
     return Array.isArray(rows) ? rows : []
   } catch (error) {
     console.warn(`[words] couldn't fetch new player words from ${online.server} (${String(error)}) — showing the file only`)

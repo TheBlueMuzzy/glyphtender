@@ -12,10 +12,10 @@ Done when: content/words/submitted.csv holds every word kept out of the list wit
 
 ## F69 💬 Submit a word (Pause)
 Done when: Pause → Submit a word lists the 3+ letter non-word stretches through the planned seed, a tap says "Word submitted", the Cloudflare server keeps new words as Open and drops repeats silently, and only Muzzy's key can read or change the list.
-- [ ] 🤖 1. Pause row "Submit a word" → picker of stretches through the planned seed (3+ letters, not words, longest first); no planned seed → greyed "Place a seed first" (kit parts, game-ui)
-- [ ] 🤖 2. Always "Word submitted"; < 3 letters → "Submitted words must be 3 or more letters"; offline → kept on the device, sent later
-- [ ] 🤖 3. Server: submitted list on Cloudflare (seeded from submitted.csv); repeat = silent drop; new = Open; admin read/write behind a secret key (wrangler secret + an untracked key file on the PC)
-- [ ] 🤖 4. Tests: server tests + e2e (submit, repeat, < 3 letters, offline queue)
+- [x] 🤖 1. Pause row "Submit a word" → picker of stretches through the planned seed (3+ letters, not words, longest first); no planned seed → greyed "Place a seed first" (kit parts, game-ui)
+- [x] 🤖 2. Always "Word submitted"; < 3 letters → "Submitted words must be 3 or more letters"; offline → kept on the device, sent later
+- [x] 🤖 3. Server: submitted list on Cloudflare (seeded from submitted.csv); repeat = silent drop; new = Open; admin read/write behind a secret key (wrangler secret + an untracked key file on the PC)
+- [x] 🤖 4. Tests: server tests + e2e (submit, repeat, < 3 letters, offline queue)
 
 ## F70 🔧 Dev Kit Words tab
 Done when: the Dev Kit Words tab lists the submitted list with a 3-state box per word (Open → Yes → No), Open on top, Save re-sorts A–Z Open | Yes | No, search works, and Save writes Cloudflare + words.csv (Yes, with Zipf) + submitted.csv.

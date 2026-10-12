@@ -28,7 +28,7 @@ const ok = (what) => console.log(`  ok   ${what}`)
 const received = []
 const wordServer = createHttpServer((req, res) => {
   if (req.headers.authorization !== `Bearer ${KEY}`) { res.statusCode = 403; return res.end('{}') }
-  if (req.url === '/words/list') return res.end(JSON.stringify([{ word: 'AAAGLIMMER', status: 'open', category: 'player', added: '2026-10-12' }]))
+  if (req.url === '/words/list') return res.end(JSON.stringify({ words: [{ word: 'AAAGLIMMER', status: 'open', category: 'player', added: '2026-10-12' }] })) // the real server's shape (party/wordsRoutes.ts)
   let body = ''
   req.on('data', (c) => { body += c })
   req.on('end', () => { received.push(JSON.parse(body)); res.end('{"ok":true}') })
