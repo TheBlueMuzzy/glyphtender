@@ -1,15 +1,15 @@
 // THE REVIEW LIST TAB's shapes — what a game hands it (reviewTabEntry.ts) and what it gets back on Save.
 // A review list = things a person looks at one by one and marks Open / Yes / No — e.g. Glyphtender's player-submitted words.
-// A game can add its own marks too (Glyphtender: B = British spelling, V = vulgar) — see ExtraMark.
+// A game can add its own marks too (Glyphtender: B = British spelling, V = vulgar) — see ExtraMark: the same box cycles on to them.
 
 /** Open = not looked at yet · Yes = good · No = keep it out · or one of the game's extra marks' ids. Plain strings, so the game can store them as-is. */
 export type ReviewStatus = 'open' | 'yes' | 'no' | (string & {})
 
-/** A mark the game adds beyond Open / Yes / No. Each row gets a small letter button for it; press again = back to Open. */
+/** A mark the game adds beyond Open / Yes / No. The row's box cycles on to it after No and shows its letter. */
 export type ExtraMark = {
   /** What's saved, e.g. "british" (not open / yes / no) */
   id: string
-  /** The button's letter, e.g. "B" */
+  /** What the box shows, e.g. "B" */
   letter: string
   /** Its name in the counts line, tooltips and Copy for Claude, e.g. "British" */
   name: string

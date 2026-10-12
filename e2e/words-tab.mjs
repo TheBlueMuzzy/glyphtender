@@ -3,7 +3,7 @@
 // (Alphabetical Open | Alphabetical Yes | Alphabetical No)".
 // Against a stand-in word server (this script's own, port 1986 — never the live one): ` → Words → the rows come from
 // content/words/submitted.csv plus the server's new player word (open, at the top A–Z) → click a box: open → yes → no
-// + the V button → vulgar (rows don't jump while clicking) → search "rooster" finds COCK + COCKS by their notes → Save → words.csv gains the yes
+// + four clicks → vulgar (rows don't jump while clicking) → search "rooster" finds COCK + COCKS by their notes → Save → words.csv gains the yes
 // word (with a Zipf score) and loses the no word, submitted.csv is re-sorted open | yes | no, the stand-in server got the
 // marks with the admin key, and the list re-sorts. Both word files are put back afterwards, whatever happens.
 // Starts its OWN dev server (default port 5432 — never Muzzy's) and closes only that one.
@@ -81,16 +81,18 @@ try {
   if (!inOrder || !azEach) fail(`order: open | yes | no | british | vulgar ${inOrder}, A–Z in each ${azEach}`)
   else ok(`order: ${groups[0].length} open A–Z, then ${groups[1].length} yes, ${groups[2].length} no, ${groups[3].length} british, ${groups[4].length} vulgar`)
 
-  // HELLER: open → yes. ENDER: open → yes → no. PALMER: the V button → vulgar (B / V = Muzzy's toggle marks, 2026-10-12).
+  // HELLER: open → yes. ENDER: open → yes → no. PALMER: four clicks → vulgar (the box cycles Open → Yes → No → B → V, Muzzy 2026-10-12).
   // Rows mustn't move while clicking.
   const before = await rowWords(page)
   await box(page, 'HELLER').click()
   await box(page, 'ENDER').click()
   await box(page, 'ENDER').click()
-  await page.getByRole('button', { name: 'PALMER: mark Vulgar' }).click()
+  for (let i = 0; i < 4; i++) await box(page, 'PALMER').click()
+  if ((await box(page, 'PALMER').locator('.rv-box').textContent()) !== 'V') fail('the box of PALMER does not show V')
+  if ((await page.locator('.devkit-body:not([hidden]) .rv-list button:not(.rv-row)').count()) > 0) fail('extra buttons in the rows')
   const label = (w) => box(page, w).getAttribute('aria-label')
   if (!/^HELLER: Yes/.test(await label('HELLER')) || !/^ENDER: No/.test(await label('ENDER')) || !/^PALMER: Vulgar/.test(await label('PALMER'))) fail(`marks: HELLER "${await label('HELLER')}", ENDER "${await label('ENDER')}", PALMER "${await label('PALMER')}"`)
-  else ok('one click = yes, two = no, the V button = vulgar')
+  else ok('one click = yes, two = no, four = vulgar (box shows V, no extra buttons)')
   if ((await rowWords(page)).join() !== before.join()) fail('rows moved while clicking')
   else ok('rows stay put until Save')
   await page.screenshot({ path: `${OUT}/words-marked.png` })

@@ -1,7 +1,7 @@
 // REVIEW LIST TOOL — a list of things to look at one by one and mark Open / Yes / No (Glyphtender: submitted words).
 //   Each row is one button: click it (or Space / Enter) and its box goes Open (empty) → Yes (✓) → No (✗) → Open.
-//   A game's extra marks (extraMarks, e.g. B = British, V = vulgar) are small letter buttons at the row's end: press one
-//   and the box shows that letter; press it again = back to Open. They sort after No, in the game's order.
+//   A game's extra marks (extraMarks, e.g. B = British, V = vulgar) come next in the same cycle — No → B → V → Open —
+//   and the box shows their letter (Muzzy 2026-10-12: one multi-state box, no extra buttons). They sort after No.
 //   Order: Open first, then Yes, then No, A–Z inside each. The list does NOT move while you click (rows never jump
 //   under the cursor) — it sorts again when it loads and after a Save. A dot = changed, not saved yet.
 //   Save hands the game ONLY the changed rows (its save(changes)). If that fails, the reason shows and the changes stay.
@@ -12,7 +12,7 @@ import { CAN_SAVE, copyText } from '../saveContent'
 import { Highlight, SearchCount } from '../search/Section'
 import { searchTerms } from '../search/searchLogic'
 import {
-  applyChanges, countsLine, listChanges, nextStatus, pickExtra, reviewForClaude, searchReview, shownStatus, sortReview, statusName, toggleMark, type Marks,
+  applyChanges, countsLine, listChanges, nextStatus, reviewForClaude, searchReview, shownStatus, sortReview, statusName, toggleMark, type Marks,
 } from './reviewLogic'
 import type { ExtraMark, ReviewItem, ReviewTabOptions } from './reviewTypes'
 import './review.css'
@@ -104,7 +104,7 @@ export function ReviewTab({ label, load, save, what = 'item', extraMarks = NO_EX
       <p className="rv-counts" role="status">{countsLine(items, marks, extras)}</p>
       {terms.length === 0 && (
         <p className="rv-legend">
-          Click to change: ☐ open → ✓ yes → ✗ no{extras.map((m) => ` · ${m.letter} = ${m.name.toLowerCase()}`).join('')} · <span className="dk-dot" /> = not saved yet · sorts again after Save
+          Click to change: ☐ open → ✓ yes → ✗ no{extras.map((m) => ` → ${m.letter} ${m.name.toLowerCase()}`).join('')} → ☐ · <span className="dk-dot" /> = not saved yet · sorts again after Save
         </p>
       )}
       {items.length === 0 && <p className="devkit-not-plugged">Nothing to review yet.</p>}
@@ -120,9 +120,9 @@ export function ReviewTab({ label, load, save, what = 'item', extraMarks = NO_EX
                 className={changed ? 'rv-row is-changed' : 'rv-row'}
                 data-status={now}
                 disabled={saving}
-                onClick={() => setMarks((m) => toggleMark(item, m))}
-                aria-label={`${item.label}: ${nameOf(now)} (click for ${nameOf(nextStatus(now))})${changed ? ', not saved yet' : ''}`}
-                title={`${nameOf(now)} — click for ${nameOf(nextStatus(now))}`}
+                onClick={() => setMarks((m) => toggleMark(item, m, extras))}
+                aria-label={`${item.label}: ${nameOf(now)} (click for ${nameOf(nextStatus(now, extras))})${changed ? ', not saved yet' : ''}`}
+                title={`${nameOf(now)} — click for ${nameOf(nextStatus(now, extras))}`}
               >
                 <span className="rv-box" aria-hidden="true">{BOX_MARK[now] ?? extras.find((m) => m.id === now)?.letter ?? '?'}</span>
                 <span className="rv-text">
@@ -131,20 +131,6 @@ export function ReviewTab({ label, load, save, what = 'item', extraMarks = NO_EX
                 </span>
                 {changed && <span className="dk-dot" title="Changed, not saved yet" />}
               </button>
-              {extras.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className="rv-extra"
-                  aria-pressed={now === m.id}
-                  disabled={saving}
-                  onClick={() => setMarks((marks) => pickExtra(item, marks, m.id))}
-                  aria-label={`${item.label}: ${now === m.id ? `${m.name} — press for Open` : `mark ${m.name}`}`}
-                  title={now === m.id ? `${m.name} — press again for Open` : `Mark ${m.name}`}
-                >
-                  {m.letter}
-                </button>
-              ))}
             </li>
           )
         })}

@@ -255,6 +255,7 @@ Goal: the word list is fair — no slurs or swears, nothing missing by mistake, 
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-12 — **Multi-state checkbox for the game UI kit** (Muzzy: "the multi-toggle checkbox is a great UI piece for the kit"): one box that cycles its states on each tap (☐ → ✓ → ✗ → B → V), like the Dev Kit 0.12.1 review box — a kit part for in-game lists (filters, word toggles). Build framework-first when a game screen needs it.
 - 2026-10-10 — → F63–F65 (v0.11). **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
   - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.

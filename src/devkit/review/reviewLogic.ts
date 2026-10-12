@@ -3,11 +3,12 @@
 import { matchesAll, searchTerms } from '../search/searchLogic'
 import type { ExtraMark, ReviewChange, ReviewItem, ReviewStatus } from './reviewTypes'
 
-/** One click on a row moves it on: Open → Yes → No → Open. A row on an extra mark goes back to Open. */
-export function nextStatus(status: ReviewStatus): ReviewStatus {
-  if (status === 'open') return 'yes'
-  if (status === 'yes') return 'no'
-  return 'open'
+/** One click on a row moves it on: Open → Yes → No → the game's extra marks in order → Open (Muzzy 2026-10-12: one
+ *  box that cycles, no extra buttons). Anything unknown goes back to Open. */
+export function nextStatus(status: ReviewStatus, extras: ExtraMark[] = []): ReviewStatus {
+  const cycle = ['open', 'yes', 'no', ...extras.map((m) => m.id)]
+  const at = cycle.indexOf(status)
+  return at < 0 ? 'open' : cycle[(at + 1) % cycle.length]
 }
 
 const BASE_NAMES: Record<string, string> = { open: 'Open', yes: 'Yes', no: 'No' }
@@ -49,13 +50,9 @@ function markAs(item: ReviewItem, marks: Marks, status: ReviewStatus): Marks {
   return updated
 }
 
-/** Click a row: its next status (Open → Yes → No → Open). */
-export const toggleMark = (item: ReviewItem, marks: Marks): Marks => markAs(item, marks, nextStatus(shownStatus(item, marks)))
-
-/** Press an extra mark's letter: the row takes that mark — or, if it already shows it, goes back to Open. */
-export function pickExtra(item: ReviewItem, marks: Marks, extra: string): Marks {
-  return markAs(item, marks, shownStatus(item, marks) === extra ? 'open' : extra)
-}
+/** Click a row: its next status (Open → Yes → No → extra marks → Open). */
+export const toggleMark = (item: ReviewItem, marks: Marks, extras: ExtraMark[] = []): Marks =>
+  markAs(item, marks, nextStatus(shownStatus(item, marks), extras))
 
 /** What Save sends: only the rows that changed, in list order. */
 export function listChanges(items: ReviewItem[], marks: Marks): ReviewChange[] {
