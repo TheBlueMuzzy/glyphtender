@@ -79,8 +79,13 @@ export function ReviewTab({ label, load, save, what = 'item', extraMarks = NO_EX
       setMarks({})
       setStatus({ kind: 'ok', text: `Saved ${changes.length}.` })
       // Then the list as the game now has it — a game whose load() lists only what's still to decide (Glyphtender: Open
-      // words) drops the decided rows here. If this load fails, the sorted list above stays.
-      load().then((list) => setItems(sortReview(list, extras)), () => {})
+      // words) drops the decided rows here. If this load fails, the sorted list above stays. Rows stay locked (saving)
+      // until it's back, so no click lands on a list that's about to be replaced.
+      try {
+        setItems(sortReview(await load(), extras))
+      } catch {
+        // keep the list above
+      }
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save — your changes are still here: ${e instanceof Error ? e.message : String(e)}` })
     } finally {

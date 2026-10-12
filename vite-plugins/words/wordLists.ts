@@ -95,15 +95,27 @@ export function applyChanges(rows: SubmittedRow[], official: Map<string, string>
 }
 
 /** Words whose mark on the online server isn't the file's (a save whose marks didn't reach it, or the server's own
- *  seed being older than the file) — every save sends these, so the server catches up. Only rows still in the file
- *  are compared (an accepted word has left it). */
-export function outOfStep(rows: SubmittedRow[], server: unknown[]): Change[] {
+ *  seed being older than the file) — every save sends these, so the server catches up. Rows still in submitted.csv
+ *  are compared by status; an accepted word has left that file, so it's compared by its words.csv tag instead
+ *  (plain = yes, B = british, V = vulgar) — else a Yes whose send failed stays Open on the server for good, and its
+ *  Open pile fills up until it stops taking words (review 2026-10-12). */
+export function outOfStep(rows: SubmittedRow[], server: unknown[], official: Map<string, string> = new Map()): Change[] {
   const onServer = new Map<string, unknown>()
   for (const entry of server) {
     const e = entry as Partial<SubmittedRow>
     if (typeof e.word === 'string') onServer.set(e.word.toUpperCase(), e.status)
   }
-  return rows.filter((r) => onServer.has(r.word) && onServer.get(r.word) !== r.status).map((r) => ({ id: r.word, status: r.status }))
+  const fromFile = rows.filter((r) => onServer.has(r.word) && onServer.get(r.word) !== r.status).map((r) => ({ id: r.word, status: r.status }))
+  const inFile = new Set(rows.map((r) => r.word))
+  const fromList: Change[] = []
+  for (const [word, status] of onServer) {
+    const line = official.get(word)
+    if (inFile.has(word) || line === undefined) continue
+    const tag = line.split(',')[1]
+    const accepted: Status = tag === 'B' ? 'british' : tag === 'V' ? 'vulgar' : 'yes'
+    if (status !== accepted) fromList.push({ id: word, status: accepted })
+  }
+  return [...fromFile, ...fromList]
 }
 
 /** What the Dev Kit's review list shows for a row. */

@@ -90,7 +90,7 @@ async function save(req: IncomingMessage, res: ServerResponse, files: Files, onl
     const rows = mergeServerRows(parseSubmitted(readFileSync(files.submitted, 'utf8')), server, parseOfficial(readFileSync(files.official, 'utf8')))
     const result = writeWordFiles(files, rows, body.changes)
     // This save's marks, plus any older mark the server missed (else its open count only grows and it stops taking words)
-    const missed = outOfStep(result.rows, server).filter((c) => !result.applied.some((a) => a.id === c.id))
+    const missed = outOfStep(result.rows, server, result.official).filter((c) => !result.applied.some((a) => a.id === c.id))
     await sendMarks(online, [...result.applied, ...missed])
     reply(res, 200, { saved: result.applied.length })
   } catch (error) {

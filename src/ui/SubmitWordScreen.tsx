@@ -6,15 +6,17 @@ import { Button, Modal, ScrollArea, Stack, Text, fill, screens, toast } from './
 import { useGameStore } from '../store/gameStore'
 import { plannedStretches, submitChoices, type SubmitChoices } from '../store/submitChoices'
 import { sendWord } from './online/wordOutbox'
+import { everyWordIn } from '../engine/words'
 import text from '../../content/text/en.json'
 import submit from '../../content/words/submit.json'
 
 /** What to offer right now (read once when the screen opens — the game holds still under Pause). */
 function choicesNow(): SubmitChoices | { kind: 'noSeed' } {
-  const { game, move, cast, words } = useGameStore.getState()
+  const { game, move, cast, wordFile } = useGameStore.getState()
   const stretches = plannedStretches(game, move, cast)
   if (!stretches) return { kind: 'noSeed' }
-  return words ? submitChoices(stretches, words) : { kind: 'none' }
+  // Against EVERY word, British + vulgar too, whatever this game's switches: the server drops those anyway (F71)
+  return wordFile ? submitChoices(stretches, everyWordIn(wordFile)) : { kind: 'none' }
 }
 
 export function SubmitWordScreen() {

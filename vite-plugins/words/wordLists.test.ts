@@ -81,6 +81,14 @@ describe('the Words tab’s word files (F70)', () => {
     expect(outOfStep(rows, [])).toEqual([]) // server out of reach: nothing to compare
   })
 
+  it('re-sends an accepted word the server still has as open (its send failed) — by its words.csv tag', () => {
+    const list = new Map([['GLIMMEROUS', '0.00'], ['COLOUR', '3.10,B'], ['BOLLOCKS', '2.50,V'], ['ZYGOTES', '2.01']])
+    const server = [
+      { word: 'GLIMMEROUS', status: 'open' }, { word: 'COLOUR', status: 'open' }, { word: 'BOLLOCKS', status: 'vulgar' }, { word: 'NEWONE', status: 'open' },
+    ]
+    expect(outOfStep([], server, list)).toEqual([{ id: 'GLIMMEROUS', status: 'yes' }, { id: 'COLOUR', status: 'british' }])
+  })
+
   it('reads a quoted note the same way the online server does (one shared reader, party/csv.ts)', () => {
     const line = 'ASS,open,swear or word,2026-10-11,"donkey, ""the"" animal"'
     const csv = `word,status,category,added,note\n${line}\n`
