@@ -13,31 +13,31 @@
     { "id": "display", "label": "Display", "rows": [
       { "id": "fullscreen", "type": "toggle", "label": "Full screen", "detail": "Hides the browser's bars. On phones, any tap goes full screen", "default": false },
       { "id": "fullscreenTip", "type": "info", "label": "Full screen", "default": "Share → Add to Home Screen" },
-      { "id": "quality", "type": "selector", "label": "Graphics quality", "options": ["Auto", "Low", "Medium", "High"], "default": "Auto" },
-      { "id": "brightness", "type": "slider", "label": "Brightness", "default": 50 },
+      { "id": "quality", "type": "selector", "label": "Graphics quality", "options": ["Auto", "Low", "Medium", "High"], "default": "Auto", "on": false },
+      { "id": "brightness", "type": "slider", "label": "Brightness", "default": 50, "on": false },
       { "id": "frameRate", "type": "selector", "label": "Frame rate cap", "options": ["30", "60", "Unlimited"], "default": "60", "on": false }
     ]},
     { "id": "controls", "label": "Controls", "rows": [
-      { "id": "sensitivity", "type": "slider", "label": "Sensitivity", "min": 1, "max": 10, "default": 5 },
+      { "id": "sensitivity", "type": "slider", "label": "Sensitivity", "min": 1, "max": 10, "default": 5, "on": false },
       { "id": "invertY", "type": "toggle", "label": "Invert up and down", "default": false, "on": false },
-      { "id": "vibration", "type": "toggle", "label": "Vibration", "default": true },
-      { "id": "holdToPress", "type": "toggle", "label": "Tap instead of hold", "detail": "Holds become a tap to start and a tap to stop", "default": false },
+      { "id": "vibration", "type": "toggle", "label": "Vibration", "default": true, "on": false },
+      { "id": "holdToPress", "type": "toggle", "label": "Tap instead of hold", "detail": "Holds become a tap to start and a tap to stop", "default": false, "on": false },
       { "id": "rebind", "type": "button", "label": "Change buttons", "on": false }
     ]},
     { "id": "gameplay", "label": "Gameplay", "rows": [
       { "id": "trayPosition", "type": "selector", "label": "Tray position", "detail": "Flipped: seeds above the board (tall screens) or on its left (wide)", "options": ["Standard", "Flipped"], "default": "Standard" },
       { "id": "aiSpeed", "type": "selector", "label": "AI speed", "detail": "How long the AI players take to think", "options": ["Slow", "Normal", "Fast", "Instant"], "default": "Normal" },
       { "id": "difficulty", "type": "selector", "label": "Difficulty", "options": ["Easy", "Normal", "Hard"], "default": "Normal", "on": false },
-      { "id": "gameSpeed", "type": "selector", "label": "Game speed", "options": ["Slow", "Normal", "Fast"], "default": "Normal" },
-      { "id": "tips", "type": "toggle", "label": "Tips", "default": true },
-      { "id": "confirmEndTurn", "type": "toggle", "label": "Ask before ending a turn", "default": false }
+      { "id": "gameSpeed", "type": "selector", "label": "Game speed", "options": ["Slow", "Normal", "Fast"], "default": "Normal", "on": false },
+      { "id": "tips", "type": "toggle", "label": "Tips", "default": true, "on": false },
+      { "id": "confirmEndTurn", "type": "toggle", "label": "Ask before ending a turn", "default": false, "on": false }
     ]},
     { "id": "accessibility", "label": "Accessibility", "rows": [
       { "id": "textSize", "type": "selector", "label": "Text size", "options": ["100%", "125%", "150%", "200%"], "default": "100%" },
       { "id": "reduceMotion", "type": "toggle", "label": "Reduce motion", "detail": "Fewer moving and flashing effects", "default": false },
-      { "id": "screenShake", "type": "toggle", "label": "Screen shake", "default": true },
-      { "id": "colourBlind", "type": "selector", "label": "Colour-blind mode", "options": ["Off", "Red-green", "Blue-yellow"], "default": "Off" },
-      { "id": "highContrast", "type": "toggle", "label": "High contrast", "default": false },
+      { "id": "screenShake", "type": "toggle", "label": "Screen shake", "default": true, "on": false },
+      { "id": "colourBlind", "type": "selector", "label": "Colour-blind mode", "options": ["Off", "Red-green", "Blue-yellow"], "default": "Off", "on": false },
+      { "id": "highContrast", "type": "toggle", "label": "High contrast", "default": false, "on": false },
       { "id": "subtitles", "type": "toggle", "label": "Subtitles", "default": true, "on": false }
     ]},
     { "id": "language", "label": "Language", "rows": [
@@ -54,7 +54,7 @@
       { "id": "version", "type": "info", "label": "Version", "default": "0.1.0" },
       { "id": "credits", "type": "button", "label": "Credits" },
       { "id": "feedback", "type": "link", "label": "Send feedback", "url": "https://example.com/feedback", "on": false },
-      { "id": "resetProgress", "type": "destructive", "label": "Reset progress", "button": "Reset", "confirm": "All your unlocks and scores will be gone. This can’t be undone." }
+      { "id": "resetProgress", "type": "destructive", "label": "Reset progress", "button": "Reset", "confirm": "All your unlocks and scores will be gone. This can’t be undone.", "on": false }
     ]}
   ]
 }

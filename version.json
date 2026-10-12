@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "build": 0,
   "history": [
     {
@@ -72,6 +72,11 @@
       "version": "0.9.1",
       "date": "2026-10-12",
       "summary": "The live site no longer logs an error on load (the Dev Kit's Words tab asked the PC-only dev server)"
+    },
+    {
+      "version": "0.9.2",
+      "date": "2026-10-12",
+      "summary": "Settings shows only settings that work (12 placeholder rows off: Graphics quality, Brightness, Controls, Game speed, Tips, Colour-blind mode, Reset progress…)"
     }
   ]
 }
