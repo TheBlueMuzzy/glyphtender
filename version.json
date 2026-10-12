@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "build": 0,
   "history": [
     {
@@ -62,6 +62,11 @@
       "version": "0.8.0",
       "date": "2026-10-11",
       "summary": "Beta audits — opens faster on phones (about half a second sooner on a slow phone, instantly on a second visit), and every menu fits a phone on its side or a short window: Pause, Play online, the lobby and Settings stay inside their cards, the prompt no longer runs into ☰, a bigger 4-player reveal board, tidier results stats, and menus dim the screen behind"
+    },
+    {
+      "version": "0.9.0",
+      "date": "2026-10-12",
+      "summary": "Fair words: a cleaner word list (slurs and swears out, lost words back, missing -s/-ed/-ing forms in), Pause → Submit a word, British spelling + Vulgar words as New Game / lobby options, Dev Kit Words tab"
     }
   ]
 }
