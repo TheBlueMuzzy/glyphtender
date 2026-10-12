@@ -57,3 +57,6 @@ party/submitted.gen.txt
 
 # Helpers' git worktrees (Claude Code)
 .claude/worktrees/
+
+# one-off check scripts (cleanup.sh deletes them)
+e2e/_*.mjs
