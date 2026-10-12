@@ -1,5 +1,5 @@
 // Copies the word lists the online server bundles as text (esbuild reads .txt files as text; it has no loader for .csv):
-//   public/words/words.csv          → party/words.gen.txt       (the official list)
+//   public/words/words.csv          → party/words.gen.txt       (the official list, B / V tags and all — F71)
 //   content/words/submitted.csv     → party/submitted.gen.txt   (the words kept out — seeds the submitted list, F69)
 // wrangler.json (build.command) runs this before every `wrangler dev` / `wrangler deploy` build. The copies are gitignored.
 import { copyFileSync, existsSync, readFileSync } from 'node:fs'

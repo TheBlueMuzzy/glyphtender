@@ -17,6 +17,10 @@ export interface OnlineOptions {
   turnSeconds: number
   /** Word indicators: made words get a white border, Cast shows "+N" and the Magic pops. Off = spot words yourself. */
   wordIndicators: boolean
+  /** F71: the HOST's Settings → British Spelling / Vulgar Words, sent at Start — they rule the room: the game's word
+   *  list (moves checked on the server with it), every guest's preview and the server's AI. */
+  britishWords: boolean
+  vulgarWords: boolean
 }
 
 /** What a player sends: a move planned on `version` of the game, or "send me my view again". */
