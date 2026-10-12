@@ -243,7 +243,7 @@ Goal: the beta label — the game loads fast, runs smooth and every screen passe
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
-- **1.0:** tutorial · accessibility pass · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
+- **1.0:** tutorial · accessibility pass (Muzzy 2026-10-11: not until the final art is being worked on) · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
 - **Should:** board themes · colour preference · random starting player · hint · topiary-grow cast effect
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
@@ -252,22 +252,22 @@ Goal: the beta label — the game loads fast, runs smooth and every screen passe
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
   - ~~Secret Magic is "hidden but attainable"~~ → **Muzzy 2026-10-09: keep as is.** "I've played this in person a lot with a physical game… you see all of them happening for everyone. you lose track after a while. it gets blurry. no one is writing it down… that's not really this game." No change.
   - "I think this is a word" petition button (logged for Muzzy) + a dictionary audit for missing common forms (-S/-ED/-ING/-ER/-LY) and slurs.
-  - Seed-draw flood sim (≥6 vowels / ≤1 vowel / 3+ of a letter in 8 seeds) → smoothing knob if it's common (Word Play's #1 luck complaint).
-  - Dyslexia-friendly font option (core for word games) · letter readability test at phone size (higher-contrast face plate?) · an e2e that every Settings toggle survives a turn, a new game and a reload.
+  - ~~Seed-draw flood sim (≥6 vowels / ≤1 vowel / 3+ of a letter in 8 seeds) → smoothing knob if it's common (Word Play's #1 luck complaint).~~ → **Muzzy 2026-10-11: don't care about seed-draw floods.**
+  - Dyslexia-friendly font option (core for word games) · letter readability test at phone size (higher-contrast face plate?) → **Muzzy 2026-10-11: with accessibility, once the final art is being worked on.** · ~~an e2e that every Settings toggle survives a turn, a new game and a reload~~ → **Muzzy 2026-10-11: settings are saved — not an issue.**
   - Cozy ≠ flat: the two-birds cast, a tangle and the reveal each get one clear payoff (Word Play: "sterile… watch my score rattle up").
   - After a game: "the best word you could have grown" (the AI already finds it) — learning payoff.
   - The night sky shifts dusk → midnight → dawn as the garden fills (one mood colour, fixed layout).
-  - AI check: measure how the HUMAN plays against each personality (does the Strategist push people to turtle?); balance by match-up × skill.
+  - ~~AI check: measure how the HUMAN plays against each personality (does the Strategist push people to turtle?); balance by match-up × skill.~~ → **Muzzy 2026-10-11: no Strategist / personality balance — "no one will notice."**
 - 2026-10-09/10 — Story chart upgrade → F61 + F62 (v0.10).
 - 2026-10-08 — → F52. **Idle takeover with a warning bar** (Muzzy): online, 30 s without an action → a 30 s draining bar on THEIR screen ("Still there? A bot takes over soon" — concise); at 60 s a bot plays for them, mid-turn, as if they'd disconnected, until they act again. (Today: the server plays a turn for an idle player, a bot takes the seat after missedTurnsBeforeBot 2 — rooms.json.) Reworks B024's path. → make it a feature (/sprint).
 - 2026-10-08 — → F53. **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
 - 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.
 - 2026-10-07 — **Power Play + Bridge need a new rule shape, not a number** (F47, research/awards-ai.md): Power Play 4 words = 57% of games, 5 = 5%; Bridge 1 letter each side = 83%, 2 = 3%. Options: Power Play counts only 3+ letter words · Bridge adds "letters around the seed in total, at least" (e.g. ≥ 4). Small code change + a knob each. Walled garden suits the Scholar (Strategist earns it least) and is rare at 4p — AI or design question.
-- 2026-10-07 — **Rock-paper-scissors has a broken leg** (F46 sims, research/sims-ai.md): Scholar > Survivor (~73%), Survivor > Strategist (~61%), but Scholar ALSO beats Strategist (~58%); at 3–4 players the Strategist wins 7–17% (fair 25–33%). Next Personality Check pass (F45 knobs) — see the 3–4p idea below.
+- 2026-10-07 — **Rock-paper-scissors has a broken leg** (F46 sims, research/sims-ai.md): Scholar > Survivor (~73%), Survivor > Strategist (~61%), but Scholar ALSO beats Strategist (~58%); at 3–4 players the Strategist wins 7–17% (fair 25–33%). ~~Next Personality Check pass (F45 knobs) — see the 3–4p idea below.~~ → **Muzzy 2026-10-11: leave it — "no one will notice."**
 - 2026-10-07 — "Bag empty" notice on Large boards (F46: the bag runs out in 1–6% of Large games; the missing refresh could surprise a player)
 - 2026-10-05 — **"Surprise me" for online AI seats** (F43 left it out): the seat would need a name that doesn't give the personality away (e.g. "Mystery AI") until the end
 - 2026-10-05 — **AI setup menu is cluttered/clunky** (Muzzy, after his first AI game) — redo New Game's AI seat picker later. Research first (overnight-able): how other games set up AI opponents (board-game apps like Ticket to Ride / Catan / Wingspan / Carcassonne, Hearthstone practice, chess apps, Civ, Smash) → research/ai-setup-menus.md. Don't change the menu until Muzzy picks a direction.
-- 2026-10-05 — 3–4 players: the Strategist wins only 9% at a 3-way table (Scholar 48 · Survivor 43) — it fights 91% and the third player collects; it rarely gets a walled garden with two rivals roaming. Knob to try after Muzzy plays: a lower garden switch with more players (per-player-count switch values).
+- 2026-10-05 — 3–4 players: the Strategist wins only 9% at a 3-way table (Scholar 48 · Survivor 43) — it fights 91% and the third player collects; it rarely gets a walled garden with two rivals roaming. ~~Knob to try after Muzzy plays: a lower garden switch with more players (per-player-count switch values).~~ → **Muzzy 2026-10-11: leave it — "no one will notice."**
 - 2026-09-30 — Magic sparkles that pop against the night garden (Muzzy)
 - 2026-09-30 — Signature cast: seed arcs → buried → glyphling splashes magic water → topiary letter grows (from the original's HANDOFF §11.2)
 - 2026-09-30 — Harvest candidates for the framework once proven here: seed tray (tile rack), hex board viewport (fit/zoom), drag-to-slot
