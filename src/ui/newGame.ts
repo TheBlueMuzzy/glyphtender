@@ -10,6 +10,7 @@ import { pickTurnOrder } from '../engine/setup'
 import { useGameStore } from '../store/gameStore'
 import type { AiPick } from '../store/seats'
 import { screens } from './kit'
+import { useGameSettings } from './gameSettings'
 import { leaveOnline, onlineBackToLobby } from './online/session'
 
 /** What the new-game screen asks. */
@@ -155,6 +156,7 @@ export function startNewGame(choices: NewGameChoices) {
   useGameStore.getState().startGame({
     players: choices.players, boardName: choices.boardName, seed: randomSeed(), turnOrder: e2ePlainOrder ? undefined : pickTurnOrder(choices.players, randomSeed()),
     minWordLength: choices.twoLetterWords ? 2 : 3, hideSeeds: choices.hideSeeds, wordIndicators: choices.wordIndicators,
+    extraWords: useGameSettings.getState().extraWords, // Settings → British Spelling / Vulgar Words, fixed for this game (F71)
     ...aiSeatsOf(choices),
   })
 }

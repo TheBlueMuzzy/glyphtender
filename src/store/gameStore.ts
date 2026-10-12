@@ -20,8 +20,8 @@ import { checkAction } from '../engine/engine'
 import { flowOf, glyphtenderRules, setupGame, type GameEvent, type GlyphtenderLevel } from '../engine/rules'
 import { hexKey, sameHex, type Hex } from '../engine/hex'
 import { migrateGame } from '../engine/migrate'
-import { parseWordList } from '../engine/words'
-import type { Action, GameState, WordList } from '../engine/types'
+import { parseWordFile, wordListFor, type WordFile } from '../engine/words'
+import type { Action, ExtraWords, GameState, WordList } from '../engine/types'
 import type { Applied } from '../table/core'
 import { drawnIds, eventOf, setAsideIds, startedTurn, turnOf, type Happened } from './happened'
 import {
@@ -77,7 +77,11 @@ export interface OnlineLink {
 
 export interface GameStore {
   game: GameState | null
+  /** The word list THIS game plays with: the official list + the extra words its config switched on (F71 — British
+   *  spellings / vulgar words, fixed at game start; online the host's). Everything that checks words reads this. */
   words: WordList | null
+  /** The whole words.csv, read once (plain + B / V tagged words) — `words` is made from it for each game. */
+  wordFile: WordFile | null
   wordsStatus: 'idle' | 'loading' | 'ready' | 'failed'
   move: PlannedMove | null
   cast: PlannedCast | null
@@ -128,7 +132,7 @@ export interface GameStore {
 
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
    *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
-  startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick> }) => void
+  startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick>; extraWords?: ExtraWords }) => void
   leaveGame: () => void
   /** The next player has the device: show their seeds. */
   showSeeds: () => void
@@ -325,6 +329,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
   return {
     game: null,
     words: null,
+    wordFile: null,
     wordsStatus: 'idle',
     ...noPlan(),
     flying: false,
@@ -345,8 +350,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     scoring: null,
     happened: null,
 
-    startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {} }) => {
-      const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined })
+    startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {}, extraWords }) => {
+      const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined, extraWords })
       const options: GameOptions = {
         players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: hideSeeds ?? true,
         wordIndicators: wordIndicators ?? true,
@@ -372,20 +377,23 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (game?.phase === 'over') set({ revealAt: revealSteps(game).length })
     },
 
-    // The official word list, fetched once (about 250 KB gzipped). After a failed load, calling it again is Retry.
+    // The official word list, fetched once (about 260 KB gzipped, its B / V words included). After a failed load,
+    // calling it again is Retry. The game's own list (`words`) is made from it — see the bottom of this file.
     loadWords: async (url) => {
       if (get().wordsStatus === 'loading' || get().wordsStatus === 'ready') return
       set({ wordsStatus: 'loading' })
       try {
         const response = await fetch(url)
         if (!response.ok) throw new Error(`Word list: HTTP ${response.status}`)
-        set({ words: parseWordList(await response.text()), wordsStatus: 'ready' })
+        const wordFile = parseWordFile(await response.text())
+        set({ wordFile, words: wordListFor(wordFile, get().game?.config.extraWords), wordsStatus: 'ready' })
       } catch (error) {
         console.warn('Could not load the word list', error)
         set({ wordsStatus: 'failed' })
       }
     },
-    setWords: (words) => set({ words, wordsStatus: 'ready' }),
+    // (tests and the Dev Kit: a ready-made list with no B / V words)
+    setWords: (words) => set({ wordFile: { plain: words as Map<string, number>, tagged: { B: new Map(), V: new Map() } }, words, wordsStatus: 'ready' }),
 
     // Tap a glyphling: hold it (tap again to let go). Tapping the moved one lets you pick a new spot.
     tapGlyphling: (id) => {
@@ -644,4 +652,18 @@ export const useGameStore = create<GameStore>()((set, get) => {
 useGameStore.subscribe((s) => {
   const viewer = viewerOf(s)
   if (viewer !== s.lastViewer) useGameStore.setState({ lastViewer: viewer })
+})
+
+// The game's word list (F71): whenever the word file arrives or a game with other switches comes in (a new game, a
+// loaded one, an online view), `words` becomes that game's list — the official words + its B / V words if switched on.
+// (Only on those changes: a test or the Dev Kit that sets `words` itself is left alone.)
+let wordsFor: { file: WordFile | null; switches: string } = { file: null, switches: '' }
+useGameStore.subscribe((s) => {
+  const extras = s.game?.config.extraWords
+  const switches = `${extras?.british ? 'B' : ''}${extras?.vulgar ? 'V' : ''}`
+  if (s.wordFile === wordsFor.file && switches === wordsFor.switches) return
+  wordsFor = { file: s.wordFile, switches }
+  if (!s.wordFile) return
+  const list = wordListFor(s.wordFile, extras)
+  if (list !== s.words) useGameStore.setState({ words: list })
 })
