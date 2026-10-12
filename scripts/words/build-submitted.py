@@ -13,6 +13,8 @@ Inputs (in the folder given as the first argument):
 Needs: pip install wordfreq
 
 Run: python scripts/words/build-submitted.py <inputs folder>
+ONE-TIME: it rebuilds both files from the original list. Since F70 Muzzy changes them in the Dev Kit Words tab -
+re-running this would throw his marks away.
 """
 import csv
 import re

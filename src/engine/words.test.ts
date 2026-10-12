@@ -1,5 +1,4 @@
 /// <reference types="node" />
-import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { parseWordList, spell } from './words'
@@ -10,27 +9,25 @@ const atLeast = (z: number) => [...words.values()].filter((v) => v >= z).length
 
 // The list as cleaned in F68 (sprint 25, 2026-10-11, scripts/words/build-submitted.py): the original's words.txt
 // (git blob 3280512a) with slurs + swears out, six lost words back and ZYGOTESAA split (B001) — every word kept
-// out is in content/words/submitted.csv with its category. Changes are deliberate commits: update the hash here.
+// out is in content/words/submitted.csv with its category. Since F70 it changes through the Dev Kit Words tab.
 const submitted = readFileSync(new URL('../../content/words/submitted.csv', import.meta.url), 'utf8')
   .split('\n').slice(1).filter(Boolean).map((line) => line.split(','))
 
 describe('the official word list (public/words/words.csv)', () => {
-  it('is the F68 cleaned list, byte for byte', () => {
-    expect(createHash('sha256').update(file).digest('hex')).toBe('85919d01c4f6a18257768c530a5ef891c931ceaa84d17c27beacf252b9a03334')
-  })
-
-  it('has the known Zipf tiers', () => {
-    expect(atLeast(5)).toBe(997)
-    expect(atLeast(4)).toBe(6334)
-    expect(atLeast(3)).toBe(21773)
-    expect(atLeast(2)).toBe(43952)
-  })
-
-  it('has 63,602 words, one per line, sorted', () => {
+  // No fixed fingerprint since F70: Muzzy's Dev Kit Words tab adds and removes words on purpose. These check its shape.
+  it('is one WORD,zipf per line, sorted, with no doubles', () => {
     const lines = file.toString('utf8').split('\n').filter(Boolean)
-    expect(lines.length).toBe(63602)
-    expect(words.size).toBe(63602)
+    expect(lines.length).toBeGreaterThan(60000)
+    for (const line of lines) expect(line, line).toMatch(/^[A-Z]{2,15},\d+\.\d\d$/)
     expect([...lines].sort()).toEqual(lines)
+    expect(words.size).toBe(lines.length)
+  })
+
+  it('has roughly the known Zipf tiers (F68: 997 / 6,334 / 21,773 / 43,952)', () => {
+    expect(atLeast(5)).toBeGreaterThan(950)
+    expect(atLeast(4)).toBeGreaterThan(6200)
+    expect(atLeast(3)).toBeGreaterThan(21500)
+    expect(atLeast(2)).toBeGreaterThan(43500)
   })
 
   it('knows common words and their Zipf scores', () => {
