@@ -4,6 +4,8 @@
 //   and the box shows their letter (Muzzy 2026-10-12: one multi-state box, no extra buttons). They sort after No.
 //   Order: Open first, then Yes, then No, A–Z inside each. The list does NOT move while you click (rows never jump
 //   under the cursor) — it sorts again when it loads and after a Save. A dot = changed, not saved yet.
+//   After a good Save the tab loads the list again from the game, so a game that lists only undecided rows (Glyphtender,
+//   Muzzy 2026-10-12: "it becomes a checklist for me") sees the decided ones leave.
 //   Save hands the game ONLY the changed rows (its save(changes)). If that fails, the reason shows and the changes stay.
 //   The Dev Kit's search box filters the rows by label and detail while this tab is open (the `query` prop).
 // A game lists it with reviewTab(…) (reviewTabEntry.ts); the list itself comes from the game's load().
@@ -75,7 +77,10 @@ export function ReviewTab({ label, load, save, what = 'item', extraMarks = NO_EX
       await save(changes)
       setItems(applyChanges(items, marks, extras)) // the marks become the saved statuses, and the list sorts again
       setMarks({})
-      setStatus({ kind: 'ok', text: `Saved ${changes.length} — sorted again (${['Open', 'Yes', 'No', ...extras.map((m) => m.name)].join(' · ')}).` })
+      setStatus({ kind: 'ok', text: `Saved ${changes.length}.` })
+      // Then the list as the game now has it — a game whose load() lists only what's still to decide (Glyphtender: Open
+      // words) drops the decided rows here. If this load fails, the sorted list above stays.
+      load().then((list) => setItems(sortReview(list, extras)), () => {})
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save — your changes are still here: ${e instanceof Error ? e.message : String(e)}` })
     } finally {

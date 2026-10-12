@@ -28,6 +28,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['screenshots', 'e2e/shots.mjs', 'check'], // (always port 5250)
   ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'],
   ['submit-word', 'e2e/submit-word.mjs', 'e2e-shots 5435 1989'], // (F69: Pause → Submit a word → the server's list; repeat, offline queue, < 3 letters) // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)
+  ['word-switches', 'e2e/word-switches.mjs', 'e2e-shots 5437 1984'], // (F71: Settings → British Spelling / Vulgar Words — a game keeps its switches; COLOUR scores only with British on; online the host's rule the room)
   ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 7 sizes)
   ['pass4', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5403 4'],
   ['game', 'e2e/game-shots.mjs', 'e2e-shots 5401'],

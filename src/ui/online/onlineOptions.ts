@@ -4,14 +4,16 @@
 import roomsJson from '../../../content/rooms.json'
 import rulesJson from '../../../content/tuning/rules.json'
 import type { OnlineOptions } from '../../../party/protocol'
+import text from '../../../content/text/en.json'
 import { boardNames } from '../../engine/boards'
+import type { ExtraWords } from '../../engine/types'
 
 type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem'>
 const SAVE_KEY = 'glyphtender:online-options'
 
 /** First time: the board picked by how many sit down, 2-letter words as rules.json twoLetterWordsAtStart says (off = standard play), the first timer choice (off), word indicators on. */
 export const defaultOnlineOptions = (): OnlineOptions =>
-  ({ boardName: 'auto', minWordLength: rulesJson.twoLetterWordsAtStart === 1 ? 2 : 3, turnSeconds: roomsJson.turnTimerChoices[0], wordIndicators: true })
+  ({ boardName: 'auto', minWordLength: rulesJson.twoLetterWordsAtStart === 1 ? 2 : 3, turnSeconds: roomsJson.turnTimerChoices[0], wordIndicators: true, britishWords: false, vulgarWords: false })
 
 function browserStorage(): Storage | null {
   try {
@@ -36,10 +38,23 @@ export function loadOnlineOptions(storage: Storage | null = browserStorage()): O
       minWordLength: (saved.minWordLength === 2 || saved.minWordLength === 3) && saved.twoLetterSave === TWO_LETTER_SAVES_SINCE ? saved.minWordLength : fallback.minWordLength,
       turnSeconds: roomsJson.turnTimerChoices.includes(Number(saved.turnSeconds)) ? Number(saved.turnSeconds) : fallback.turnSeconds,
       wordIndicators: typeof saved.wordIndicators === 'boolean' ? saved.wordIndicators : fallback.wordIndicators,
+      // (not lobby choices: Start fills them from the host's Settings — withHostWordSwitches)
+      britishWords: false,
+      vulgarWords: false,
     }
   } catch {
     return fallback
   }
+}
+
+/** F71: the host's Settings → British Spelling / Vulgar Words go with the options at Start — they rule the room. */
+export const withHostWordSwitches = (options: OnlineOptions, extras: ExtraWords): OnlineOptions =>
+  ({ ...options, britishWords: extras.british === true, vulgarWords: extras.vulgar === true })
+
+/** The lobby's plain line when either switch is on, e.g. "British spelling on · Vulgar words on" (null = both off). */
+export function wordSwitchesLine(extras: ExtraWords | undefined): string | null {
+  const parts = [extras?.british && text.online.wordSwitches.britishOn, extras?.vulgar && text.online.wordSwitches.vulgarOn].filter(Boolean)
+  return parts.length ? parts.join(' · ') : null
 }
 
 export function saveOnlineOptions(options: OnlineOptions, storage: Storage | null = browserStorage()) {

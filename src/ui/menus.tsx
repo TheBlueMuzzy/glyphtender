@@ -9,6 +9,7 @@ import { canFullscreen, hiddenFullscreenRows, isInstalled, setFullscreen, useFul
 import { LobbyScreen } from './online/LobbyScreen'
 import { OnlineStartScreen } from './online/OnlineStartScreen'
 import { useOnline } from './online/session'
+import { wordSwitchesLine } from './online/onlineOptions'
 import { useGameStore } from '../store/gameStore'
 import text from '../../content/text/en.json'
 import credits from '../../content/credits.json'
@@ -69,7 +70,10 @@ export function PauseScreen() {
   const w = online && code ? { ...text.game.pause, title: fill(text.online.pauseTitle, { code }) } : text.game.pause
   // The one setting you can't see while playing (F53 — Muzzy 2026-10-08): are 2-letter words allowed this game?
   const twoLetter = useGameStore((s) => (s.game ? s.game.config.rules.minWordLength <= 2 : null))
-  const note = twoLetter === null ? undefined : twoLetter ? text.game.pauseNote.twoLetterOn : text.game.pauseNote.twoLetterOff
+  // …and F71: this game's British spelling / vulgar words, when on (online: the host's) — "2-letter words: off · Vulgar words on"
+  const switches = useGameStore((s) => wordSwitchesLine(s.game?.config.extraWords))
+  const twoLetterNote = twoLetter === null ? undefined : twoLetter ? text.game.pauseNote.twoLetterOn : text.game.pauseNote.twoLetterOff
+  const note = twoLetterNote && switches ? `${twoLetterNote} · ${switches}` : twoLetterNote
   // Submit a word (F69): always there; with no seed placed, its screen says to place one first (a greyed row's hint
   // wrapped onto two lines on a phone)
   const submitRow = { label: text.game.submitWord.pauseRow, onClick: () => screens.push('submitWord') }

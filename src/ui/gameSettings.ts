@@ -5,6 +5,7 @@
 //   (tall: above · wide: left).
 //   Gameplay → AI speed: Slow · Normal · Fast · Instant — how long the AI players seem to think (content/ai/pace.json
 //   speeds; store/localBot.ts).
+//   Gameplay → British Spelling / Vulgar Words (F71): count words.csv's B / V words in the NEXT game (src/engine/words.ts).
 //   Display → Full screen: src/ui/fullscreen.ts (its default depends on the device: on for phones, off for computers).
 //   Audio → the UI kit's standard rows (Master · Music · Ambience · Sound effects · Menus & buttons · Sound ·
 //   Mute in background · Mono): straight to the audio engine (src/audio settings.ts reads the same ids; src/game/sound.ts).
@@ -13,6 +14,7 @@ import { applyAudioSettings, getAudio } from '../audio'
 import settingsFile from '../../content/ui/settings.json'
 import { fullscreenSetting, withFullscreenDefault } from './fullscreen'
 import { loadSettings, type SettingsValues } from './kit'
+import type { ExtraWords } from '../engine/types'
 
 /** content/ui/settings.json, with the Full screen default for this device — use this, not the file, everywhere. */
 export const settings = withFullscreenDefault(settingsFile)
@@ -25,6 +27,9 @@ interface GameSettings {
   trayFlipped: boolean
   /** How long the AI players take to think ("Normal" in Settings → "normal"). */
   aiSpeed: AiSpeed
+  /** F71: which extra words the NEXT game counts (Gameplay → British Spelling / Vulgar Words; off by default). A game
+   *  keeps the switches it started with (its config.extraWords); online the host's rule the room. */
+  extraWords: ExtraWords
 }
 
 const AI_SPEEDS: AiSpeed[] = ['slow', 'normal', 'fast', 'instant']
@@ -34,6 +39,7 @@ const aiSpeedOf = (label: unknown): AiSpeed => AI_SPEEDS.find((s) => s === Strin
 export const fromSettings = (values: SettingsValues): GameSettings => ({
   trayFlipped: values.trayPosition === 'Flipped',
   aiSpeed: aiSpeedOf(values.aiSpeed),
+  extraWords: { british: values.britishWords === true, vulgar: values.vulgarWords === true },
 })
 
 export const useGameSettings = create<GameSettings>()(() => fromSettings(loadSettings(settings)))

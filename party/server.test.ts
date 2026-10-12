@@ -10,8 +10,8 @@ import { replay } from '../src/table/core'
 import { randomAction } from '../src/engine/sim'
 import { shuffle } from '../src/engine/rng'
 import type { Action, GameState } from '../src/engine/types'
-import { parseWordList } from '../src/engine/words'
-import type { WordList } from '../src/engine/types'
+import { parseWordFile, wordListFor, type WordFile } from '../src/engine/words'
+import type { ExtraWords, WordList } from '../src/engine/types'
 import { RoomServer, type PartyConnection, type PartyRoom } from '../src/rooms/server/roomServer'
 import type { ServerMessage } from '../src/rooms/protocol'
 import settings from '../content/rooms.json'
@@ -44,7 +44,11 @@ vi.mock('../src/ai/seatBrain', async (original) => {
 const BOT_WAIT = Math.max(...Object.values(pace.thinkSeconds).map((t) => t.max)) * 1000
 
 let words: WordList
-beforeAll(() => { words = parseWordList(readFileSync('public/words/words.csv', 'utf8')) })
+let wordFile: WordFile
+// (as party/server.ts: a game's moves are checked with its own list — the B / V words the host switched on, F71)
+const wordsAsked: (ExtraWords | undefined)[] = [] // (which switches the server asked a list for — F71's test reads it)
+const wordsFor = (extras?: ExtraWords) => (wordsAsked.push(extras), wordListFor(wordFile, extras))
+beforeAll(() => { wordFile = parseWordFile(readFileSync('public/words/words.csv', 'utf8')); words = wordFile.plain })
 afterEach(() => vi.useRealTimers())
 
 // ─── A fake PartyKit ────────────────────────────────────────────────
@@ -71,7 +75,7 @@ type Server = RoomServer<ServerGame, OnlineOptions, OnlineAction, GameView, neve
 function startRoom(players: number, options: Partial<OnlineOptions> = {}, seed: number | 'secret' = 7, idle = false) {
   let n = seed === 'secret' ? 0 : seed
   const randomSeed = seed === 'secret' ? undefined : () => (n = (n * 48271) % 2147483647) // 'secret' = the real server’s random numbers
-  const rules = makeRules({ words: () => words, randomSeed, plainTurnOrder: true })
+  const rules = makeRules({ words: wordsFor, randomSeed, plainTurnOrder: true })
   const party = new FakeParty()
   // (no flood limit here: a whole game is played within one real second)
   const server: Server = new RoomServer(party, rules, {
@@ -401,6 +405,27 @@ describe('online server — says no, and changes nothing', () => {
     expect(conns.map((c) => c.lastView()!.options.wordIndicators)).toEqual([true, true])
     const { conns: off } = startRoom(2, { wordIndicators: false })
     expect(off.map((c) => c.lastView()!.options.wordIndicators)).toEqual([false, false])
+  })
+
+  it('F71: the host’s British / Vulgar switches rule the room — off unless sent, in every view, and moves are checked with that list', () => {
+    const { server: plain, conns: plainConns } = startRoom(2)
+    expect(plain.game!.game.config.extraWords).toBeUndefined() // (an older host sends neither: off)
+    expect(plainConns[1].lastView()!.options).toMatchObject({ britishWords: false, vulgarWords: false })
+    const { server, conns } = startRoom(2, { vulgarWords: true })
+    expect(server.game!.game.config.extraWords).toEqual({ vulgar: true })
+    for (const conn of conns) {
+      expect(conn.lastView()!.game.config.extraWords).toEqual({ vulgar: true }) // the guest's game (preview, Pause line) too
+      expect(conn.lastView()!.options).toMatchObject({ britishWords: false, vulgarWords: true })
+    }
+    wordsAsked.length = 0
+    const yellow = conns[0].lastView()!
+    send(server, conns[0], { kind: 'play', action: randomAction(yellow.game, 1).action, version: yellow.version })
+    expect(server.game!.version).toBe(1)
+    expect(wordsAsked.length).toBeGreaterThan(0)
+    expect(wordsAsked.every((e) => e?.vulgar === true && !e.british)).toBe(true)
+    expect(wordsFor({ vulgar: true }).has('COCK')).toBe(true)
+    const { server: bad } = startRoom(2, { britishWords: 'yes' } as unknown as Partial<OnlineOptions>)
+    expect(bad.game).toBeNull()
   })
 })
 

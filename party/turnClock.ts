@@ -20,7 +20,10 @@ import { seatThinking, type ThinkRequest, type ThinkResult } from '../src/ai/sea
 import type { RoomTools, SeatChange } from '../src/rooms/server/gameRules'
 import { greedyBot } from '../src/engine/bot'
 import { glyphtenderRules, viewFor } from '../src/engine/rules'
-import type { Action, GameState, WordList } from '../src/engine/types'
+import type { Action, ExtraWords, GameState, WordList } from '../src/engine/types'
+
+/** The word list for a game's switches (F71: the official words + its British / vulgar words, if the host turned them on). */
+export type WordsFor = (extras?: ExtraWords) => WordList
 import { aiOf } from './aiSeats'
 import { play, type ServerGame } from './serverGame'
 
@@ -32,13 +35,18 @@ const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, time
 /** The kind of action (pace.json thinkSeconds) for the step the game is at. */
 const paceKind = (game: GameState) => (game.phase === 'draft' ? 'draft' : game.phase === 'refresh' ? 'refresh' : 'moveCast')
 
-// The AI's thinking for the word list, made once per server copy and SHARED by every room on it — safe only because
-// the brain keeps nothing between decisions. Give the AI memory (beliefs, mode stickiness) → key this by room first.
-let thinking: { words: WordList; think: (request: ThinkRequest) => ThinkResult } | null = null
-const thinkingFor = (words: WordList) => (thinking?.words === words ? thinking : (thinking = { words, think: seatThinking(words) })).think
+// The AI's thinking for each word list (F71: one per mix of switches), made once per server copy and SHARED by every
+// room on it — safe only because the brain keeps nothing between decisions. Give the AI memory (beliefs, mode
+// stickiness) → key this by room first.
+const thinkings = new Map<WordList, (request: ThinkRequest) => ThinkResult>()
+const thinkingFor = (words: WordList) => {
+  let think = thinkings.get(words)
+  if (!think) thinkings.set(words, (think = seatThinking(words)))
+  return think
+}
 
 /** Starts (or stops) the timers for whoever plays next, and says when their turn runs out. */
-export function planNextTurn(state: ServerGame, room: RoomTools<ServerGame, never>, words: () => WordList): ServerGame {
+export function planNextTurn(state: ServerGame, room: RoomTools<ServerGame, never>, words: WordsFor): ServerGame {
   const { game } = state
   room.timers.stop(BOT_TIMER)
   if (game.phase === 'over') {
@@ -73,7 +81,7 @@ export function planNextTurn(state: ServerGame, room: RoomTools<ServerGame, neve
  * dropped out and came straight back keeps the clock that was already running — otherwise reconnecting
  * would be a way to get more time (and anyone else's reconnect would restart the current player's clock).
  */
-export function afterSeatChange(state: ServerGame, seatId: string, change: SeatChange, room: RoomTools<ServerGame, never>, words: () => WordList): ServerGame {
+export function afterSeatChange(state: ServerGame, seatId: string, change: SeatChange, room: RoomTools<ServerGame, never>, words: WordsFor): ServerGame {
   if (change === 'dropped' || seatId !== state.seatIds[state.game.current]) return state
   if (change === 'back' && room.timers.isRunning(TURN_TIMER)) return state
   return planNextTurn(state, room, words)
@@ -100,11 +108,12 @@ export function aiAction(state: ServerGame, room: RoomTools<ServerGame, never>, 
 }
 
 /** A bot's seat: the AI plays ONE action (a draft placement, a turn, or its refresh), then the clock moves on. */
-export function botStep(state: ServerGame, room: RoomTools<ServerGame, never>, words: () => WordList): ServerGame {
+export function botStep(state: ServerGame, room: RoomTools<ServerGame, never>, words: WordsFor): ServerGame {
   const seat = state.game.current
-  const picked = aiAction(state, room, words())
+  const list = words(state.game.config.extraWords) // (the game's own list: the host's switches at the start, F71)
+  const picked = aiAction(state, room, list)
   // (who's playing: a bot FOR the seat's person, or a seat the host added as AI — asked now, kept on the move: F62)
   const by = room.playedBy(state.seatIds[seat]) ?? 'bot'
-  const next = { ...play(state, seat, picked.action, words(), by), botRng: picked.rng }
+  const next = { ...play(state, seat, picked.action, list, by), botRng: picked.rng }
   return planNextTurn(next, room, words)
 }

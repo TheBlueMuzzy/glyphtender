@@ -2,7 +2,7 @@
 // admin addresses' key. Runs the real web handler (wordsRoutes.ts) on plain Requests — no Cloudflare.
 import { readFileSync } from 'node:fs'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { parseWordList } from '../src/engine/words'
+import { everyWordIn, parseWordFile } from '../src/engine/words'
 import type { WordList } from '../src/engine/types'
 import submit from '../content/words/submit.json'
 import { memoryRows, parseSubmittedCsv, PLAYER, reviewWords, seedIfEmpty, submitWord, type WordRows } from './submittedWords'
@@ -12,7 +12,8 @@ const csv = readFileSync('content/words/submitted.csv', 'utf8')
 const TODAY = '2026-10-12'
 const KEY = 'test-admin-key-123'
 let official: WordList
-beforeAll(() => { official = parseWordList(readFileSync('public/words/words.csv', 'utf8')) })
+// (the server's list for submissions: every word, B / V too — party/server.ts loadWords)
+beforeAll(() => { official = everyWordIn(parseWordFile(readFileSync('public/words/words.csv', 'utf8'))) })
 
 /** A list seeded like the live one on its first day. */
 function seeded(): WordRows {
@@ -63,6 +64,17 @@ describe('POST /words/submit', () => {
     expect(rows.count()).toBe(before)
     expect(rows.get(no.word)?.status).toBe('no') // a No stays a No
     expect(rows.get('GARDEN')).toBeNull()
+  })
+
+  it('F71: a British or vulgar word (words.csv B / V) is already a word — dropped silently, whatever the player’s switches', async () => {
+    const rows = seeded()
+    const before = rows.count()
+    for (const word of ['COLOUR', 'COCK']) {
+      const res = await call(rows, '/words/submit', post({ word }))
+      expect(await res.json()).toEqual({ ok: true })
+      expect(rows.get(word), word).toBeNull()
+    }
+    expect(rows.count()).toBe(before)
   })
 
   it(`fewer than ${submit.minLetters} letters → 400 too-short; junk → 400 bad-word; nothing added`, async () => {

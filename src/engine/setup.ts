@@ -6,7 +6,8 @@ import { emptyLog } from './log'
 import { shuffle } from './rng'
 import { snakeOrder } from '../table/flow'
 import { stableIds } from '../table/zones'
-import type { GameConfig, GameState, RuleNumbers, SeedPiece } from './types'
+import type { ExtraWords, GameConfig, GameState, RuleNumbers, SeedPiece } from './types'
+import { onlySwitchedOn } from './words'
 
 /** Every seed in the bag (content/data/bag.json), unshuffled, e.g. ["A","A",…,"Q",…]. */
 export function fullBag(): string[] {
@@ -49,6 +50,8 @@ export interface NewGameOptions {
   /** The order seats take turns, e.g. [2,0,3,1] (default 0,1,2,3 — Yellow, Blue, Purple, Pink). The first drafts
    *  first and plays first. Real games pick it with pickTurnOrder. */
   turnOrder?: number[]
+  /** F71: count British spellings / vulgar words in this game (Settings; online the host's). Off when missing. */
+  extraWords?: ExtraWords
 }
 
 /** The turn order for a new game: all seats shuffled when content/tuning/rules.json "randomTurnOrder" is 1
@@ -73,6 +76,8 @@ export function newGame(options: NewGameOptions): GameState {
   const boardName = options.boardName ?? defaultBoardFor(players)
   getBoard(boardName) // throws if the board doesn't exist
   const config: GameConfig = { players, boardName, seed, rules: { ...defaultRules(), ...options.rules } }
+  const extraWords = onlySwitchedOn(options.extraWords)
+  if (extraWords) config.extraWords = extraWords // (both off: no field at all — the same games as before F71)
   // The box list gets its ids first, THEN is shuffled — the same shuffle (same random calls, same order) as before ids.
   const shuffled = shuffle(seed, bagPieces())
   return {

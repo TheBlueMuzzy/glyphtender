@@ -5,7 +5,8 @@
 // request gets a plain-English error back (the page then tries again on the main thread — thinker.ts).
 import { serveThinking, type WorkerLike } from './kit/pace'
 import { seatThinking, type ThinkRequest, type ThinkResult } from './seatBrain'
-import { parseWordList } from '../engine/words'
+import { parseWordFile, wordListFor } from '../engine/words'
+import type { WordList } from '../engine/types'
 import { wordListUrl } from '../game/art'
 
 // (the worker's global scope; typed as just the two calls used, so the page's DOM types stay as they are)
@@ -14,13 +15,23 @@ const scope = self as unknown as {
   addEventListener(type: 'message', listener: (event: { data: unknown }) => void): void
 }
 
-/** The thinking, once the words are here. */
+/** The thinking, once the words are here. Each request's view carries its game's config, so the AI plays with that
+ *  game's list (F71: + British spellings / vulgar words when the game switched them on) — one thinking per list. */
 const ready: Promise<(request: ThinkRequest) => ThinkResult> = fetch(wordListUrl())
   .then((response) => {
     if (!response.ok) throw new Error(`The AI couldn't load the word list (HTTP ${response.status})`)
     return response.text()
   })
-  .then((csv) => seatThinking(parseWordList(csv)))
+  .then((csv) => {
+    const file = parseWordFile(csv)
+    const thinkings = new Map<WordList, (request: ThinkRequest) => ThinkResult>()
+    return (request: ThinkRequest) => {
+      const words = wordListFor(file, request.view.config.extraWords)
+      let thinking = thinkings.get(words)
+      if (!thinking) thinkings.set(words, (thinking = seatThinking(words)))
+      return thinking(request)
+    }
+  })
 
 let think: ((request: ThinkRequest) => ThinkResult) | null = null
 ready.then((fn) => { think = fn }, () => {})

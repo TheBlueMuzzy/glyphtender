@@ -10,12 +10,12 @@ import { boardNames, defaultBoardFor } from '../src/engine/boards'
 import { pickTurnOrder } from '../src/engine/setup'
 import { flowOf, glyphtenderRules, type GameSetup } from '../src/engine/rules'
 import { mayAct } from '../src/table/flow'
-import type { Action, WordList } from '../src/engine/types'
+import type { Action } from '../src/engine/types'
 import { emptyStats } from '../src/store/stats'
 import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
 import type { GameRules } from '../src/rooms/server/gameRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
-import { afterSeatChange, planNextTurn } from './turnClock'
+import { afterSeatChange, planNextTurn, type WordsFor } from './turnClock'
 import { botProfile } from './aiSeats'
 import { play, type ServerGame } from './serverGame'
 import { viewOf } from './views'
@@ -24,7 +24,8 @@ export type Rules = GameRules<ServerGame, OnlineOptions, OnlineAction, GameView,
 
 /** What the rules need from outside: the word list, and a random number for each new game's seed. */
 export interface RulesSetup {
-  words: () => WordList
+  /** The word list for a game's switches (F71 — the host's British Spelling / Vulgar Words; none = the official words). */
+  words: WordsFor
   randomSeed?: () => number
   /** Tests: always Yellow, Blue, Purple, Pink, whatever rules.json "randomTurnOrder" says. */
   plainTurnOrder?: boolean
@@ -77,6 +78,9 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurn
         minWordLength: mustBeWholeNumber(options.minWordLength ?? 2, 2, 3, 'minWordLength'),
         turnSeconds,
         wordIndicators: mustBeTrueOrFalse(options.wordIndicators ?? true, 'wordIndicators'),
+        // F71: the host's Settings switches rule the room (missing = off: a host on an older build)
+        britishWords: mustBeTrueOrFalse(options.britishWords ?? false, 'britishWords'),
+        vulgarWords: mustBeTrueOrFalse(options.vulgarWords ?? false, 'vulgarWords'),
       }
     },
 
@@ -101,9 +105,10 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurn
         turnOrder: plainTurnOrder ? undefined : pickTurnOrder(players, bagSeed), // the turn order (GDD §9) — from a secret number already drawn
         boardName: options.boardName === 'auto' ? defaultBoardFor(players) : options.boardName,
         rules: { minWordLength: options.minWordLength },
+        extraWords: { british: options.britishWords, vulgar: options.vulgarWords },
         bagSeed, rngSeed,
       }
-      const game = glyphtenderRules(words()).setup(setup)
+      const game = glyphtenderRules(words(setup.extraWords)).setup(setup)
       const state: ServerGame = {
         game, gameId: seedMaker(), version: 0, record: { setup, moves: [] }, feed: [], lastOwnAction: seats.map(() => 0),
         seatIds: seats.map((s) => s.id), names: seats.map((s) => s.name),
@@ -121,9 +126,10 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurn
       if (state.game.phase === 'over') throw new Error('The game is over.')
       if (!mayAct(flowOf(state.game), mine)) throw new Error('It’s not your turn.') // (the rules' turn flow)
       if (message.version !== state.version) throw new Error('The game moved on — try again.')
-      const problem = glyphtenderRules(words()).check(state.game, mine, message.action)
+      const list = words(state.game.config.extraWords) // (this game's list: the host's switches at the start, F71)
+      const problem = glyphtenderRules(list).check(state.game, mine, message.action)
       if (problem) throw new Error(problem)
-      const next = play(state, mine, message.action, words(), 'seat') // (a person's own move: F62)
+      const next = play(state, mine, message.action, list, 'seat') // (a person's own move: F62)
       // (remember which change this seat's own action made — its view tells its screen the move got through, B021)
       // (a room started before B021 has no lastOwnAction yet: everyone starts at 0)
       const lastOwnAction = (next.lastOwnAction ?? next.game.hands.map(() => 0)).map((change, seat) => (seat === mine ? next.version : change))
