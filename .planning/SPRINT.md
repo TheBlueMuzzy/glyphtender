@@ -18,20 +18,41 @@ Done when: the tutorial game's draft + your first 2 turns play exactly as design
 - [x] 🤖 5. e2e/tutorial-rails.mjs plays the rails by drag/tap at 390×844 + 1440×900 and screenshots each step
 Check: e2e:tutorial-rails + Area (game pass tutorial-shell).
 
+## F78 🎮 Nudges (pulled in overnight)
+Done when: idle (glow 10 s → words 20 s, 3× each; later games words at 30 s) and wrong-action nudges (at once; 3× each, then the shake; every time on the rails) show on your turn; Tips off → none.
+- [x] 🤖 1. ui-kit useNudge (framework dev/tutorial-kits) + install
+- [x] 🤖 2. HelpLayer: idle + wrong-action nudges (nudges.ts; wrongDrop records a refused drop) — e2e:tutorial-tips
+## F79 🎮 Explore mode (pulled in overnight)
+Done when: ? beside ☰ in every game; taps explain instead of act (☰ too); only ? / Esc leaves; local games pause, online doesn't; ends itself when the game needs you.
+- [x] 🤖 1. explain() + exploreEnds() (pure, tested) + the words (tutorial.explore, ≤ 12 words, never "gain")
+- [x] 🤖 2. ? button (TurnBar), ExploreLayer (capture-phase taps → Callout + dim), the bar in the prompt's place (B013 sizer lines), local bots wait — e2e:explore (3 sizes + pass-and-play handoff)
+
 ## F77 🎮 Tips in play
 Done when: after the rails, the 10 first-time tips (§3) show once each, at most 1 per turn, 3 of them pausing.
 - [x] 🤖 1. tip triggers from the rules' events / state (src/tutorial/tips.ts), seen once (kit tips memory), 1 per turn, never during an animation
-- [ ] 🤖 2. the 3 pauses (you create · tangled · one to go) hold the game; "Longest counts" needs the word finder to report dropped words
+- [x] 🤖 2. the 3 pauses (you create · tangled · one to go) hold the game; "Longest counts" needs the word finder to report dropped words
 - [x] 🤖 3. tests per trigger (hand-made positions, testkit.ts)
-- [ ] 🤖 4. e2e: a tip shows once and never again; Tips off → none
+- [x] 🤖 4. e2e: a tip shows once and never again; Tips off → none
 Check: unit tests + e2e.
 
 Ask Muzzy (from the rails, all built with these defaults — change any):
 - The "Plant +5" step's callout sits above the button, so on a phone it covers the top of the 2nd seed row (the seeds aren't needed then). OK, or another spot?
 - "lines" and "block" are two Next pauses before your first move (all lines glow while they're up) — one too many?
 - Wording: "Hemming glyphlings in can win games." (softened to stay true); the hand-over button says "Play".
-Pulled in overnight (needs met, same goal): F78 nudges (kit useNudge ✅ built) and F79 Explore (explain() ✅ built) — helpers building their screens.
+From the tips + nudges (defaults in place — change any):
+- Online, the 3 pausing tips show as normal tips (no dim, no hold) — online never pauses.
+- The rails' 2 dimmed pauses (no word, hand-over) + the 3 tip pauses = 5 in the tutorial game (design said ≤ 4; maxPauses counts tip pauses only).
+- Idle glow: "move" adds nothing (your glyphlings already pulse with the whose-turn pulse); in the draft the tray's next glyphling breathes; the glow keeps going while the words show.
+- Wording: "Tangled! Your pieces beside it will create +{n} Magic if it stays." (the bonus is only added at the end, if still tangled) · "pale hex" (matches the prompt).
+From Explore:
+- "{moves} moves" = every hex it can reach (15–25 early on) — the number you want, or directions?
+- Online, taps in Explore still count as "I'm here" (the idle clock resets). The design said the idle timer keeps running — should Explore taps not count?
+- Phone on its side / short window: the "Tap ? to go back" reminder is skipped (it would cover the bar, which says the same).
+- Tapping something under the dim explains it straight away (instead of only closing the open callout). Word outlines can't be tapped (the board ignores them) — add one?
 Notes:
+- F77/F78 (helper): HelpLayer (mounted in App, every game) shows tips + nudges, one callout at a time; tipsPlay.ts / nudges.ts / tipsPlace.ts (one placement rule for rails, tips, nudges). e2e browsers get no tips unless ?tips=on (baselines unchanged). My fixes: tangleNone words literally true (12-word guard caught my 14); a tip near the board's top goes below when < calloutRoom (190 px) above it before the turn bar (oneToGo covered ☰ on a phone).
+- F79 (helper): one capture-phase listener in ExploreLayer catches every press while Explore is on (no changes to usePieceInput / ☰). Merge conflicts (en.json, tutorial.json, e2e lists) resolved by keeping both. Explore's tangled lines made literally true ("…if it stays").
+- e2e:margins failed after F81: 9 Dev Kit tabs no longer fit on a desktop → Dev Kit panel min(540px, 50vw) (framework, reinstalled) → PASS.
 - F76 (helpers): rails limit = ONE door in refereeFor (src/store/railsLimit.ts; glow/drop/shake/lift follow it; `shows` lights extra hexes for "lines"); a hold stops input + local bots; Sprout plays rails.json through localBot setBotScript at the normal pace (F50). 19 steps (railsSteps.ts). e2e:tutorial-rails (port 5445) plays them by drag/tap at 390×844 + 1440×900. A word ends your turn without a refresh, so counts/secret/hand-over show at the start of Sprout's turn 3 (held).
 - My fix after the shots: a rails callout takes the prompt's place (useTutorial.calloutUp → PromptLine hidden, room kept) — no peeking prompt icon, no "Blue is thinking…" while held; tray/button callouts go above.
 - F77 prep: engine droppedWords (golden SAME); tips.ts dueTip (9 tests). F79 prep: explore.ts explain (5 tests), src/store/explore.ts switch. F78 prep: ui-kit useNudge (3 tests).
