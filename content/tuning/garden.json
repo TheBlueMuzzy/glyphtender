@@ -7,7 +7,7 @@
     "glowStrength": "Each hex a glyphling can move to gets a patch of the player's colour with a dot in the middle. Higher = a more solid patch; lower = more see-through. The dot always stays solid. Try 0.3–0.6.",
     "pieceScale": "1 = a piece fills its hex edge to edge; lower = smaller pieces with a gap round them. Try 0.9–1.",
     "ghostOpacity": "After you move a glyphling, a faded copy stays on its old hex (tap it to send the glyphling back). Higher = easier to see; 0 = invisible. Try 0.2–0.4.",
-    "yellow": "The yellow player's colour: their move and cast hexes, turn trails, the rings round their chosen and planned pieces, and their thrown seed.",
+    "yellow": "The yellow player's colour: their move and plant hexes, turn trails, the rings round their chosen and planned pieces, and their thrown seed.",
     "blue": "The blue player's colour — used everywhere the yellow one is, for the blue player.",
     "plannedSeedLook": "How an aimed seed that hasn't been thrown yet looks (always solid): moonlit = a silvery ghost with a bright letter (default) · stencil = a flat pale cut-out of the letter · misty = under a pale wash · greyed = grey and darker · dimmed = faded. The settings below each work for one look only. To change it, type the look's name in the file (garden.json).",
     "plannedMoonLight": "Moonlit look only. The bright parts of the planned seed (its letter and border) turn this colour.",
@@ -38,13 +38,13 @@
     "revealPopSize": "Higher = bigger \"+3\" text. Try 0.6–0.9.",
     "scorePop": "The colour of the \"+1\" / \"+2\" over each seed of a made word, and of the turn's total (\"+6\").",
     "scorePopSize": "How big each seed's \"+1\" / \"+2\" is. Higher = bigger. Try 0.5–0.8.",
-    "scoreTotalSize": "How big the turn's total is over the glyphling that cast. Higher = bigger; keep it bigger than the \"+1\"s. Try 1–1.4.",
+    "scoreTotalSize": "How big the turn's total is over the glyphling that planted. Higher = bigger; keep it bigger than the \"+1\"s. Try 1–1.4.",
     "dropStrength": "While you drag a piece, the legal hex under it lights up brighter than the other options, with a glow round its edge. Higher = brighter and more solid. Try 0.7–1.",
     "scorePopMinPx": "The \"+1\"s never get smaller than this, so they stay readable on small phone boards; the total grows to match. Higher = bigger on phones. Try 14–20.",
-    "castFill": "Each hex a seed can be cast to gets the same patch + dot as a move hex, in a paler colour. This one = how solid the patch is (higher = less see-through; the dot always stays solid). How pale: the next setting. Try 0.5–0.9.",
+    "castFill": "Each hex a seed can be planted on gets the same patch + dot as a move hex, in a paler colour. This one = how solid the patch is (higher = less see-through; the dot always stays solid). How pale: the next setting. Try 0.5–0.9.",
     "trailWidth": "The dotted path and rings, in the player's colour, that show where a glyphling moved and threw. Higher = thicker lines. Try 0.05–0.12.",
     "trailStrength": "Higher = a more solid, easier-to-see trail; lower = more see-through. Shows while you plan your turn and while another player's turn is replayed; it goes once the seed lands. Try 0.6–1.",
-    "castShade": "The colour of the cast patches AND their dots, so a cast reads apart from a move at a glance. Up = paler, towards white (0.5 = halfway); 0 = same colour as a move; below 0 = darker, towards the night sky. This one = the colour; the one above = how solid. Try 0.3–0.5."
+    "castShade": "The colour of the plant patches AND their dots, so a plant reads apart from a move at a glance. Up = paler, towards white (0.5 = halfway); 0 = same colour as a move; below 0 = darker, towards the night sky. This one = the colour; the one above = how solid. Try 0.3–0.5."
   },
   "_labels": {
     "background": "Night sky colour (behind everything)",
@@ -57,8 +57,8 @@
     "purple": "Purple player colour",
     "pink": "Pink player colour",
     "glowStrength": "Move hexes: how solid the colour patch is (0–1)",
-    "castFill": "Cast hexes: how solid the colour patch is (0–1)",
-    "castShade": "Cast hexes & dots: how much paler than move hexes",
+    "castFill": "Plant hexes: how solid the colour patch is (0–1)",
+    "castShade": "Plant hexes & dots: how much paler than move hexes",
     "dropStrength": "Drag: how bright the \"drop here\" hex is (0–1)",
     "plannedSeedLook": "Planned seed: which look (moonlit / stencil / misty / greyed / dimmed)",
     "plannedMoonLight": "Moonlit look: letter & border colour",
@@ -107,7 +107,7 @@
       "purple",
       "pink"
     ],
-    "Move & cast highlights": [
+    "Move & plant highlights": [
       "glowStrength",
       "castFill",
       "castShade",
