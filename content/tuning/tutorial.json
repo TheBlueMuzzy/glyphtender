@@ -1,0 +1,19 @@
+{
+  "_help": {
+    "selfTangleBy": "Sprout (the tutorial game's AI) starts preferring moves that walk ONE of its glyphlings into a pocket — next to your pieces when it can, so you see the tangle bonus — from this turn of its own. Lower = it happens sooner. A preference, never a rule: if the board offers no pocket, it doesn't happen. Try 4–8.",
+    "maxTurns": "After this many of its own turns Sprout drops both its preferences (one self-tangle, then keeping its other glyphling free) and plays like any Apprentice. Try 15–25."
+  },
+  "_labels": {
+    "selfTangleBy": "Sprout: tries to tangle one of its glyphlings from its turn…",
+    "maxTurns": "Sprout: drops its tutorial habits after this many of its turns"
+  },
+  "_sections": {
+    "Tutorial": ["selfTangleBy", "maxTurns"]
+  },
+  "_ranges": {
+    "selfTangleBy": [1, 15, 1],
+    "maxTurns": [5, 40, 1]
+  },
+  "selfTangleBy": 6,
+  "maxTurns": 20
+}

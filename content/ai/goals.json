@@ -7,7 +7,8 @@
     "bigAt.ESCAPE": "Getting out of danger. 73 ≈ a real rescue.",
     "bigAt.BUILD": "Setting up its own words. 24 ≈ a strong setup.",
     "bigAt.STEAL": "Growing a rival's word into its own. 13 ≈ a real steal.",
-    "bigAt.DUMP": "Shedding junk letters. 9 ≈ dumping a really bad letter well."
+    "bigAt.DUMP": "Shedding junk letters. 9 ≈ dumping a really bad letter well.",
+    "bigAt.SELFTANGLE": "Sprout only (the tutorial AI): walking one of its own glyphlings into a pocket. 50 = an actual tangle (+15 per rival piece next to it)."
   },
   "_labels": {
     "bigAt.TRAP": "Big moment: hunt (TRAP)",
@@ -16,10 +17,11 @@
     "bigAt.ESCAPE": "Big moment: escape (ESCAPE)",
     "bigAt.BUILD": "Big moment: set up (BUILD)",
     "bigAt.STEAL": "Big moment: steal (STEAL)",
-    "bigAt.DUMP": "Big moment: dump junk (DUMP)"
+    "bigAt.DUMP": "Big moment: dump junk (DUMP)",
+    "bigAt.SELFTANGLE": "Big moment: Sprout tangles itself (SELFTANGLE)"
   },
   "_sections": {
     "AI: big moments": ["bigAt"]
   },
-  "bigAt": { "TRAP": 55, "SCORE": 17, "DENY": 13, "ESCAPE": 73, "BUILD": 24, "STEAL": 13, "DUMP": 9 }
+  "bigAt": { "TRAP": 55, "SCORE": 17, "DENY": 13, "ESCAPE": 73, "BUILD": 24, "STEAL": 13, "DUMP": 9, "SELFTANGLE": 50 }
 }

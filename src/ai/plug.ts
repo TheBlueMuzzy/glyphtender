@@ -15,6 +15,7 @@ import { denyGoal } from './goals/deny'
 import { dumpGoal } from './goals/dump'
 import { escapeGoal } from './goals/escape'
 import { scoreGoal } from './goals/score'
+import { selfTangleGoal } from './goals/selfTangle'
 import { stealGoal } from './goals/steal'
 import { trapGoal } from './goals/trap'
 import { imagineWorld } from './imagine'
@@ -89,11 +90,17 @@ export function describeAction(action: Action, world: GameState): string {
   return action.seed && action.target ? `${move}, cast ${letter(action.seed)} at ${board.label(action.target)}` : `${move}, no cast`
 }
 
-/** Glyphtender's plug for this word list. `beliefNoise` = the skill's (how fuzzy its idea of rivals' Magic is). */
-export function glyphtenderPlug(words: WordList, beliefNoise = 0.5): GlyphPlug {
+/** Goals only a personality that LISTS them gets — the tutorial AI's SELFTANGLE (Sprout). Every other personality's
+ *  plug stays the 7 shared goals, so it plays exactly as before. */
+export const PERSONAL_GOALS: Record<string, (words: WordList) => ReturnType<typeof trapGoal>> = { SELFTANGLE: selfTangleGoal }
+
+/** Glyphtender's plug for this word list. `beliefNoise` = the skill's (how fuzzy its idea of rivals' Magic is).
+ *  `wants` = the personality's goal list: any PERSONAL_GOALS it names are added after the 7 shared ones. */
+export function glyphtenderPlug(words: WordList, beliefNoise = 0.5, wants: readonly string[] = []): GlyphPlug {
+  const personal = wants.filter((id) => PERSONAL_GOALS[id]).map((id) => PERSONAL_GOALS[id](words))
   return {
     // Each goal's big-moment bar comes from content/ai/goals.json (Dev Kit / Obsidian).
-    goals: [trapGoal(words), scoreGoal(words), denyGoal(words), escapeGoal(words), buildGoal(words), stealGoal(words), dumpGoal(words)].map((g) => ({
+    goals: [trapGoal(words), scoreGoal(words), denyGoal(words), escapeGoal(words), buildGoal(words), stealGoal(words), dumpGoal(words), ...personal].map((g) => ({
       ...g,
       bigAt: (goalsFile.bigAt as Record<string, number>)[g.id],
     })),
