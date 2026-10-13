@@ -15,7 +15,7 @@ Steps: e2e:game phone-tall/phone-wide turn 2 — drag the glyphling by finger (C
 ### B004 · P3 · open · found 2026-09-30 in F08
 Dragging a seed only to reorder the tray (mid-turn, after a move) leaves it picked up with gold hexes lit, and cancels an existing aim. Design question: should a reorder drag drop the selection?
 ## Fixed (newest first)
-### B027 · P1 · fixed 2026-10-12 (UI kit 0.8.2) · Guarded by: e2e/new-game-position.mjs ("a swipe up on the card scrolls the screen", 3 phone sizes) · found 2026-10-12 by Muzzy (live v0.9.2, Pixel 11 Pro) · Play → New game
+### B027 · P1 · verified 2026-10-12 by Muzzy (Pixel 11 Pro, live v0.9.3) · fixed 2026-10-12 (UI kit 0.8.2) · Guarded by: e2e/new-game-position.mjs ("a swipe up on the card scrolls the screen", 3 phone sizes) · found 2026-10-12 by Muzzy (live v0.9.2, Pixel 11 Pro) · Play → New game
 "if I add people or change one to AI, the settings window grows (like it should), but then I can't scroll down… I can't start the game or change some settings because they go off screen"
 Steps: Play → Players + to 4 → a seat to AI → swipe up on the card · Expected: the screen scrolls to Start · Actual: nothing moves (only a swipe on the thin strip round the card scrolled). Cause: every centred kit card is its own scroll box with overscroll contain (0.7.0, for short screens) — on a <Screen scroll> it never overflows but still caught and kept every swipe that started on it. Fix: a <Screen scroll>'s card is not a scroll box. Note: headless Chrome can't touch-scroll anything in full screen (even a blank page) — the e2e keeps full screen off.
 ### B001 · P3 · fixed 2026-10-11 (sprint 25, F68) · Guarded by: src/engine/words.test.ts (ZYGOTES in, ZYGOTESAA out) · found 2026-09-30 in F05 · v0.0.0 · word list data

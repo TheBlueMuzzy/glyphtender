@@ -1,5 +1,5 @@
 ## ▶ RESUME HERE
-2026-10-12 — **Released v0.9.3: New Game scrolls on phones again** (B027 — swipes on the card were caught by the card; UI kit 0.8.2). Muzzy: check on the Pixel — Play → 4 players → seats to AI → swipe up to Start. Next: /sprint (or /roadmap).
+2026-10-12 — **Released v0.9.3: New Game scrolls on phones again** (B027 — swipes on the card were caught by the card; UI kit 0.8.2). Muzzy confirmed on his Pixel. Next: /sprint (or /roadmap).
 **Muzzy (2026-10-12):** feel payoffs dropped until art · iPhone test closed (Android only — friends will report) · F66 + F67 approved · design pass: Claude decides by the kit standards + Muzzy's specifics · tutorial = the last big sprint; then an art pass whenever Muzzy returns. Goal: a positive spot, then the next game after BMUZ + Framework have learned everything from this one.
 
 ## Where we are
