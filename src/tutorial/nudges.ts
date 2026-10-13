@@ -85,8 +85,9 @@ export function wrongFromDrop(kind: WrongDropKind, piece: string): Wrong {
  *  fit — else the button is End turn and works). null = not a wrong action (it's busy, or it isn't the play phase). */
 export function wrongFromPlantTap(game: GameState, move: PlannedMove | null, cast: PlannedCast | null): Wrong | null {
   if (game.phase !== 'play' || cast) return null
-  if (!move) return { kind: 'seedFirst', target: '[data-action="plant"]' }
-  return mayMoveOnly(game, move) ? null : { kind: 'plantNothing', target: '[data-action="plant"]' }
+  // (it points at what to use next — a glyphling, the tray — so it never covers the seeds you need)
+  if (!move) return { kind: 'seedFirst', target: idleTarget('move', game) }
+  return mayMoveOnly(game, move) ? null : { kind: 'plantNothing', target: '.game-tray' }
 }
 
 /** Its words: {player} = the rival's colour name (Blue), {colour} = yours, small (yellow). */

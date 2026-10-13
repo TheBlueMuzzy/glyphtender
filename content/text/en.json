@@ -474,7 +474,7 @@
       "idle": {
         "draft": "Drag a glyphling onto a glowing hex.",
         "move": "Drag one of your glyphlings to a new spot.",
-        "plant": "Drag a seed onto a glowing hex.",
+        "plant": "Drag a seed onto a pale hex.",
         "commit": "Happy? Tap Plant — or Undo.",
         "endTurn": "Tap End turn — no seed fits from here.",
         "refresh": "Tap seeds to swap, then Refresh — or Keep all."
@@ -484,7 +484,7 @@
         "glyphlingHex": "Glyphlings move in straight lines and can't pass through pieces.",
         "seedHex": "Seeds fly straight from your glyphling — not over others' pieces.",
         "rival": "That's {player}'s. Yours are {colour}.",
-        "plantNothing": "Drag a seed onto a glowing hex first."
+        "plantNothing": "Drag a seed onto a pale hex first."
       }
     }
   }
