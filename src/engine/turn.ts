@@ -2,7 +2,7 @@
 import { hexKey, sameHex, type Hex } from './hex'
 import { withoutSeed } from './insight'
 import { findGlyphling, includesHex, legalCasts, legalMoves } from './moves'
-import { endTurn } from './tangle'
+import { endsTheGame, endTurn } from './tangle'
 import { findWords, type FoundWord } from './wordFinder'
 import { indexOfPiece, takePiece } from '../table/zones'
 import type { GameState, LogBlock, MadeWord, SeedPiece, TurnSummary, WordList } from './types'
@@ -105,8 +105,9 @@ export function applyTurn(state: GameState, action: TurnAction, words: WordList,
     const hands = after.hands.map((h, s) => (s === seat ? [...h, ...drawn] : h))
     return endTurn({ ...after, magic, hands, bag: after.bag.slice(drawn.length), lastTurn: { ...lastTurn, drew: drawn.length }, pendingLog }, null, fast)
   }
-  // No Magic → the same player may refresh their hand (skipped when the bag is empty: nothing to refill from).
-  if (after.bag.length > 0) return { ...after, magic, lastTurn, phase: 'refresh', pendingLog }
+  // No Magic → the same player may refresh their hand (skipped when the bag is empty: nothing to refill from, and when
+  // this turn ends the game).
+  if (after.bag.length > 0 && !endsTheGame(after)) return { ...after, magic, lastTurn, phase: 'refresh', pendingLog }
   return endTurn({ ...after, magic, lastTurn, pendingLog }, null, fast)
 }
 

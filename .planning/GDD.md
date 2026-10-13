@@ -36,7 +36,7 @@
   4. **Move** — one of your glyphlings, ≥1 hex along a leyline. Can't pass through or land on anything.
   5. **Plant** — from where it landed, plant one seed along any leyline, any distance, on an empty hex. It may fly over your own seeds and glyphlings, not other players'.
   6. **Grow** — (words = the **official Glyphtender word list**, 64,161 words with Zipf scores — the original's list, cleaned in F68; see "What's not in the word list" below and TDD §2b) every word through the new seed, on every leyline, makes Magic = **letters + 1 per seed you own in it**. Shared letters count in each word. On one leyline, a word hidden inside the other words made this turn doesn't count (GARDENING, not DEN; SEAL + LEAP, not ALE). Words read top-to-bottom / left-to-right. Min length 2 (table option: 3).
-  7. **Draw or refresh** — made Magic → draw 1. Made none → you may set aside any number of seeds, refill to 8, then return the set-aside seeds to the bag.
+  7. **Draw or refresh** — made Magic → draw 1. Made none → you may set aside any number of seeds, refill to 8, then return the set-aside seeds to the bag. A turn that ends the game (the last tangle) skips the refresh (Muzzy, 2026-10-13).
   8. You must move and plant if you can. Can move but can't plant (no seeds, no open hex) → just move.
   9. **Tangled** — a glyphling with no legal move. Checked fresh after every turn, so a glyphling hemmed in by another glyphling is freed if that one moves away (as the original). When a turn ends with **2 or more glyphlings tangled**, the game ends.
   10. **Tangle bonus** — for each tangled glyphling, every *other* player gains **+3 Magic per seed or glyphling of theirs next to it**. Self-tangling next to your own seeds gives your rivals nothing.
