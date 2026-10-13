@@ -48,11 +48,10 @@ export function keepByUnionRule<T extends Span>(candidates: T[]): T[] {
   return kept.sort((a, b) => a.start - b.start)
 }
 
-/** Every word the seed on `at` makes (the seed must already be planted in `state`). */
-export function findWords(state: GameState, at: Hex, words: WordList): FoundWord[] {
+/** On each leyline through `at`: every word through the new seed (candidates) and the ones the union rule keeps. */
+function wordsByLine(state: GameState, at: Hex, words: WordList) {
   const minLength = state.config.rules.minWordLength
-  const found: FoundWord[] = []
-  for (const dir of LEYLINES) {
+  return LEYLINES.map((dir) => {
     const run = runThrough(state, at, dir)
     const letters = run.map((h) => spell(state.seeds[hexKey(h)].letter))
     const newSeed = run.findIndex((h) => hexKey(h) === hexKey(at))
@@ -64,9 +63,20 @@ export function findWords(state: GameState, at: Hex, words: WordList): FoundWord
         if (words.has(word)) candidates.push({ start, end, word })
       }
     }
-    for (const span of keepByUnionRule(candidates)) found.push({ word: span.word, hexes: run.slice(span.start, span.end + 1) })
-  }
-  return found
+    return { run, candidates, kept: keepByUnionRule(candidates) }
+  })
+}
+
+/** Every word the seed on `at` makes (the seed must already be planted in `state`). */
+export function findWords(state: GameState, at: Hex, words: WordList): FoundWord[] {
+  return wordsByLine(state, at, words).flatMap(({ run, kept }) => kept.map((span) => ({ word: span.word, hexes: run.slice(span.start, span.end + 1) })))
+}
+
+/** The words through the seed on `at` that the union rule dropped — real words inside a longer one that scored
+ *  (GARDEN and DEN inside GARDENING). For the tutorial's "only your longest word on a line counts" tip (F77). */
+export function droppedWords(state: GameState, at: Hex, words: WordList): FoundWord[] {
+  return wordsByLine(state, at, words).flatMap(({ run, candidates, kept }) =>
+    candidates.filter((c) => !kept.includes(c)).map((span) => ({ word: span.word, hexes: run.slice(span.start, span.end + 1) })))
 }
 
 /**

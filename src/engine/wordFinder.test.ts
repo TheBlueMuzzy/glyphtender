@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { getBoard } from './boards'
 import { DIRECTIONS, addHex, type Hex } from './hex'
-import { findWords, stretchesThrough } from './wordFinder'
+import { droppedWords, findWords, stretchesThrough } from './wordFinder'
 import { parseWordList } from './words'
 import { hexAt, position, wordsOf, type SeedPlan } from './testkit'
 import type { RuleNumbers } from './types'
@@ -37,6 +37,16 @@ describe('word finder — the union rule (GDD §4.6)', () => {
     const letters = [...'GARDENING']
     expect(wordsMade('C6-1', S, letters, 4, wordsOf('GARDENING', 'GARDEN', 'DEN'))).toEqual(['GARDENING'])
     expect(wordsMade('C6-1', S, letters, 4)).toEqual(['GARDENING']) // same with the official list
+  })
+
+  it('droppedWords lists the words the union rule dropped (F77 tip) — and none when nothing was dropped', () => {
+    const dropped = (letters: string[], newSeed: number, list: ReturnType<typeof wordsOf>) => {
+      const { plan, hexes } = line('C6-1', S, letters)
+      const s = position({ glyphlings: { 0: 'C1-1', 1: 'C1-4', 2: 'C11-1', 3: 'C11-4' }, seeds: [plan] })
+      return droppedWords(s, hexes[newSeed], list).map((w) => w.word).sort()
+    }
+    expect(dropped([...'GARDENING'], 4, wordsOf('GARDENING', 'GARDEN', 'DEN'))).toEqual(['DEN', 'GARDEN'])
+    expect(dropped([...'CAT'], 1, wordsOf('CAT'))).toEqual([])
   })
 
   it('SEAL + LEAP both score; ALE (covered by the two together) does not', () => {
