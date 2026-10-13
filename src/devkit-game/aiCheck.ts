@@ -10,10 +10,12 @@ import type { CheckRequest } from './aiCheckRun'
 type Options = { games: number; personalities: AiPersonality[]; skills: AiSkill[]; onProgress: (done: number, total: number) => void }
 
 export function runCheckInWorker({ games, personalities, skills, onProgress }: Options): Promise<string> {
+  // Hidden ones (Sprout / Seedling, the tutorial AI) aren't part of the rock-paper-scissors the check judges.
+  const shown = (item: object) => !('hidden' in item && item.hidden === true)
   const request: CheckRequest = {
     games,
-    personalities: personalities as unknown as Personality[],
-    skills: skills as unknown as Skill[],
+    personalities: personalities.filter(shown) as unknown as Personality[],
+    skills: skills.filter(shown) as unknown as Skill[],
     targets: feelTargets as unknown as FeelTargetsFile,
   }
   // The word list's full address: the worker's own address differs from the page's

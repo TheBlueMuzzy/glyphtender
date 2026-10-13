@@ -394,12 +394,14 @@
     "personality": {
       "Scholar": {"name": "the Scholar", "type": "Scholar", "bio": "It eats words for breakfast."},
       "Survivor": {"name": "the Survivor", "type": "Survivor", "bio": "Head on a swivel like an owl."},
-      "Strategist": {"name": "the Strategist", "type": "Strategist", "bio": "Always two moves ahead."}
+      "Strategist": {"name": "the Strategist", "type": "Strategist", "bio": "Always two moves ahead."},
+      "Sprout": {"name": "Sprout", "type": "Sprout", "bio": "New to the garden, and happy you’re here."}
     },
     "skill": {
       "Apprentice": "Apprentice",
       "FirstClass": "First Class",
-      "Archmage": "Archmage"
+      "Archmage": "Archmage",
+      "Seedling": "Seedling"
     }
   }
 }
