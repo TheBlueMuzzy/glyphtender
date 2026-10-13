@@ -461,7 +461,7 @@
       "yourDanger": "1 move left! Move it now, or it may get tangled.",
       "theirDanger": "{player}'s glyphling has 1 move left. Block it to tangle it.",
       "tangleCreate": "Tangled! Your pieces beside it will create +{n} Magic if it stays.",
-      "tangleNone": "Tangled! At the end, your pieces beside tangled rivals create +{bonus} each.",
+      "tangleNone": "Tangled! At the end, each rival piece beside it creates +{bonus} Magic.",
       "oneToGo": "One more tangle ends the game. Ahead? Try ending it yourself.",
       "twoWords": "One seed, {n} words — each one created Magic!",
       "longestCounts": "Only the longest word on each line counts.",
