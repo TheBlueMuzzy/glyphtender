@@ -455,6 +455,42 @@
       "counts": "Your seeds count +2 in a word. Others' count +1.",
       "secret": "Magic is secret until the end — {rival} can't see yours.",
       "handOver": "You're on your own now — have fun!"
+    },
+    "explore": {
+      "_help": "Explore mode — the ? button (design/tutorial.md §6): tap anything and read what it is. {player} = whose it is, {moves} = how many moves it has, {own} / {other} = what a seed counts in its owner's words / anyone else's. Every line must stay literally true.",
+      "bar": "Explore — tap anything.",
+      "barDetail": "Tap ? to go back.",
+      "remind": "Tap ? to go back to the game.",
+      "yourGlyphling": "Your glyphling · {moves} moves. Drag it to move.",
+      "yourGlyphlingDanger": "Your glyphling · 1 move left. One more block tangles it.",
+      "yourGlyphlingTangled": "Your tangled glyphling: rivals' pieces beside it create Magic at the end.",
+      "theirGlyphling": "{player}'s glyphling · {moves} moves. Block it to tangle it.",
+      "theirGlyphlingDanger": "{player}'s glyphling · 1 move left. Block it to tangle it.",
+      "theirGlyphlingTangled": "{player}'s tangled glyphling: your pieces beside it create Magic at the end.",
+      "yourSeed": "Your seed — counts +{own} in your words, +{other} in others'.",
+      "theirSeed": "{player}'s seed — +{own} in {player}'s words, +{other} in yours.",
+      "plannedSeed": "Aimed, not planted yet. Plant grows it; Undo takes it back.",
+      "moveOption": "Your glyphling can move here.",
+      "draftOption": "You can place your glyphling here.",
+      "plantOption": "You can plant a seed here.",
+      "emptyHex": "An empty hex of the garden.",
+      "traySeed": "Your {letter} seed. After you move, plant it in a straight line.",
+      "traySeedRefresh": "Your {letter} seed. Tap it to swap it, then Refresh.",
+      "part": {
+        "plant": "Plant — grows your aimed seed in the garden.",
+        "plantMagic": "Plant +{n} — grows your aimed seed and creates {n} Magic.",
+        "endTurn": "End turn — there's nowhere to plant from here.",
+        "retry": "Retry — loads the word list again.",
+        "undo": "Undo — takes back your last step this turn.",
+        "shuffle": "Shuffle — mixes up the order of your tray.",
+        "refresh": "Refresh — swaps the seeds you tapped for new ones.",
+        "keepAll": "Keep all — keep every seed and end your turn.",
+        "turnBar": "Whose turn it is right now.",
+        "menu": "Menu — settings, rules and leaving the game.",
+        "ghost": "Where your glyphling started. Tap it to take the move back.",
+        "prompt": "Explore is on: taps explain things instead of playing.",
+        "draft": "Your next glyphling. Drag it onto a glowing hex."
+      }
     }
   }
 }
