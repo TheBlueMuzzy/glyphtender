@@ -169,7 +169,7 @@ export const previews: DevKitPreview[] = [
     },
   },
   {
-    id: 'words-failed', label: 'Word list didn\'t load', group: 'Problems', note: 'A first visit on a bad connection: the warning, and Cast becomes Retry (Retry fails here too)',
+    id: 'words-failed', label: 'Word list didn\'t load', group: 'Problems', note: 'A first visit on a bad connection: the warning, and Plant becomes Retry (Retry fails here too)',
     async show(sandbox: PreviewSandbox) {
       loadGame(midGame(2, await words()))
       sandbox.failRequests(wordListUrl()) // the game screen tries again on its own; that fails, as it would
