@@ -1,51 +1,31 @@
-# Sprint 26 — A new player is dropped straight into a game against Sprout
-Started 2026-10-13 · Milestone v0.14 The first game teaches itself · Features: F72, F73, F74, F75 (in this order; F72 / F73 framework / F75 run side by side, F74 after F73)
-Design: design/tutorial.md · Branch: dev/tutorial
+# Sprint 27 — The first two turns teach you the game (rails), then tips as things happen
+Started 2026-10-13 (overnight, auto) · Milestone v0.14 · Features: F81, F76, F77 (in this order) · Branch: dev/tutorial
+Note: F76 needs F72–F74, which are built + checked but wait for Muzzy's OK (sprint 26) — built on them as working (🎛️), per auto mode.
 
-## F72 🎮 "Plant" everywhere
-Done when: no player-facing or Dev Kit text says "cast" (code names stay); the button reads Plant / Plant · +N.
-- [x] 🤖 1. en.json: the 8 player strings (game.prompts cast/castHeld/ready/moveOnly, buttons cast/castMagic, submitWord.placeSeed, rules page 1) — content/text/en.json
-- [x] 🤖 2. Dev Kit words: tuning `_labels` / `_help` / `_sections` ("Move & plant highlights") + content/devkit.json sectionOrder + content/ai/pace.json + modes.json + audio.json help; Dev Kit-only strings in src/devkit-game/moments.ts, previews.tsx, src/ai/meters.ts
-- [x] 🤖 3. e2e scripts that look for "Cast" text → "Plant"; re-record screenshots (meant change)
-- [x] 🤖 4. update GDD §4 (rules + controls say plant)
-Check: grep finds no player/Dev Kit "cast" text; check:fast + Area (game pass score spotlight screenshots).
+## F81 🔧 Dev Kit Text tab
+Done when: Dev Kit → Text edits every string in en.json; Save → the game shows it.
+- [x] 🤖 1. framework devkit 0.13.0 Text tab (sections, search, placeholder guard, Copy for Claude, reload on Save) — framework dev/text-tab → dev/tutorial-kits
+- [x] 🤖 2. install devkit 0.13.0 + plug textTab into src/devkit-game/tabs.ts
+- [x] 🤖 3. screenshots at 1440×900 + 390×844 (search "tutorial locked" → 2 strings)
+Check: devkit tests 348/348; e2e devkit-search.
 
-## F73 🧱 Callouts + tips (framework-first)
-Done when: the kit has a Callout (rounded box + pointer) and a tips memory; Settings has Tips + Reset tips.
-- [x] 🤖 1. UI kit Callout: rounded rectangle + pointer aimed at an element or a point, flips/shifts to fit the screen, never covers its target, ≤ 12 words styling, dismiss on tap; gallery ?screen=teach + CATALOG row — framework/ui-kit/kit/blocks/teach.tsx
-- [x] 🤖 2. UI kit tips memory: `useTips` — seen ids (localStorage), tipsOn switch, resetTips — same file
-- [x] 🤖 3. install UI kit 0.9.0 into the game (install-kit --dry-run first)
-- [x] 🤖 4. Settings → Tips on/off · Reset tips — content/ui/settings.json, src/ui/gameSettings.ts
-- [x] 🤖 5. Dev Kit Screens: a callout preview — src/devkit-game/previews.tsx
-Check: kit check-ui + game check:fast; gallery shots at 390×844 + 1440×900; e2e:previews.
+## F76 🎮 The rails (draft + 2 turns)
+Done when: the tutorial game's draft + your first 2 turns play exactly as design/tutorial.md §2, one live target at a time, Sprout scripted, then free play.
+- [x] 🤖 1. engine `stack` (fixed starting hands + next draws) + rails layout found by scripts/tutorial/find-rails.mjs + proof test — src/engine/setup.ts, content/tutorial/rails.json, src/tutorial/rails.ts, rails.test.ts
+- [ ] 🤖 2. rails limit: the referee allows only the current step's target (store/railsLimit.ts → referee.ts); Keep all / Refresh follow the step (ActionBar)
+- [ ] 🤖 3. Sprout follows the script (localBot hook) and the game holds while a rails pause is up
+- [ ] 🤖 4. the steps: callouts per §2 (draft ×2, turn 1 move / block / plant / over-own / Plant / blocks Blue / no-word pause / refresh J+V, turn 2 move / plant A / Plant +5 / +2 +1 / secret / hand-over) — src/tutorial/railsSteps.ts + TutorialLayer.tsx, words in en.json tutorial.rails
+- [ ] 🤖 5. e2e/tutorial-rails.mjs plays the rails by drag/tap at 390×844 + 1440×900 and screenshots each step
+Check: e2e:tutorial-rails + Area (game pass tutorial-shell).
 
-## F74 🧱 Tutorial shell
-Done when: a brand-new device goes Play → 3 overview cards → a game vs Sprout; online/New Game locked until finished or left; a device that has played before sees no locks; Settings → Replay tutorial game.
-- [x] 🤖 1. src/tutorial/progress.ts — done / not done (localStorage glyphtender:tutorial); a device with `glyphtender:new-game` counts as done (D95)
-- [x] 🤖 2. content/tutorial/rails.json (stand-in: fixed seed, Small, you Yellow first, Sprout Blue) + startTutorialGame — src/ui/newGame.ts
-- [x] 🤖 3. Main menu for a new player: Play → overview → tutorial game; Play online greyed + callout "Finish your first game to unlock this" — src/ui/menus.tsx
-- [x] 🤖 4. The 3 overview cards + Skip — en.json tutorial.overview (kit HowToPlay)
-- [x] 🤖 5. Pause → Leave tutorial (askConfirm) · finishing → unlocked + toast "Everything's unlocked!" — menus.tsx, store
-- [x] 🤖 6. Settings → Replay tutorial game — settings.json, gameSettings.ts
-- [x] 🤖 7. e2e/tutorial-shell.mjs: new device → locks → leave → unlocked · returning device no locks (own port)
-Check: e2e:tutorial-shell + Area (previews margins); screenshots at all sizes.
+## F77 🎮 Tips in play
+Done when: after the rails, the 10 first-time tips (§3) show once each, at most 1 per turn, 3 of them pausing.
+- [ ] 🤖 1. tip triggers from the rules' events / state (src/tutorial/tips.ts), seen once (kit tips memory), 1 per turn, never during an animation
+- [ ] 🤖 2. the 3 pauses (you create · tangled · one to go) hold the game; "Longest counts" needs the word finder to report dropped words
+- [ ] 🤖 3. tests per trigger (hand-made positions, testkit.ts)
+- [ ] 🤖 4. e2e: a tip shows once and never again; Tips off → none
+Check: unit tests + e2e.
 
-## F75 🎮 Sprout
-Done when: Sprout plays the tutorial game; hidden everywhere else; prefers one self-tangle from turn 6 and keeping its other glyphling free; always plays a legal turn.
-- [x] 🤖 1. Sprout in content/ai/personalities.json (`hidden: true`) + en.json bio; personalityIds() filters hidden (New Game, online lobby, Surprise me) — src/ui/newGame.ts
-- [x] 🤖 2. a hidden smallest-vocabulary skill (content/ai/skills.json, zipf ~4)
-- [x] 🤖 3. goal src/ai/goals/selfTangle.ts (plug.ts, goals.json bigAt) — prefers a pocket next to rival pieces for ONE glyphling from selfTangleBy; prefers keeping the other free; preferences only
-- [x] 🤖 4. content/tuning/tutorial.json (selfTangleBy 6, maxTurns 20 + _labels/_sections)
-- [x] 🤖 5. tests: walled-in Sprout still plays a legal turn, never stalls · 300 sims vs Apprentice: one-tangle rate, who ends it, game length — src/ai/sprout.test.ts
-- [x] 🤖 6. Sprout's feel from the sims (tuning)
-Check: npm test + sims numbers in Notes.
-
-Ask Muzzy: Sprout drops its habits after its 20th turn (maxTurns) — a Small game is ~22–25 of its turns, so for the last few turns it plays like a plain Apprentice and may end the game itself (33% of sims; while its habits are on, 2–4%, all forced). Keep 20 (rec. — 30 made it end the game itself in 27% of games while still "Sprout", mostly forced on a crowded board), or change it in Dev Kit → Tuning → Tutorial?
+Ask Muzzy: —
 Notes:
-- F72 (helper): 70 strings → plant (en.json 8, Dev Kit help/labels, Moments, e2e). Left on purpose: code names, engine guard messages players never see ("That can't be done" shows instead), golden notation. Shots re-recorded (58 files — many only pixel noise; end4-story-round6@1920 flickers 1 px between runs).
-- F73: UI kit 0.9.0 on framework dev/teach (Callout + tipsMemory/useTips; 260 kit tests; 90 gallery shots measured — no overlap, no clipping). Tips on/off lives in kit-tips; Settings → Tips copies into it (gameSettings.ts syncTips). Dev Kit Screens → Tutorial callout (tip / pause).
-- **For F76 (seen in the callout preview):** on a phone a tip above a glyphling covers a board row — rails callouts should prefer the side away from the board (toward the tray / top bar) when that still fits; the kit's pulse ring and dim hole are RECTANGLES — on the board use the game's own hex glow (the turn pulse / option template) for the target instead of `pulse`, so the highlight matches every other board highlight (same intention → same motion).
-- F75 (helper): Sprout = nerve 60, steady SELFTANGLE 1, clumsiness 75–90; Seedling = zipf 4 (~6.3k words), spread 0.5. 300 sims vs the Survivor (Apprentice): Sprout tangles one of its own 77% (median its turn 12; rival pieces next to it ~63%), the Survivor wins 80%, games ~48 turns. `npm run sim:sprout`. Hidden from New Game / Surprise / lobby / server (party/aiSeats.ts) / balance sims; shown in Dev Kit AI.
-- F74: e2e:tutorial-shell 29/29 (port 5440); e2e starts as a returning device unless ?tutorial=fresh (DEV + webdriver). Kit 0.9.0 grew MainMenu `locked` items (tap still works → the callout) + HowToPlay `onSkip`. Fixed after screenshots: the locked callout covered Play (now below), and stayed up over the overview (other buttons close it now).
-- "Already played" = any device that has ever started a game (`glyphtender:new-game` exists) — D95.
-- Sprout's small vocabulary is its own hidden skill, so New Game's 3 skills don't change.
+- Framework: ui-kit 0.9.0 + devkit 0.13.0 live together on framework branch **dev/tutorial-kits** — install kits from THAT branch (main has neither).
