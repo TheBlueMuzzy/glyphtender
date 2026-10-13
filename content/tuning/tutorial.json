@@ -10,7 +10,8 @@
     "idleGlow": "The tutorial game: seconds of doing nothing on your turn before the right thing glows (breathes like the whose-turn pulse). Try 4–12.",
     "idleText": "The tutorial game: seconds of doing nothing before a callout says what you can do. Try 8–25 (more than the glow).",
     "idleRepeat": "How many times each idle callout (place / move / plant / Plant / refresh) may show in one game, then it stays quiet. Try 2–5.",
-    "laterIdleText": "Later games (Tips on): seconds of doing nothing before the idle callout — no glow there. Try 20–60.",
+    "laterIdleText": "Later games on this device (Tips on): seconds of doing nothing before the idle callout — no glow there. Online games use onlineIdleText. Try 20–60.",
+    "onlineIdleText": "Online games (Tips on): seconds of doing nothing before the idle callout. Keep it below the room's \"Still there?\" bar (content/rooms.json idleWarnAfterMs, 30 s) — while that bar is up, or a bot plays for you, no idle callout shows. Try 10–25.",
     "wrongRepeat": "After the first 2 turns: how many times each 'wrong action' callout (a seed before moving, a bad drop, a rival's glyphling…) may show in one game; then only the 'no' shake. On the first 2 turns it shows every time. Try 2–5.",
     "calloutRoom": "How much room a tip needs above its target before the turn bar / ☰; with less, it goes below (a pause near the board's top covered ☰ on a phone). In px (a tip with a button is ~160 tall). Try 150–240.",
     "exploreRemind": "Explore mode (the ? button): after this many seconds with no tap, the reminder \"Tap ? to go back to the game\" shows again at the ?. Try 10–30.",
@@ -28,6 +29,7 @@
     "idleText": "Idle nudge: words after (s) — tutorial game",
     "idleRepeat": "Idle nudge: times each one shows per game",
     "laterIdleText": "Idle nudge: words after (s) — later games",
+    "onlineIdleText": "Idle nudge: words after (s) — online games",
     "wrongRepeat": "Wrong-action nudge: times each one shows per game",
     "calloutRoom": "Callout: room needed above a board target (px)",
     "exploreRemind": "Explore: remind about ? after (s)",
@@ -35,7 +37,7 @@
   },
   "_sections": {
     "Tutorial": ["tipSeconds", "selfTangleBy", "railsCalloutDelay", "railsDim"],
-    "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "wrongRepeat", "calloutRoom"],
+    "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "onlineIdleText", "wrongRepeat", "calloutRoom"],
     "Explore": ["exploreRemind", "exploreDim"]
   },
   "_ranges": {
@@ -50,6 +52,7 @@
     "idleText": [5, 60, 1],
     "idleRepeat": [1, 10, 1],
     "laterIdleText": [10, 120, 5],
+    "onlineIdleText": [5, 60, 1],
     "wrongRepeat": [1, 10, 1],
     "calloutRoom": [60, 240, 10],
     "exploreRemind": [5, 60, 1],
@@ -66,6 +69,7 @@
   "idleText": 12,
   "idleRepeat": 3,
   "laterIdleText": 30,
+  "onlineIdleText": 15,
   "wrongRepeat": 3,
   "calloutRoom": 190,
   "exploreRemind": 15,

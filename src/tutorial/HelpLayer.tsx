@@ -8,7 +8,8 @@
 //   never stops for one player). A pause that comes due while exploring waits until Explore is left.
 //   IDLE NUDGES (useNudge): on your turn, after idleGlow s of nothing the right thing breathes (the whose-turn pulse's
 //   swell and timing — same intention, same motion), after idleText s a callout says what you can do; ≤ idleRepeat a
-//   kind a game. Later games: only the words, at laterIdleText s. Any tap or key starts the clock again.
+//   kind a game. Later games: only the words, at laterIdleText s (online: onlineIdleText s, and none while the room's
+//   "Still there?" bar is up). Any tap or key starts the clock again.
 //   WRONG-ACTION NUDGES: a refused tap (the "no" shake), a refused drop, or a tap on a Plant button that can't be used
 //   → a callout at once (≤ wrongRepeat a kind a game, then only the shake). On the rails TutorialLayer does it.
 // Timings: content/tuning/tutorial.json · words: en.json → tutorial.tips / tutorial.nudges.
@@ -27,6 +28,7 @@ import { railsHold, setRails } from '../store/railsLimit'
 import { viewerOf } from '../store/viewer'
 import { useWrongDrop } from '../store/wrongDrop'
 import { Callout, reduceMotion, useNudge, useScreens, useTips, type CalloutPlacement } from '../ui/kit'
+import { useOnline } from '../ui/online/session'
 import { idleGlowTargets, idleKind, idleTarget, idleWords, takeWrong, wrongFromDrop, wrongFromNope, wrongFromPlantTap, wrongWords, type Wrong } from './nudges'
 import { useTutorial } from './progress'
 import { useRailsDirector } from './railsDirector'
@@ -142,9 +144,13 @@ export function HelpLayer() {
   // ─── IDLE NUDGES ───
   const kind = game && mine ? idleKind(game, move, cast) : null
   const later = !tutorialGame
+  // Online: sooner (onlineIdleText — before the room's "Still there?" bar, rooms.json idleWarnAfterMs), and never while
+  // that bar is up or a bot plays for you: the bar says it then (Muzzy, 2026-10-13: a line that doesn't fit, isn't said)
+  const room = useOnline((s) => s.room)
+  const roomNeedsYou = online && !!room && (room.idleWarning !== null || room.botPlaysForMe)
   const { stage, poke } = useNudge({
-    kind, running: on && mine && !busy && !tip && !wrong && !railsHold(),
-    glowAt: later ? null : tuning.idleGlow, textAt: later ? tuning.laterIdleText : tuning.idleText,
+    kind, running: on && mine && !busy && !tip && !wrong && !railsHold() && !roomNeedsYou,
+    glowAt: later ? null : tuning.idleGlow, textAt: later ? (online ? tuning.onlineIdleText : tuning.laterIdleText) : tuning.idleText,
     repeat: tuning.idleRepeat, counts: perGame.idle,
   })
   // The glow: the right thing breathes like the whose-turn pulse (useTurnPulse — feel.json turnPulse, anim.json turnPulseTime)
