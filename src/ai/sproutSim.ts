@@ -6,7 +6,6 @@ import { aiBot } from '../engine/bot'
 import type { WordList } from '../engine/types'
 import { playArenaGame, type ArenaGame, type ArenaSeat } from './arena'
 import { personalities, skills } from './seatBrain'
-import tutorialTuning from '../../content/tuning/tutorial.json'
 
 export interface SproutGame {
   /** Its own turn (1 = its first) on which Sprout's move tangled one of its own glyphlings; null = never. */
@@ -15,7 +14,7 @@ export interface SproutGame {
   nextToRival: boolean
   /** Sprout's own turn ended the game by tangling its other glyphling. */
   endedBySelfTangle: boolean
-  /** Its own turns played by the end (so an ending can be told apart: while its habits were on, or after maxTurns). */
+  /** Its own turns played by the end. */
   ownTurns: number
   /** Sprout's turn ended the game at all (any tangle, its own or the rival's). */
   endedBySprout: boolean
@@ -102,8 +101,6 @@ export function sproutSummary(games: SproutGame[]) {
     medianSelfTangleTurn: median(tangled.map((g) => g.selfTangleTurn!)),
     nextToRivalPct: pct(tangled.filter((g) => g.nextToRival).length, tangled.length),
     endedBySelfTanglePct: pct(games.filter((g) => g.endedBySelfTangle).length, games.length),
-    /** …of those, while its habits were still on (its own turn ≤ maxTurns, content/tuning/tutorial.json). */
-    endedBySelfTangleInHabitsPct: pct(games.filter((g) => g.endedBySelfTangle && g.ownTurns <= tutorialTuning.maxTurns).length, games.length),
     medianOwnTurns: median(games.map((g) => g.ownTurns)),
     endedBySproutPct: pct(games.filter((g) => g.endedBySprout).length, games.length),
     sproutWonPct: pct(games.filter((g) => g.sproutWon).length, games.length),

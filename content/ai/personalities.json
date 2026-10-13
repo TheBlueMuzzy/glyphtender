@@ -22,7 +22,7 @@
     "extras.nerve": "How far ahead (in believed Magic) it must think it is before it ends the game itself (\"calls it\"). Lower = bolder, calls it wrong more often.",
     "extras.extraWordBonus": "SCORE goal: bonus per extra word made in one cast (the original: 3). The Strategist — the two-words-one-move specialist — gets more.",
     "hidden": "true = never offered to players (New Game, Surprise me, the online lobby) and left out of the Personality Check and the AI sims. Sprout, the tutorial game's AI, is hidden: only the tutorial plays it. The Dev Kit still shows it so it can be tuned.",
-    "traits.clumsiness": "SELFTANGLE (Sprout only) — from turn selfTangleBy (content/tuning/tutorial.json) it prefers walking ONE of its glyphlings into a pocket, next to your pieces when it can; once one is tangled it prefers keeping the other free (so ending the game is usually your call). Preferences only: it always plays a legal turn. After maxTurns of its own turns both switch off."
+    "traits.clumsiness": "SELFTANGLE (Sprout only) — from turn selfTangleBy (content/tuning/tutorial.json) it prefers walking ONE of its glyphlings into a pocket, next to your pieces when it can; once one is tangled it prefers keeping the other free (so ending the game is usually your call). Preferences only: it always plays a legal turn. It keeps both all game."
   },
   "_labels": {
     "id": "Name (code)",

@@ -96,10 +96,9 @@ describe('SELFTANGLE (Sprout\'s two habits, as scores)', () => {
     expect(tangling.some((s) => s.v === best)).toBe(true)
     expect(best).toBeGreaterThanOrEqual(50) // a tangle, next to rival seeds
   })
-  it('before selfTangleBy and after maxTurns it has no opinion', () => {
-    for (const turn of [tutorialTuning.selfTangleBy - 1, tutorialTuning.maxTurns + 1]) {
-      expect(new Set(score(at(turn)).map((s) => s.v))).toEqual(new Set([0]))
-    }
+  it('before selfTangleBy it has no opinion; it keeps its habits all game (turn 40 still)', () => {
+    expect(new Set(score(at(tutorialTuning.selfTangleBy - 1)).map((s) => s.v))).toEqual(new Set([0]))
+    expect(Math.max(...score(at(40)).map((s) => s.v))).toBeGreaterThanOrEqual(50)
   })
   it('once one is tangled, it dislikes ending the game with the other', () => {
     // Glyphling 2 already tangled in a pen; glyphling 3 next to the pocket — walking in would end the game.

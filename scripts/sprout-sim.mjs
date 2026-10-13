@@ -55,7 +55,6 @@ const rows = [
   ['…median of its own turns when it did', `${s.medianSelfTangleTurn ?? '—'}`],
   ['…next to the rival\'s pieces', `${s.nextToRivalPct}% of those`],
   ['Sprout made the game-ending 2nd tangle', `${s.endedBySelfTanglePct}% of games`],
-  ['…while its habits were on (≤ maxTurns)', `${s.endedBySelfTangleInHabitsPct}% of games`],
   ['Sprout ended the game at all', `${s.endedBySproutPct}% of games`],
   [`${personality} won`, `${s.rivalWonPct}%`],
   ['Sprout won', `${s.sproutWonPct}%`],

@@ -2,7 +2,6 @@
   "_help": {
     "tipSeconds": "How long a tutorial callout stays up before it fades, unless you tap it. Try 6–10.",
     "selfTangleBy": "Sprout (the tutorial game's AI) starts preferring moves that walk ONE of its glyphlings into a pocket — next to your pieces when it can, so you see the tangle bonus — from this turn of its own. Lower = it happens sooner. A preference, never a rule: if the board offers no pocket, it doesn't happen. Try 4–8.",
-    "maxTurns": "After this many of its own turns Sprout drops both its preferences (one self-tangle, then keeping its other glyphling free) and plays like any Apprentice. Sims (npm run sim:sprout, 2026-10-13): a Small game is ~22–25 of Sprout's turns, so at 20 its last few turns are plain Apprentice ones. Try 15–30.",
     "railsCalloutDelay": "The tutorial game's first 2 turns: how long after the game goes quiet (a glide, a seed landing, the score) the next callout shows. Lower = snappier, higher = calmer. Try 0.3–1.2.",
     "railsDim": "How dark a tutorial pause (Got it / Play) makes the rest of the game. 0 = not at all, 1 = black. Try 0.5–0.75. The 3 pausing tips (tangled ×2, one to go) use it too.",
     "tipDelay": "A first-time tip (after the first 2 turns, and in later games while Settings → Tips is on) shows this long after the game goes quiet. Try 0.3–1.2.",
@@ -20,7 +19,6 @@
   "_labels": {
     "tipSeconds": "Tip shows for (s)",
     "selfTangleBy": "Sprout: tries to tangle one of its glyphlings from its turn…",
-    "maxTurns": "Sprout: drops its tutorial habits after this many of its turns",
     "railsCalloutDelay": "Rails: next callout after (s)",
     "railsDim": "Rails + pausing tips: how dark a pause dims (0–1)",
     "tipDelay": "Tip: shows after the game is quiet for (s)",
@@ -36,14 +34,13 @@
     "exploreDim": "Explore: how dark the rest dims (0–1)"
   },
   "_sections": {
-    "Tutorial": ["tipSeconds", "selfTangleBy", "maxTurns", "railsCalloutDelay", "railsDim"],
+    "Tutorial": ["tipSeconds", "selfTangleBy", "railsCalloutDelay", "railsDim"],
     "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "wrongRepeat", "calloutRoom"],
     "Explore": ["exploreRemind", "exploreDim"]
   },
   "_ranges": {
     "tipSeconds": [2, 20, 1],
     "selfTangleBy": [1, 15, 1],
-    "maxTurns": [5, 40, 1],
     "railsCalloutDelay": [0, 3, 0.1],
     "railsDim": [0, 1, 0.05],
     "tipDelay": [0, 3, 0.1],
@@ -60,7 +57,6 @@
   },
   "tipSeconds": 8,
   "selfTangleBy": 6,
-  "maxTurns": 20,
   "railsCalloutDelay": 0.6,
   "railsDim": 0.6,
   "tipDelay": 0.6,

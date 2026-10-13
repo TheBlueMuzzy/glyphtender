@@ -7,7 +7,8 @@
 //   2. Keep the other free: once one of its glyphlings is tangled, it dislikes leaving the other with ≤ 2 moves (−20).
 //   Either way, a turn that ENDS the game (the last tangle needed) scores −100: ending it is usually the player's call.
 // These are preferences, never rules (Muzzy, 2026-10-13: "we could end in a soft lock"): the brain still picks
-// among legal moves, so if every move it has tangles itself, it plays one. After `maxTurns` of its own turns, no opinion.
+// among legal moves, so if every move it has tangles itself, it plays one. It keeps both habits all game
+// (Muzzy, 2026-10-13: "sprout should not drop its habits").
 import { getBoard } from '../../engine/boards'
 import { hexKey, neighbours } from '../../engine/hex'
 import type { GameState, WordList } from '../../engine/types'
@@ -32,7 +33,7 @@ function rivalPiecesNear(state: GameState, seat: number, hex: { q: number; r: nu
   }).length
 }
 
-export function selfTangleGoal(words: WordList, tuning: { selfTangleBy: number; maxTurns: number } = tutorialTuning): GlyphGoal {
+export function selfTangleGoal(words: WordList, tuning: { selfTangleBy: number } = tutorialTuning): GlyphGoal {
   return {
     id: 'SELFTANGLE',
     trait: 'clumsiness',
@@ -40,7 +41,6 @@ export function selfTangleGoal(words: WordList, tuning: { selfTangleBy: number; 
       const turn = asTurn(action)
       if (!turn) return NOTHING
       const ownTurn = ownTurnOf(ctx.world)
-      if (ownTurn > tuning.maxTurns) return NOTHING
       const W = SELF_TANGLE_WEIGHTS
       const before = mobilityNow(ctx.world)
       const after = mobilityAfter(ctx.world, turn, words)
