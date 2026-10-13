@@ -8,6 +8,8 @@
 //            results · New game) sits at the bottom, in the very same spot as on the end screen.
 // Sound: a button whose press has its own sound (Shuffle, Undo, Cast with a seed → the throw, Refresh N) says
 // sound={false}, so the kit's ui.tap never doubles it.
+// data-action names each button (the tutorial's rails point at them; Explore mode explains them — F79), and the Plant
+// button says when it is End turn (data-end-turn) and the Magic it shows (data-magic).
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
@@ -93,9 +95,9 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   if (!moveOnly && s.wordsStatus === 'failed') {
     return (
       <Row gap="s" justify="center" className="game-actions">
-        <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-        <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
-        <Button size={size} compact={fixed} onClick={() => s.loadWords(wordListUrl())}>{w.retryWords}</Button>
+        <Button size={size} compact={fixed} variant="ghost" sound={false} data-action="shuffle" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
+        <Button size={size} compact={fixed} variant="secondary" sound={false} data-action="undo" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
+        <Button size={size} compact={fixed} data-action="retry" onClick={() => s.loadWords(wordListUrl())}>{w.retryWords}</Button>
       </Row>
     )
   }
@@ -103,9 +105,9 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const castLabel = moveOnly ? w.endTurn : showMagic ? fill(w.castMagic, { n: preview.magic }) : w.cast
   return (
     <Row gap="s" justify="center" className="game-actions">
-      <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-      <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
-      <Button size={size} compact={fixed} data-action="plant" sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
+      <Button size={size} compact={fixed} variant="ghost" sound={false} data-action="shuffle" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
+      <Button size={size} compact={fixed} variant="secondary" sound={false} data-action="undo" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
+      <Button size={size} compact={fixed} data-action="plant" data-end-turn={moveOnly || undefined} data-magic={showMagic ? preview.magic : undefined} sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
     </Row>
   )
 }

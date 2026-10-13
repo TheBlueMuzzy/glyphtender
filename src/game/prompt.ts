@@ -64,8 +64,9 @@ export function promptSizers(names: string[]): { texts: string[]; detail: string
       ...turnPrompts, r.tangles,
       ...withName.map((t) => fill(t, { player, n: 10, total: 2 })),
       fill(r.winner, { names: player }), fill(r.winners, { names: names.join(r.and) }),
+      text.tutorial.explore.bar, // (Explore mode takes the prompt's place — F79)
     ],
-    detail: [...Object.values(w.notes), p.refreshDetail, fill(w.turnOf, { player })],
+    detail: [...Object.values(w.notes), p.refreshDetail, fill(w.turnOf, { player }), text.tutorial.explore.barDetail],
   }
 }
 

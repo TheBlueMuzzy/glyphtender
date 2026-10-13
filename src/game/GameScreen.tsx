@@ -18,6 +18,7 @@ import { useGameSettings } from '../ui/gameSettings'
 import { leaveToMenu } from '../ui/newGame'
 import { useTutorial } from '../tutorial/progress'
 import { TutorialLayer } from '../tutorial/TutorialLayer'
+import { ExploreLayer } from '../tutorial/ExploreLayer'
 import { ActionBar } from './ActionBar'
 import { colourOf, wordListUrl } from './art'
 import { Board } from './Board'
@@ -188,6 +189,8 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
     <Handoff stacked={stacked} flipped={flipped} />
     {/* The tutorial game: its first 2 turns on rails, one callout at a time (src/tutorial/TutorialLayer.tsx, F76) */}
     {tutorial && <TutorialLayer />}
+    {/* Explore mode — the ? beside ☰: every tap explains instead of acting (src/tutorial/ExploreLayer.tsx, F79) */}
+    <ExploreLayer />
     </>
   )
 }
