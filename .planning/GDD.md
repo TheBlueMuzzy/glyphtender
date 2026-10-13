@@ -28,27 +28,27 @@
 - **Every seat is swappable** — local player, online player or AI; the rules don't care. *Settles:* pass-and-play is built on seats, so online and AI plug in without touching the rules.
 
 ## 4. How it plays
-- **Core loop:** move a glyphling → cast a seed from where it landed → it grows → words make Magic → draw or refresh → … until two glyphlings are tangled → the Magic reveal.
+- **Core loop:** move a glyphling → plant a seed from where it landed → it grows → words make Magic → draw or refresh → … until two glyphlings are tangled → the Magic reveal.
 - **Rules** (numbers live in `content/`, not code):
   1. **Board** — flat-top hex garden with 3 **leylines** (N–S, NE–SW, NW–SE; no horizontal). Small 85 hexes, Large 117. Default: Small for 2 players, Large for 3–4 (❓ sims may change it).
   2. **Setup** — each player has 2 glyphlings (Yellow, Blue, Purple, Pink). **Snake draft** (1-2-2-1 · 1-2-3-3-2-1 · 1-2-3-4-4-3-2-1): place on a non-edge hex not next to another glyphling. Then everyone draws 8 seeds from the bag.
   3. **Bag** — 120 seeds: A9 B2 C3 D4 **E15** F3 G2 H6 I9 J1 K2 L5 M3 N7 O9 P2 **Q1** R6 S7 T10 **U5** V1 W3 X1 Y3 Z1. **Q is a plain Q** (Muzzy's call 2026-10-01 — it used to be one "Qu" seed): QI / QAT score, QUIT needs its own U seed, so one E became a fifth U. Only ~10 listed words have a Q without a U after it (QI, QAT, QAID, QADI, QANAT, QOPH, SUQ…) — accepted.
   4. **Move** — one of your glyphlings, ≥1 hex along a leyline. Can't pass through or land on anything.
-  5. **Cast** — from where it landed, plant one seed along any leyline, any distance, on an empty hex. It may fly over your own seeds and glyphlings, not other players'.
+  5. **Plant** — from where it landed, plant one seed along any leyline, any distance, on an empty hex. It may fly over your own seeds and glyphlings, not other players'.
   6. **Grow** — (words = the **official Glyphtender word list**, 64,161 words with Zipf scores — the original's list, cleaned in F68; see "What's not in the word list" below and TDD §2b) every word through the new seed, on every leyline, makes Magic = **letters + 1 per seed you own in it**. Shared letters count in each word. On one leyline, a word hidden inside the other words made this turn doesn't count (GARDENING, not DEN; SEAL + LEAP, not ALE). Words read top-to-bottom / left-to-right. Min length 2 (table option: 3).
   7. **Draw or refresh** — made Magic → draw 1. Made none → you may set aside any number of seeds, refill to 8, then return the set-aside seeds to the bag.
-  8. You must move and cast if you can. Can move but can't cast (no seeds, no open hex) → just move.
+  8. You must move and plant if you can. Can move but can't plant (no seeds, no open hex) → just move.
   9. **Tangled** — a glyphling with no legal move. Checked fresh after every turn, so a glyphling hemmed in by another glyphling is freed if that one moves away (as the original). When a turn ends with **2 or more glyphlings tangled**, the game ends.
   10. **Tangle bonus** — for each tangled glyphling, every *other* player gains **+3 Magic per seed or glyphling of theirs next to it**. Self-tangling next to your own seeds gives your rivals nothing.
   11. **Magic is secret** until the end. Most Magic wins; ties share the win.
 - **Controls** (proven in the F01 prototype): tap-tap *and* drag, always both (phone and mouse).
   1. Tap/drag a glyphling → hexes it can reach glow in **your colour** (filled) → tap/drop one: it moves, leaving a faded ghost where it started (tap the ghost to send it back).
   2. Tap/drag a seed → hexes it can reach light up in a **lighter shade of your colour** → tap/drop one: the seed sits there **faded** — targeted, not planted (tap it to take it back). **Undo** takes back the last step.
-  3. **Cast** commits the turn — only then does the story play: the glyphling hops and **throws** the seed, it **arcs** to the target, lands, and the runeblossom **grows** out of the ground. Nothing can be touched while a seed is in the air.
+  3. **Plant** commits the turn — only then does the story play: the glyphling hops and **throws** the seed, it **arcs** to the target, lands, and the runeblossom **grows** out of the ground. Nothing can be touched while a seed is in the air.
   - Pinch/scroll zoom is optional; a Fit button snaps back.
 - **How dragging feels (v0.11, Muzzy's picks 2026-10-10 — content/tuning/drag.json, Dev Kit Tuning → Dragging):**
   - **One real piece at a time.** A carried piece is lifted (a little bigger, a soft shadow); its home shows what its *carry style* says. Draft = **A Pick it up** (the tray spot goes empty) · seed = **B Lift, mark home** (a faint mark stays) · glyphling move = **B** · tray reorder = **A**. A legal drop settles; a wrong drop flies back home.
-  - **What the target shows:** draft = the hex glow · seed + move = a **straight aim line** in your colour (Muzzy: "an arc conveys verticality — your pieces don't jump over anything"); a seed's line starts at **the glyphling that just moved** — it casts the seed · magnetic snap pulls a near-miss onto a legal hex.
+  - **What the target shows:** draft = the hex glow · seed + move = a **straight aim line** in your colour (Muzzy: "an arc conveys verticality — your pieces don't jump over anything"); a seed's line starts at **the glyphling that just moved** — it plants the seed · magnetic snap pulls a near-miss onto a legal hex.
   - **The tray: swap places** (Muzzy's idea) — over another seed, its spot glows and that seed shows faint at your seed's home; the drop swaps the two, nothing else moves. Board feedback starts only once the seed is **well out of the tray** (half a seed past its edge) and stops only back inside it — nothing flickers.
   - **Picking up again = a new decision:** grab another seed → the aimed one goes back to the tray; grab the moved glyphling (or its start ghost) → the turn starts over from its start. A planned cast leaves a dotted line glyphling → seed, like the move's.
   - **The AI moves like you** (F50): an AI's or an online rival's draft and moves use the same styles, lift, speed and aim line. (Their seeds come from a hidden tray, so a seed just appears on its hex.)
@@ -58,7 +58,7 @@
   - **Word indicators** (new-game option, on/off): on = a made word is highlighted **behind** its seeds, thick like a border, in **white** (neutral, never a player colour); off = nothing tells you a word was made (no outline, no "+N", no pops — you spot words yourself).
   - **Hide seeds between turns** (new-game option, 2026-10-01 — Muzzy: "hide seeds should be off normally. players opt into that"): **off by default** — no handoff screen, everyone sees the tray; on = the "Pass to …" handoff hides each player's seeds. A player who saved it on keeps it.
   - **Word spotlight** (2026-10-01, Muzzy's idea): when a cast makes 2+ words, they light up **one at a time** — QUA → TAB → AY → round again — while aiming, each with a small "QUA +4" label; after the cast the words score in that same order, once (see Score pops). One word just stays lit. So overlapping words never read as one blob.
-  - **Cast ranges show right after the move** — don't wait for a seed to be picked.
+  - **Plant ranges show right after the move** — don't wait for a seed to be picked.
   - **Drop target:** while dragging, the hex it would land on lights up (the zone reacts, not the piece).
   - **Whose turn:** the current player's glyphlings pulse gently (small) until one is moved.
   - **"No" shake:** tapping anything you can't move gives a quick shake.
