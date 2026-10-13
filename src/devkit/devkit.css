@@ -7,7 +7,7 @@
   right: 0;
   bottom: 0;
   z-index: 2147483000; /* above everything in the game */
-  width: min(480px, 46vw); /* every tool tab fits in one row on a desktop: 8 tabs ≈ 460px (Words tab, 0.11.1) */
+  width: min(540px, 50vw); /* every tool tab fits in one row on a desktop: 9 tabs ≈ 520px (Text tab, 0.13.0) */
   min-width: 300px;
   display: flex;
   flex-direction: column;
