@@ -16,6 +16,7 @@ import { Avatar, HudText, Stack, Text } from '../ui/kit'
 import { colourOf, glyphlingArt } from './art'
 import { playerName, promptFor, promptIconSeat, promptSizers, revealSizers } from './prompt'
 import { useGardenTuning } from './useTuning'
+import { useTutorial } from '../tutorial/progress'
 
 /** big: a roomy screen (big board hexes) — the prompt gets title-size words to match the big pieces.
  *  fixed: hold the frame at the height of the longest message (B013).
@@ -41,9 +42,11 @@ export function PromptLine({ big, fixed, hangRoom = 0 }: { big: boolean; fixed: 
     setIconRoom((old) => (Math.abs(old - need) < 1 ? old : need))
   }, [size])
   const hang = iconRoom > 0 && hangRoom >= iconRoom
+  // The tutorial's rails callout is up: it says what to do, so the prompt steps aside (its room stays — B013)
+  const calloutUp = useTutorial((s) => s.calloutUp)
   const avatar = <Avatar name={playerName(who)} src={glyphlingArt(who)} color={colours[colourOf(who)]} />
   return (
-    <div className="game-prompt" data-hang={hang || undefined}>
+    <div className="game-prompt" data-hang={hang || undefined} style={calloutUp ? { visibility: 'hidden' } : undefined}>
       {/* the frame's size: the glyphling's room + the tallest main line over the tallest small line (same word sizes
           as HudText's), so the words wrap exactly as the real ones do */}
       {fixed && (

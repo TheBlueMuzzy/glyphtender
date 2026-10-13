@@ -40,9 +40,11 @@ interface Tutorial {
   active: boolean
   /** The tutorial game just finished for the first time: the end screen says "Everything's unlocked!" (start.ts). */
   justUnlocked: boolean
+  /** A rails callout is up: it takes the prompt's place (PromptLine hides its words, keeping their room). */
+  calloutUp: boolean
 }
 
-export const useTutorial = create<Tutorial>()(() => ({ done: e2eSkips() || tutorialDoneOn(browserStorage()), active: false, justUnlocked: false }))
+export const useTutorial = create<Tutorial>()(() => ({ done: e2eSkips() || tutorialDoneOn(browserStorage()), active: false, justUnlocked: false, calloutUp: false }))
 
 /** Finished or left: unlocked for good on this device (if the browser won't store it, just for this visit). */
 export function markTutorialDone(storage: Storage | null = browserStorage()) {

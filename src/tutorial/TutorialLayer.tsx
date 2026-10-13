@@ -14,6 +14,7 @@ import { useRails } from '../store/railsLimit'
 import { hexKey, type Hex } from '../engine/hex'
 import { Callout, type CalloutPlacement } from '../ui/kit'
 import { ackRailsStep, startRails, useRailsDirector } from './railsDirector'
+import { useTutorial } from './progress'
 import { railsButton, railsText, type RailsStepDef } from './railsSteps'
 
 /** Where a step's callout goes first: its own choice, else — for a board target — away from the live hex (the one
@@ -23,7 +24,7 @@ function placementOf(step: RailsStepDef, selector: string, live: Hex | null): Ca
   if (step.placement) return step.placement
   const el = document.querySelector(selector)
   const board = el?.closest('.game-garden')
-  if (!el || !board) return 'bottom' // (the tray, the buttons: below them, so the prompt above never peeks out from behind it)
+  if (!el || !board) return 'top' // (the tray, the buttons: above them, in the prompt's place — the prompt hides while a callout is up)
   const middle = (box: DOMRect) => (box.top + box.bottom) / 2
   const r = el.getBoundingClientRect()
   const liveEl = live && document.querySelector(`.game-garden > polygon[data-hex="${hexKey(live)}"]`)
@@ -56,7 +57,12 @@ export function TutorialLayer() {
     }
   }, [step, target, busy, tuning])
 
-  if (!step || busy || !shown || shown.id !== step.id || shown.target !== target) return null
+  const up = !!step && !busy && !!shown && shown.id === step.id && shown.target === target
+  useEffect(() => {
+    useTutorial.setState({ calloutUp: up })
+    return () => useTutorial.setState({ calloutUp: false })
+  }, [up])
+  if (!up) return null
   const button = railsButton(step)
   const dim = step.button === 'gotIt' || step.button === 'play'
   return (
