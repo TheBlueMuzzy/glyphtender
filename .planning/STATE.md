@@ -3,7 +3,7 @@
 **Muzzy (2026-10-12):** feel payoffs dropped until art · iPhone test closed (Android only — friends will report) · F66 + F67 approved · design pass: Claude decides by the kit standards + Muzzy's specifics · tutorial = the last big sprint; then an art pass whenever Muzzy returns. Goal: a positive spot, then the next game after BMUZ + Framework have learned everything from this one.
 
 ## Where we are
-Stage: deliver · Milestone: — (next: /sprint) · Sprint: — · Doing: — · Branch: main · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
+Stage: discover (tutorial) · Milestone: — (next: /define tutorial) · Sprint: — · Doing: — · Branch: main · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
