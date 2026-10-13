@@ -17,6 +17,7 @@ import { useWrongDrop } from '../store/wrongDrop'
 import { Callout, type CalloutPlacement } from '../ui/kit'
 import { ackRailsStep, startRails, useRailsDirector } from './railsDirector'
 import { useTutorial } from './progress'
+import { useExplore } from '../store/explore'
 import { railsButton, railsText, type RailsStepDef } from './railsSteps'
 import { calloutPlacement } from './tipsPlace'
 
@@ -53,7 +54,9 @@ export function TutorialLayer() {
   const drops = useWrongDrop((s) => s.last?.count ?? 0)
   const again = nopes + drops
 
-  const up = !!step && !busy && !!shown && shown.id === step.id && shown.target === target
+  // (never while exploring: Explore's own callout is the one up, and its taps would swallow this one's button — review)
+  const exploring = useExplore((e) => e.on)
+  const up = !!step && !busy && !exploring && !!shown && shown.id === step.id && shown.target === target
   useEffect(() => {
     useTutorial.setState({ calloutUp: up })
     return () => useTutorial.setState({ calloutUp: false })

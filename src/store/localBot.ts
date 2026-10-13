@@ -172,7 +172,7 @@ export function driveLocalBots(): () => void {
         console.warn('The AI could not decide — playing a simple move instead', error)
         job = null
         const s = store()
-        if (!s.words || s.game !== mine.game) return check()
+        if (!s.words || s.game !== mine.game || held()) return check() // (never under a pause — review)
         const fallback = greedyBot(s.words)(viewFor(mine.game, seat), seat, rngs[seat])
         rngs[seat] = fallback.rng
         const aim = aimPause(fallback.action, paceRng)

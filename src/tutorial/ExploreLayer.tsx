@@ -157,7 +157,8 @@ function Exploring() {
 
   // Every press on the game is caught here first (capture phase, on the window) — the game never sees it
   useEffect(() => {
-    let down: number | null = null
+    let down: number | null = null // the press that taps (the first finger)
+    const caught = new Set<number>() // every press on the game — a 2nd finger too, so it can't start a drag (review)
     const tapped = (hit: Hit) => {
       setTaps((n) => n + 1)
       setRemind(false)
@@ -172,19 +173,21 @@ function Exploring() {
       setShown({ n: count.current, tapped: found.tapped, target: found.target, magic, words: JSON.stringify(said), look: lookOf(found.target) })
     }
     const onDown = (e: PointerEvent) => {
-      if (!e.isPrimary || !hitAt(e.clientX, e.clientY)) return
+      if (!hitAt(e.clientX, e.clientY)) return
       e.stopPropagation()
-      down = e.pointerId
+      caught.add(e.pointerId)
+      if (e.isPrimary) down = e.pointerId
     }
-    const onMove = (e: PointerEvent) => { if (e.pointerId === down) e.stopPropagation() }
+    const onMove = (e: PointerEvent) => { if (caught.has(e.pointerId)) e.stopPropagation() }
     const onUp = (e: PointerEvent) => {
+      if (!caught.delete(e.pointerId)) return
+      e.stopPropagation()
       if (e.pointerId !== down) return
       down = null
-      e.stopPropagation()
       const hit = hitAt(e.clientX, e.clientY)
       if (hit && hit.kind !== 'exit') tapped(hit) // (the ? leaves on its click, below)
     }
-    const onCancel = (e: PointerEvent) => { if (e.pointerId === down) { down = null; e.stopPropagation() } }
+    const onCancel = (e: PointerEvent) => { if (caught.delete(e.pointerId)) { if (e.pointerId === down) down = null; e.stopPropagation() } }
     // A click never reaches the game either. The ? (or Enter / Space on it) leaves; a key's click on another button explains it.
     const onClick = (e: MouseEvent) => {
       const keyboard = e.detail === 0
