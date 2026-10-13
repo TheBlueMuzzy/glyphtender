@@ -48,9 +48,11 @@ const MAX_PLAYERS = 4
 /** "Surprise me": a random personality, picked when the game starts. */
 export const SURPRISE = 'surprise'
 const DEFAULT_SKILL = 'FirstClass'
-/** The personalities' and skills' ids, in the files' order. */
-export const personalityIds = () => personalitiesFile.personalities.map((p) => p.id)
-export const skillIds = () => skillsFile.skills.map((s) => s.id)
+/** Hidden ones ("hidden": true — Sprout and its Seedling skill, the tutorial game's AI) are never offered to players. */
+const shown = (item: object) => !('hidden' in item && item.hidden === true)
+/** The personalities' and skills' ids players can pick, in the files' order (New Game, Surprise me, the online lobby). */
+export const personalityIds = () => personalitiesFile.personalities.filter(shown).map((p) => p.id)
+export const skillIds = () => skillsFile.skills.filter(shown).map((s) => s.id)
 
 /** Every board in content/data/boards.json, e.g. ["small", "large"] (the server's options check uses it too). */
 export { boardNames }

@@ -1,0 +1,23 @@
+{
+  "_help": {
+    "tipSeconds": "How long a tutorial callout stays up before it fades, unless you tap it. Try 6–10.",
+    "selfTangleBy": "Sprout (the tutorial game's AI) starts preferring moves that walk ONE of its glyphlings into a pocket — next to your pieces when it can, so you see the tangle bonus — from this turn of its own. Lower = it happens sooner. A preference, never a rule: if the board offers no pocket, it doesn't happen. Try 4–8.",
+    "maxTurns": "After this many of its own turns Sprout drops both its preferences (one self-tangle, then keeping its other glyphling free) and plays like any Apprentice. Sims (npm run sim:sprout, 2026-10-13): a Small game is ~22–25 of Sprout's turns, so at 20 its last few turns are plain Apprentice ones. Try 15–30."
+  },
+  "_labels": {
+    "tipSeconds": "Tip shows for (s)",
+    "selfTangleBy": "Sprout: tries to tangle one of its glyphlings from its turn…",
+    "maxTurns": "Sprout: drops its tutorial habits after this many of its turns"
+  },
+  "_sections": {
+    "Tutorial": ["tipSeconds", "selfTangleBy", "maxTurns"]
+  },
+  "_ranges": {
+    "tipSeconds": [2, 20, 1],
+    "selfTangleBy": [1, 15, 1],
+    "maxTurns": [5, 40, 1]
+  },
+  "tipSeconds": 8,
+  "selfTangleBy": 6,
+  "maxTurns": 20
+}

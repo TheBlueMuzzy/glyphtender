@@ -18,6 +18,7 @@
     "e2e:pass4": "node e2e/pass-and-play-shots.mjs e2e-shots 5195 4",
     "sim": "node scripts/sim.mjs",
     "sim:awards": "node scripts/award-rates.mjs",
+    "sim:sprout": "node scripts/sprout-sim.mjs",
     "golden:record": "node scripts/golden.mjs record",
     "check:golden": "node scripts/golden.mjs",
     "perf": "node scripts/perf-audit.mjs",

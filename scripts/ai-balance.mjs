@@ -32,7 +32,7 @@ const worker = arg('worker', null) // set by the parent: which share of the game
 
 const rows = playerCounts.flatMap((players) => boards.map((board) => ({ players, board })))
 const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import.meta.url), 'utf8'))
-const personalities = json('personalities.json').personalities
+const personalities = json('personalities.json').personalities.filter((p) => !p.hidden) // (hidden = Sprout, the tutorial AI)
 
 // A small seeded shuffle per game, so who sits where only depends on the game's seed.
 const seededShuffle = (xs, seed) => {

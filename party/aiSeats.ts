@@ -10,8 +10,10 @@ import skillsFile from '../content/ai/skills.json'
 import text from '../content/text/en.json'
 import { defaultAi, type AiPick } from '../src/store/seats'
 
-const personalityIds = () => personalitiesFile.personalities.map((p) => p.id)
-const skillIds = () => skillsFile.skills.map((s) => s.id)
+// Hidden ones ("hidden": true — Sprout / Seedling, the tutorial game's AI) never play online.
+const shown = (item: object) => !('hidden' in item && item.hidden === true)
+const personalityIds = () => personalitiesFile.personalities.filter(shown).map((p) => p.id)
+const skillIds = () => skillsFile.skills.filter(shown).map((s) => s.id)
 
 /** The profile a seat carries for this AI. */
 export const profileOf = (ai: AiPick): string => `${ai.personality}/${ai.skill}`

@@ -150,7 +150,7 @@ async function setupAi(skillId) {
   const arena = await load('/src/ai/arena.ts')
   const bot = await load('/src/engine/bot.ts')
   const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import.meta.url), 'utf8'))
-  const personalities = json('personalities.json').personalities
+  const personalities = json('personalities.json').personalities.filter((p) => !p.hidden) // (hidden = Sprout, the tutorial AI)
   const skill = json('skills.json').skills.find((s) => s.id === skillId)
   if (!skill) throw new Error(`No skill "${skillId}" in content/ai/skills.json`)
   return { arena, bot, personalities, skill }

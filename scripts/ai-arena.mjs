@@ -29,7 +29,7 @@ const words = (await load('/src/engine/words.ts')).parseWordList(readFileSync(ne
 const { reportHtml } = await load('/src/ai/kit/report.ts')
 const { meterNames } = await load('/src/ai/meters.ts')
 const json = (p) => JSON.parse(readFileSync(new URL(`../content/ai/${p}`, import.meta.url), 'utf8'))
-const personalities = json('personalities.json').personalities
+const personalities = json('personalities.json').personalities.filter((p) => !p.hidden) // (hidden = Sprout, the tutorial AI)
 const skills = json('skills.json').skills
 const targets = json('feel-targets.json')
 if (typeof bot.aiBot !== 'function') throw new Error('src/engine/bot.ts has no aiBot yet (F39) — nothing to play with')

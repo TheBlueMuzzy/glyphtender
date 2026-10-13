@@ -23,5 +23,5 @@ export const greedyBot = (words: WordList): Bot<SeatView, Action> => (view, _sea
 export const MODES = modesFile.modes as unknown as Mode[] // (JSON infers each mode separately; the shape is checked in aiContent.test)
 
 export function aiBot(personality: Personality, skill: Skill, words: WordList, onDecision?: (decision: Decision<Action>, seat: number) => void): Bot<SeatView, Action> {
-  return asBot(makeBrain(glyphtenderPlug(words, skill.beliefNoise), personality, skill, MODES), onDecision)
+  return asBot(makeBrain(glyphtenderPlug(words, skill.beliefNoise, personality.goals), personality, skill, MODES), onDecision)
 }

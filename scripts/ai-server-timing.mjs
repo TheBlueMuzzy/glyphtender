@@ -20,7 +20,7 @@ const bot = await load('/src/engine/bot.ts')
 const started = performance.now()
 const words = (await load('/src/engine/words.ts')).parseWordList(readFileSync(new URL('../public/words/words.csv', import.meta.url), 'utf8'))
 const json = (p) => JSON.parse(readFileSync(new URL(`../content/${p}`, import.meta.url), 'utf8'))
-const personalities = json('ai/personalities.json').personalities
+const personalities = json('ai/personalities.json').personalities.filter((p) => !p.hidden) // (hidden = Sprout, the tutorial AI)
 const skills = json('ai/skills.json').skills
 const budget = json('ai/pace.json').serverBudgetMs
 console.log(`word list read in ${Math.round(performance.now() - started)} ms (once per server copy) · budget ${budget} ms per decision`)
