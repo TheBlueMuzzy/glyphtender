@@ -43,8 +43,16 @@ const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, time
  *  thinkSeconds.aim at the AI speed; 0 = none — a turn with no seed to throw, or Instant). */
 function aimPause(action: Action, rng: number): { ms: number; rng: number } {
   if (action.type !== 'turn' || action.seed === null) return { ms: 0, rng }
-  return thinkDelay(pace, 'aim', aiSpeed(), rng)
+  return slower(thinkDelay(pace, 'aim', aiSpeed(), rng))
 }
+
+let pauseScale = 1
+/** The AIs' pauses (thinking, holding the aim) × this — the tutorial game sets it (tutorial.json sproutSlowdown) so a
+ *  new player can follow what Sprout does; 1 = as Settings → AI speed says. */
+export function setAiPauseScale(scale: number) {
+  pauseScale = scale
+}
+const slower = (delay: { ms: number; rng: number }) => ({ ...delay, ms: Math.round(delay.ms * pauseScale) })
 
 /** The kind of action (pace.json thinkSeconds) for the step the game is at. */
 const paceKind = (game: GameState) => (game.phase === 'draft' ? 'draft' : game.phase === 'refresh' ? 'refresh' : 'moveCast')
@@ -129,7 +137,7 @@ export function driveLocalBots(): () => void {
     const seat = seatToAct(flowOf(game))
     if (seat === null || !isLocalBot(s.seats[seat])) return
     const mine: Job = { game, seat, dropped: false }
-    const delay = thinkDelay(pace, paceKind(game), aiSpeed(), paceRng)
+    const delay = slower(thinkDelay(pace, paceKind(game), aiSpeed(), paceRng))
     // The tutorial's script has this action for it: no thinking — the same person-like moment, then it plays it
     const scripted = script?.(game, seat) ?? null
     if (scripted) {

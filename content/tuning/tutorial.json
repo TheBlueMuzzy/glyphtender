@@ -2,6 +2,7 @@
   "_help": {
     "tipSeconds": "How long a tutorial callout stays up before it fades, unless you tap it. Try 6–10.",
     "selfTangleBy": "Sprout (the tutorial game's AI) starts preferring moves that walk ONE of its glyphlings into a pocket — next to your pieces when it can, so you see the tangle bonus — from this turn of its own. Lower = it happens sooner. A preference, never a rule: if the board offers no pocket, it doesn't happen. Try 4–8.",
+    "sproutSlowdown": "The tutorial game: Sprout's pauses (its think before each move, its hold on its aim before the throw) are this many times longer than Settings → AI speed says, so a new player can follow what it does. 2 = half speed. 1 = like any AI. Try 1.5–3.",
     "railsCalloutDelay": "The tutorial game's first 2 turns: how long after the game goes quiet (a glide, a seed landing, the score) the next callout shows. Lower = snappier, higher = calmer. Try 0.3–1.2.",
     "railsDim": "How dark a tutorial pause (Got it / Play) makes the rest of the game. 0 = not at all, 1 = black. Try 0.5–0.75. The 3 pausing tips (tangled ×2, one to go) use it too.",
     "tipDelay": "A first-time tip (after the first 2 turns, and in later games while Settings → Tips is on) shows this long after the game goes quiet. Try 0.3–1.2.",
@@ -20,6 +21,7 @@
   "_labels": {
     "tipSeconds": "Tip shows for (s)",
     "selfTangleBy": "Sprout: tries to tangle one of its glyphlings from its turn…",
+    "sproutSlowdown": "Sprout: its pauses are this many times longer",
     "railsCalloutDelay": "Rails: next callout after (s)",
     "railsDim": "Rails + pausing tips: how dark a pause dims (0–1)",
     "tipDelay": "Tip: shows after the game is quiet for (s)",
@@ -36,13 +38,14 @@
     "exploreDim": "Explore: how dark the rest dims (0–1)"
   },
   "_sections": {
-    "Tutorial": ["tipSeconds", "selfTangleBy", "railsCalloutDelay", "railsDim"],
+    "Tutorial": ["tipSeconds", "selfTangleBy", "sproutSlowdown", "railsCalloutDelay", "railsDim"],
     "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "onlineIdleText", "wrongRepeat", "calloutRoom"],
     "Explore": ["exploreRemind", "exploreDim"]
   },
   "_ranges": {
     "tipSeconds": [2, 20, 1],
     "selfTangleBy": [1, 15, 1],
+    "sproutSlowdown": [1, 4, 0.25],
     "railsCalloutDelay": [0, 3, 0.1],
     "railsDim": [0, 1, 0.05],
     "tipDelay": [0, 3, 0.1],
@@ -60,6 +63,7 @@
   },
   "tipSeconds": 8,
   "selfTangleBy": 6,
+  "sproutSlowdown": 2,
   "railsCalloutDelay": 0.6,
   "railsDim": 0.6,
   "tipDelay": 0.6,

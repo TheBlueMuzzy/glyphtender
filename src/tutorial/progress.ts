@@ -5,6 +5,8 @@
 // A device that has started a game before (it remembers New Game's choices — glyphtender:new-game) counts as done,
 // so players from before the tutorial never see a lock (D95).
 import { create } from 'zustand'
+import tutorialTuning from '../../content/tuning/tutorial.json'
+import { setAiPauseScale } from '../store/localBot'
 
 type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem'>
 const DONE_KEY = 'glyphtender:tutorial'
@@ -56,4 +58,7 @@ export function markTutorialDone(storage: Storage | null = browserStorage()) {
   useTutorial.setState({ done: true })
 }
 
-export const setTutorialActive = (active: boolean) => useTutorial.setState({ active })
+export function setTutorialActive(active: boolean) {
+  useTutorial.setState({ active })
+  setAiPauseScale(active ? tutorialTuning.sproutSlowdown : 1) // (Sprout takes its time — Muzzy, 2026-10-13: "half the speed")
+}
