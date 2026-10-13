@@ -3,7 +3,7 @@
 **Muzzy:** answer the 3 "Ask Muzzy" lines at the end of design/tutorial.md (Explore must or should · fold the ⓘ idea into Explore · Sprout's name).
 
 ## Where we are
-Stage: define → develop · Milestone: v0.14 The first game teaches itself · Sprint: 26 · Doing: F72 + F73 + F75 building · Branch: dev/tutorial · Sprint: — · Doing: — · Branch: main · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
+Stage: develop · Milestone: v0.14 The first game teaches itself · Sprint: 26 · Doing: F72 + F73 + F75 building · Branch: dev/tutorial · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
