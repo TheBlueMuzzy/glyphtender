@@ -304,7 +304,9 @@ try {
       const slotSize = async () => ({ chart: (await box('.game-end-chart')).height, slot: (await box('.game-end-caption')).height })
       const before = await slotSize()
       // drag to the round with the most AWARDS (the slot shows only awards - F61), so taking turns gets checked too
-      check('no turn list before the line is touched', (await page.locator('.game-end-plays').count()) === 0)
+      // (Muzzy, 2026-10-13: the line starts on round 1 — its turn list there at once — never on the start, round 0)
+      check('before it is touched, the line is on round 1 and its turn list shows', Number(await svg.getAttribute('data-scrub')) === 1 && (await page.locator('.game-end-plays').count()) === 1)
+      check('the line never goes back to round 0', Number(await svg.getAttribute('aria-valuemin')) === 1)
       const target = await page.evaluate(() => {
         const marks = [...document.querySelectorAll('[data-marker="award"][data-x], [data-marker="star"][data-x]')]
         if (!marks.length) return null
