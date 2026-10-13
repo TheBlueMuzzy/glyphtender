@@ -75,6 +75,9 @@
   .kit-screen[data-scroll] { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none;
     grid-template-rows: auto minmax(min-content, 1fr) auto; pointer-events: auto; }
   .kit-screen[data-scroll]::-webkit-scrollbar { display: none; }
+  /* …and its card is NOT a scroll box of its own (it never runs out of room here): one would catch every swipe that
+     starts on it and keep it (overscroll contain), so on a phone only the thin strip round the card scrolled (0.8.2) */
+  .kit-screen[data-scroll] > [data-slot="center"] > .kit-panel { overflow: visible; overscroll-behavior: auto; }
   .kit-screen[data-scroll] > [data-slot="center"] { align-self: start; max-block-size: none; } /* at the top of its row, pushed down to the middle by a top margin measured when it opens (layout.tsx keepCentredOnOpen), so it then only grows DOWN and a control you just tapped (+ / −, Person ▶ AI) stays under your finger; taller than the screen → it scrolls (Muzzy 2026-10-05, 2026-10-10) */
   /* Screen stack layers: no box of their own, they only carry "inert" for the screens inside */
   .kit-layer { display: contents; }

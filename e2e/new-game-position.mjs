@@ -96,6 +96,22 @@ try {
       `${name}: Players + (${plusYs.length - 2} presses → ${players.replace(/\D/g, '')} players) then a seat → AI: the + stays put (y ${plusYs.map(round).join(' → ')})`)
     ok(grown.scrollTop === 0, `${name}: growing didn't scroll the screen (scrollTop ${grown.scrollTop})`)
 
+    // A finger swipe that starts ON the card scrolls the screen (phones: the card was a scroll box of its own and kept
+    // the swipe — only the strip round it scrolled, so Start was out of reach; UI kit 0.8.2, B-lobby-scroll 2026-10-12)
+    if (size.mobile && grown.scrolls) {
+      const card = await page.locator('.kit-screen[data-scroll] .kit-panel').boundingBox()
+      const x = card.x + card.width / 2, y0 = size.height * 0.8, y1 = size.height * 0.2
+      const cdp = await context.newCDPSession(page)
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: y0 }] })
+      for (let i = 1; i <= 10; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y0 + (y1 - y0) * i / 10 }] })
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await page.waitForTimeout(600)
+      const swiped = await page.evaluate(measure)
+      ok(swiped.scrollTop > 100, `${name}: a swipe up on the card scrolls the screen (scrollTop ${round(swiped.scrollTop)})`)
+      await page.evaluate(() => { document.querySelector('.kit-screen[data-scroll]').scrollTop = 0 })
+      await page.waitForTimeout(100)
+    }
+
     // Shrink back: AI → Person, Players − to 2. Still put.
     const backYs = []
     await tap(page.getByRole('button', { name: 'Previous Player 2', exact: true })) // ◀ Person
