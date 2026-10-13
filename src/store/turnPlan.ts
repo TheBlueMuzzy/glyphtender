@@ -98,9 +98,10 @@ export function highlightFor(game: GameState, move: PlannedMove | null, selected
   const piece = heldPiece(game, move, selected)
   if (!piece) return null
   // On the rails the step's piece shows its WHOLE template (what the rules allow), its one hex extra bright — only that
-  // hex takes the drop (the referee keeps the rails). The draft too: every legal spot, the step's one brighter (Muzzy).
+  // hex takes the drop (the referee keeps the rails). The draft too: every legal spot, the step's one brighter (Muzzy) —
+  // and on Sprout's draft turns its spots as in any game (Muzzy: "the AI doesn't show their draft placement template")
   const onRails = !!rails && railsPiece(piece, rails)
-  const lit = refereeFor({ game, move }, mayAct, !onRails).targetsFor(game.current, piece, boardTargets(game))
+  const lit = refereeFor({ game, move }, mayAct, !onRails && game.phase !== 'draft').targetsFor(game.current, piece, boardTargets(game))
   const hexes = lit.flatMap((t) => (t.kind === 'hex' ? [t.hex] : []))
   const target = onRails && rails.to && hexes.some((h) => sameHex(h, rails.to!)) ? rails.to : undefined
   return { hexes, kind: kindOf(piece), ...(target && { target }) }

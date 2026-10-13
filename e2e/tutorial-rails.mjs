@@ -170,6 +170,13 @@ try {
     ok(await state('(s) => s.game.glyphlings.length === 0 && s.nope?.kind === "draft"'), '  a TAP on the glowing hex places nothing — drag only (the tray glyphling shakes)')
     await drag(page.locator('[data-draft="next"] image'), hex(draftHexes[0]))
     ok(await state('(s) => s.game.glyphlings.length') === 1, '  the drop on the glowing hex places it')
+    // Sprout's draft turn: its spots glow as in any game (none extra bright — that's only for your step)
+    const sproutGlow = await page.waitForFunction((seat) => {
+      const s = window.__glyphtender.store.getState()
+      const lit = document.querySelectorAll('.game-garden [data-option] polygon[data-hex]').length
+      return s.game.phase === 'draft' && s.game.current === seat && lit > 1 && !document.querySelector('[data-rails-target]') && lit
+    }, rails.ai.seat, { timeout: 5000 }).then((h) => h.jsonValue(), () => 0)
+    ok(sproutGlow > 1, `  Sprout's draft turn: its placement spots glow (${sproutGlow} lit)`)
     await expectStep('draft2', { liveHex: draftHexes[1] })
     const aiDraft = await Promise.all(rails.draft.ai.map(keyOf))
     ok(JSON.stringify(await state(`(s) => s.game.glyphlings.filter((g) => g.seat === ${rails.ai.seat}).map((g) => g.hex.q + ',' + g.hex.r)`)) === JSON.stringify(aiDraft),
