@@ -44,6 +44,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — 3 sizes)
   ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
   ['tutorial-shell', 'e2e/tutorial-shell.mjs', 'e2e-shots/tutorial-shell 5440'], // (F74: new device → locks, overview, Leave tutorial unlocks; returning device; Replay)
+  ['tutorial-rails', 'e2e/tutorial-rails.mjs', 'e2e-shots/tutorial-rails 5445'], // (F76: the tutorial game's draft + first 2 turns by drag / tap, phone + desktop — one callout, one live target, Sprout's script, then free play)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 
