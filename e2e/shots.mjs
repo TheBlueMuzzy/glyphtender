@@ -229,7 +229,7 @@ async function endOfGame(size, { name, file }) {
     await shot(page, size, `${name}-story`)
     // F61: the line moved to round 6 (Start + 6 presses of →): the turn list in the chart's top-left, awards under the key
     await page.locator('.game-end-chart-svg').focus()
-    for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight')
+    for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight') // (the line starts on round 1 — Muzzy, 2026-10-13)
     await page.locator('.game-end-plays').waitFor({ timeout: 3000 })
     await shot(page, size, `${name}-story-round6`)
     await tap(page.getByRole('tab', { name: 'Scorecard' }))

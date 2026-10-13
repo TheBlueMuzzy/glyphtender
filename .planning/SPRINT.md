@@ -45,6 +45,8 @@ Check: unit tests + e2e.
 - [x] 🤖 7. nudges sooner: glow 6 s, words 12 s (were 10 / 20)
 - [ ] 🤖 8. nudges bigger / easier to see ("a bit small and lack visibility") — after Muzzy picks a look
 - [ ] 🤖 9. a "suggested word" nudge (doesn't exist yet — Muzzy expected one) — after Muzzy picks the form
+- [x] 🤖 10. play-through #2 notes (2026-10-13): rails are drag only (a tap shakes the step's piece, its callout again) · a refused piece is never picked up (the bright hex stays) · the prompt stays hidden the whole step (no flash) · a seed dropped on the ghost no longer undoes the move (all games) · moves/plants show the whole template, the step's hex extra bright ("show them what they COULD do"); "blocks Blue" shows Blue's glyphling's room · turn 2: either glyphling (both make CAT +5 from C7-6) · Sprout's pauses ×2 (sproutSlowdown) · a no-word turn that ends the game skips the refresh (engine, all games; golden re-recorded) · Story line starts on R1
+- Awards during the game → ROADMAP Ideas (2026-10-13), sorted live / "for now" / end-only.
 Muzzy's rule (2026-10-13): a tip that doesn't fit a situation (e.g. a pause, online) must say something different there, or not show at all.
 Locks: they're per device — his PC and phone had played before, so they counted as done (D95). A private window shows them (e2e:tutorial-shell passes).
 
