@@ -33,6 +33,7 @@ export function MainMenuScreen() {
     const timer = setTimeout(() => setLockedHint(false), tutorialTuning.tipSeconds * 1000)
     return () => clearTimeout(timer)
   }, [lockedHint])
+  const closing = (go: () => void) => () => { setLockedHint(false); go() } // any other button closes the locked hint
   // Full screen / Leave full screen — only where it can work and isn't already app-like (fullscreen.ts)
   const fullscreen = useFullscreen((s) => s.on)
   const fullscreenButton = canFullscreen() && !isInstalled()
@@ -41,17 +42,17 @@ export function MainMenuScreen() {
       title={w.title}
       subtitle={w.subtitle}
       items={[
-        { label: w.play, onClick: tutorialDone ? openNewGame : openTutorial, primary: true },
+        { label: w.play, onClick: closing(tutorialDone ? openNewGame : openTutorial), primary: true },
         ...(onlineAvailable ? [tutorialDone
           ? { label: w.playOnline, onClick: () => screens.push('online') }
           : { label: w.playOnline, onClick: () => setLockedHint(true), locked: true }] : []),
-        { label: w.settings, onClick: () => screens.push('settings') },
+        { label: w.settings, onClick: closing(() => screens.push('settings')) },
       ]}
     >
       {fullscreenButton && (
         <Button variant="ghost" onClick={() => setFullscreen(!fullscreen)}>{fullscreen ? w.exitFullscreen : w.fullscreen}</Button>
       )}
-      {lockedHint && <Callout target="[data-locked]" text={text.tutorial.locked} onDismiss={() => setLockedHint(false)} />}
+      {lockedHint && <Callout target="[data-locked]" text={text.tutorial.locked} placement="bottom" onDismiss={() => setLockedHint(false)} />}
     </MainMenu>
   )
 }
