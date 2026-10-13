@@ -33,6 +33,7 @@ import { defaultAi, isLocalBot, localSeats, needsHandoff, type AiPick, type Seat
 import { glideSeconds } from '../game/glide'
 import { firstViewer, viewerOf } from './viewer'
 import { canPlayNow, isBusy } from './myTurn'
+import { railsAllowsRefresh, railsAllowsSetAside } from './railsLimit'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
@@ -542,7 +543,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
 
     toggleSetAside: (id) => {
       const { setAside } = get()
-      if (!canPlayAt('refresh')) return
+      if (!canPlayAt('refresh') || !railsAllowsSetAside(id)) return // (the tutorial's rails: only the step's seeds)
       set({ setAside: setAside.includes(id) ? setAside.filter((x) => x !== id) : [...setAside, id] })
     },
     // Refresh N (or Keep all = set nothing aside): refill to a full hand; set-aside seeds go back in the bag.
@@ -550,7 +551,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     // (B011, refreshFx.ts): the set-aside seeds shrink away, the new ones grow into their slots, THEN play passes on.
     refresh: (keepAll = false) => {
       const { game, setAside } = get()
-      if (!game || !canPlayAt('refresh')) return
+      if (!game || !canPlayAt('refresh') || !railsAllowsRefresh(keepAll, setAside)) return // (the rails: the step's refresh only)
       // (in hand order, whatever order they were tapped in — the order they go back into the bag in)
       refreshNow(keepAll ? [] : game.hands[game.current].filter((seed) => setAside.includes(seed.id)).map((seed) => seed.id))
     },

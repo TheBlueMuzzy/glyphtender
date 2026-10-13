@@ -7,6 +7,7 @@
 import { flowOf } from '../engine/rules'
 import { mayAct } from '../table/flow'
 import type { GameStore } from './gameStore'
+import { railsHold } from './railsLimit'
 import { isLocalHuman } from './seats'
 
 type TurnState = Pick<GameStore, 'game' | 'seats'>
@@ -31,7 +32,8 @@ export function isBusy(s: BusyState): boolean {
     || (s.botDraft ?? null) !== null
 }
 
-/** May the screen touch the game right now? It's my turn, and it isn't a quiet moment. */
+/** May the screen touch the game right now? It's my turn, it isn't a quiet moment, and no tutorial pause is holding
+ *  the game (railsLimit.ts — the rails' "Next" / "Got it" callouts). */
 export function canPlayNow(s: TurnState & BusyState): boolean {
-  return isMyTurn(s) && !isBusy(s)
+  return isMyTurn(s) && !isBusy(s) && !railsHold()
 }

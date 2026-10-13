@@ -9,6 +9,7 @@
 import { hexKey, type Hex } from '../engine/hex'
 import type { GameStore } from './gameStore'
 import { isBusy } from './myTurn'
+import { railsHold } from './railsLimit'
 import { NEW_GLYPHLING, playReferee, targetsOf, type Piece } from './referee'
 
 /** What was tapped (or picked up to drag): a board glyphling (id), a tray seed (its id), the draft's next glyphling
@@ -22,7 +23,7 @@ type NopeState = Pick<GameStore, 'game' | 'move' | 'flying' | 'waiting' | 'hando
 
 export function nopeFor(s: NopeState, tap: Tap): NopeTarget | null {
   const game = s.game
-  if (!game || game.phase === 'over' || isBusy(s)) return null
+  if (!game || game.phase === 'over' || isBusy(s) || railsHold()) return null // (a tutorial pause holds the game: nothing shakes)
   // Refused = the referee won't let the seat whose turn it is pick it up now: nowhere it may go
   const refused = (piece: Piece) => !playReferee(s).mayPickUp(game.current, piece, targetsOf(game, piece)).ok
   if ('glyph' in tap) {
