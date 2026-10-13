@@ -57,10 +57,13 @@ export function TutorialLayer() {
   // (never while exploring: Explore's own callout is the one up, and its taps would swallow this one's button — review)
   const exploring = useExplore((e) => e.on)
   const up = !!step && !busy && !exploring && !!shown && shown.id === step.id && shown.target === target
+  // The prompt steps aside for the WHOLE step — also while its callout waits for its moment, so the prompt never
+  // flashes up first and then vanishes under the callout (Muzzy, 2026-10-13)
+  const promptAside = !!step && !!target && !exploring
   useEffect(() => {
-    useTutorial.setState({ calloutUp: up })
+    useTutorial.setState({ calloutUp: promptAside })
     return () => useTutorial.setState({ calloutUp: false })
-  }, [up])
+  }, [promptAside])
   if (!up) return null
   const button = railsButton(step)
   const dim = step.button === 'gotIt' || step.button === 'play'
