@@ -1,9 +1,9 @@
 ## ▶ RESUME HERE
-2026-10-12 — **Released v0.9.3: New Game scrolls on phones again** (B027 — swipes on the card were caught by the card; UI kit 0.8.2). Muzzy confirmed on his Pixel. Next: /sprint (or /roadmap).
-**Muzzy (2026-10-12):** feel payoffs dropped until art · iPhone test closed (Android only — friends will report) · F66 + F67 approved · design pass: Claude decides by the kit standards + Muzzy's specifics · tutorial = the last big sprint; then an art pass whenever Muzzy returns. Goal: a positive spot, then the next game after BMUZ + Framework have learned everything from this one.
+2026-10-12 — **Tutorial defined** (v0.14 "The first game teaches itself", F72–F80): design/tutorial.md = overview → rails (draft + 2 turns) → tips · nudges · Explore · Sprout AI. 3 features ready (F72 Plant wording, F73 Callouts + tips, F74 Tutorial shell). Next: /sprint.
+**Muzzy:** answer the 3 "Ask Muzzy" lines at the end of design/tutorial.md (Explore must or should · fold the ⓘ idea into Explore · Sprout's name).
 
 ## Where we are
-Stage: discover (tutorial) · Milestone: — (defining tutorial) · Sprint: — · Doing: — · Branch: main · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
+Stage: define → develop · Milestone: v0.14 The first game teaches itself (next: /sprint) · Sprint: — · Doing: — · Branch: main · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

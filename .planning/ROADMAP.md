@@ -247,10 +247,45 @@ Goal: the word list is fair — no slurs or swears, nothing missing by mistake, 
 - ✅ F70 🔧 Dev Kit Words tab: 3-state Open / Yes / No, Open on top, Save re-sorts, search; Save → Cloudflare + words.csv + submitted.csv — should · needs: F68, F69, fw review-list tab · sprint 25
 - ✅ F71 ⚙️ Word switches: **British spelling** + **Vulgar words** as table options in New Game and the host's lobby (like 2-letter words; off at first), fixed per game; words.csv tags B / V; Words tab B / V marks (Dev Kit 0.12.x) — could · sprint 25 · needs: F68, F70
 
+## v0.14 — The first game teaches itself  ← current  (→ 1.0)  · defined 2026-10-12
+Goal: a brand-new player opens the link, plays one game against a gentle AI and knows how to play — taught in the moment, never a wall of text; everything else unlocks after. Design: [design/tutorial.md](design/tutorial.md).
+- 🟢 F72 🎮 "Plant" everywhere: every player-facing "cast" → "plant" (Plant · +5, prompts, How to play, Dev Kit labels, GDD); code names stay — must:1.0
+  why: one name for one action; a garden word → a new player reads "plant" and knows what happens
+- 🟢 F73 🧱 Callouts + tips (framework-first: ui-kit **Callout** — rounded rectangle + pointer aimed at an element or a board point, never covers it, fits on screen; a tips store: seen once, Tips switch, Reset tips) + Settings → Tips · Reset tips — must:1.0
+- 🟢 F74 🧱 Tutorial game shell: brand-new player → Play → 3 overview cards → the tutorial game (you Yellow, first, vs 1 AI, fixed board + bag from content/tutorial/rails.json); locks on online · New Game · pass-and-play ("Finish your first game to unlock this"); Leave tutorial (confirm) or finish → unlocked; players who already played count as done; Settings → Replay tutorial game — must:1.0
+  why: one game at a time, the first one teaches → nobody starts online not knowing the rules
+- ⏳ F75 🎮 Tutorial AI "Sprout" (hidden personality): Apprentice + the smallest vocabulary, gets ONE glyphling tangled by mid-game (next to your pieces when it can), never the second — must:1.0 · needs: F74
+  why: the tangle lesson always comes up, and ending the game stays the player's call → Secret-Magic tension
+- ⏳ F76 🎮 The rails: draft + turn 1 (move, blocked path, plant over your own piece, block Blue, refresh) + turn 2 (first word C-A-T, Plant · +5, +2 / +1 pops, secret Magic) + hand-over — one live target, the rest dimmed; layout found by a script so every step works — must:1.0 · needs: F72, F73, F74
+  why: 12 of 14 must-knows in 2 turns, with no way to go wrong → Cozy cleverness from turn 3
+- ⏳ F77 🎮 Tips in play: the 10 first-time tips + 3 pauses (you gain · tangled · one to go), 1 per turn — must:1.0 · needs: F73, F75, ~F76
+  why: each rule arrives the moment it matters → "it only teaches you things when it matters" (Muzzy)
+- ⏳ F78 🎮 Nudges: idle (glow 10 s → text 20 s, 3× each; later games text at 30 s) + wrong action (instantly; 3× each, then the shake; every time on the rails) — framework-first: a nudge timer in the kit — must:1.0 · needs: F73, ~F76
+  why: "if you aren't doing the right thing, it gently lets you know what you can do" (Muzzy)
+- ⏳ F79 🎮 Explore mode: ? beside ☰ in every game → pause, tap anything → it lights up + a callout explains it; Rules inside (the 2026-10-08 ⓘ idea) — should · needs: F73
+  why: answers "what's that?" without leaving the board → Always readable
+- ⏳ F80 ❓ Muzzy plays the tutorial as a new player on his phone → wording, timings, Sprout's feel — must:1.0 · needs: F76, F77, F78
+```mermaid
+flowchart LR
+  F72[🟢 F72 Plant wording] --> F76[⏳ F76 Rails]
+  F73[🟢 F73 Callouts + tips] --> F76
+  F74[🟢 F74 Tutorial shell] --> F76
+  F74 --> F75[⏳ F75 Sprout AI]
+  F73 --> F77[⏳ F77 Tips]
+  F75 --> F77
+  F76 -.-> F77
+  F73 --> F78[⏳ F78 Nudges]
+  F76 -.-> F78
+  F73 --> F79[⏳ F79 Explore]
+  F76 --> F80[⏳ F80 Muzzy plays it]
+  F77 --> F80
+  F78 --> F80
+```
+
 ## Later
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
-- **1.0:** tutorial · accessibility pass (Muzzy 2026-10-11: not until the final art is being worked on) · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
+- **1.0:** tutorial → v0.14 · accessibility pass (Muzzy 2026-10-11: not until the final art is being worked on) · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
 - **Should:** board themes · colour preference · random starting player · hint · topiary-grow cast effect
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
@@ -265,7 +300,7 @@ Goal: the word list is fair — no slurs or swears, nothing missing by mistake, 
   - ~~AI check: measure how the HUMAN plays against each personality (does the Strategist push people to turtle?); balance by match-up × skill.~~ → **Muzzy 2026-10-11: no Strategist / personality balance — "no one will notice."**
 - 2026-10-09/10 — Story chart upgrade → F61 + F62 (v0.10).
 - 2026-10-08 — → F52. **Idle takeover with a warning bar** (Muzzy): online, 30 s without an action → a 30 s draining bar on THEIR screen ("Still there? A bot takes over soon" — concise); at 60 s a bot plays for them, mid-turn, as if they'd disconnected, until they act again. (Today: the server plays a turn for an idle player, a bot takes the seat after missedTurnsBeforeBot 2 — rooms.json.) Reworks B024's path. → make it a feature (/sprint).
-- 2026-10-08 — → F53. **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
+- 2026-10-08 — → F79 (Explore → Rules). **Rules & settings button** (Muzzy): an ⓘ at the top left during a game → a modal with this game's settings (players, garden, 2-letter words, turn order…) and the rules; tap anywhere to close. Kit parts only (game-ui). → make it a feature (/sprint).
 - 2026-10-07 — **Achievement replay** (Muzzy): tap an award → a mini replay of that moment, looping, built from the game log (the log already records every turn) — "so players can learn". Likely a framework piece (log → replay) once it exists.
 - 2026-10-07 — **Power Play + Bridge need a new rule shape, not a number** (F47, research/awards-ai.md): Power Play 4 words = 57% of games, 5 = 5%; Bridge 1 letter each side = 83%, 2 = 3%. Options: Power Play counts only 3+ letter words · Bridge adds "letters around the seed in total, at least" (e.g. ≥ 4). Small code change + a knob each. Walled garden suits the Scholar (Strategist earns it least) and is rare at 4p — AI or design question.
 - 2026-10-07 — **Rock-paper-scissors has a broken leg** (F46 sims, research/sims-ai.md): Scholar > Survivor (~73%), Survivor > Strategist (~61%), but Scholar ALSO beats Strategist (~58%); at 3–4 players the Strategist wins 7–17% (fair 25–33%). ~~Next Personality Check pass (F45 knobs) — see the 3–4p idea below.~~ → **Muzzy 2026-10-11: leave it — "no one will notice."**
