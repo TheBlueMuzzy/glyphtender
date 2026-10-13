@@ -1,5 +1,5 @@
 // WORD SPOTLIGHT (F25) — a cast that makes 2 words and one that makes 3, at phone 390×844 and desktop 1440×900:
-// while aiming (the "Cast · +N" preview) the words light up ONE AT A TIME, in order, round and round. Checks, sampling
+// while aiming (the "Plant · +N" preview) the words light up ONE AT A TIME, in order, round and round. Checks, sampling
 // the real animations every ~50 ms over two loops: never two words lit at once, every word gets lit, the lit word
 // changes over time in order (0 → 1 → 2 → 0 …), each word's label ("QUA +4") lights with its word and covers none of
 // its letters. After the seed lands the words SCORE once, one at a time in the same order (the score sequence —
@@ -138,14 +138,14 @@ try {
       const [tq, tr] = pick.target.split(',').map(Number)
       await act(`(s) => s.tapHex({ q: ${tq}, r: ${tr} })`)
       if (!(await act('(s) => s.cast !== null'))) { fail(`${tag}: the seed was not aimed`); continue }
-      // While aiming: the "Cast · +N" preview cycles the words this cast will make (the engine's, via the dev hook)
+      // While aiming: the "Plant · +N" preview cycles the words this cast will make (the engine's, via the dev hook)
       const aim = pick.words
       const drawn = (await moment('planned')).borders.map((b) => b.word).join(' ')
       if (drawn !== aim.map((w) => w.word).join(' ')) fail(`${tag}: aiming draws [${drawn}], the cast makes [${aim.map((w) => w.word).join(' ')}]`)
       await watchCycle('planned', aim, `${tag} aiming`)
       await shotEach('planned', aim, `${tag} aiming`, `spot-${size.name}-${count}w-aim`)
 
-      // Cast → it lands → the words it grew cycle the same way, until play moves on
+      // Plant → it lands → the words it grew cycle the same way, until play moves on
       await act('(s) => s.startCast()')
       await page.waitForFunction(() => !window.__glyphtender.store.getState().flying, null, { timeout: 5000 })
       const turn = await act('(s) => ({ words: s.game.lastTurn.words.map((w) => ({ word: w.word, magic: w.magic, hexes: w.hexes.map((h) => h.q + "," + h.r) })) })')

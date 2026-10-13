@@ -183,7 +183,7 @@ describe('glyphtenderAdapter', () => {
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast()
-    expect(lines[0]).toBe(`Yellow moved glyphling 0 C6-7 → C6-6, cast A at C6-4 → TA (${store().game!.lastTurn!.magic} Magic)`)
+    expect(lines[0]).toBe(`Yellow moved glyphling 0 C6-7 → C6-6, planted A at C6-4 → TA (${store().game!.lastTurn!.magic} Magic)`)
 
     // A cast that grows nothing → refresh; Keep all → the phase moves on
     store().loadState(yellowToPlay())
@@ -194,7 +194,7 @@ describe('glyphtenderAdapter', () => {
     store().tapHex(hexAt('C6-4'))
     store().startCast()
     store().finishCast()
-    expect(lines).toEqual(['Yellow moved glyphling 0 C6-7 → C6-6, cast B at C6-4', 'phase: play → refresh'])
+    expect(lines).toEqual(['Yellow moved glyphling 0 C6-7 → C6-6, planted B at C6-4', 'phase: play → refresh'])
     store().refresh(true)
     expect(lines.slice(2)).toEqual(['Yellow refreshed their seeds', 'phase: refresh → play'])
     stop()

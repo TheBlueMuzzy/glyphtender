@@ -12,7 +12,7 @@
     "events.noShake": "Which juice size the \"no\" shake uses when you tap something you can't move — bigger = a wider shake. To change it, type small, medium or big in the file (feel.json).",
     "events.refreshGrow": "Which juice size a new seed swells with as it grows into the tray after a Refresh — bigger = a bigger swell. To change it, type small, medium or big in the file (feel.json).",
     "sounds.chordLetters": "A word this long (letters) or longer plays the kalimba chord (word.chord in content/audio.json) when it finishes scoring. Lower = chords more often.",
-    "sounds.flourishWords": "A cast that grows this many words or more plays the magic flourish (cast.flourish) after its last points land — the \"two birds\" moment."
+    "sounds.flourishWords": "A plant that grows this many words or more plays the magic flourish (cast.flourish) after its last points land — the \"two birds\" moment."
   },
   "_labels": {
     "tiers.small.grow": "Small juice: how far pieces swell (0–1)",
@@ -27,7 +27,7 @@
     "events.noShake": "\"No\" shake: how far it moves (small / medium / big)",
     "events.refreshGrow": "Refresh: how much each new seed swells (small / medium / big)",
     "sounds.chordLetters": "Sounds: a word this long plays a chord (letters)",
-    "sounds.flourishWords": "Sounds: this many words in one cast plays the flourish"
+    "sounds.flourishWords": "Sounds: this many words in one plant plays the flourish"
   },
   "_sections": {
     "Juice sizes": ["tiers"],

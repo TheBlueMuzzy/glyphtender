@@ -92,7 +92,7 @@ function changeLines(events: GameEvent[], was: GameState, now: GameState): strin
   if (placed) lines.push(`draft: ${seatName(placed.seat)} placed a glyphling at ${hexName(now, placed.hex)}`)
   const t = turnOf(events)
   if (t) {
-    const cast = t.letter ? `, cast ${t.letter} at ${hexName(now, t.target)}` : ', move only'
+    const cast = t.letter ? `, planted ${t.letter} at ${hexName(now, t.target)}` : ', move only'
     // (its Magic is worked out from the board, like the score pops — events carry no Magic before the end)
     const words = t.words.length ? ` → ${t.words.map((w) => w.word).join(', ')} (${popsTotal(scorePops(now, t))} Magic)` : ''
     lines.push(`${seatName(t.seat)} moved glyphling ${t.glyphlingId} ${hexName(now, t.from)} → ${hexName(now, t.to)}${cast}${words}`)

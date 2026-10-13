@@ -21,10 +21,10 @@
       "draft": "{player} — place a glyphling ({n} of {total})",
       "move": "Move a glyphling",
       "moveHeld": "Move it to a glowing hex",
-      "cast": "Cast a seed from here",
-      "castHeld": "Cast it onto a pale hex",
-      "ready": "Happy? Cast it — or undo",
-      "moveOnly": "No seed to cast — end your turn",
+      "cast": "Plant a seed from here",
+      "castHeld": "Plant it on a pale hex",
+      "ready": "Happy? Plant it — or undo",
+      "moveOnly": "No seed to plant — end your turn",
       "flying": "Planting…",
       "refresh": "No Magic this turn — refresh seeds?",
       "refreshDetail": "Tap seeds to set them aside",
@@ -51,8 +51,8 @@
     "spotlightLabel": "{word} +{n}",
     "buttons": {
       "undo": "Undo",
-      "cast": "Cast",
-      "castMagic": "Cast · +{n}",
+      "cast": "Plant",
+      "castMagic": "Plant · +{n}",
       "endTurn": "End turn",
       "shuffle": "Shuffle",
       "refresh": "Refresh {n}",
@@ -78,7 +78,7 @@
     },
     "submitWord": {
       "pauseRow": "Submit a word",
-      "placeSeed": "Place a seed first (don't cast it), then come back here to pick its letters.",
+      "placeSeed": "Place a seed first (don't plant it), then come back here to pick its letters.",
       "title": "Submit a word",
       "pick": "Not a word yet? Pick the one you meant.",
       "sent": "Word submitted",
@@ -236,7 +236,7 @@
       "pages": [
         {
           "title": "Your turn",
-          "body": "Move one of your glyphlings any distance along a leyline — it can’t pass through anything. Then cast a seed from where it landed, along any leyline, onto an empty hex."
+          "body": "Move one of your glyphlings any distance along a leyline — it can’t pass through anything. Then plant a seed from where it landed, along any leyline, onto an empty hex."
         },
         {
           "title": "Words make Magic",

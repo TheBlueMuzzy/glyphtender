@@ -4,7 +4,7 @@
     "id": "The mode's name (personalities' switches use it).",
     "goals": "Goal priority in this mode — the goal roll walks this list.",
     "traits": "Trait ranges in this mode (0–100). The main goal's trait decides how often it wins the roll.",
-    "sight": "How clearly it sees each kind of move in this mode (0–1). Flight is 'dumber' at seeing good casts; Focus is blind to traps.",
+    "sight": "How clearly it sees each kind of move in this mode (0–1). Flight is 'dumber' at seeing good plants; Focus is blind to traps.",
     "steady": "Goals every move also tries for in this mode, 0–1.",
     "focus": "How single-minded at a big moment (0–1)."
   },

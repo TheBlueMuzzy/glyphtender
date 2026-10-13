@@ -261,7 +261,7 @@ function helpers(page, mobile, tag) {
           await tap(page.locator(`[data-tray-pos="${pos}"]`))
           await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
         }
-        await tap(page.locator('.game-actions button').last()) // Cast (or End turn)
+        await tap(page.locator('.game-actions button').last()) // Plant (or End turn)
         await page.waitForFunction(() => !window.__glyphtender.store.getState().flying, null, { timeout: 8000 })
       }
       if (seen.handoffs > maxHandoffs) fail(`${tag}: ${seen.handoffs} handoffs (expected at most ${maxHandoffs})`)
