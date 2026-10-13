@@ -5,6 +5,7 @@ import { sameHex, type Hex } from '../engine/hex'
 import type { Action, GameState, SeedPiece } from '../engine/types'
 import { mayMoveOnly as rulesMayMoveOnly } from '../engine/rules'
 import { isMyTurn } from './myTurn'
+import { railsLimit } from './railsLimit'
 import type { Seat } from './seats'
 import type { Trail } from './trail'
 import { undoStep, type TurnSteps } from '../table/flow'
@@ -68,6 +69,10 @@ export function heldPiece(game: GameState, move: PlannedMove | null, selected: S
   if (game.phase === 'draft') return NEW_GLYPHLING
   if (game.phase !== 'play') return null
   if (selected?.kind === 'glyphling') return selected
+  // The tutorial's rails (railsLimit.ts): the glow is about the step's one piece — its one hex glows before it's picked up
+  const rails = railsLimit()?.piece
+  if (rails?.kind === 'glyphling' && !move && !selected) return rails
+  if (rails?.kind === 'seed' && move && selected?.kind !== 'seed') return rails
   const hand = game.hands[game.current]
   if (!move || hand.length === 0) return null
   return selected?.kind === 'seed' ? selected : { kind: 'seed', id: hand[0].id } // (any seed: they all fly the same)

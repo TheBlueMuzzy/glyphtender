@@ -27,6 +27,7 @@ import { hexCorners, hexKey, hexToPixel, type Hex } from '../engine/hex'
 import { useGameStore } from '../store/gameStore'
 import { boardHighlight, letterIn } from '../store/turnPlan'
 import { dangers } from '../store/danger'
+import { useRails } from '../store/railsLimit'
 import { revealSteps } from '../store/revealPlan'
 import { colourOf, glyphlingArt, seedArt } from './art'
 import { boardShift, boardView, type TraySide } from './boardPlace'
@@ -64,6 +65,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   const cast = useGameStore((s) => s.cast)
   const selected = useGameStore((s) => s.selected)
   const carried = useCarried((s) => s.carried) // (a drag: the carried glyphling's home look)
+  useRails((r) => r.limit) // (the tutorial's rails: a new step's limit changes the glow and the pulse — railsLimit.ts)
   const flying = useGameStore((s) => s.flying)
   const landed = useGameStore((s) => s.landed)
   const revealAt = useGameStore((s) => s.revealAt)

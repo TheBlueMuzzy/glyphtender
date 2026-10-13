@@ -6,6 +6,7 @@
 //   3. do the rules allow it right now?  — the live rules: where a glyphling may be placed (the draft) or move, where
 //      the planned move can cast from, and the turn's steps in order: a seed only after the move — even just to
 //      reorder it in the tray (Muzzy, B008). While choosing seeds to refresh, the tray can be reordered too.
+//   (0. first of all, on the tutorial game's rails: is it the step's one piece → its one target? railsLimit.ts)
 // A few places keep their own "may act now" on purpose (TDD D63) — they pass their own gate to refereeFor.
 import { getBoard } from '../engine/boards'
 import { legalCasts, legalMoves } from '../engine/engine'
@@ -15,6 +16,7 @@ import type { GameState } from '../engine/types'
 import { makeReferee, type Referee } from '../table/referee'
 import type { GameStore } from './gameStore'
 import { canPlayNow } from './myTurn'
+import { railsRefuses } from './railsLimit'
 import type { PlannedMove } from './turnPlan'
 
 /** What can be picked up: a glyphling on the board, one still waiting to be placed (the draft), or a seed (by its id). */
@@ -58,6 +60,8 @@ export function refereeFor(s: { game: GameState | null; move: PlannedMove | null
     accepts: (piece, target) => target.kind === 'hex' || piece.kind === 'seed',
     check: (seat, piece, target) => {
       if (!game) return 'There is no game'
+      const offRails = railsRefuses(piece, target) // (the tutorial's rails: only the step's piece → target — railsLimit.ts)
+      if (offRails) return offRails
       // (placing one is a whole action: the same check the server makes)
       if (piece.kind === 'newGlyphling') return target.kind === 'hex' ? checkFor(game, seat, { type: 'draft', hex: target.hex }) : "That can't go there"
       if (piece.kind === 'glyphling') {

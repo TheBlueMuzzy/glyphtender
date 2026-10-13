@@ -11,6 +11,7 @@
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
+import { railsAllowsRefresh, useRails } from '../store/railsLimit'
 import { mayMoveOnly, undoNow } from '../store/turnPlan'
 import { revealSteps } from '../store/revealPlan'
 import { Button, Row, fill } from '../ui/kit'
@@ -57,18 +58,20 @@ export function ActionBar({ size, fixed }: { size: number; fixed: boolean }) {
 /** The real buttons for this moment. */
 function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const s = useGameStore()
+  const rails = useRails() // (the tutorial's rails: a pause holds every button; the refresh step's buttons follow it)
   const preview = usePreview()
   const game = s.game!
   if (game.phase === 'draft') return null
-  // Not a turn this device plays (online, another device's turn), or my move is on its way to the server — the buttons wait
-  const notNow = s.waiting || !isMyTurn(s)
+  // Not a turn this device plays (online, another device's turn), my move is on its way to the server, or a tutorial
+  // pause is up — the buttons wait
+  const notNow = s.waiting || !isMyTurn(s) || rails.hold
 
   if (game.phase === 'refresh') {
     const refreshing = notNow || s.refreshFx !== null // (the refresh playing out on the tray)
     return (
       <Row gap="s" justify="center" className="game-actions">
-        <Button size={size} compact={fixed} variant="secondary" disabled={refreshing} onClick={() => s.refresh(true)}>{w.keepAll}</Button>
-        <Button size={size} compact={fixed} sound={false} disabled={refreshing || s.setAside.length === 0} onClick={() => s.refresh()}>{fill(w.refresh, { n: s.setAside.length })}</Button>
+        <Button size={size} compact={fixed} variant="secondary" data-action="keep-all" disabled={refreshing || !railsAllowsRefresh(true, [], rails.limit)} onClick={() => s.refresh(true)}>{w.keepAll}</Button>
+        <Button size={size} compact={fixed} sound={false} data-action="refresh" disabled={refreshing || s.setAside.length === 0 || !railsAllowsRefresh(false, s.setAside, rails.limit)} onClick={() => s.refresh()}>{fill(w.refresh, { n: s.setAside.length })}</Button>
       </Row>
     )
   }
@@ -102,7 +105,7 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
     <Row gap="s" justify="center" className="game-actions">
       <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
       <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
-      <Button size={size} compact={fixed} sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
+      <Button size={size} compact={fixed} data-action="plant" sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
     </Row>
   )
 }

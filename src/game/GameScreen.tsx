@@ -16,6 +16,8 @@ import { revealSteps } from '../store/revealPlan'
 import { rackLayout, toast, useScreens } from '../ui/kit'
 import { useGameSettings } from '../ui/gameSettings'
 import { leaveToMenu } from '../ui/newGame'
+import { useTutorial } from '../tutorial/progress'
+import { TutorialLayer } from '../tutorial/TutorialLayer'
 import { ActionBar } from './ActionBar'
 import { colourOf, wordListUrl } from './art'
 import { Board } from './Board'
@@ -81,6 +83,7 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const onHexSize = useCallback((px: number) => setHexPx((old) => (Math.abs(px - old) >= 2 ? Math.round(px) : old)), [])
 
   const flipped = useGameSettings((s) => s.trayFlipped)
+  const tutorial = useTutorial((s) => s.active)
   // The margin round the edges (margins.ts; layout.json edgeMargin / edgeMarginShare)
   const edge = edgeMargin(space.width, space.height, layout.edgeMargin, layout.edgeMarginShare)
   // A short screen with the tray beside the board (a phone on its side, a short window — B019): two rows of seeds,
@@ -183,6 +186,8 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
       </svg>
     </div>
     <Handoff stacked={stacked} flipped={flipped} />
+    {/* The tutorial game: its first 2 turns on rails, one callout at a time (src/tutorial/TutorialLayer.tsx, F76) */}
+    {tutorial && <TutorialLayer />}
     </>
   )
 }
