@@ -293,6 +293,11 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-13 — **Awards celebrated during the game** (Muzzy: "achievements to show up during the game somehow. some sort of celebration… any that are 'biggest' or 'longest' … only during the end screen as they do now"). Today all 15 are worked out once, after the game (stats.ts earnedAwards). Sorted:
+  - **Live, the moment it happens (8):** Lockdown · Weed toss · Through the hedge · Complete tangle · Power Play · Long word · Hijack · Super Bridge (end of the planting turn).
+  - **Live but "for now" (3):** Bridge (may become Super Bridge later) · Pincer (the hunt can keep growing) · Walled garden (fires turns after the wall, once 30 Magic is made inside).
+  - **End only (4):** Biggest comeback (only the biggest counts) · Trickster's Victory · Called it (need the winner, after the tangle bonus) · Close call (needs "never tangled all game").
+  - Each player keeps their BEST of each award, so a live one can later be beaten by a bigger moment of the same kind (celebrate it again?). Online: the celebration must not show a rival's secret Magic.
 - 2026-10-12 — **Multi-state checkbox for the game UI kit** (Muzzy: "the multi-toggle checkbox is a great UI piece for the kit"): one box that cycles its states on each tap (☐ → ✓ → ✗ → B → V), like the Dev Kit 0.12.1 review box — a kit part for in-game lists (filters, word toggles). Build framework-first when a game screen needs it.
 - 2026-10-10 — → F63–F65 (v0.11). **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):
