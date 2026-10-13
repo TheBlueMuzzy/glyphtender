@@ -4,19 +4,19 @@ Design: design/tutorial.md · Branch: dev/tutorial
 
 ## F72 🎮 "Plant" everywhere
 Done when: no player-facing or Dev Kit text says "cast" (code names stay); the button reads Plant / Plant · +N.
-- [ ] 🤖 1. en.json: the 8 player strings (game.prompts cast/castHeld/ready/moveOnly, buttons cast/castMagic, submitWord.placeSeed, rules page 1) — content/text/en.json
-- [ ] 🤖 2. Dev Kit words: tuning `_labels` / `_help` / `_sections` ("Move & plant highlights") + content/devkit.json sectionOrder + content/ai/pace.json + modes.json + audio.json help; Dev Kit-only strings in src/devkit-game/moments.ts, previews.tsx, src/ai/meters.ts
-- [ ] 🤖 3. e2e scripts that look for "Cast" text → "Plant"; re-record screenshots (meant change)
-- [ ] 🤖 4. update GDD §4 (rules + controls say plant)
+- [x] 🤖 1. en.json: the 8 player strings (game.prompts cast/castHeld/ready/moveOnly, buttons cast/castMagic, submitWord.placeSeed, rules page 1) — content/text/en.json
+- [x] 🤖 2. Dev Kit words: tuning `_labels` / `_help` / `_sections` ("Move & plant highlights") + content/devkit.json sectionOrder + content/ai/pace.json + modes.json + audio.json help; Dev Kit-only strings in src/devkit-game/moments.ts, previews.tsx, src/ai/meters.ts
+- [x] 🤖 3. e2e scripts that look for "Cast" text → "Plant"; re-record screenshots (meant change)
+- [x] 🤖 4. update GDD §4 (rules + controls say plant)
 Check: grep finds no player/Dev Kit "cast" text; check:fast + Area (game pass score spotlight screenshots).
 
 ## F73 🧱 Callouts + tips (framework-first)
 Done when: the kit has a Callout (rounded box + pointer) and a tips memory; Settings has Tips + Reset tips.
-- [ ] 🤖 1. UI kit Callout: rounded rectangle + pointer aimed at an element or a point, flips/shifts to fit the screen, never covers its target, ≤ 12 words styling, dismiss on tap; gallery ?screen=teach + CATALOG row — framework/ui-kit/kit/blocks/teach.tsx
-- [ ] 🤖 2. UI kit tips memory: `useTips` — seen ids (localStorage), tipsOn switch, resetTips — same file
-- [ ] 🤖 3. install UI kit 0.9.0 into the game (install-kit --dry-run first)
-- [ ] 🤖 4. Settings → Tips on/off · Reset tips — content/ui/settings.json, src/ui/gameSettings.ts
-- [ ] 🤖 5. Dev Kit Screens: a callout preview — src/devkit-game/previews.tsx
+- [x] 🤖 1. UI kit Callout: rounded rectangle + pointer aimed at an element or a point, flips/shifts to fit the screen, never covers its target, ≤ 12 words styling, dismiss on tap; gallery ?screen=teach + CATALOG row — framework/ui-kit/kit/blocks/teach.tsx
+- [x] 🤖 2. UI kit tips memory: `useTips` — seen ids (localStorage), tipsOn switch, resetTips — same file
+- [x] 🤖 3. install UI kit 0.9.0 into the game (install-kit --dry-run first)
+- [x] 🤖 4. Settings → Tips on/off · Reset tips — content/ui/settings.json, src/ui/gameSettings.ts
+- [x] 🤖 5. Dev Kit Screens: a callout preview — src/devkit-game/previews.tsx
 Check: kit check-ui + game check:fast; gallery shots at 390×844 + 1440×900; e2e:previews.
 
 ## F74 🧱 Tutorial shell
@@ -42,5 +42,8 @@ Check: npm test + sims numbers in Notes.
 
 Ask Muzzy: —
 Notes:
+- F72 (helper): 70 strings → plant (en.json 8, Dev Kit help/labels, Moments, e2e). Left on purpose: code names, engine guard messages players never see ("That can't be done" shows instead), golden notation. Shots re-recorded (58 files — many only pixel noise; end4-story-round6@1920 flickers 1 px between runs).
+- F73: UI kit 0.9.0 on framework dev/teach (Callout + tipsMemory/useTips; 260 kit tests; 90 gallery shots measured — no overlap, no clipping). Tips on/off lives in kit-tips; Settings → Tips copies into it (gameSettings.ts syncTips). Dev Kit Screens → Tutorial callout (tip / pause).
+- **For F76 (seen in the callout preview):** on a phone a tip above a glyphling covers a board row — rails callouts should prefer the side away from the board (toward the tray / top bar) when that still fits; the kit's pulse ring and dim hole are RECTANGLES — on the board use the game's own hex glow (the turn pulse / option template) for the target instead of `pulse`, so the highlight matches every other board highlight (same intention → same motion).
 - "Already played" = any device that has ever started a game (`glyphtender:new-game` exists) — D95.
 - Sprout's small vocabulary is its own hidden skill, so New Game's 3 skills don't change.

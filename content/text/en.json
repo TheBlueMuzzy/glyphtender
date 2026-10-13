@@ -401,5 +401,9 @@
       "FirstClass": "First Class",
       "Archmage": "Archmage"
     }
+  },
+  "tutorial": {
+    "_help": "The first game teaches itself (design/tutorial.md). Callouts: one idea, 12 words or fewer, verb first.",
+    "tipsReset": "Every tip will show again"
   }
 }

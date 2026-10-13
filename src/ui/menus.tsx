@@ -4,7 +4,7 @@ import { Button, Credits, HowToPlay, MainMenu, Pause, Settings, fill, screens } 
 import { getAudio, useAudioSnapshot } from '../audio'
 import { GameOverScreen } from '../game/GameOver'
 import { leaveToMenu, newGameFromEnd, openNewGame } from './newGame'
-import { settings, settingsChanged } from './gameSettings'
+import { resetTips, settings, settingsChanged } from './gameSettings'
 import { canFullscreen, hiddenFullscreenRows, isInstalled, setFullscreen, useFullscreen } from './fullscreen'
 import { LobbyScreen } from './online/LobbyScreen'
 import { OnlineStartScreen } from './online/OnlineStartScreen'
@@ -49,6 +49,7 @@ export { LobbyScreen, OnlineStartScreen }
 export function SettingsScreen() {
   const onAction = (id: string) => {
     if (id === 'credits') screens.push('credits')
+    if (id === 'resetTips') resetTips()
   }
   // (Esc on a computer turns Full screen off from outside this screen: key = start again from the saved values)
   const resaved = useFullscreen((s) => s.resaved)

@@ -11,8 +11,9 @@
 import { create } from 'zustand'
 import { applyAudioSettings, getAudio } from '../audio'
 import settingsFile from '../../content/ui/settings.json'
+import text from '../../content/text/en.json'
 import { fullscreenSetting, withFullscreenDefault } from './fullscreen'
-import { loadSettings, type SettingsValues } from './kit'
+import { loadSettings, tipsMemory, toast, type SettingsValues } from './kit'
 
 /** content/ui/settings.json, with the Full screen default for this device — use this, not the file, everywhere. */
 export const settings = withFullscreenDefault(settingsFile)
@@ -38,9 +39,21 @@ export const fromSettings = (values: SettingsValues): GameSettings => ({
 
 export const useGameSettings = create<GameSettings>()(() => fromSettings(loadSettings(settings)))
 
+// Gameplay → Tips (F73): the kit's tips memory keeps which tips were seen; Settings owns the on/off switch, so it's
+// copied across at start and on every change. Reset tips = a button row (menus.tsx).
+const syncTips = (values: SettingsValues) => tipsMemory().setTipsOn(values.tips !== false)
+syncTips(loadSettings(settings))
+
+/** Settings → Reset tips: every tip shows again (the switch stays as it is). */
+export function resetTips() {
+  tipsMemory().resetTips()
+  toast(text.tutorial.tipsReset)
+}
+
 /** The Settings screen changed something: the game follows. */
 export function settingsChanged(values: SettingsValues, changed?: string) {
   useGameSettings.setState(fromSettings(values))
+  syncTips(values)
   fullscreenSetting(values, changed)
   const audio = getAudio() // (none in tests and the Dev Kit's previews)
   if (audio) applyAudioSettings(audio, values)
