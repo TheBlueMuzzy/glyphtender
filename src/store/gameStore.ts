@@ -37,6 +37,7 @@ import { railsAllowsRefresh, railsAllowsSetAside } from './railsLimit'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
+import { recordWrongDrop } from './wrongDrop'
 import { refreshTimes, type RefreshFx } from './refreshFx'
 import { moveInRack, placesOf, rackOf, refillRack, shuffleRack, swapInRack } from '../table/rack'
 import { landingSeconds } from './wordMarks'
@@ -471,6 +472,11 @@ export const useGameStore = create<GameStore>()((set, get) => {
         playSound('seed.aim')
         return set({ cast: { ...cast, target: hex }, note: null })
       }
+      // A held piece let go where it can't go (it goes home): the tutorial's nudges say why (wrongDrop.ts) — but not a
+      // glyphling put back down on its own hex (a change of mind)
+      const home = selected?.kind === 'glyphling' ? game.glyphlings.find((g) => g.id === selected.id)?.hex : undefined
+      const putBack = !!home && sameHex(home, hex)
+      if (selected && !putBack) recordWrongDrop(selected.kind === 'glyphling' ? 'glyphlingHex' : 'seedHex', String(selected.id))
       set({ selected: null })
     },
 
