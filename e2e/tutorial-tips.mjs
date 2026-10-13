@@ -5,6 +5,7 @@
 //   (a) a rival glyphling with 1 move → the theirDanger tip shows once (not covering it, clear of the edges), fades on a
 //       tap, and doesn't show again a turn later
 //   (e) one tangle on the board → the oneToGo PAUSE: dims, holds the game (Sprout waits), Got it lets go
+//   (f) a glyphling just tangled → tangleTheirs every time in the tutorial game, once in a later game
 //   (b) idle: moved, nothing planted → the tray breathes (the whose-turn pulse), then the words; a tap clears both
 //   (c) wrong action: a tray seed before the move → "Move a glyphling first…"; a rival's glyphling → whose it is;
 //       Plant tapped with nothing aimed → "Drag a seed…"
@@ -16,6 +17,7 @@ import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
 import text from '../content/text/en.json' with { type: 'json' }
 import tutorialTuning from '../content/tuning/tutorial.json' with { type: 'json' }
+import rules from '../content/tuning/rules.json' with { type: 'json' }
 
 const OUT = process.argv[2] ?? 'e2e-shots/tutorial-tips'
 const PORT = Number(process.argv[3] ?? 5446)
@@ -152,6 +154,27 @@ try {
     await tap(bubble.getByRole('button', { name: text.tutorial.rails.gotIt, exact: true }))
     ok(await none(400), '(e) Got it: gone')
     ok(!(await page.evaluate(() => window.__t.rails.railsHold())), '(e) the hold is off')
+
+    // (f) Blue's glyphling JUST got tangled (last turn) → tangleTheirs, from your side — in the tutorial game every
+    // time (Muzzy, 2026-10-13: "whenever a glyphling is tangled"), in a later game only once ever
+    const justTangled = (turnCount) => page.evaluate((turnCount) => {
+      const game = window.__t.position({ hem: [[2, 0, null]], tangled: [2], turnCount })
+      const last = { turnNo: turnCount, round: 1, seat: 1, glyphlingId: 3, from: { q: 0, r: 0 }, to: { q: 0, r: 0 }, letter: null, target: null,
+        words: [], magic: 0, refreshed: 0, refresh: false, totalsAfter: [0, 0], tangledAfter: [2], newlyTangled: [2], freed: [] }
+      window.__glyphtender.store.getState().loadState({ ...game, log: { turns: [last], end: null } })
+    }, turnCount)
+    const theirsTangled = TIPS.tangleTheirs.replace('{player}', text.game.players.blue).replace('{bonus}', String(rules.tangleBonus))
+    for (const [turnCount, when] of [[18, 'first'], [20, 'again']]) {
+      await justTangled(turnCount)
+      ok(await shows(theirsTangled), `(f) tutorial game, ${when}: "${theirsTangled}"`)
+      if (when === 'first') { await placed('[data-glyph="2"]', '(f)'); await shot('tangleTheirs') }
+      await tap(bubble.getByRole('button', { name: text.tutorial.rails.gotIt, exact: true }))
+      ok(await none(400), `(f) ${when}: Got it → gone`)
+    }
+    await page.evaluate(() => window.__t.progress.setTutorialActive(false))
+    await justTangled(22)
+    ok(await none(2500), '(f) a later game: not again (seen once)')
+    await page.evaluate(() => window.__t.progress.setTutorialActive(true))
 
     // (b) Idle: the timings shortened (the Dev Kit's live-tuning event) — moved, nothing planted
     await page.evaluate((file) => window.__t.tuning.sendTuning('tutorial', { ...file, idleGlow: 1, idleText: 2.5 }), tutorialTuning)

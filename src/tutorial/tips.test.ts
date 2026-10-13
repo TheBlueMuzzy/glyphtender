@@ -56,25 +56,21 @@ describe('first-time tips (F77)', () => {
     expect(ask(game)).toMatchObject({ id: 'theirDanger', target: { glyphling: 2 }, values: { seat: 1 } })
   })
 
-  it("a rival's glyphling tangled next to your pieces → tangleCreate with the Magic your pieces created", () => {
+  it("a rival's glyphling just tangled → tangleTheirs, naming its colour", () => {
     let game = hemIn(start(), 2, 0, null)
     game = { ...game, tangled: [2], current: 1 }
-    const t = withLast(game, turn(0, { newlyTangled: [2], tangledAfter: [2] }))
-    const tip = ask(t)!
-    expect(tip.id).toBe('tangleCreate')
-    expect(tip.values?.n).toBeGreaterThan(0)
-    expect((tip.values!.n as number) % game.config.rules.tangleBonus).toBe(0)
+    expect(ask(withLast(game, turn(0, { newlyTangled: [2], tangledAfter: [2] })))).toMatchObject({ id: 'tangleTheirs', target: { glyphling: 2 }, values: { seat: 1 } })
   })
 
-  it('a glyphling tangled with none of your pieces next to it → tangleNone', () => {
-    let game = hemIn(start(), 2, 1, null) // Blue walled in by Blue's own seeds
-    game = { ...game, tangled: [2], current: 1 }
-    expect(ask(withLast(game, turn(1, { newlyTangled: [2], tangledAfter: [2] })))).toMatchObject({ id: 'tangleNone' })
+  it('your own glyphling just tangled → tangleYours (whoever walled it in)', () => {
+    let game = hemIn(start(), 0, 1, null)
+    game = { ...game, tangled: [0], current: 1 }
+    expect(ask(withLast(game, turn(1, { newlyTangled: [0], tangledAfter: [0] })))).toMatchObject({ id: 'tangleYours', target: { glyphling: 0 } })
   })
 
   it('your turn with one glyphling tangled → oneToGo', () => {
     const game = { ...start(), tangled: [2] }
-    expect(ask(game, { seen: seenAre('tangleCreate', 'tangleNone') })).toMatchObject({ id: 'oneToGo', target: { glyphling: 2 } })
+    expect(ask(game, { seen: seenAre('tangleTheirs', 'tangleYours') })).toMatchObject({ id: 'oneToGo', target: { glyphling: 2 } })
   })
 
   it('your plant made 2 words → twoWords; a dropped shorter word → longestCounts', () => {

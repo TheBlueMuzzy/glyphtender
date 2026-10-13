@@ -5,16 +5,20 @@
 // when Settings → Tips is off. The three PAUSE tips hold the game until "Got it".
 // Words: en.json → tutorial.tips.<id>. Wording rule: Magic is CREATED, never "gained".
 import { droppedWords } from '../engine/wordFinder'
-import { movesLeft, tangleDetails } from '../engine/tangle'
+import { movesLeft } from '../engine/tangle'
 import type { GameState, LogTurn, WordList } from '../engine/types'
 import { mayMoveOnly as rulesMayMoveOnly } from '../engine/rules'
 
 export type TipId =
-  | 'tangleCreate' | 'tangleNone' | 'oneToGo' // the pauses
+  | 'tangleTheirs' | 'tangleYours' | 'oneToGo' // the pauses
   | 'yourDanger' | 'theirDanger' | 'twoWords' | 'longestCounts' | 'swapAgain' | 'cantPlant' | 'reveal'
 
 /** The tips that dim the board and wait for "Got it". */
-export const PAUSE_TIPS: readonly TipId[] = ['tangleCreate', 'tangleNone', 'oneToGo']
+export const PAUSE_TIPS: readonly TipId[] = ['tangleTheirs', 'tangleYours', 'oneToGo']
+
+/** The tips the tutorial game shows EVERY time they apply, not once ever (Muzzy, 2026-10-13: "whenever a glyphling is
+ *  tangled, tell the player how points are scored"). Later games: once, like the rest. */
+export const REPEAT_TIPS: readonly TipId[] = ['tangleTheirs', 'tangleYours']
 
 export interface DueTip {
   id: TipId
@@ -47,15 +51,13 @@ export function dueTip({ game, you, words, move, seen }: TipMoment): DueTip | nu
   // Game over: the Magic reveal is about to show everyone's secret Magic
   if (game.phase === 'over') return want('reveal') ? { id: 'reveal', target: { part: 'reveal' } } : null
 
-  // A glyphling just got tangled (last turn): yours created Magic next to a rival's, or nobody's pieces of yours were there
+  // A glyphling just got tangled (last turn): told from your side — a rival's (your pieces beside it create Magic) or
+  // yours (the rivals' pieces beside it do). In the tutorial game every time (REPEAT_TIPS), later games once.
   if (last && last.newlyTangled.length) {
-    for (const id of last.newlyTangled) {
-      const detail = tangleDetails(game, [id])[0]
-      if (!detail) continue
-      const mine = detail.owner === you ? 0 : detail.bonus[you]
-      if (mine > 0 && want('tangleCreate')) return { id: 'tangleCreate', target: { glyphling: id }, values: { n: mine } }
-    }
-    if (want('tangleNone') && want('tangleCreate')) return { id: 'tangleNone', target: { glyphling: last.newlyTangled[0] } }
+    const id = last.newlyTangled[0]
+    const g = game.glyphlings.find((x) => x.id === id)
+    if (g && g.seat === you && want('tangleYours')) return { id: 'tangleYours', target: { glyphling: id } }
+    if (g && g.seat !== you && want('tangleTheirs')) return { id: 'tangleTheirs', target: { glyphling: id }, values: { seat: g.seat } }
   }
 
   // Your plant just scored (shown while the next player starts): two words at once, or a shorter word that didn't count

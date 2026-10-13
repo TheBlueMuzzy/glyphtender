@@ -4,7 +4,7 @@
     "selfTangleBy": "Sprout (the tutorial game's AI) starts preferring moves that walk ONE of its glyphlings into a pocket — next to your pieces when it can, so you see the tangle bonus — from this turn of its own. Lower = it happens sooner. A preference, never a rule: if the board offers no pocket, it doesn't happen. Try 4–8.",
     "sproutSlowdown": "The tutorial game: Sprout's pauses (its think before each move, its hold on its aim before the throw) are this many times longer than Settings → AI speed says, so a new player can follow what it does. 2 = half speed. 1 = like any AI. Try 1.5–3.",
     "railsCalloutDelay": "The tutorial game's first 2 turns: how long after the game goes quiet (a glide, a seed landing, the score) the next callout shows. Lower = snappier, higher = calmer. Try 0.3–1.2.",
-    "railsDim": "How dark a tutorial pause (Got it / Play) makes the rest of the game. 0 = not at all, 1 = black. Try 0.5–0.75. The 3 pausing tips (tangled ×2, one to go) use it too.",
+    "railsDim": "How dark a tutorial pause (Got it / Play) makes the rest of the game. 0 = not at all, 1 = black. Try 0.5–0.75. The 3 pausing tips (tangled: theirs / yours, one to go) use it too.",
     "tipDelay": "A first-time tip (after the first 2 turns, and in later games while Settings → Tips is on) shows this long after the game goes quiet. Try 0.3–1.2.",
     "tipsPerTurn": "At most this many first-time tips in one turn — the rest wait for a later turn. 1 keeps it calm.",
     "maxPauses": "At most this many PAUSING tips (they dim the game and wait for Got it) in one game; past it, a pausing tip shows like a normal one. Online games never pause.",

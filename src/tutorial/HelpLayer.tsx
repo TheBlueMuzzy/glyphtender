@@ -2,7 +2,8 @@
 // tutorial game once its rails are over, and in every later game. ONE callout at a time, and none while the rails'
 // own callout is up, while exploring (the ? mode — useExplore), while a menu screen is open, or with Tips off.
 //   TIPS: at a quiet moment (nothing playing out — myTurn.ts isBusy) the tip `dueTip` (tips.ts) names shows ONCE ever
-//   (the kit's tips memory), at most tipsPerTurn a turn. It fades after tipSeconds, on a tap, or when you do what it
+//   (the kit's tips memory) — in the tutorial game the tangle tips every time (tips.ts REPEAT_TIPS) — at most
+//   tipsPerTurn a turn. It fades after tipSeconds, on a tap, or when you do what it
 //   says (your plan or the turn changes). The 3 PAUSE tips dim the game with "Got it" and HOLD it (the rails' hold:
 //   input and the bots on this device wait) — ≤ maxPauses a game; online they show as normal tips (an online game
 //   never stops for one player). A pause that comes due while exploring waits until Explore is left.
@@ -32,7 +33,7 @@ import { useOnline } from '../ui/online/session'
 import { idleGlowTargets, idleKind, idleTarget, idleWords, takeWrong, wrongFromDrop, wrongFromNope, wrongFromPlantTap, wrongWords, type Wrong } from './nudges'
 import { useTutorial } from './progress'
 import { useRailsDirector } from './railsDirector'
-import { dueTip, type DueTip } from './tips'
+import { dueTip, REPEAT_TIPS, type DueTip, type TipId } from './tips'
 import { calloutPlacement } from './tipsPlace'
 import { countTip, newTipBudget, tipMode, tipRoomThisTurn, tipSelector, tipWords } from './tipsPlay'
 
@@ -41,8 +42,8 @@ type TipShown = Shown & { due: DueTip; mode: 'pause' | 'plain'; at: { turnCount:
 
 /** One game's counts. A new deal — or the same deal started again (its turn count goes back: Replay tutorial) —
  *  starts them afresh. */
-type Counts = { budget: ReturnType<typeof newTipBudget>; idle: Map<string, number>; wrong: Map<string, number> }
-const freshCounts = (): Counts => ({ budget: newTipBudget(), idle: new Map(), wrong: new Map() })
+type Counts = { budget: ReturnType<typeof newTipBudget>; idle: Map<string, number>; wrong: Map<string, number>; repeats: Set<string> }
+const freshCounts = (): Counts => ({ budget: newTipBudget(), idle: new Map(), wrong: new Map(), repeats: new Set() })
 let counts = { key: '', turnCount: 0, now: freshCounts() }
 function countsFor(game: GameState | null): Counts {
   const key = game ? `${game.config.seed}|${game.config.players}|${game.config.boardName}` : ''
@@ -79,7 +80,11 @@ export function HelpLayer() {
   useEffect(() => {
     if (!quiet || tip || !game) return
     if (!tipRoomThisTurn(perGame.budget, game.turnCount, tuning.tipsPerTurn)) return
-    const due = dueTip({ game, you, words, move, seen: (id) => !tips.shouldShow(id) })
+    // (the tutorial game's REPEAT_TIPS show every time they apply — once per turn they come due — the rest once ever)
+    const repeatKey = (id: TipId) => `${id}@${game.turnCount}`
+    const repeats = (id: TipId) => tutorialGame && REPEAT_TIPS.includes(id)
+    const seen = (id: TipId) => (repeats(id) ? perGame.repeats.has(repeatKey(id)) : !tips.shouldShow(id))
+    const due = dueTip({ game, you, words, move, seen })
     if (!due) return
     const timer = setTimeout(() => {
       const target = tipSelector(due.target)
@@ -87,11 +92,12 @@ export function HelpLayer() {
       const mode = tipMode(due.id, { online, budget: perGame.budget, maxPauses: tuning.maxPauses })
       countTip(perGame.budget, game.turnCount, mode)
       tips.markSeen(due.id)
+      if (repeats(due.id)) perGame.repeats.add(repeatKey(due.id))
       setTip({ due, mode, words: tipWords(due, game), target, placement: calloutPlacement(target), key: ++shownKeys,
         at: { turnCount: game.turnCount, phase: game.phase, plan: planOf({ move, cast }) } })
     }, tuning.tipDelay * 1000)
     return () => clearTimeout(timer)
-  }, [quiet, tip, game, you, words, move, cast, online, perGame, tips, tuning])
+  }, [quiet, tip, game, you, words, move, cast, online, perGame, tips, tuning, tutorialGame])
 
   // A plain tip fades after tipSeconds, and goes when you do what it says (your plan, the turn or the phase changes).
   // While it can't show (Tips off, exploring, a menu) it's hidden — a pause waits for "Got it" (it only hides meanwhile).

@@ -111,7 +111,7 @@ try {
 
     // ─── a step: its callout says its words; it doesn't cover its target or the live hex; inside the screen ───
     let shotNo = 0
-    async function expectStep(id, { liveHex, manyGlow = false } = {}) {
+    async function expectStep(id, { liveHex } = {}) {
       const reached = await page.waitForFunction((id) => window.__rails.director.useRailsDirector.getState().step?.id === id,
         id, { timeout: 30000, polling: 100 }).then(() => true, () => false)
       ok(reached, `step ${id}`)
@@ -137,11 +137,10 @@ try {
       }, liveHex ?? null)
       ok(geo.count === 1, `  one callout (${geo.count})`)
       if (liveHex) {
-        // The draft: only the live hex glows. A move or a plant: the piece's whole template, the live hex extra bright
-        // (Muzzy, 2026-10-13: "show them what they COULD do")
-        const only = id.startsWith('draft') && !manyGlow
-        ok(geo.glowing.includes(liveHex) && (only ? geo.glowing.length === 1 : geo.glowing.length > 1), `  the board glows at ${only ? 'only the live hex' : 'every hex it could go to'} (${geo.glowing.length} lit)`)
-        if (!only) ok(geo.railsTarget === liveHex, `  …the live hex extra bright (${geo.railsTarget})`)
+        // The draft, a move or a plant: every hex the piece could go to, the live hex extra bright
+        // (Muzzy, 2026-10-13: "show them what they COULD do"; the draft too — "all of the legal spots highlighted")
+        ok(geo.glowing.includes(liveHex) && geo.glowing.length > 1, `  the board glows at every hex it could go to (${geo.glowing.length} lit)`)
+        ok(geo.railsTarget === liveHex, `  …the live hex extra bright (${geo.railsTarget})`)
       }
       ok(!geo.coversTarget, '  it does not cover its target')
       if (liveHex) ok(!geo.coversLive, '  it does not cover the live hex')
@@ -179,11 +178,11 @@ try {
 
     // ─── Turn 1 ───
     const to1 = await keyOf(rails.turn1.to)
-    await expectStep('lines', { liveHex: to1, manyGlow: true })
+    await expectStep('lines', { liveHex: to1 })
     await tap(page.locator('[data-glyph="1"]')) // (a pause holds the game: a tap does nothing)
     ok(await state('(s) => s.selected === null && s.move === null'), '  while the pause is up, a tap does nothing')
     await pressButton(W.next)
-    await expectStep('block', { liveHex: to1, manyGlow: true })
+    await expectStep('block', { liveHex: to1 })
     await pressButton(W.next)
     await expectStep('move1', { liveHex: to1 })
     // a wrong drag: the other glyphling to one of its own legal hexes — refused

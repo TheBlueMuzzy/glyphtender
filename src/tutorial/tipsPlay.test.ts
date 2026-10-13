@@ -20,8 +20,8 @@ describe('first-time tips on screen (F77)', () => {
 
   it('fill in whose glyphling, the Magic and the tangle bonus', () => {
     expect(tipWords({ id: 'theirDanger', target: { glyphling: 2 }, values: { seat: 1 } }, game)).toBe("Blue's glyphling has 1 move left. Block it to tangle it.")
-    expect(tipWords({ id: 'tangleCreate', target: { glyphling: 2 }, values: { n: 6 } }, game)).toContain('+6 Magic')
-    expect(tipWords({ id: 'tangleNone', target: { glyphling: 2 } }, game)).toContain(`+${game.config.rules.tangleBonus} Magic`)
+    expect(tipWords({ id: 'tangleTheirs', target: { glyphling: 2 }, values: { seat: 1 } }, game)).toBe(`Blue's glyphling is tangled! Your pieces beside it create +${game.config.rules.tangleBonus} Magic each.`)
+    expect(tipWords({ id: 'tangleYours', target: { glyphling: 0 } }, game)).toContain(`+${game.config.rules.tangleBonus} Magic`)
     expect(tipWords({ id: 'twoWords', target: { hex: { q: 0, r: 0 } }, values: { n: 2 } }, game)).not.toMatch(/\{/)
   })
 
@@ -40,7 +40,7 @@ describe('first-time tips on screen (F77)', () => {
     expect(tipMode('oneToGo', { online: true, budget, maxPauses: 4 })).toBe('plain')
     expect(tipMode('theirDanger', { online: false, budget, maxPauses: 4 })).toBe('plain')
     countTip(budget, 1, 'pause')
-    expect(tipMode('tangleNone', { online: false, budget, maxPauses: 1 })).toBe('plain')
+    expect(tipMode('tangleYours', { online: false, budget, maxPauses: 1 })).toBe('plain')
   })
 
   it('every tip is 12 words or fewer, and Magic is never "gained"', () => {
