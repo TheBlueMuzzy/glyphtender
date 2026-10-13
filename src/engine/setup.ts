@@ -52,6 +52,35 @@ export interface NewGameOptions {
   turnOrder?: number[]
   /** F71: count British spellings / vulgar words in this game (Settings; online the host's). Off when missing. */
   extraWords?: ExtraWords
+  /** F76: a fixed start (the tutorial game). Missing = the normal shuffled bag. */
+  stack?: SeedStack
+}
+
+/** F76: the seeds a fixed start hands out, as letters. `hands`: each seat's starting hand (by seat; dealt when the
+ *  draft ends — a hand shorter than the hand size is topped up from the shuffled bag). `next`: what the bag gives
+ *  after the deal (refills and draws), in order. Everything else is the normal shuffle(seed) of the seeds left.
+ *  Seeds keep their normal box ids (the first unused one of that letter). */
+export interface SeedStack {
+  hands?: string[][]
+  next?: string[]
+}
+
+/** The bag for a fixed start: each stacked hand (topped up from the shuffle), then `next`, then the rest shuffled. */
+function stackedBag(seed: number, stack: SeedStack, handSize: number, players: number): { items: SeedPiece[]; rng: number } {
+  const giveId = seedIdGiver()
+  const take = (letter: string) => {
+    const piece = giveId(letter)
+    if (piece.id.startsWith('seed-extra')) throw new Error(`The bag has no more ${letter} seeds to stack`)
+    return piece
+  }
+  const hands = Array.from({ length: players }, (_, seat) => (stack.hands?.[seat] ?? []).map(take))
+  if (hands.some((hand) => hand.length > handSize)) throw new Error(`A stacked hand holds more than ${handSize} seeds`)
+  const next = (stack.next ?? []).map(take)
+  const used = new Set([...hands.flat(), ...next].map((p) => p.id))
+  const rest = shuffle(seed, bagPieces().filter((p) => !used.has(p.id)))
+  const left = [...rest.items]
+  const dealt = hands.flatMap((hand) => [...hand, ...left.splice(0, handSize - hand.length)])
+  return { items: [...dealt, ...next, ...left], rng: rest.rng }
 }
 
 /** The turn order for a new game: all seats shuffled when content/tuning/rules.json "randomTurnOrder" is 1
@@ -79,7 +108,7 @@ export function newGame(options: NewGameOptions): GameState {
   const extraWords = onlySwitchedOn(options.extraWords)
   if (extraWords) config.extraWords = extraWords // (both off: no field at all — the same games as before F71)
   // The box list gets its ids first, THEN is shuffled — the same shuffle (same random calls, same order) as before ids.
-  const shuffled = shuffle(seed, bagPieces())
+  const shuffled = options.stack ? stackedBag(seed, options.stack, config.rules.handSize, players) : shuffle(seed, bagPieces())
   return {
     config,
     phase: 'draft',
