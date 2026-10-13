@@ -1,5 +1,5 @@
 // THE GAME, PLAYED THROUGH THE REAL SCREEN — at phone-tall 390×844, phone-wide 844×390 and desktop 1440×900:
-// Play → Start (new-game screen) → snake draft (1 drag + 3 taps) → turns by tap (move, seed, cast, Cast · +N) and by drag, undo,
+// Play → Start (new-game screen) → snake draft (1 drag + 3 taps) → turns by tap (move, seed, cast, Plant · +N) and by drag, undo,
 // no tray drag before the move (B008: it shakes), tray reorder after the move, shuffle, a refresh → passing the device
 // (Show my seeds) → fast-forward to the end with the dev hook →
 // Skip the Magic reveal → end table → New game → a game with word indicators OFF → Settings → Tray position Flipped → Menu.
@@ -174,7 +174,7 @@ try {
       await frozenShot('9d-score-total', parts, times.total)
       console.log(`${pops === turn.seeds && total === `+${turn.magic}` ? 'ok  ' : 'FAIL'} ${size.name} 9b-9d score sequence · ${pops} pops → ${total}`)
     }
-    // Word indicators off: plan a word-making cast (trying each glyphling and move) — plain "Cast", no border, no pops
+    // Word indicators off: plan a word-making cast (trying each glyphling and move) — plain "Plant", no border, no pops
     const indicatorsOffTurn = async () => {
       for (let tries = 0; tries < 12; tries++) {
         await page.evaluate((n) => window.__glyphtender.playUntilDanger(n), 3 + tries) // a garden with seeds on it
@@ -195,13 +195,13 @@ try {
             await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
             await shot('13-indicators-off')
             const label = await castButton().textContent()
-            if (label !== 'Cast') fail(`${size.name}: indicators off but the button says "${label}"`)
+            if (label !== 'Plant') fail(`${size.name}: indicators off but the button says "${label}"`)
             if (await page.locator('[data-word-hex]').count()) fail(`${size.name}: indicators off but a word has a border`)
             await tap(castButton())
             await waitLanded()
             await page.waitForTimeout(700)
             if (await page.locator('[data-score-pops]').count()) fail(`${size.name}: indicators off but the Magic popped`)
-            console.log(`ok   ${size.name} 13-indicators-off · plain Cast, no border, no pops`)
+            console.log(`ok   ${size.name} 13-indicators-off · plain Plant, no border, no pops`)
             return
           }
           // none of its moves makes a word: take it back (Undo), or let go of it
@@ -391,7 +391,7 @@ try {
         const held = await store((s) => (s.selected?.kind === 'seed' ? s.trayOrder[s.game.current].indexOf(s.selected.id) : -1))
         if (held >= 0) await tap(page.locator(`[data-tray-pos="${held}"]`))
       }
-      // Cast (a move-only turn if the hand is empty)
+      // Plant (a move-only turn if the hand is empty)
       const hasSeeds = await store((s) => s.game.hands[s.game.current].length > 0)
       if (hasSeeds) {
         const wantMagic = !grewWords && turn > 3

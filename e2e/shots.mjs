@@ -167,7 +167,7 @@ async function menusAndGame(size) {
     await tap(page.getByRole('button', { name: 'Show my seeds' }))
     await shot(page, size, 'game-play')
 
-    // A move and a cast that makes NO Magic, planned → Cast → the refresh step
+    // A move and a cast that makes NO Magic, planned → Plant → the refresh step
     const mine = await store(page, (s) => s.game.glyphlings.filter((g) => g.seat === s.game.current).map((g) => g.id))
     await tapGlyph(page.locator(`[data-glyph="${mine[0]}"]`))
     await tap(option('move', Math.floor((await optionCount('move')) / 2)))
@@ -177,7 +177,7 @@ async function menusAndGame(size) {
     await tap(page.locator(`[data-tray-pos="${pos}"]`))
     await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     await shot(page, size, 'game-planned')
-    await tap(page.locator('.game-actions button').last()) // Cast
+    await tap(page.locator('.game-actions button').last()) // Plant
     await page.waitForFunction(() => window.__glyphtender.store.getState().game.phase === 'refresh', null, { timeout: 8000 })
     await shot(page, size, 'game-refresh')
 

@@ -165,7 +165,7 @@ try {
     await tap(page.locator(`[data-tray-pos="${pos}"]`))
     await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     await promptClear('planned')
-    await tap(page.locator('.game-actions button').last()) // Cast (no Magic) → the refresh step
+    await tap(page.locator('.game-actions button').last()) // Plant (no Magic) → the refresh step
     await page.waitForFunction(() => window.__glyphtender.store.getState().game.phase === 'refresh', null, { timeout: 8000 })
     await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx === null, null, { timeout: 8000 })
     await page.waitForTimeout(300)

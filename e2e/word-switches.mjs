@@ -4,7 +4,7 @@
 // 1. New Game shows both switches, off — shots at 390×844, 844×390, 768×343, 1440×900 (nothing clipped); Settings has
 //    neither (and no Difficulty row)
 // 2. British on → Start → the game's config + word list have it → a hand-made turn (devHook castWord) spells COLOUR:
-//    the Cast button previews Magic, and after the throw COLOUR is one of the turn's words, Magic scored
+//    the Plant button previews Magic, and after the throw COLOUR is one of the turn's words, Magic scored
 // 3. the next New Game remembers British on; switched off → the same turn does NOT make COLOUR
 // 4. online: the host turns Vulgar words on in the lobby → Start → both games have it (config + word list: COCK) and
 //    the guest's Pause says so
@@ -74,7 +74,7 @@ try {
       await store(`(s) => s.tapSeed('${turn.seed}')`)
       await store(`(s) => s.tapHex(${hex(turn.target)})`)
       await page.waitForTimeout(400)
-      const cast = (await page.getByRole('button', { name: /^Cast/ }).first().textContent().catch(() => '')) ?? ''
+      const cast = (await page.getByRole('button', { name: /^Plant/ }).first().textContent().catch(() => '')) ?? ''
       const before = await store((s) => s.game.turnCount)
       await store(`(s) => s.startCast()`)
       await page.waitForFunction((n) => window.__glyphtender.store.getState().game.turnCount > n, before, { timeout: 10000 }).catch(() => fail('the cast never landed'))
