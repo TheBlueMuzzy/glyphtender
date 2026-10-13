@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "build": 0,
   "history": [
     {
@@ -77,6 +77,11 @@
       "version": "0.9.2",
       "date": "2026-10-12",
       "summary": "Settings shows only settings that work (12 placeholder rows off: Graphics quality, Brightness, Controls, Game speed, Tips, Colour-blind mode, Reset progress…)"
+    },
+    {
+      "version": "0.9.3",
+      "date": "2026-10-12",
+      "summary": "Phones: the New Game screen scrolls again when you swipe on it — with 4 players or AI seats, Start and the word options were out of reach"
     }
   ]
 }
