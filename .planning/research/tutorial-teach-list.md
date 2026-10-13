@@ -33,7 +33,7 @@
 |---|---|---|---|
 | S1 | Plant to hem glyphlings in — **area control first, spelling second** (the original's rule #1) | M4, M5 | 🛤️ turn 1 (the plant also blocks a path) |
 | S2 | Danger: a glyphling with 1 move left (the cue) | M13 | 💡 first time |
-| S3 | You gain +3 Magic for each of your pieces next to an opponent's glyphling when it gets tangled | M13, M9 | 💡 first tangle (the tutorial AI makes it likely) |
+| S3 | Each of your pieces next to a tangled opponent's glyphling creates +3 Magic | M13, M9 | 💡 first tangle (the tutorial AI makes it likely) |
 | S4 | Magic is secret until the end | M12 | 💡 after the first word ("only you saw that") |
 | S5 | You can end it yourself — tangle your own glyphling when you think you're ahead | M14, S4 | 💡 one tangle already, late game |
 | S6 | Tangle next to your own seeds and nobody gains from it | S3, S5 | ❔ / 💡 with S5 |

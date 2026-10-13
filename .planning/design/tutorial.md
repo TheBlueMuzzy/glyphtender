@@ -1,7 +1,8 @@
 # Tutorial — the first game teaches itself
 > Defined 2026-10-12 (/define). Research: `research/tutorial.md` (references, standards) · `research/tutorial-teach-list.md` (what to teach, in what order). GDD §5 links here.
 > **Muzzy's rule:** "you only show what they need in the moment they need it." A very short overview, a few turns on rails, then real play where help only shows up when it matters.
-> Every number below lives in `content/tuning/tutorial.json` (Dev Kit → Tuning → Tutorial). Every line of text lives in `content/text/en.json → tutorial`. The text here is the first draft — change it freely.
+> Every number below lives in `content/tuning/tutorial.json` (Dev Kit → Tuning → Tutorial — incl. every nudge delay and glow). Every line of text lives in `content/text/en.json → tutorial`, editable in the Dev Kit **Text** tab (F81). The text here is the first draft — change it freely.
+> **Wording rules:** Magic is **made / created**, never "gained" (Muzzy 2026-10-13). Every sentence here must be literally true — say "tries to", "usually", "if it can" where the game can't promise it.
 
 ## The words we use
 - **Callout** — a rounded rectangle of text with a pointer aimed at the thing to look at (Muzzy's look). Never covers its target. One idea, ≤ 12 words, verb first, "you".
@@ -9,7 +10,7 @@
 - **Tip** — a callout that shows **once**, the first time something happens. Usually doesn't stop play.
 - **Pause** — a rare tip that dims the game and waits for "Got it" (≤ 4 in the whole tutorial game).
 - **Nudge** — a callout after X seconds of doing nothing, or straight after a wrong action. Says what you *can* do.
-- **Explore** — the **?** button: pause, tap anything, read what it is.
+- **Explore** — the **?** button: tap anything and read what it is, instead of using it. Only ? leaves it.
 - **Plant** — replaces "cast" in every player-facing word (button: **Plant · +5**).
 
 ## 0. Before the tutorial: who gets it
@@ -63,8 +64,8 @@ From turn 3 on, Blue is the **tutorial AI** (§5). Tips carry on in later games 
 |---|---|---|---|
 | Your danger | your glyphling starts your turn with 1 move | "Only 1 move left! Move it out, or let it get tangled." (glyphling) | no |
 | Their danger | a rival glyphling has 1 move on your turn | "Blue's glyphling has 1 move left. Block it to tangle it." (that glyphling) | no |
-| First tangle — you gain | a rival glyphling is tangled with your pieces next to it | "You gain +3 Magic for each of your pieces next to it: +6!" (pieces pulse) | **yes** |
-| First tangle — no gain | a glyphling is tangled with none of your pieces next to it | "Tangled! Your pieces next to a tangled rival gain you Magic." | **yes** |
+| First tangle — you create | a rival glyphling is tangled with your pieces next to it | "Each of your pieces next to a tangled rival creates +3 Magic: +6!" (your pieces pulse) | **yes** |
+| First tangle — none of yours | a glyphling is tangled with none of your pieces next to it | "Tangled! Your pieces next to a tangled rival create +3 Magic each." | **yes** |
 | One to go | your turn with exactly 1 tangle on the board | "One more tangle ends the game. Ahead? You can end it yourself." | **yes** |
 | Two words | your plant makes 2+ words | "One seed, 2 words! Each one makes Magic." (spotlight) | no |
 | Longest counts | a shorter word on the same line was dropped | "Only your longest word on a line counts." (the word) | no |
@@ -99,21 +100,30 @@ Each idle nudge shows ≤ `idleRepeat` (3) times per game, then it stops. **Late
 - **Hidden personality** (name: "Sprout", stand-in — Muzzy may rename), never offered in New Game or online.
 - **On the rails:** plays the fixed draft and a fixed turn 1.
 - **After the rails:** Apprentice skill and the **smallest vocabulary** (common short words). It isn't greedy: it spells some, blocks a little, and wanders.
-- **It gets ONE glyphling tangled:** by mid-game (`selfTangleBy` turn 6) it walks one glyphling into a pocket — next to your pieces when it can, so you get the "you gain" pause.
-- **It never makes the second tangle itself.** It keeps its other glyphling free, so ending the game is always *your* call (the "One to go" tip). A `maxTurns` safety (20 each): after that it plays normally.
+- **It tries to get ONE glyphling tangled:** from mid-game (`selfTangleBy` turn 6) it prefers moves that walk one glyphling into a pocket — next to your pieces when it can, so you see the "you create" pause. If the board never offers a pocket, it doesn't happen.
+- **It tries not to make the second tangle.** It prefers moves that keep its other glyphling free, so ending the game is usually *your* call (the "One to go" tip).
+- **It always plays a legal turn.** These are preferences, not rules: if every move it has tangles itself (say you walled its glyphling in), it takes one and the game ends as normal. It never waits, skips or stalls. After `maxTurns` (20 each) it drops the preferences and plays like any Apprentice.
 - Beatable, but you can lose. Target length: one game in about 10–12 minutes.
 
-## 6. Explore mode — the ? button
-- A **?** next to ☰ in every game (not just the tutorial).
-- Tap ? → the game pauses (vs AI / pass-and-play; online it doesn't pause, and your turn timer keeps running). The board dims a little and a bar reads **"Explore — tap anything."**
-- Tap a thing → it lights up (everything else dimmer) and a callout explains it. Tap another thing → that one. Tap empty space → the callout closes. Tap ? again → back to the game.
-- **Things it explains:** your glyphling ("3 moves left") · a rival's glyphling · a tangled glyphling (who gained what) · a planted seed (whose; counts +2 for them) · a glowing hex (move / plant option) · a tray seed · the Plant button (its preview) · Refresh / Keep all · Undo · a ghost · a word outline · the turn bar · ☰ · the ? itself.
-- The bar also has **Rules** → the How to play pages (rewritten with "plant").
+## 6. Explore mode — the ? button (must, every game)
+- A **?** beside ☰ in every game (tutorial, vs AI, pass-and-play, online).
+- **Tap ? → Explore.** A bar reads **"Explore — tap anything. Tap ? to go back."** and the ? stays lit.
+  - vs AI / pass-and-play: the game pauses (the AI waits, every timer stops).
+  - Online: the game does NOT pause (others keep playing; the room's turn timer and idle timer keep running).
+- **In Explore, nothing you tap does its normal job — it explains itself instead.** The tapped thing lights up, the rest dims, and a callout says what it is. Tapping ☰ says "Menu — settings, rules and leaving the game" and does NOT open it. Tapping Plant does not plant.
+- **Tap empty space** → the callout closes; you're still in Explore. **Only ? leaves Explore** (Esc does the same on a keyboard).
+- **Reminder:** entering Explore shows a small callout at the ? — "Tap ? to go back to the game" — and again after `exploreRemind` (15 s) without a tap.
+- **Yours vs theirs:** the words change with whose it is — "Your glyphling · 3 moves. Drag it to move." vs "Blue's glyphling · 2 moves. Block it to tangle it." Same for seeds ("Your seed — counts +2 in your words" vs "Blue's seed — +2 in Blue's words, +1 in yours").
+- **Things it explains:** glyphlings (yours · a rival's · tangled · 1 move left) · seeds (yours · a rival's · planned) · a glowing hex (move / plant option) · the ghost · a word outline · tray seeds · Plant (with its preview) · Undo · Refresh / Keep all · the turn bar · ☰ · ? itself · an empty hex.
+- **Explore ends by itself** when the game needs you — it closes and the game carries on:
+  - online: the idle warning appears ("Still there?") · a bot starts playing for you · you're disconnected / reconnecting · the host ends the game or goes back to the lobby
+  - any game: the game ends (the reveal starts) · pass-and-play: the handoff screen comes up for the next player
+- **While in Explore:** no tips and no nudges. A tutorial pause that comes due waits until you leave Explore. If the thing a callout points at moves or disappears (online), the callout closes.
 
 ## 7. What's tuneable (content/tuning/tutorial.json)
-`overviewCards` · `tipSeconds` 8 · `tipsPerTurn` 1 · `maxPauses` 4 · `idleGlow` 10 · `idleText` 20 · `idleRepeat` 3 · `laterIdleText` 30 · `wrongRepeat` 3 · `selfTangleBy` 6 · `maxTurns` 20 · `dimAmount` (rails / Explore) · the rails layout (content/tutorial/rails.json — the board, the draft hexes, the bag order, Blue's turn 1).
+`overviewCards` · `tipSeconds` 8 · `tipsPerTurn` 1 · `maxPauses` 4 · `idleGlow` 10 · `idleText` 20 · `idleRepeat` 3 · `laterIdleText` 30 · `wrongRepeat` 3 · `exploreRemind` 15 · `selfTangleBy` 6 · `maxTurns` 20 · `dimAmount` (rails / Explore) · the rails layout (content/tutorial/rails.json — the board, the draft hexes, the bag order, Blue's turn 1).
 
-## Ask Muzzy
-- Explore mode: must for 1.0, or a should? It's planned as should, because you said "options, not all necessary".
-- The 2026-10-08 idea "ⓘ rules & settings button": fold it into Explore's **Rules** (this game's settings + the rules)? Planned: yes.
-- Tutorial AI name ("Sprout"?).
+## Muzzy's answers (2026-10-13)
+- Explore is a **must** — "it's useful… there's not that much to tap on after all."
+- No rules button in Explore: ☰ keeps settings + rules; in Explore, ☰ only explains itself. Only ? leaves Explore.
+- **Sprout** — "adorable and perfect."
