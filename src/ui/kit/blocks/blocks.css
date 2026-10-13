@@ -243,3 +243,68 @@
 
 /* The +N float-up: rises and fades (a style's motion-normal × 4) */
 @keyframes kit-float-up { to { opacity: 0; transform: translateY(-1.75em); } }
+
+/* ───────────── Callout (teach.tsx): a speech bubble pointing at something ─────────────
+   One popover over the whole window (the top layer: above the game and every screen). Inside it everything sits in
+   the same grid cell and is moved into place with translate, from CSS variables teach.tsx writes every frame:
+   --kit-callout-x / -y (the bubble's top-left), --kit-callout-tip-x / -y (the pointer, inside the bubble) and
+   --kit-hole-l / -t / -r / -b (the target, grown by gap-s: the spotlight's hole and the glow ring).
+   .kit-callout-frame is never seen: it is the room the bubble may use (window or game picture, minus the edge room). */
+@layer kit-base {
+  .kit-callout-layer { inset: 0; inline-size: auto; block-size: auto; max-inline-size: none; max-block-size: none;
+    margin: 0; padding: 0; border: 0; background: none; overflow: hidden; display: none; pointer-events: none;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+  .kit-callout-layer:popover-open { display: grid; }
+  .kit-callout-layer > * { grid-area: 1 / 1; }
+  .kit-callout-frame { place-self: center; inline-size: var(--kit-frame-w, 100%); block-size: var(--kit-frame-h, 100%);
+    padding: max(var(--gap-m), env(safe-area-inset-top)) max(var(--gap-m), env(safe-area-inset-right))
+             max(var(--gap-m), env(safe-area-inset-bottom)) max(var(--gap-m), env(safe-area-inset-left));
+    column-gap: var(--gap-s); /* (read by teach.tsx: the room round the target) */
+    visibility: hidden; pointer-events: none; }
+  /* The bubble: as wide as its words up to 22em (never wider than the game picture), so it never changes width as it moves */
+  .kit-callout { justify-self: start; align-self: start; display: grid; inline-size: max-content;
+    max-inline-size: min(22em, calc(var(--kit-frame-w, 100vw) - 2 * var(--gap-m)));
+    translate: var(--kit-callout-x, 0) var(--kit-callout-y, 0);
+    transform-origin: var(--kit-callout-tip-x, 50%) var(--kit-callout-tip-y, 50%); /* its entrance grows out of the pointer */
+    pointer-events: auto; visibility: hidden; }
+  .kit-callout > * { grid-area: 1 / 1; }
+  .kit-callout[data-dismissible] { cursor: pointer; }
+  .kit-callout-body { padding: var(--gap-m); min-inline-size: 0; } /* breathing room: words never touch the edge */
+  /* The pointer: a turned square, half of it out past the bubble's edge, covering the border where it joins */
+  .kit-callout-tip { justify-self: start; align-self: start; inline-size: 1rem; block-size: 1rem;
+    translate: calc(var(--kit-callout-tip-x, 0) - 50%) calc(var(--kit-callout-tip-y, 0) - 50%); rotate: 45deg; pointer-events: none; }
+  /* The dim: everything but a hole round the target. clip-path also shapes where it catches taps, so taps in the
+     hole reach the target underneath */
+  .kit-callout-dim { pointer-events: auto; visibility: hidden;
+    clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+      var(--kit-hole-l, 0) var(--kit-hole-t, 0), var(--kit-hole-r, 0) var(--kit-hole-t, 0), var(--kit-hole-r, 0) var(--kit-hole-b, 0),
+      var(--kit-hole-l, 0) var(--kit-hole-b, 0), var(--kit-hole-l, 0) var(--kit-hole-t, 0)); }
+  .kit-callout-ring { justify-self: start; align-self: start; translate: var(--kit-hole-l, 0) var(--kit-hole-t, 0);
+    inline-size: calc(var(--kit-hole-r, 0) - var(--kit-hole-l, 0)); block-size: calc(var(--kit-hole-b, 0) - var(--kit-hole-t, 0));
+    pointer-events: none; visibility: hidden; }
+  /* Shown once placed; hidden while the target is missing */
+  .kit-callout-layer[data-ready] :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { visibility: visible; }
+}
+@layer kit-style {
+  .kit-callout { background: var(--surface) var(--panel-texture); color: var(--on-surface); border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-panel); corner-shape: var(--corner-shape); box-shadow: var(--depth-2); }
+  .kit-callout-layer[data-ready] .kit-callout { animation: var(--enter) var(--motion-normal) var(--ease) backwards; }
+  .kit-callout-tip { background: var(--surface); border: 0 solid var(--border); }
+  /* Only the two sides that point out get the outline (the square is turned 45°) */
+  .kit-callout-layer[data-side="top"] .kit-callout-tip { border-inline-end-width: var(--border-width); border-block-end-width: var(--border-width); }
+  .kit-callout-layer[data-side="bottom"] .kit-callout-tip { border-inline-start-width: var(--border-width); border-block-start-width: var(--border-width); }
+  .kit-callout-layer[data-side="left"] .kit-callout-tip { border-inline-end-width: var(--border-width); border-block-start-width: var(--border-width); }
+  .kit-callout-layer[data-side="right"] .kit-callout-tip { border-inline-start-width: var(--border-width); border-block-end-width: var(--border-width); }
+  /* A dark see-through screen (game-shade is dark in every style); --kit-callout-dim = how dark (the dimAmount prop) */
+  .kit-callout-dim { background: color-mix(in srgb, var(--game-shade) var(--kit-callout-dim, 65%), transparent); animation: kit-fade var(--motion-normal) var(--ease); }
+  /* pulse: the target glows — a steady accent ring, with a soft glow breathing out of it */
+  .kit-callout-ring { border-radius: var(--radius-control); corner-shape: var(--corner-shape); outline: 0.1875rem solid var(--accent); filter: var(--glow);
+    animation: kit-callout-pulse calc(var(--motion-normal) * 5) ease-in-out infinite; }
+  /* Reduce motion (device or the kit's switch): no entrance, no breathing — the ring just stays lit */
+  @media (prefers-reduced-motion: reduce) { :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { animation: none !important; } }
+  :root[data-reduce-motion] :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { animation: none !important; }
+}
+@keyframes kit-callout-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  60% { box-shadow: 0 0 0 0.75rem color-mix(in srgb, var(--accent) 0%, transparent); }
+}
