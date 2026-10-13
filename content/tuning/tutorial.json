@@ -12,7 +12,8 @@
     "idleText": "The tutorial game: seconds of doing nothing before a callout says what you can do. Try 15–30 (more than the glow).",
     "idleRepeat": "How many times each idle callout (place / move / plant / Plant / refresh) may show in one game, then it stays quiet. Try 2–5.",
     "laterIdleText": "Later games (Tips on): seconds of doing nothing before the idle callout — no glow there. Try 20–60.",
-    "wrongRepeat": "After the first 2 turns: how many times each 'wrong action' callout (a seed before moving, a bad drop, a rival's glyphling…) may show in one game; then only the 'no' shake. On the first 2 turns it shows every time. Try 2–5."
+    "wrongRepeat": "After the first 2 turns: how many times each 'wrong action' callout (a seed before moving, a bad drop, a rival's glyphling…) may show in one game; then only the 'no' shake. On the first 2 turns it shows every time. Try 2–5.",
+    "calloutRoom": "How much room a tip needs above its target before the turn bar / ☰; with less, it goes below (a pause near the board's top covered ☰ on a phone). In px (a tip with a button is ~160 tall). Try 150–240."
   },
   "_labels": {
     "tipSeconds": "Tip shows for (s)",
@@ -27,11 +28,12 @@
     "idleText": "Idle nudge: words after (s) — tutorial game",
     "idleRepeat": "Idle nudge: times each one shows per game",
     "laterIdleText": "Idle nudge: words after (s) — later games",
-    "wrongRepeat": "Wrong-action nudge: times each one shows per game"
+    "wrongRepeat": "Wrong-action nudge: times each one shows per game",
+    "calloutRoom": "Callout: room needed above a board target (px)"
   },
   "_sections": {
     "Tutorial": ["tipSeconds", "selfTangleBy", "maxTurns", "railsCalloutDelay", "railsDim"],
-    "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "wrongRepeat"]
+    "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "wrongRepeat", "calloutRoom"]
   },
   "_ranges": {
     "tipSeconds": [2, 20, 1],
@@ -46,7 +48,8 @@
     "idleText": [5, 60, 1],
     "idleRepeat": [1, 10, 1],
     "laterIdleText": [10, 120, 5],
-    "wrongRepeat": [1, 10, 1]
+    "wrongRepeat": [1, 10, 1],
+    "calloutRoom": [60, 240, 10]
   },
   "tipSeconds": 8,
   "selfTangleBy": 6,
@@ -60,5 +63,6 @@
   "idleText": 20,
   "idleRepeat": 3,
   "laterIdleText": 30,
-  "wrongRepeat": 3
+  "wrongRepeat": 3,
+  "calloutRoom": 190
 }
