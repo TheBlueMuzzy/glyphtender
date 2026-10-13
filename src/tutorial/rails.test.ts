@@ -116,6 +116,15 @@ describe('the rails (tutorial game opening)', () => {
     expect(after.hands[you][after.hands[you].length - 1].letter).toBe(rails.stack.next[rails.stack.next.length - 1])
   })
 
+  it('turn 2 with your OTHER glyphling (either may go — Muzzy, 2026-10-13): the same hex, the same CAT for 5', () => {
+    const { before, action } = step('turn2')
+    if (action.type !== 'turn') throw new Error('turn 2 is a turn')
+    const other = railsGlyphling(you, rails.turn2.glyphling === 'first' ? 'second' : 'first')
+    const result = glyphtenderRules(words).apply(before, you, { ...action, glyphling: other })
+    expect(result.state.lastTurn?.words.map((w) => w.word)).toEqual([rails.turn2.word])
+    expect(result.state.magic[you] - before.magic[you]).toBe(rails.turn2.magic)
+  })
+
   it('no glyphling is tangled or down to 1 move anywhere on the rails (no danger cue)', () => {
     for (const p of played.filter((x) => x.after.phase !== 'draft')) {
       for (const g of p.after.glyphlings) expect(movesLeft(p.after, g.id), `glyphling ${g.id} after ${p.step}`).toBeGreaterThanOrEqual(2)

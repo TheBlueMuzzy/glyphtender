@@ -1,8 +1,10 @@
 // THE RAILS LIMIT (F76, design/tutorial.md §2) — while the tutorial game's scripted opening runs, ONE thing may be
 // done at a time: one piece onto one hex (or, at the refresh, only the named seeds set aside). The tutorial's director
-// (src/tutorial/railsDirector.ts) sets it for each step; the drag referee (referee.ts) asks it first, so the board's
-// glow, the "drop here" light, the "no" shake, lifting and the drop itself all follow it — the glow shows only the live
-// target. The Refresh / Keep all buttons and the store's refresh follow it too.
+// (src/tutorial/railsDirector.ts) sets it for each step; the drag referee (referee.ts) asks it first, so the "drop
+// here" light, the "no" shake, lifting and the drop itself all follow it. The glow is the one exception, on purpose
+// (Muzzy, 2026-10-13: "show them what they COULD do"): it shows the piece's whole template as the rules allow it, with
+// the step's hex extra bright (turnPlan.ts highlightFor). The Refresh / Keep all buttons and the store's refresh follow
+// it too. On the rails a tap never plays — only a drag (gameStore dragOnRails).
 // The HOLD: a rails pause (a "Next" / "Got it" callout) is up — nobody may act (canPlayNow is false) and the AIs on
 // this device don't start (localBot.ts) until it's released.
 // Off the rails both are off (null / false) and nothing in the game changes. (Nothing here imports src/tutorial/.)
@@ -13,11 +15,13 @@ import type { Piece, Target } from './referee'
 export interface RailsLimit {
   /** The one piece that may be picked up now (null = none). */
   piece: Piece | null
+  /** Another piece that may go to the same hex (your turn 2: either of your glyphlings — Muzzy, 2026-10-13). */
+  alsoPiece?: Piece
   /** …and the one hex it may go to. */
   to: Hex | null
-  /** A pause's extra hexes for that piece: they glow too (e.g. every hex a glyphling could move to, while "Glyphlings
-   *  move in straight lines" is up). Only for steps that hold the game — nothing can be played while they show. */
-  shows?: Hex[]
+  /** A step about a glyphling's room (any player's): its move template glows, in its owner's colour ("Your seed blocks
+   *  Blue's glyphling" — you see the line the seed cuts off). Nothing may be played meanwhile. */
+  showMoves?: number
   /** The refresh step: the only seeds (ids) that may be set aside — Refresh only once they all are, never Keep all. */
   setAside?: string[]
   /** Why anything else is refused (the step's own callout words). */
@@ -50,11 +54,13 @@ const samePiece = (a: Piece, b: Piece) =>
 export function railsRefuses(piece: Piece, target: Target, limit: RailsLimit | null = railsLimit()): string | null {
   if (!limit) return null
   if (piece.kind === 'seed' && target.kind === 'tray' && limit.setAside?.includes(piece.id)) return null // (reorder one you may set aside)
-  if (limit.piece && samePiece(limit.piece, piece) && target.kind === 'hex') {
-    const key = hexKey(target.hex)
-    if ((limit.to && hexKey(limit.to) === key) || limit.shows?.some((hex) => hexKey(hex) === key)) return null
-  }
+  if (railsPiece(piece, limit) && target.kind === 'hex' && limit.to && hexKey(limit.to) === hexKey(target.hex)) return null
   return limit.reason
+}
+
+/** Is this one of the step's pieces (the one that may be played now)? */
+export function railsPiece(piece: Piece, limit: RailsLimit | null = railsLimit()): boolean {
+  return !!limit && [limit.piece, limit.alsoPiece].some((p) => !!p && samePiece(p, piece))
 }
 
 /** May this seed be set aside (or put back) now? */

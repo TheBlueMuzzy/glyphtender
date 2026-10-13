@@ -132,11 +132,11 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
 
   // ---- what's where, with the planned move and cast shown ----
   const seat = game.current
-  const player = colours[colourOf(seat)]
+  const highlight = boardHighlight({ game, move, selected, flying, waiting, seats, trail: replayTrail })
+  const player = colours[colourOf(highlight?.seat ?? seat)] // (the rails can glow a rival glyphling's room, in its colour)
   const castTint = castColour(player, colours.background, colours.castShade) // the cast options: the same template, another shade
   const moved = move && game.glyphlings.find((g) => g.id === move.glyphling)
   const plannedLetter = cast ? letterIn(game.hands[seat], cast.seed) ?? null : null
-  const highlight = boardHighlight({ game, move, selected, flying, waiting, seats, trail: replayTrail })
   const lit = board.cells.filter((h) => highlight?.hexes.some((x) => hexKey(x) === hexKey(h)))
   // Word indicators off: nothing shows which seeds make a word (players spot words themselves)
   const planned: SpotWord[] = indicators && !flying ? preview?.words ?? NO_WORDS : NO_WORDS
@@ -202,6 +202,18 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
           </g>
         )
       })}
+
+      {/* The tutorial's rails: the one hex the step sends the piece to — the "drop here" look, over the whole template */}
+      {highlight?.target && (() => {
+        const { x, y } = at(highlight.target)
+        const colour = highlight.kind === 'cast' ? castTint : player
+        return (
+          <g data-rails-target={hexKey(highlight.target)} transform={`translate(${x} ${y})`} pointerEvents="none">
+            <polygon points={hexCorners(0, 0, HEX * 1.16)} fill="none" stroke={colour} strokeWidth={0.26} strokeOpacity={colours.dropStrength} strokeLinejoin="round" />
+            <polygon points={hexCorners(0, 0, HEX * 0.97)} fill={colour} opacity={colours.dropStrength} />
+          </g>
+        )
+      })()}
 
       {/* "Drop here" marks, one per option kind, hidden until a drag is over a legal hex (dropTarget.ts moves them).
           The hex fills bright AND a glow ring spills past its edge, so it still shows round the piece floating over it. */}

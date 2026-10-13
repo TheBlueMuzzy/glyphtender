@@ -42,7 +42,7 @@ describe('the rails limit', () => {
     expect(playReferee({ ...quiet, game }).judge(game.current, NEW_GLYPHLING, other)).toEqual({ ok: false, reason: 'Drag your glyphling to the glowing hex.' })
   })
 
-  it('a move step: only that glyphling, only to that hex — its hex glows before it is picked up; the other one shakes', () => {
+  it('a move step: only that glyphling, only to that hex — its whole template glows (that hex extra bright) before it is picked up; the other one shakes', () => {
     const game = afterDraft()
     const mine = { kind: 'glyphling', id: 0 } as const
     const to = railsHex(rails.turn1.to)
@@ -50,7 +50,9 @@ describe('the rails limit', () => {
     setRails({ piece: mine, to, reason: 'Drag your glyphling here.' }, false)
     expect(lit(game, mine)).toEqual([hexKey(to)])
     expect(lit(game, { kind: 'glyphling', id: 1 })).toEqual([])
-    expect(highlightFor(game, null, null)?.hexes.map(hexKey)).toEqual([hexKey(to)]) // (nothing held: the step's piece)
+    const glow = highlightFor(game, null, null)! // (nothing held: the step's piece — what it COULD do, its one hex bright)
+    expect(glow.hexes.map(hexKey).sort()).toEqual(legalMoves(game, 0).map(hexKey).sort())
+    expect(glow.target && hexKey(glow.target)).toBe(hexKey(to))
     expect(nopeFor({ ...quiet, game }, { glyph: 1 })).toEqual({ kind: 'glyph', key: '1' })
     expect(nopeFor({ ...quiet, game }, { glyph: 0 })).toBeNull()
   })
@@ -64,7 +66,9 @@ describe('the rails limit', () => {
     expect(lit(game, { kind: 'seed', id: c }, move)).toEqual([hexKey(plant)])
     const other = game.hands[rails.you].find((s) => s.id !== c)!.id
     expect(lit(game, { kind: 'seed', id: other }, move)).toEqual([])
-    expect(highlightFor(game, move, null)?.hexes.map(hexKey)).toEqual([hexKey(plant)])
+    const glow = highlightFor(game, move, null)!
+    expect(glow.hexes.length).toBeGreaterThan(1)
+    expect(glow.target && hexKey(glow.target)).toBe(hexKey(plant))
   })
 
   it('the refresh step: only its seeds may be set aside; Refresh only once they all are; never Keep all', () => {

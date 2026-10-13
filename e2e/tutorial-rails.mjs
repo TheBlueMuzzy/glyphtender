@@ -132,12 +132,16 @@ try {
         const live = liveHex ? document.querySelector(`.game-garden > polygon[data-hex="${liveHex}"]`) : null
         const edge = Math.min(b.l, b.t, innerWidth - b.r, innerHeight - b.b)
         const glowing = [...document.querySelectorAll('.game-garden [data-option] polygon[data-hex]')].map((p) => p.getAttribute('data-hex'))
-        return { glowing, count: bubbles.length, coversTarget: !!target && over(b, box(target)), coversLive: !!live && over(b, box(live)), edge: Math.round(edge) }
+        const railsTarget = document.querySelector('[data-rails-target]')?.getAttribute('data-rails-target') ?? null
+        return { glowing, railsTarget, count: bubbles.length, coversTarget: !!target && over(b, box(target)), coversLive: !!live && over(b, box(live)), edge: Math.round(edge) }
       }, liveHex ?? null)
       ok(geo.count === 1, `  one callout (${geo.count})`)
       if (liveHex) {
-        const only = !manyGlow
+        // The draft: only the live hex glows. A move or a plant: the piece's whole template, the live hex extra bright
+        // (Muzzy, 2026-10-13: "show them what they COULD do")
+        const only = id.startsWith('draft') && !manyGlow
         ok(geo.glowing.includes(liveHex) && (only ? geo.glowing.length === 1 : geo.glowing.length > 1), `  the board glows at ${only ? 'only the live hex' : 'every hex it could go to'} (${geo.glowing.length} lit)`)
+        if (!only) ok(geo.railsTarget === liveHex, `  …the live hex extra bright (${geo.railsTarget})`)
       }
       ok(!geo.coversTarget, '  it does not cover its target')
       if (liveHex) ok(!geo.coversLive, '  it does not cover the live hex')
@@ -163,6 +167,8 @@ try {
     }, draftHexes[0])
     await drag(page.locator('[data-draft="next"] image'), hex(wrong))
     ok(await state('(s) => s.game.glyphlings.length') === 0, '  a drop on another hex is refused (nothing placed)')
+    await tap(page.locator(`.game-garden > polygon[data-hex="${draftHexes[0]}"]`))
+    ok(await state('(s) => s.game.glyphlings.length === 0 && s.nope?.kind === "draft"'), '  a TAP on the glowing hex places nothing — drag only (the tray glyphling shakes)')
     await drag(page.locator('[data-draft="next"] image'), hex(draftHexes[0]))
     ok(await state('(s) => s.game.glyphlings.length') === 1, '  the drop on the glowing hex places it')
     await expectStep('draft2', { liveHex: draftHexes[1] })
@@ -199,6 +205,9 @@ try {
     const notC = await state(`(s) => s.game.hands[${rails.you}].find((p) => p.id !== '${c}').id`)
     await drag(page.locator(`[data-hand="${notC}"] image`), hex(plant1))
     ok(await state('(s) => s.cast === null'), '  another seed is refused')
+    await tap(page.locator(`[data-hand="${notC}"]`))
+    ok(await state(`(s) => s.selected?.id !== '${notC}'`), "  …a tap doesn't pick it up either")
+    ok(await page.locator(`[data-rails-target="${plant1}"]`).count() === 1, '  …and the bright hex stays')
     await drag(page.locator(`[data-hand="${c}"] image`), hex(plant1))
     ok(await state(`(s) => s.cast?.seed === '${c}'`), `  the ${rails.turn1.seed} is aimed at the glowing hex`)
     await expectStep('plant1')
@@ -231,7 +240,10 @@ try {
     const aiPlant = await keyOf(rails.aiTurn1.plant)
     ok(await state(`(s) => s.game.glyphlings.some((g) => g.seat === ${rails.ai.seat} && g.hex.q + ',' + g.hex.r === '${aiTo}')`), '  Sprout moved where the script says')
     ok(await state(`(s) => s.game.seeds['${aiPlant}']?.letter`) === rails.aiTurn1.seed, `  …and planted its ${rails.aiTurn1.seed} there`)
-    await drag(page.locator('[data-glyph="0"]'), hex(to2))
+    // either of your glyphlings may go there (Muzzy, 2026-10-13): the phone run drags the OTHER one
+    const turn2Glyph = size.name === 'phone' ? 1 : 0
+    await drag(page.locator(`[data-glyph="${turn2Glyph}"]`), hex(to2))
+    ok(await state(`(s) => s.move?.glyphling === ${turn2Glyph}`), `  glyphling ${turn2Glyph} moved there`)
     const plant2 = await keyOf(rails.turn2.plant)
     await expectStep('seed2', { liveHex: plant2 })
     await drag(page.locator(`[data-hand="${await seedId(rails.turn2.seed)}"] image`), hex(plant2))

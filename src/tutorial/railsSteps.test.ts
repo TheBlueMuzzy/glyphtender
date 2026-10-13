@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { hexKey } from '../engine/hex'
+import { legalMoves } from '../engine/engine'
 import { parseWordList } from '../engine/words'
 import type { Action, GameState } from '../engine/types'
 import { railsRefuses } from '../store/railsLimit'
@@ -83,8 +84,12 @@ describe('the rails steps', () => {
         const moveStep = currentRailsStep(at(game, { seen: new Set(['lines', 'block']) }))!
         const limit = moveStep.limit(at(game))
         expect(railsRefuses({ kind: 'glyphling', id: a.glyphling }, { kind: 'hex', hex: a.to }, limit)).toBeNull()
+        // turn 1: only that glyphling; turn 2: either of yours, to the same hex (Muzzy, 2026-10-13)
         const other = game.glyphlings.find((g) => g.seat === rails.you && g.id !== a.glyphling)!
-        expect(railsRefuses({ kind: 'glyphling', id: other.id }, { kind: 'hex', hex: a.to }, limit)).not.toBeNull()
+        const otherOk = railsRefuses({ kind: 'glyphling', id: other.id }, { kind: 'hex', hex: a.to }, limit) === null
+        expect(otherOk).toBe(game.turnCount > 1)
+        const elsewhere = legalMoves(game, a.glyphling).find((h) => hexKey(h) !== hexKey(a.to))!
+        expect(railsRefuses({ kind: 'glyphling', id: a.glyphling }, { kind: 'hex', hex: elsewhere }, limit)).not.toBeNull()
         const seedStep = currentRailsStep(at(game, { move: plan.move, seen: new Set(['overOwn']) }))!
         const seedLimit = seedStep.limit(at(game, { move: plan.move }))
         expect(railsRefuses({ kind: 'seed', id: a.seed! }, { kind: 'hex', hex: a.target! }, seedLimit)).toBeNull()

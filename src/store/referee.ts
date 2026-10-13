@@ -44,8 +44,9 @@ type RefereeState = Pick<GameStore, 'game' | 'move' | 'seats' | 'flying' | 'wait
 export const playReferee = (s: RefereeState): Referee<Piece, Target> =>
   refereeFor(s, (seat) => seat === s.game?.current && canPlayNow(s))
 
-/** A referee for this moment of the game. `mayAct` = may this seat act at all right now. */
-export function refereeFor(s: { game: GameState | null; move: PlannedMove | null }, mayAct: (seat: number) => boolean): Referee<Piece, Target> {
+/** A referee for this moment of the game. `mayAct` = may this seat act at all right now. `rails` false = the rules
+ *  alone, without the tutorial's rails (only the glow asks that way: the template of what you COULD do). */
+export function refereeFor(s: { game: GameState | null; move: PlannedMove | null }, mayAct: (seat: number) => boolean, rails = true): Referee<Piece, Target> {
   const { game, move } = s
   // The live rules' lists, worked out once per referee (the glow asks about every hex of the board)
   const lists = new Map<string, Set<string>>()
@@ -60,7 +61,7 @@ export function refereeFor(s: { game: GameState | null; move: PlannedMove | null
     accepts: (piece, target) => target.kind === 'hex' || piece.kind === 'seed',
     check: (seat, piece, target) => {
       if (!game) return 'There is no game'
-      const offRails = railsRefuses(piece, target) // (the tutorial's rails: only the step's piece → target — railsLimit.ts)
+      const offRails = rails && railsRefuses(piece, target) // (the tutorial's rails: only the step's piece → target — railsLimit.ts)
       if (offRails) return offRails
       // (placing one is a whole action: the same check the server makes)
       if (piece.kind === 'newGlyphling') return target.kind === 'hex' ? checkFor(game, seat, { type: 'draft', hex: target.hex }) : "That can't go there"

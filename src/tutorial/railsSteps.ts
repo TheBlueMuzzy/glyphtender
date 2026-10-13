@@ -1,13 +1,12 @@
 // THE RAILS' STEPS (F76, design/tutorial.md §2) — the tutorial game's draft and your first 2 turns, as a plain list.
 // Each step says WHEN it is the one (from the game and the turn being planned), what its ONE callout points at (a CSS
 // selector) and says (content/text/en.json → tutorial.rails), and the rails limit while it's up (railsLimit.ts: the one
-// piece → hex the referee allows, so the board's own glow shows only the live target). A step with a button is a
+// piece → hex the referee allows; the board glows the piece's whole template, that hex extra bright). A step with a button is a
 // pause: it HOLDS the game (nobody may act, Sprout doesn't start) until its button is tapped — "Next" for an info line,
 // "Got it" / "Play" for the two big pauses, which also dim the rest. Sprout's own steps have no callout: it plays its
 // script (railsAction). The current step = the first one whose `when` holds and whose button hasn't been tapped yet;
 // none = the rails are over (free play). Every hex and letter comes from content/tutorial/rails.json (rails.ts).
 import text from '../../content/text/en.json'
-import { legalMoves } from '../engine/engine'
 import { hexKey } from '../engine/hex'
 import type { GameState } from '../engine/types'
 import type { RailsLimit } from '../store/railsLimit'
@@ -64,6 +63,8 @@ const yourOther = railsGlyphling(you, rails.turn1.glyphling === 'first' ? 'secon
 const yourTurn2 = railsGlyphling(you, rails.turn2.glyphling)
 /** Sprout's glyphling on the hex that stops your turn-1 line short. */
 const blocker = railsGlyphling(ai, rails.draft.ai.indexOf(rails.turn1.blockedAt) === 1 ? 'second' : 'first')
+/** Sprout's glyphling your turn-1 seed blocks. */
+const blocked = railsGlyphling(ai, rails.draft.ai.indexOf(rails.turn1.blocks) === 1 ? 'second' : 'first')
 
 // ─── The limits ───
 const reason = (key: RailsWords) => words[key]
@@ -73,17 +74,23 @@ const draftLimit = (game: GameState): RailsLimit => {
   return { piece: NEW_GLYPHLING, to: railsHex(rails.draft.you[placed]), reason: reason(placed === 0 ? 'draft1' : 'draft2') }
 }
 const move1: RailsLimit = { piece: { kind: 'glyphling', id: yourFirst }, to: railsHex(rails.turn1.to), reason: reason('move1') }
-/** While the straight-lines pauses are up, every hex it could move to glows — one line stops short at Sprout's glyphling. */
-const lines = (s: StepState): RailsLimit => ({ ...move1, shows: legalMoves(s.game, yourFirst) })
 const seed1 = (game: GameState): RailsLimit =>
   ({ piece: { kind: 'seed', id: seedIdOf(game, you, rails.turn1.seed) }, to: railsHex(rails.turn1.plant), reason: reason('seed1') })
 const refreshLimit = (game: GameState): RailsLimit => ({
   piece: null, to: null, reason: reason('swap'),
   setAside: rails.turn1.refresh.map((letter) => seedIdOf(game, you, letter)),
 })
-const move2: RailsLimit = { piece: { kind: 'glyphling', id: yourTurn2 }, to: railsHex(rails.turn2.to), reason: reason('move2') }
+/** Turn 2: either of your glyphlings may go there (both can plant the A between C and T from it — rails.test.ts). */
+const move2: RailsLimit = {
+  piece: { kind: 'glyphling', id: yourTurn2 }, alsoPiece: { kind: 'glyphling', id: railsGlyphling(you, rails.turn2.glyphling === 'first' ? 'second' : 'first') },
+  to: railsHex(rails.turn2.to), reason: reason('move2'),
+}
+/** Turn 2: the glyphling you moved (either one). */
+const movedOnTurn2 = (s: StepState) => s.game.lastTurn?.seat === you ? s.game.lastTurn.glyphlingId : yourTurn2
 const seed2 = (game: GameState): RailsLimit =>
   ({ piece: { kind: 'seed', id: seedIdOf(game, you, rails.turn2.seed) }, to: railsHex(rails.turn2.plant), reason: reason('seed2') })
+/** "Your seed blocks Blue's glyphling": its room glows, so you see the line your seed cut off. */
+const blocksLimit = (game: GameState): RailsLimit => ({ ...refreshLimit(game), showMoves: blocked })
 const SPROUT: RailsLimit = { piece: null, to: null, reason: 'Sprout is playing its scripted turn' }
 
 // ─── When ───
@@ -109,14 +116,14 @@ export const RAILS_STEPS: RailsStepDef[] = [
   // Sprout's draft, turn 1 and Keep all: it plays its script, nothing to say
   { id: 'sprout', when: sprouts, limit: () => SPROUT },
   // Your turn 1 — move, plant
-  { id: 'lines', when: both(at('turn1'), noMove), target: () => glyph(yourFirst), text: 'lines', limit: lines, button: 'next' },
-  { id: 'block', when: both(at('turn1'), noMove), target: () => glyph(blocker), text: 'block', limit: lines, button: 'next' },
+  { id: 'lines', when: both(at('turn1'), noMove), target: () => glyph(yourFirst), text: 'lines', limit: () => move1, button: 'next' },
+  { id: 'block', when: both(at('turn1'), noMove), target: () => glyph(blocker), text: 'block', limit: () => move1, button: 'next' },
   { id: 'move1', when: both(at('turn1'), noMove), target: () => hexAt(rails.turn1.to), text: 'move1', limit: () => move1 },
   { id: 'overOwn', when: both(at('turn1'), moved), target: () => glyph(yourOther), text: 'overOwn', limit: (s) => seed1(s.game), button: 'next' },
   { id: 'seed1', when: both(at('turn1'), moved), target: (s) => handSeed(s.game, rails.turn1.seed), text: 'seed1', values: { letter: rails.turn1.seed }, limit: (s) => seed1(s.game) },
   { id: 'plant1', when: both(at('turn1'), aimed), target: () => PLANT, text: 'plant1', limit: () => nothing('plant1') },
   // …the refresh after it: no word, so swap
-  { id: 'blocks', when: at('refresh1'), target: () => seedAt(rails.turn1.plant), text: 'blocks', limit: (s) => refreshLimit(s.game), button: 'next' },
+  { id: 'blocks', when: at('refresh1'), target: () => seedAt(rails.turn1.plant), text: 'blocks', limit: (s) => blocksLimit(s.game), button: 'next' },
   { id: 'noWord', when: at('refresh1'), target: () => TRAY, text: 'noWord', limit: (s) => refreshLimit(s.game), button: 'gotIt' },
   {
     id: 'swap', when: both(at('refresh1'), (s) => !allSetAside(s)), text: 'swap',
@@ -133,7 +140,7 @@ export const RAILS_STEPS: RailsStepDef[] = [
   { id: 'preview', when: both(at('turn2'), aimed), target: () => PLANT, text: 'preview', limit: () => nothing('preview') },
   // …it scored: what the numbers meant, then you're on your own
   { id: 'counts', when: afterTurn2, target: () => seedAt(rails.turn1.plant), text: 'counts', limit: () => nothing('counts'), button: 'next', placement: 'top' }, // (at your C, above it: the whole word stays in view)
-  { id: 'secret', when: afterTurn2, target: () => glyph(yourTurn2), text: 'secret', limit: () => nothing('secret'), button: 'next' },
+  { id: 'secret', when: afterTurn2, target: (s) => glyph(movedOnTurn2(s)), text: 'secret', limit: () => nothing('secret'), button: 'next' },
   { id: 'handOver', when: afterTurn2, target: () => TRAY, text: 'handOver', limit: () => nothing('handOver'), button: 'play' },
 ]
 

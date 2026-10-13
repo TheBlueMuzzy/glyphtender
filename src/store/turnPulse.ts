@@ -5,7 +5,7 @@
 import { movableGlyphlings } from '../engine/rules'
 import type { GameStore } from './gameStore'
 import { isMyTurn } from './myTurn'
-import { railsLimit } from './railsLimit'
+import { railsLimit, railsPiece } from './railsLimit'
 
 type PulseState = Pick<GameStore, 'game' | 'move' | 'selected' | 'flying' | 'waiting' | 'handoff' | 'seats'> & Partial<Pick<GameStore, 'trail'>>
 
@@ -16,6 +16,6 @@ export function pulsingGlyphlings(s: PulseState): number[] {
   const held = s.selected?.kind === 'glyphling' ? s.selected.id : null
   // (on the tutorial's rails only the step's own glyphling pulses — none while the step is about something else)
   const rails = railsLimit()
-  const railsOnly = (id: number) => !rails || (rails.piece?.kind === 'glyphling' && rails.piece.id === id)
+  const railsOnly = (id: number) => !rails || railsPiece({ kind: 'glyphling', id }, rails)
   return movableGlyphlings(game, game.current).filter((id) => id !== held && railsOnly(id)) // (the rules: theirs, and not tangled)
 }
