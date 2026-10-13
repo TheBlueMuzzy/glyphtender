@@ -14,7 +14,9 @@ import { fill } from './words'
 //          primary: true marks the main button(s); if none is marked, the first one is.
 //   or the named ones (onContinue, onPlay, onSettings…): shown in that fixed order. Ignored when items is given.
 export const mainMenuWords = { continue: 'Continue', play: 'Play', settings: 'Settings', howToPlay: 'How to play', credits: 'Credits', quit: 'Quit' }
-export type MainMenuItem = { label: string; onClick: () => void; primary?: boolean }
+// locked: true = greyed like a disabled button, but a tap still calls onClick, so the game can say why
+// (e.g. a Callout: "Finish your first game to unlock this"). Screen readers hear it as unavailable.
+export type MainMenuItem = { label: string; onClick: () => void; primary?: boolean; locked?: boolean }
 type MainMenuProps = {
   title: string; subtitle?: string; version?: string; children?: ReactNode // children: extra buttons
   items?: MainMenuItem[]
@@ -40,7 +42,8 @@ export function MainMenu({ title, subtitle, version, children, items, words, ...
         </Stack>
         <Stack gap="s" className="kit-main-menu-buttons">
           {buttons.map((item, i) => (
-            <Button key={`${i}-${item.label}`} variant={isPrimary(item, i) ? 'primary' : 'secondary'} onClick={item.onClick}>{item.label}</Button>
+            <Button key={`${i}-${item.label}`} variant={isPrimary(item, i) ? 'primary' : 'secondary'} onClick={item.onClick}
+              sound={item.locked ? false : undefined} aria-disabled={item.locked || undefined} data-locked={item.locked || undefined}>{item.label}</Button>
           ))}
           {children && <div className="kit-main-menu-extra">{children}</div>}
         </Stack>
@@ -80,9 +83,10 @@ export function ModeSelect({ modes, value, onChange, onStart, onBack = () => scr
 }
 
 // HOW TO PLAY — pages you flip through (a title, a picture, a few lines each).
-export const howToPlayWords = { title: 'How to play', next: 'Next', back: 'Back', done: 'Got it', page: 'Page {n} of {total}' }
+// onSkip: a Skip button on every page but the last (e.g. a first-game overview: Skip goes straight to the game).
+export const howToPlayWords = { title: 'How to play', next: 'Next', back: 'Back', done: 'Got it', skip: 'Skip', page: 'Page {n} of {total}' }
 type HowToPage = { title: string; body: ReactNode; image?: string }
-export function HowToPlay({ pages, onDone = () => screens.pop(), words }: { pages: HowToPage[]; onDone?: () => void; words?: Partial<typeof howToPlayWords> }) {
+export function HowToPlay({ pages, onDone = () => screens.pop(), onSkip, words }: { pages: HowToPage[]; onDone?: () => void; onSkip?: () => void; words?: Partial<typeof howToPlayWords> }) {
   const w = { ...howToPlayWords, ...words }
   const [index, setIndex] = useState(0)
   const page = pages[index]
@@ -97,6 +101,7 @@ export function HowToPlay({ pages, onDone = () => screens.pop(), words }: { page
         <Row gap="s" justify="between">
           <Pips count={pages.length} filled={index + 1} label={fill(w.page, { n: index + 1, total: pages.length })} />
           <Row gap="s">
+            {onSkip && !last && <Button variant="ghost" onClick={onSkip}>{w.skip}</Button>}
             {index > 0 && <Button variant="ghost" sound="back" onClick={() => setIndex(index - 1)}>{w.back}</Button>}
             <Button onClick={() => (last ? onDone() : setIndex(index + 1))}>{last ? w.done : w.next}</Button>
           </Row>

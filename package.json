@@ -46,6 +46,7 @@
     "e2e:ai": "node e2e/ai-play.mjs",
     "e2e:audio": "node e2e/audio-log.mjs",
     "e2e:new-game": "node e2e/new-game-position.mjs",
+    "e2e:tutorial-shell": "node e2e/tutorial-shell.mjs",
     "e2e:drag": "node e2e/drag-styles.mjs",
     "e2e:drag-targets": "node e2e/drag-targets.mjs",
     "shots:record": "node e2e/shots.mjs record",

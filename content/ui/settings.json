@@ -31,7 +31,7 @@
       { "id": "gameSpeed", "type": "selector", "label": "Game speed", "options": ["Slow", "Normal", "Fast"], "default": "Normal", "on": false },
       { "id": "tips", "type": "toggle", "label": "Tips", "detail": "Pop-up help while you play", "default": true },
       { "id": "resetTips", "type": "button", "label": "Reset tips", "detail": "Show every tip again" },
-      { "id": "replayTutorial", "type": "button", "label": "Replay tutorial game", "on": false },
+      { "id": "replayTutorial", "type": "button", "label": "Replay tutorial game" },
       { "id": "confirmEndTurn", "type": "toggle", "label": "Ask before ending a turn", "default": false, "on": false }
     ]},
     { "id": "accessibility", "label": "Accessibility", "rows": [

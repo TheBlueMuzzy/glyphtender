@@ -1,0 +1,9 @@
+{
+  "_help": "The tutorial game's fixed setup (design/tutorial.md §2). Stand-in for now: F76 replaces the seed with a found layout (board, draft hexes, bag order, Blue's turn 1) so every rails step works.",
+  "seed": 20261013,
+  "boardName": "small",
+  "minWordLength": 3,
+  "turnOrder": [0, 1],
+  "you": 0,
+  "ai": { "seat": 1, "personality": "sprout", "skill": "seedling" }
+}

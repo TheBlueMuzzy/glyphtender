@@ -404,6 +404,31 @@
   },
   "tutorial": {
     "_help": "The first game teaches itself (design/tutorial.md). Callouts: one idea, 12 words or fewer, verb first.",
-    "tipsReset": "Every tip will show again"
+    "tipsReset": "Every tip will show again",
+    "locked": "Finish your first game to unlock this.",
+    "unlocked": "Everything's unlocked!",
+    "overview": {
+      "title": "How to play",
+      "next": "Next",
+      "back": "Back",
+      "done": "Let's play!",
+      "skip": "Skip",
+      "page": "Page {n} of {total}",
+      "pages": [
+        { "title": "Move, then plant", "body": "Move one of your glyphlings, then plant a seed from where it lands." },
+        { "title": "Words make Magic", "body": "Spell words to make Magic. Most Magic wins." },
+        { "title": "A tangled garden", "body": "A glyphling that can't move is tangled. The game ends when any 2 glyphlings are tangled." }
+      ]
+    },
+    "leave": {
+      "button": "Leave tutorial",
+      "title": "Leave the tutorial game?",
+      "message": "Everything unlocks. You can replay it from Settings."
+    },
+    "replay": {
+      "title": "Replay the tutorial game?",
+      "message": "This game ends, and the tutorial game starts.",
+      "yes": "Replay"
+    }
   }
 }
