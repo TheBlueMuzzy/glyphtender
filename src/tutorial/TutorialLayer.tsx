@@ -4,35 +4,25 @@
 // plays or a refresh plays out (myTurn.ts isBusy) — and then content/tuning/tutorial.json railsCalloutDelay more (a
 // glide settling). Board targets never get the kit's pulse ring or a dim: the board's own glow (the referee, via the
 // rails limit) is the highlight. A board callout goes away from the live hex, else toward the nearer of the top bar /
-// the tray, so it covers as few board rows as it can (sprint 26 notes).
+// the tray, so it covers as few board rows as it can (sprint 26 notes; tipsPlace.ts). A wrong tap or drop shows the
+// step's callout again (F78). The tips and nudges of free play are HelpLayer.tsx's.
 import { useEffect, useState } from 'react'
 import tutorialFile from '../../content/tuning/tutorial.json'
 import { useLiveTuning } from '../devkit/tuning/liveTuning'
 import { useGameStore } from '../store/gameStore'
 import { isBusy } from '../store/myTurn'
 import { useRails } from '../store/railsLimit'
-import { hexKey, type Hex } from '../engine/hex'
+import type { Hex } from '../engine/hex'
+import { useWrongDrop } from '../store/wrongDrop'
 import { Callout, type CalloutPlacement } from '../ui/kit'
 import { ackRailsStep, startRails, useRailsDirector } from './railsDirector'
 import { useTutorial } from './progress'
 import { railsButton, railsText, type RailsStepDef } from './railsSteps'
+import { calloutPlacement } from './tipsPlace'
 
-/** Where a step's callout goes first: its own choice, else — for a board target — away from the live hex (the one
- *  glowing, when it isn't the target itself), else toward the nearer of the top bar and the tray (above a target in
- *  the board's top half, below one in its bottom half); else below (the tray, buttons). */
+/** Where a step's callout goes first: its own choice, else the tutorial's one rule (tipsPlace.ts). */
 function placementOf(step: RailsStepDef, selector: string, live: Hex | null): CalloutPlacement {
-  if (step.placement) return step.placement
-  const el = document.querySelector(selector)
-  const board = el?.closest('.game-garden')
-  if (!el || !board) return 'top' // (the tray, the buttons: above them, in the prompt's place — the prompt hides while a callout is up)
-  const middle = (box: DOMRect) => (box.top + box.bottom) / 2
-  const r = el.getBoundingClientRect()
-  const liveEl = live && document.querySelector(`.game-garden > polygon[data-hex="${hexKey(live)}"]`)
-  if (liveEl && !el.matches(`[data-hex="${hexKey(live)}"]`)) {
-    const gap = middle(liveEl.getBoundingClientRect()) - middle(r)
-    if (Math.abs(gap) > 1) return gap < 0 ? 'bottom' : 'top'
-  }
-  return middle(r) < middle(board.getBoundingClientRect()) ? 'top' : 'bottom'
+  return step.placement ?? calloutPlacement(selector, live)
 }
 
 export function TutorialLayer() {
@@ -57,6 +47,12 @@ export function TutorialLayer() {
     }
   }, [step, target, busy, tuning])
 
+  // A wrong tap or drop on the rails (the "no" shake, a piece sent home): the step's callout shows again — it pops
+  // back in from its pointer (F78: on the rails, every time)
+  const nopes = useGameStore((s) => s.nope?.count ?? 0)
+  const drops = useWrongDrop((s) => s.last?.count ?? 0)
+  const again = nopes + drops
+
   const up = !!step && !busy && !!shown && shown.id === step.id && shown.target === target
   useEffect(() => {
     useTutorial.setState({ calloutUp: up })
@@ -66,7 +62,7 @@ export function TutorialLayer() {
   const button = railsButton(step)
   const dim = step.button === 'gotIt' || step.button === 'play'
   return (
-    <Callout key={step.id} target={target} text={railsText(step)} placement={shown.placement}
+    <Callout key={`${step.id}-${again}`} target={target} text={railsText(step)} placement={shown.placement}
       action={button} onDismiss={button ? () => ackRailsStep(step.id) : undefined}
       dim={dim} dimAmount={tuning.current.railsDim} label="Tutorial" />
   )

@@ -12,6 +12,8 @@ import { OnlineSession } from './ui/online/OnlineSession'
 import { useOnline } from './ui/online/session'
 import { newGameFromEnd } from './ui/newGame'
 import { getAudio, useMusic } from './audio'
+import { HelpLayer } from './tutorial/HelpLayer'
+import { helpWanted } from './tutorial/tipsPlay'
 
 export default function App() {
   const inGame = useGameStore((s) => s.game !== null)
@@ -24,6 +26,8 @@ export default function App() {
       <ScreenStack screens={menuScreens}>
         {inGame ? <GameScreen onNewGame={newGameFromEnd} /> : online && inLobby ? <LobbyScreen /> : <MainMenuScreen />}
       </ScreenStack>
+      {/* first-time tips + nudges, every game while Settings → Tips is on (src/tutorial/HelpLayer.tsx, F77–F78) */}
+      {inGame && helpWanted() && <HelpLayer />}
       {online && <OnlineSession />}
       <ToastStack />
     </>
