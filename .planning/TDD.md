@@ -94,6 +94,7 @@ flowchart LR
 ## 3. Data the game reads (editable by Muzzy — in Obsidian or the Dev Kit)
 | File | What's in it | Edited with |
 |---|---|---|
+| `content/tutorial/rails.json` · `content/tuning/tutorial.json` | the tutorial game's fixed setup (seed, board, turn order, Sprout's seat — F76 fills in the found layout) · Sprout's habits (selfTangleBy, maxTurns) + tipSeconds; words in `en.json → tutorial`; Sprout / Seedling are `hidden: true` in content/ai (v0.14) | Obsidian · Dev Kit Tuning → Tutorial |
 | `content/data/boards.json` | board shapes (column heights), default board per player count | Obsidian |
 | `content/data/bag.json` | seed counts per letter (a plain `Q` since D47) | Obsidian / Dev Kit → Tuning |
 | `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer: a hunt over your turns took ≥ 75% of a ≥ 8-move glyphling's room (D68), weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
