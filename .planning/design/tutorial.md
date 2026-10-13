@@ -121,7 +121,7 @@ Each idle nudge shows ≤ `idleRepeat` (3) times per game, then it stops. **Late
 - **While in Explore:** no tips and no nudges. A tutorial pause that comes due waits until you leave Explore. If the thing a callout points at moves or disappears (online), the callout closes.
 
 ## 7. What's tuneable (content/tuning/tutorial.json)
-`overviewCards` · `tipSeconds` 8 · `tipsPerTurn` 1 · `maxPauses` 4 · `idleGlow` 10 · `idleText` 20 · `idleRepeat` 3 · `laterIdleText` 30 · `wrongRepeat` 3 · `exploreRemind` 15 · `selfTangleBy` 6 · `dimAmount` (rails / Explore) · the rails layout (content/tutorial/rails.json — the board, the draft hexes, the bag order, Blue's turn 1).
+`overviewCards` · `tipSeconds` 8 · `tipsPerTurn` 1 · `maxPauses` 4 · `idleGlow` 6 · `idleText` 12 (Muzzy 2026-10-13: "a little long"; were 10 · 20) · `idleRepeat` 3 · `laterIdleText` 30 · `wrongRepeat` 3 · `exploreRemind` 15 · `selfTangleBy` 6 · `dimAmount` (rails / Explore) · the rails layout (content/tutorial/rails.json — the board, the draft hexes, the bag order, Blue's turn 1).
 
 ## Muzzy's answers (2026-10-13)
 - Explore is a **must** — "it's useful… there's not that much to tap on after all."
