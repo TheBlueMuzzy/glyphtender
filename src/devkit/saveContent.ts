@@ -7,14 +7,18 @@
  */
 export const CAN_SAVE = import.meta.env.DEV
 
-/** Write a content/ JSON file through the dev server (vite-plugins/devkit/devkitVite.ts). Throws with a plain reason. */
-export async function saveContentFile(path: string, data: object): Promise<void> {
+/**
+ * Write a content/ JSON file through the dev server (vite-plugins/devkit/devkitVite.ts). Throws with a plain reason.
+ * Normally the game is NOT reloaded for the file (it already shows the tool's live values). reload: true = let Vite
+ * hot-reload it like a hand edit — for files the game only reads at load time (the Text tab: content/text/en.json).
+ */
+export async function saveContentFile(path: string, data: object, options: { reload?: boolean } = {}): Promise<void> {
   let res: Response
   try {
     res = await fetch('/__devkit/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path, data }),
+      body: JSON.stringify(options.reload ? { path, data, reload: true } : { path, data }),
     })
   } catch {
     throw new Error('the dev server is not reachable (is npm run dev still running?)')

@@ -1,0 +1,37 @@
+/* Text tool rows. Plain developer-tool styling (see devkit.css); shares the Tuning tab's dot, ↺ and notes (tuning.css). */
+.tx-note { margin: 2px 0 6px; }
+.tx-sub { margin-left: 8px; padding-left: 6px; border-left: 1px solid #2a2b35; } /* a sub-section, indented */
+.tx-sub .dk-section { border-bottom: none; }
+
+/* name + key on a line (wrapping), then the box full width with ↺ beside it */
+.tx-row { padding: 6px 0; border-bottom: 1px solid #25262f; min-width: 0; }
+.tx-name { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.tx-label { font-weight: 600; }
+.tx-key { font: 11px ui-monospace, Consolas, monospace; color: #8a8b9b; overflow-wrap: anywhere; }
+.tx-edit { display: grid; grid-template-columns: 1fr 30px; gap: 6px; align-items: start; margin-top: 3px; }
+.devkit textarea.tx-box {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 34px;
+  resize: none;
+  overflow: hidden; /* it grows to fit instead of scrolling (TextRow.tsx) */
+  field-sizing: content;
+  background: #0f1015;
+  color: #e8e8ee;
+  border: 1px solid #3a3c4a;
+  border-radius: 5px;
+  padding: 6px 8px;
+  font: 16px/1.35 system-ui, -apple-system, 'Segoe UI', sans-serif; /* 16 px or more: phones don't zoom in on tap */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.devkit textarea.tx-box:focus { outline: 2px solid #2f6fed; outline-offset: -1px; }
+.tx-row.is-changed .tx-box { border-color: #ffb020; background: #1f1a0e; }
+.tx-fills { margin: 3px 0 0; font-size: 11px; color: #9a9bab; }
+.tx-fills code { margin-left: 4px; font: 11px ui-monospace, Consolas, monospace; color: #c9cad6; }
+.tx-warn { margin: 3px 0 0; font-size: 12px; color: #ffb35c; }
+.tx-row-fixed { display: flex; flex-direction: column; gap: 2px; }
+.tx-fixed { font: 12px ui-monospace, Consolas, monospace; color: #c9cad6; }
+.tx-count { width: 100%; margin: 0; font-size: 12px; color: #c9cad6; }

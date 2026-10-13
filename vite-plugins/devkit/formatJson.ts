@@ -3,7 +3,8 @@
 // (devkitVite.ts), which hands it the file as it is on disk now.
 //
 // 1. KEEP WHAT THE FILE HAD. Every object and list that was already in the file stays the way it was written:
-//    on one line, or spread over lines. Every value keeps its exact spelling if it didn't change (1.0 stays 1.0,
+//    on one line, or spread over lines — a one-line one also keeps its spacing ({"a": 1} stays tight, { "a": 1 }
+//    stays padded; [1,2] stays [1,2]). Every value keeps its exact spelling if it didn't change (1.0 stays 1.0,
 //    "\u00a0" stays "\u00a0"). Things are found by their place in the file ("ai.personality.Bully", "shifts.2").
 // 2. ANYTHING NEW follows a rule of thumb (2 spaces, like a hand-written file):
 //    - a list of only numbers / true / false / null: one line                   [8, 6, 4, 2, 1]
@@ -17,7 +18,7 @@
 export const LINE_LIMIT = 120
 
 /** How the old file was written, by place: objects / lists → one line or not; plain values → their exact text. */
-export type Layout = Map<string, { oneLine?: boolean; raw?: string }>
+export type Layout = Map<string, { oneLine?: boolean; raw?: string; pad?: boolean; comma?: string }>
 
 type Key = string | number
 type Entry = [key: string | null, value: unknown] // key = null for a list item
@@ -52,6 +53,8 @@ export function readLayout(text: string): Layout {
       const startLine = line
       const close = open === '{' ? '}' : ']'
       at++
+      const pad = text[at] === ' ' // { "a": 1 } or {"a": 1}
+      let comma: string | undefined // what follows each comma: ", " or ","
       skipSpace()
       if (text[at] === close) at++
       else {
@@ -68,9 +71,11 @@ export function readLayout(text: string): Layout {
           readValue([...path, key])
           skipSpace()
           if (text[at++] !== ',') break // } or ] ends it
+          comma ??= text[at] === ' ' ? ', ' : ','
         }
       }
-      layout.set(placeOf(path), { oneLine: line === startLine })
+      const oneLine = line === startLine
+      layout.set(placeOf(path), oneLine ? { oneLine, pad, comma } : { oneLine })
       return
     }
     const start = at
@@ -123,7 +128,11 @@ function writer(layout: Layout) {
       return (k === null ? '' : `${plainText(k)}: `) + (isPlain(v) ? plain(v, at) : joined(v as object, at))
     })
     if (parts.length === 0) return Array.isArray(value) ? '[]' : '{}'
-    return Array.isArray(value) ? `[${parts.join(', ')}]` : `{ ${parts.join(', ')} }`
+    // The file's own spacing if it had this one; new ones: { "a": 1 } and [1, 2]
+    const had = layout.get(placeOf(path))
+    const comma = had?.comma ?? ', '
+    const space = (had?.pad ?? !Array.isArray(value)) ? ' ' : ''
+    return Array.isArray(value) ? `[${space}${parts.join(comma)}${space}]` : `{${space}${parts.join(comma)}${space}}`
   }
 
   /** Any value at this indent; `lead` = how many characters come before it on its line. */

@@ -11,7 +11,9 @@
 //      exception: bug captures (the Bug capture tab) go in .planning/bugs/, where /bug keeps them.
 //      A missing folder is refused, except the two the Dev Kit's own tools fill (MADE_ON_FIRST_SAVE).
 //      Files are written like hand-written JSON (formatJson.ts: 2 spaces, short objects / lists on one line), and a "_help" note already
-//      in the file is kept even if the tool didn't send it.
+//      in the file is kept even if the tool didn't send it. A save that changes nothing doesn't touch the file.
+//      The game is not hot-reloaded for a saved file (it already shows the tool's live values) — unless the body
+//      says "reload": true (the Text tab: the game reads its words at load time, so Vite's reload shows them).
 //   3. The Sound tab's two endpoints, dev server only (audioSave.ts): POST /__devkit/save-audio (a dropped-in sound →
 //      MP3 in public/audio/<folder>/, nowhere else) and POST /__devkit/add-credit (appends to content/credits.json).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -167,7 +169,7 @@ export function devkit(): Plugin {
         req.on('end', () => {
           try {
             // Join the raw bytes first, so a character split across two chunks (like "—") stays whole
-            const { path, data } = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+            const { path, data, reload } = JSON.parse(Buffer.concat(chunks).toString('utf8'))
             const isCapture = isAllowedBugCapturePath(path)
             if (!isAllowedContentPath(path) && !isCapture) return reply(400, { error: `Not allowed: only .json files inside content/, or bug captures in .planning/bugs/ (got ${path})` })
             if (typeof data !== 'object' || data === null || Array.isArray(data)) return reply(400, { error: 'data must be a JSON object' })
@@ -183,8 +185,12 @@ export function devkit(): Plugin {
             // The file as it is now: its _help note is kept, and so is its layout (formatJson.ts)
             const oldText = existsSync(file) ? readFileSync(file, 'utf8') : undefined
             const existing = oldText === undefined ? null : JSON.parse(oldText)
-            justWrote.set(fileKey(file), Date.now())
-            writeFileSync(file, formatJson(keepHelp(existing, data), oldText))
+            const newText = formatJson(keepHelp(existing, data), oldText)
+            if (newText === oldText) return reply(200, { ok: true, path, unchanged: true }) // nothing to write
+            // reload: true (the Text tab) = let Vite hot-reload the game for it, like a hand edit; else skip that reload
+            if (reload === true) justWrote.delete(fileKey(file))
+            else justWrote.set(fileKey(file), Date.now())
+            writeFileSync(file, newText)
             server.config.logger.info(`[devkit] saved ${path}`, { timestamp: true })
             reply(200, { ok: true, path })
           } catch (e) {
