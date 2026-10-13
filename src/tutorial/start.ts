@@ -18,7 +18,7 @@ export function startTutorialGame() {
   useGameStore.getState().startGame({
     players: 2, boardName: rails.boardName, seed: rails.seed, turnOrder: rails.turnOrder,
     minWordLength: rails.minWordLength, hideSeeds: false, wordIndicators: true,
-    extraWords: { british: false, vulgar: false },
+    extraWords: { british: false, vulgar: false }, stack: rails.stack,
     bots: [rails.ai.seat], ai: { [rails.ai.seat]: { personality: rails.ai.personality, skill: rails.ai.skill } },
   })
 }
