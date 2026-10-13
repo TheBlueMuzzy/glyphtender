@@ -249,14 +249,14 @@ Goal: the word list is fair — no slurs or swears, nothing missing by mistake, 
 
 ## v0.14 — The first game teaches itself  ← current  (→ 1.0)  · defined 2026-10-12
 Goal: a brand-new player opens the link, plays one game against a gentle AI and knows how to play — taught in the moment, never a wall of text; everything else unlocks after. Design: [design/tutorial.md](design/tutorial.md).
-- 🔨 F72 🎮 "Plant" everywhere: every player-facing "cast" → "plant" (Plant · +5, prompts, How to play, Dev Kit labels, GDD); code names stay — must:1.0
+- 🔨 F72 🎮 "Plant" everywhere: every player-facing "cast" → "plant" (Plant +5, prompts, How to play, Dev Kit labels, GDD); code names stay — must:1.0
   why: one name for one action; a garden word → a new player reads "plant" and knows what happens
 - 🔨 F73 🧱 Callouts + tips (framework-first: ui-kit **Callout** — rounded rectangle + pointer aimed at an element or a board point, never covers it, fits on screen; a tips store: seen once, Tips switch, Reset tips) + Settings → Tips · Reset tips — must:1.0
 - 🔨 F74 🧱 Tutorial game shell: brand-new player → Play → 3 overview cards → the tutorial game (you Yellow, first, vs 1 AI, fixed board + bag from content/tutorial/rails.json); locks on online · New Game · pass-and-play ("Finish your first game to unlock this"); Leave tutorial (confirm) or finish → unlocked; players who already played count as done; Settings → Replay tutorial game — must:1.0
   why: one game at a time, the first one teaches → nobody starts online not knowing the rules
 - 🔨 F75 🎮 Tutorial AI "Sprout" (hidden personality, name ✅ Muzzy): Apprentice + the smallest vocabulary; PREFERS to tangle ONE glyphling from mid-game (next to your pieces when it can) and to keep its other one free — preferences only: it always plays a legal turn, even one that tangles itself — must:1.0 · needs: F74
   why: the tangle lesson always comes up, and ending the game stays the player's call → Secret-Magic tension
-- ⏳ F76 🎮 The rails: draft + turn 1 (move, blocked path, plant over your own piece, block Blue, refresh) + turn 2 (first word C-A-T, Plant · +5, +2 / +1 pops, secret Magic) + hand-over — one live target, the rest dimmed; layout found by a script so every step works — must:1.0 · needs: F72, F73, F74
+- ⏳ F76 🎮 The rails: draft + turn 1 (move, blocked path, plant over your own piece, block Blue, refresh) + turn 2 (first word C-A-T, Plant +5, +2 / +1 pops, secret Magic) + hand-over — one live target, the rest dimmed; layout found by a script so every step works — must:1.0 · needs: F72, F73, F74
   why: 12 of 14 must-knows in 2 turns, with no way to go wrong → Cozy cleverness from turn 3
 - ⏳ F77 🎮 Tips in play: the 10 first-time tips + 3 pauses (you create · tangled · one to go), 1 per turn — must:1.0 · needs: F73, F75, ~F76
   why: each rule arrives the moment it matters → "it only teaches you things when it matters" (Muzzy)

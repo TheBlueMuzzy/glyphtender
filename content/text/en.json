@@ -52,7 +52,7 @@
     "buttons": {
       "undo": "Undo",
       "cast": "Plant",
-      "castMagic": "Plant · +{n}",
+      "castMagic": "Plant +{n}",
       "endTurn": "End turn",
       "shuffle": "Shuffle",
       "refresh": "Refresh {n}",

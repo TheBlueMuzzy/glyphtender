@@ -1,5 +1,5 @@
 // THE BUTTONS under the tray — change with the moment:
-//   play:    Shuffle · Undo · "Cast · +N" (N = Magic from THIS cast only; totals stay secret) or End turn
+//   play:    Shuffle · Undo · "Plant +N" (N = Magic from THIS plant only; totals stay secret) or End turn
 //            (word indicators off: plain "Cast" — the +N would tell you a word is there)
 //            (Retry instead of Cast if the word list couldn't be loaded — End turn never needs it)
 //   refresh: Keep all · Refresh N
@@ -22,10 +22,10 @@ const w = text.game.buttons
 
 /** size: how tall the buttons are, in px — about a board hex (finger-sized, like a glyphling), never below 44.
  *  fixed: hold the space for the tallest row of buttons the game can show (B013) — hidden copies of every row,
- *  with the longest labels, are piled behind the real one. On a narrow phone "Cast · +3" can wrap the row onto
+ *  with the longest labels, are piled behind the real one. On a narrow phone "Plant +3" can wrap the row onto
  *  2 lines while "Keep all · Refresh" fits on 1; without this the board would jump each time.
  *  In portrait the buttons are also compact (kit: less room each side of the label), so the longest row,
- *  "Shuffle · Undo · Cast · +88", fits ONE line on a 360-wide phone — no second row of space held under them. */
+ *  "Shuffle · Undo · Plant +88", fits ONE line on a 360-wide phone ("Plant · +88" was 3 px too wide there — sprint 26) — no second row of space held under them. */
 export function ActionBar({ size, fixed }: { size: number; fixed: boolean }) {
   const phase = useGameStore((s) => s.game!.phase)
   if (phase === 'draft') return null

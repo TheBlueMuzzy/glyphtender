@@ -11,7 +11,7 @@
 - **Pause** — a rare tip that dims the game and waits for "Got it" (≤ 4 in the whole tutorial game).
 - **Nudge** — a callout after X seconds of doing nothing, or straight after a wrong action. Says what you *can* do.
 - **Explore** — the **?** button: tap anything and read what it is, instead of using it. Only ? leaves it.
-- **Plant** — replaces "cast" in every player-facing word (button: **Plant · +5**).
+- **Plant** — replaces "cast" in every player-facing word (button: **Plant +5**).
 
 ## 0. Before the tutorial: who gets it
 1. A **brand-new player** opens the game → the menu shows **Play**. Online, New Game and pass-and-play are greyed out with a small lock.
@@ -51,7 +51,7 @@ You're Yellow, the tutorial AI is Blue, and you go first. The board, Blue's move
 **Turn 2 — your first word**
 12. One move hex glows (you can now reach the gap). **"Move here."**
 13. The gap glows, and the A is lit. **"Plant the A between C and T."**
-14. The button reads **Plant · +5**. Callout: **"The button shows your Magic first."**
+14. The button reads **Plant +5**. Callout: **"The button shows your Magic first."**
 15. Tap Plant → the score pops play: C +2 · A +2 · T +1. Callout: **"Your seeds count +2. Others' count +1."**
 16. Callout on the total: **"Magic is secret — only you saw that."**
 17. **Pause — hand over:** *"You're on your own now! Tap **?** any time to learn about anything."* → Play.
