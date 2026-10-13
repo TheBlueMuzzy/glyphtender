@@ -35,6 +35,19 @@ Done when: after the rails, the 10 first-time tips (§3) show once each, at most
 - [x] 🤖 4. e2e: a tip shows once and never again; Tips off → none
 Check: unit tests + e2e.
 
+## F80 🙋 Muzzy plays it (first play-through 2026-10-13: "Pretty good overall… it was kind. I'll have to play much more to confirm")
+- [ ] 🙋 1. make a short looping video for each of the 3 "How to play" overview cards (then 🤖 wires them in)
+- [ ] 🙋 2. play it many times + have other people play it; notes back
+- [ ] 🙋 3. test on a phone (incl. the "Plant +5" callout over the seed row)
+- [ ] 🙋 4. reword the nudges / tips / Explore lines in Dev Kit → Text ("wording on some nudges is bad")
+- [x] 🤖 5. Sprout keeps its habits all game (maxTurns removed)
+- [x] 🤖 6. Explore taps don't count as "I'm here" online; the idle bar closes Explore (e2e:online-ai)
+- [x] 🤖 7. nudges sooner: glow 6 s, words 12 s (were 10 / 20)
+- [ ] 🤖 8. nudges bigger / easier to see ("a bit small and lack visibility") — after Muzzy picks a look
+- [ ] 🤖 9. a "suggested word" nudge (doesn't exist yet — Muzzy expected one) — after Muzzy picks the form
+Muzzy's rule (2026-10-13): a tip that doesn't fit a situation (e.g. a pause, online) must say something different there, or not show at all.
+Locks: they're per device — his PC and phone had played before, so they counted as done (D95). A private window shows them (e2e:tutorial-shell passes).
+
 Ask Muzzy (from the rails, all built with these defaults — change any):
 - The "Plant +5" step's callout sits above the button, so on a phone it covers the top of the 2nd seed row (the seeds aren't needed then). OK, or another spot?
 - "lines" and "block" are two Next pauses before your first move (all lines glow while they're up) — one too many?
