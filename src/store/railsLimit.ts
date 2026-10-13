@@ -15,6 +15,9 @@ export interface RailsLimit {
   piece: Piece | null
   /** …and the one hex it may go to. */
   to: Hex | null
+  /** A pause's extra hexes for that piece: they glow too (e.g. every hex a glyphling could move to, while "Glyphlings
+   *  move in straight lines" is up). Only for steps that hold the game — nothing can be played while they show. */
+  shows?: Hex[]
   /** The refresh step: the only seeds (ids) that may be set aside — Refresh only once they all are, never Keep all. */
   setAside?: string[]
   /** Why anything else is refused (the step's own callout words). */
@@ -47,7 +50,10 @@ const samePiece = (a: Piece, b: Piece) =>
 export function railsRefuses(piece: Piece, target: Target, limit: RailsLimit | null = railsLimit()): string | null {
   if (!limit) return null
   if (piece.kind === 'seed' && target.kind === 'tray' && limit.setAside?.includes(piece.id)) return null // (reorder one you may set aside)
-  if (limit.piece && limit.to && samePiece(limit.piece, piece) && target.kind === 'hex' && hexKey(target.hex) === hexKey(limit.to)) return null
+  if (limit.piece && samePiece(limit.piece, piece) && target.kind === 'hex') {
+    const key = hexKey(target.hex)
+    if ((limit.to && hexKey(limit.to) === key) || limit.shows?.some((hex) => hexKey(hex) === key)) return null
+  }
   return limit.reason
 }
 

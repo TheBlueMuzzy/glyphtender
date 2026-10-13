@@ -431,6 +431,30 @@
       "title": "Replay the tutorial game?",
       "message": "This game ends, and the tutorial game starts.",
       "yes": "Replay"
+    },
+    "rails": {
+      "_help": "The tutorial game's first 2 turns (design/tutorial.md §2), one callout at a time. {rival} = Sprout's colour (Blue). Every line must stay literally true.",
+      "next": "Next",
+      "gotIt": "Got it",
+      "play": "Play",
+      "draft1": "Drag your glyphling to the glowing hex.",
+      "draft2": "Drag your second glyphling to the glowing hex.",
+      "lines": "Glyphlings move in straight lines.",
+      "block": "Pieces block the way — glyphlings can't pass through them.",
+      "move1": "Drag your glyphling here.",
+      "overOwn": "Seeds fly over your own pieces — not other players'.",
+      "seed1": "Plant the {letter}: drag it to the glowing hex.",
+      "plant1": "Happy? Tap Plant.",
+      "blocks": "Your seed blocks {rival}'s glyphling. Hemming glyphlings in can win games.",
+      "noWord": "No word, no Magic. You can swap seeds you don't want.",
+      "swap": "Tap {first} and {second}, then Refresh.",
+      "refresh": "Tap Refresh — new seeds grow in.",
+      "move2": "Drag your glyphling here.",
+      "seed2": "Plant the {letter} between your {yours} and {rival}'s {theirs}.",
+      "preview": "The button shows the Magic you'll make. Tap Plant!",
+      "counts": "Your seeds count +2 in a word. Others' count +1.",
+      "secret": "Magic is secret until the end — {rival} can't see yours.",
+      "handOver": "You're on your own now — have fun!"
     }
   }
 }
