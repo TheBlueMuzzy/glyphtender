@@ -149,7 +149,8 @@ export interface GameStore {
   grabGlyphling: (id: number, opts?: { startOver?: boolean }) => void
   tapSeed: (id: string) => void
   grabSeed: (id: string) => void
-  tapHex: (hex: Hex) => void
+  /** `dropped`: a dragged piece let go here (not a tap) — a seed dropped on the ghost never takes the move back. */
+  tapHex: (hex: Hex, dropped?: boolean) => void
   undo: () => void
   startCast: () => void
   finishCast: () => void
@@ -438,7 +439,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     // Tap a hex: place (draft), move there, cast there, or take back what's planned there.
-    tapHex: (hex) => {
+    tapHex: (hex, dropped = false) => {
       const { game, move, cast, selected } = get()
       if (!game || !canPlay()) return
       // May this piece go on this hex? The drag referee's answer (the same one the glow and the shake ask)
@@ -459,16 +460,19 @@ export const useGameStore = create<GameStore>()((set, get) => {
         playSound('seed.aim')
         return set({ cast: { seed: selected.id, target: hex }, selected: null, note: null })
       }
-      if (cast && sameHex(cast.target, hex)) { // the seed goes back to the tray
+      // (a seed DROPPED where it can't go just goes home — over the ghost too: only a tap there, or the moved glyphling
+      // dragged back onto it, takes the move back — Muzzy, 2026-10-13)
+      const seedDropped = dropped && selected?.kind === 'seed'
+      if (!seedDropped && cast && sameHex(cast.target, hex)) { // the seed goes back to the tray
         playSound('seed.drop')
         return set({ cast: null, note: null })
       }
       const origin = move && game.glyphlings.find((g) => g.id === move.glyphling)?.hex
-      if (origin && sameHex(origin, hex)) { // tapped the ghost: the glyphling goes back
+      if (!seedDropped && origin && sameHex(origin, hex)) { // tapped the ghost: the glyphling goes back
         playSound('undo')
         return set({ ...noPlan() })
       }
-      if (cast && !selected && allowed({ kind: 'seed', id: cast.seed })) { // aim it elsewhere
+      if (!seedDropped && cast && !selected && allowed({ kind: 'seed', id: cast.seed })) { // aim it elsewhere
         playSound('seed.aim')
         return set({ cast: { ...cast, target: hex }, note: null })
       }

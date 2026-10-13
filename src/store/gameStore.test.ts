@@ -3,6 +3,7 @@ import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
 import { hexKey, type Hex } from '../engine/hex'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
+import { setRails } from './railsLimit'
 import { castOptions, dropKind, highlightFor, letterIn, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
 import { moveInRack, shuffleRack } from '../table/rack'
 
@@ -113,6 +114,24 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     expect(store().move).not.toBeNull()
     store().tapHex(hexAt('C6-7')) // the ghost
     expect(store().move).toBeNull()
+  })
+
+  it('a seed DROPPED on the ghost where it may not go just goes home — the move stays (Muzzy, 2026-10-13)', () => {
+    yellowToPlay()
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    // (the tutorial's rails: this seed may only go to C6-4, so the ghost's hex refuses it)
+    setRails({ piece: { kind: 'seed', id: seed(0) }, to: hexAt('C6-4'), reason: 'there' }, false)
+    try {
+      store().grabSeed(seed(0))
+      store().tapHex(hexAt('C6-7'), true) // dropped on the ghost
+      expect(store().move).not.toBeNull()
+      expect(store().cast).toBeNull()
+      store().tapHex(hexAt('C6-7')) // a TAP on the ghost still takes the move back
+      expect(store().move).toBeNull()
+    } finally {
+      setRails(null, false)
+    }
   })
 
   it('gold cast ranges show as soon as the move is planned — before a seed is picked, while aiming, and after Undo of the cast', () => {
