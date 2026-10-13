@@ -18,8 +18,8 @@ import { playSproutGames, sproutSummary } from './sproutSim'
 import { contextFor, officialWords } from './testkit'
 
 const words = officialWords()
-const sprout = personalities.find((p) => p.id === 'Sprout')!
-const seedling = skills.find((s) => s.id === 'Seedling')!
+const sprout = personalities.find((p) => p.id === 'sprout')!
+const seedling = skills.find((s) => s.id === 'seedling')!
 const board = getBoard('small')
 const label = (h: Hex) => board.label(h)
 
@@ -123,11 +123,11 @@ function applyBoard(state: GameState, a: ReturnType<typeof legalActions>[number]
 
 describe('Sprout is hidden from players', () => {
   it('New Game, Surprise me and the online lobby never offer Sprout or Seedling', () => {
-    expect(personalityIds()).not.toContain('Sprout')
-    expect(skillIds()).not.toContain('Seedling')
+    expect(personalityIds()).not.toContain('sprout')
+    expect(skillIds()).not.toContain('seedling')
     expect(personalityIds()).toEqual(['Scholar', 'Survivor', 'Strategist'])
-    expect(() => botProfile('Sprout/Seedling')).toThrow()
-    expect(() => botProfile('Sprout/Apprentice')).toThrow()
+    expect(() => botProfile('sprout/seedling')).toThrow()
+    expect(() => botProfile('sprout/Apprentice')).toThrow()
   })
   it('…but the AI can still play it (the tutorial asks for it by id)', () => {
     expect(sprout.goals).toContain('SELFTANGLE')

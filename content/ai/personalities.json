@@ -149,7 +149,7 @@
       "extras": { "nerve": 6, "extraWordBonus": 3 }
     },
     {
-      "id": "Sprout",
+      "id": "sprout",
       "hidden": true,
       "traits": {
         "aggression": { "min": 10, "max": 25 },
@@ -159,19 +159,19 @@
         "patience": { "min": 30, "max": 50 },
         "opportunism": { "min": 10, "max": 25 },
         "pragmatism": { "min": 40, "max": 60 },
-        "clumsiness": { "min": 50, "max": 70 }
+        "clumsiness": { "min": 75, "max": 90 }
       },
       "goals": ["SCORE", "SELFTANGLE", "DUMP", "BUILD", "DENY", "ESCAPE", "STEAL", "TRAP"],
       "nudge": 0.3,
       "focus": 0.8,
-      "steady": { "SCORE": 0.3, "SELFTANGLE": 0.8 },
+      "steady": { "SCORE": 0.3, "SELFTANGLE": 1 },
       "shifts": [
         { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 15 }
       ],
       "homeMode": "Focus",
       "switches": [],
       "chattiness": 40,
-      "extras": { "nerve": 30, "extraWordBonus": 3 }
+      "extras": { "nerve": 60, "extraWordBonus": 3 }
     }
   ]
 }

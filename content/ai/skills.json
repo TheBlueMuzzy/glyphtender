@@ -30,6 +30,6 @@
     { "id": "Apprentice", "candidates": 150, "worlds": 1, "spread": 0.7, "topN": 8, "wobble": 0.3, "beliefNoise": 0.6, "extras": { "zipf": 3 } },
     { "id": "FirstClass", "candidates": 300, "worlds": 2, "spread": 0.8, "topN": 5, "wobble": 0.1, "beliefNoise": 0.35, "extras": { "zipf": 2 } },
     { "id": "Archmage", "candidates": 800, "worlds": 4, "spread": 0.92, "topN": 3, "wobble": 0, "beliefNoise": 0.1, "extras": { "zipf": 0 } },
-    { "id": "Seedling", "hidden": true, "candidates": 150, "worlds": 1, "spread": 0.7, "topN": 8, "wobble": 0.3, "beliefNoise": 0.6, "extras": { "zipf": 4 } }
+    { "id": "seedling", "hidden": true, "candidates": 150, "worlds": 1, "spread": 0.5, "topN": 8, "wobble": 0.3, "beliefNoise": 0.6, "extras": { "zipf": 4 } }
   ]
 }

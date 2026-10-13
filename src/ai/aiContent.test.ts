@@ -93,14 +93,14 @@ describe('skills.json', () => {
 })
 
 describe('Sprout (the hidden tutorial AI)', () => {
-  const sprout = personalitiesFile.personalities.find((p) => p.id === 'Sprout') as unknown as Personality
-  const seedling = skillsFile.skills.find((s) => s.id === 'Seedling') as unknown as Skill
+  const sprout = personalitiesFile.personalities.find((p) => p.id === 'sprout') as unknown as Personality
+  const seedling = skillsFile.skills.find((s) => s.id === 'seedling') as unknown as Skill
   it('is hidden, plays the 7 shared goals + SELFTANGLE, and has a name and bio', () => {
     expect(isHidden(sprout)).toBe(true)
     expect([...sprout.goals].sort()).toEqual([...GOALS, 'SELFTANGLE'].sort())
     expect(Object.keys(sprout.traits).sort()).toEqual([...TRAITS, 'clumsiness'].sort())
     expect(sprout.switches ?? []).toEqual([]) // a mode switch would swap in a goal list without SELFTANGLE
-    const t = (text.ai.personality as Record<string, { name: string; bio: string }>).Sprout
+    const t = (text.ai.personality as Record<string, { name: string; bio: string }>).sprout
     expect(t.name).toBe('Sprout')
     expect(t.bio.length).toBeGreaterThan(10)
     const sections = Object.values(personalitiesFile._sections).flat()
@@ -114,7 +114,7 @@ describe('Sprout (the hidden tutorial AI)', () => {
     expect(isHidden(seedling)).toBe(true)
     expect(seedling.extras!.zipf).toBeGreaterThan(Math.max(...skills.map((s) => s.extras!.zipf)))
     expect(seedling.candidates).toBeLessThanOrEqual(apprentice.candidates)
-    expect((text.ai.skill as Record<string, string>).Seedling).toBeTruthy()
+    expect((text.ai.skill as Record<string, string>).seedling).toBeTruthy()
   })
 })
 

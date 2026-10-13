@@ -1,7 +1,7 @@
 // SELFTANGLE (Clumsiness) — Sprout only: the tutorial AI's two habits (design/tutorial.md §5). A goal only the
 // personalities that LIST it get (plug.ts PERSONAL_GOALS), so the other personalities play exactly as before.
 //   1. One tangle: from its own turn `selfTangleBy` (content/tuning/tutorial.json), while none of its glyphlings is
-//      tangled, it likes moves that walk ONE glyphling into a pocket — its most cornered one: +3 per move that
+//      tangled, it likes moves that walk ONE glyphling into a pocket — its most cornered one: +6 per move that
 //      glyphling loses, +2 per rival piece next to it, and a tangle +50, +15 per rival piece next to it (the rival's
 //      pieces there earn the tangle bonus — "you create"). It dislikes cornering its OTHER glyphling too (≤ 2 moves −20).
 //   2. Keep the other free: once one of its glyphlings is tangled, it dislikes leaving the other with ≤ 2 moves (−20).
@@ -15,7 +15,7 @@ import tutorialTuning from '../../../content/tuning/tutorial.json'
 import { mobilityAfter, mobilityNow, outcomeOf } from '../look'
 import { NOTHING, asTurn, type GlyphGoal } from './shared'
 
-export const SELF_TANGLE_WEIGHTS = { tangle: 50, perRivalPieceAtTangle: 15, perMoveCloser: 3, perRivalPieceNear: 2, otherCornered: -20, endsGame: -100 }
+export const SELF_TANGLE_WEIGHTS = { tangle: 50, perRivalPieceAtTangle: 15, perMoveCloser: 6, perRivalPieceNear: 2, otherCornered: -20, endsGame: -100 }
 /** "Cornered" for the other glyphling: this many moves or fewer. */
 const CORNERED = 2
 

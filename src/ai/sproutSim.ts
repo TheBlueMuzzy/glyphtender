@@ -74,7 +74,7 @@ export function playSproutGames(words: WordList, options: SproutSimOptions): Spr
   const rival = options.rival ?? { personality: 'Survivor', skill: 'Apprentice' }
   const seats: ArenaSeat[] = [
     { personality: byId(personalities, rival.personality), skill: byId(skills, rival.skill) },
-    { personality: byId(personalities, 'Sprout'), skill: byId(skills, 'Seedling') },
+    { personality: byId(personalities, 'sprout'), skill: byId(skills, 'seedling') },
   ]
   const out: SproutGame[] = []
   for (let g = 0; g < options.games; g++) {
