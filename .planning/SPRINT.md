@@ -46,7 +46,7 @@ From the tips + nudges (defaults in place — change any):
 - Wording: "Tangled! Your pieces beside it will create +{n} Magic if it stays." (the bonus is only added at the end, if still tangled) · "pale hex" (matches the prompt).
 From Explore:
 - "{moves} moves" = every hex it can reach (15–25 early on) — the number you want, or directions?
-- Online, taps in Explore still count as "I'm here" (the idle clock resets). The design said the idle timer keeps running — should Explore taps not count?
+- ✅ Explore taps don't count as "I'm here" online (Muzzy: "it shouldn't — the bot takeover countdown should exit you from explore"); e2e:online-ai checks it.
 - Phone on its side / short window: the "Tap ? to go back" reminder is skipped (it would cover the bar, which says the same).
 - Tapping something under the dim explains it straight away (instead of only closing the open callout). Word outlines can't be tapped (the board ignores them) — add one?
 Notes:

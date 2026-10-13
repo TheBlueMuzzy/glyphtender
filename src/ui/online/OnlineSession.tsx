@@ -16,6 +16,7 @@ import { useRoom } from '../../rooms/useRoom'
 import { actionRefused, connectOnline, receiveView, roomSeatsChanged } from '../../store/onlinePlay'
 import { useGameStore } from '../../store/gameStore'
 import { isMyTurn } from '../../store/myTurn'
+import { useExplore } from '../../store/explore'
 import { IdleWarning, Reconnecting, fill, screens, toast } from '../kit'
 import { closeAllScreens } from '../newGame'
 import { seatNotices } from './seatStatus'
@@ -81,7 +82,8 @@ export function OnlineSession() {
 
   // F52: "I'm here" — any tap or key while the game waits for me, or while the idle bar is up or a bot plays my seat
   // because I idled, tells the room (useRoom's active(): one ping every few seconds, at once when it's urgent). The
-  // room restarts my idle clock — or gives me my seat back at once.
+  // room restarts my idle clock — or gives me my seat back at once. Taps in Explore (the ? button) don't count
+  // (Muzzy, 2026-10-13): exploring isn't playing, so the idle bar still comes — and it closes Explore (explore.ts).
   const { active, idleWarning, botPlaysForMe } = room
   const urgent = idleWarning !== null || botPlaysForMe
   const idleBarUp = idleWarning !== null
@@ -93,6 +95,7 @@ export function OnlineSession() {
   useEffect(() => {
     if (!code) return
     const onInput = () => {
+      if (useExplore.getState().on) return
       if (urgentRef.current || isMyTurn(useGameStore.getState())) active()
     }
     window.addEventListener('pointerdown', onInput, true)
