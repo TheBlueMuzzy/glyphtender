@@ -13,6 +13,7 @@ import type { WordList } from '../engine/types'
 import { useGameStore } from './gameStore'
 import { driveLocalBots, onAiDecision, playLocalBot, setAiSpeedOverride, setBotScript } from './localBot'
 import { setRails } from './railsLimit'
+import { setExploring } from './explore'
 import { hexKey } from '../engine/hex'
 import { rails, railsAction, railsHex } from '../tutorial/rails'
 import { isBusy } from './myTurn'
@@ -255,6 +256,37 @@ describe('a scripted bot (the tutorial game’s rails)', () => {
       }
       const theirs = store().game!.glyphlings.filter((g) => g.seat === rails.ai.seat).map((g) => hexKey(g.hex))
       expect(theirs).toEqual(rails.draft.ai.map((label) => hexKey(railsHex(label))))
+    } finally {
+      stop()
+    }
+  })
+})
+
+// Explore mode (F79): while the player explores (the ? button), a game on this device pauses — the AI waits its turn
+// until they tap ? again.
+describe('Explore pauses the AIs on this device', () => {
+  afterEach(() => { setBotScript(null); setExploring(false); setAiSpeedOverride(null) })
+  const lands = () => { if (store().botDraft) store().landBotDraft() }
+
+  it('the AI does not start its turn while exploring; it plays once Explore is off', async () => {
+    setAiSpeedOverride('normal')
+    store().startGame({
+      players: 2, boardName: rails.boardName, seed: rails.seed, turnOrder: rails.turnOrder, minWordLength: rails.minWordLength,
+      hideSeeds: false, stack: rails.stack, bots: [rails.ai.seat], ai: { [rails.ai.seat]: { personality: rails.ai.personality, skill: rails.ai.skill } },
+    })
+    setBotScript((game) => railsAction(game))
+    const stop = driveLocalBots()
+    try {
+      store().tapHex(railsHex(rails.draft.you[0]))
+      expect(store().game!.current).toBe(rails.ai.seat)
+      setExploring(true) // the player taps ?: the AI waits
+      await vi.advanceTimersByTimeAsync(20_000)
+      lands()
+      expect(store().game!.glyphlings).toHaveLength(1)
+      setExploring(false) // ? again: it looks again
+      await vi.advanceTimersByTimeAsync(5_000)
+      lands()
+      expect(store().game!.glyphlings.length).toBeGreaterThan(1)
     } finally {
       stop()
     }

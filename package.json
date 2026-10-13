@@ -50,6 +50,7 @@
     "e2e:tutorial-shell": "node e2e/tutorial-shell.mjs",
     "e2e:tutorial-rails": "node e2e/tutorial-rails.mjs",
     "e2e:tutorial-tips": "node e2e/tutorial-tips.mjs",
+    "e2e:explore": "node e2e/explore.mjs",
     "e2e:drag": "node e2e/drag-styles.mjs",
     "e2e:drag-targets": "node e2e/drag-targets.mjs",
     "shots:record": "node e2e/shots.mjs record",

@@ -17,20 +17,25 @@ import { colourOf, glyphlingArt } from './art'
 import { playerName, promptFor, promptIconSeat, promptSizers, revealSizers } from './prompt'
 import { useGardenTuning } from './useTuning'
 import { useTutorial } from '../tutorial/progress'
+import { useExplore } from '../store/explore'
+import { viewerOf } from '../store/viewer'
+import words from '../../content/text/en.json'
 
 /** big: a roomy screen (big board hexes) — the prompt gets title-size words to match the big pieces.
  *  fixed: hold the frame at the height of the longest message (B013).
  *  hangRoom: px free left of the column (side layout) — the glyphling hangs out there if it fits. */
 export function PromptLine({ big, fixed, hangRoom = 0 }: { big: boolean; fixed: boolean; hangRoom?: number }) {
   const state = useGameStore()
-  const { text, detail } = promptFor(state)
+  // Explore mode (the ? button, F79): the prompt's place says so — "Explore — tap anything." / "Tap ? to go back."
+  const exploring = useExplore((s) => s.on)
+  const { text, detail } = exploring ? { text: words.tutorial.explore.bar, detail: words.tutorial.explore.barDetail } : promptFor(state)
   const players = state.game?.config.players ?? 0
   const names = Array.from({ length: players }, (_, seat) => playerName(seat))
   // (the Magic reveal: only its own lines — revealSizers)
   const sizers = !fixed ? { texts: [], detail: [] } : state.game?.phase === 'over' ? revealSizers(names) : promptSizers(names)
   const size = big ? 'l' : 'm'
   const colours = useGardenTuning()
-  const seat = promptIconSeat(state)
+  const seat = exploring ? viewerOf(state) : promptIconSeat(state) // (Explore's words are for you: your glyphling)
   const who = seat ?? state.game?.current ?? 0
   // The room the glyphling takes beside the words (its width + the gap), measured: it hangs out only if that fits
   const row = useRef<HTMLDivElement>(null)
