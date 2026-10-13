@@ -455,6 +455,37 @@
       "counts": "Your seeds count +2 in a word. Others' count +1.",
       "secret": "Magic is secret until the end — {rival} can't see yours.",
       "handOver": "You're on your own now — have fun!"
+    },
+    "tips": {
+      "_help": "First-time tips in play (design/tutorial.md §3): each shows ONCE, the first time it happens (Settings → Tips on). {player} = whose glyphling (Blue), {n} / {bonus} = numbers. 12 words or fewer, every line literally true, Magic is created — never gained.",
+      "yourDanger": "1 move left! Move it now, or it may get tangled.",
+      "theirDanger": "{player}'s glyphling has 1 move left. Block it to tangle it.",
+      "tangleCreate": "Tangled! Your pieces beside it will create +{n} Magic if it stays.",
+      "tangleNone": "Tangled! Your pieces beside a tangled rival create +{bonus} Magic each.",
+      "oneToGo": "One more tangle ends the game. Ahead? Try ending it yourself.",
+      "twoWords": "One seed, {n} words — each one created Magic!",
+      "longestCounts": "Only the longest word on each line counts.",
+      "swapAgain": "No word — you can swap seeds again.",
+      "cantPlant": "No seed fits from here — tap End turn.",
+      "reveal": "Here's everyone's secret Magic!"
+    },
+    "nudges": {
+      "_help": "Nudges (design/tutorial.md §4): 'idle' after a while of doing nothing on your turn, 'wrong' straight after a refused tap or drop. {player} = whose glyphling (Blue), {colour} = yours (yellow). 12 words or fewer, say what you CAN do.",
+      "idle": {
+        "draft": "Drag a glyphling onto a glowing hex.",
+        "move": "Drag one of your glyphlings to a new spot.",
+        "plant": "Drag a seed onto a glowing hex.",
+        "commit": "Happy? Tap Plant — or Undo.",
+        "endTurn": "Tap End turn — no seed fits from here.",
+        "refresh": "Tap seeds to swap, then Refresh — or Keep all."
+      },
+      "wrong": {
+        "seedFirst": "Move a glyphling first — then plant from where it lands.",
+        "glyphlingHex": "Glyphlings move in straight lines and can't pass through pieces.",
+        "seedHex": "Seeds fly straight from your glyphling — not over others' pieces.",
+        "rival": "That's {player}'s. Yours are {colour}.",
+        "plantNothing": "Drag a seed onto a glowing hex first."
+      }
     }
   }
 }

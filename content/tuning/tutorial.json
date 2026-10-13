@@ -4,28 +4,61 @@
     "selfTangleBy": "Sprout (the tutorial game's AI) starts preferring moves that walk ONE of its glyphlings into a pocket — next to your pieces when it can, so you see the tangle bonus — from this turn of its own. Lower = it happens sooner. A preference, never a rule: if the board offers no pocket, it doesn't happen. Try 4–8.",
     "maxTurns": "After this many of its own turns Sprout drops both its preferences (one self-tangle, then keeping its other glyphling free) and plays like any Apprentice. Sims (npm run sim:sprout, 2026-10-13): a Small game is ~22–25 of Sprout's turns, so at 20 its last few turns are plain Apprentice ones. Try 15–30.",
     "railsCalloutDelay": "The tutorial game's first 2 turns: how long after the game goes quiet (a glide, a seed landing, the score) the next callout shows. Lower = snappier, higher = calmer. Try 0.3–1.2.",
-    "railsDim": "How dark a tutorial pause (Got it / Play) makes the rest of the game. 0 = not at all, 1 = black. Try 0.5–0.75."
+    "railsDim": "How dark a tutorial pause (Got it / Play) makes the rest of the game. 0 = not at all, 1 = black. Try 0.5–0.75. The 3 pausing tips (tangled ×2, one to go) use it too.",
+    "tipDelay": "A first-time tip (after the first 2 turns, and in later games while Settings → Tips is on) shows this long after the game goes quiet. Try 0.3–1.2.",
+    "tipsPerTurn": "At most this many first-time tips in one turn — the rest wait for a later turn. 1 keeps it calm.",
+    "maxPauses": "At most this many PAUSING tips (they dim the game and wait for Got it) in one game; past it, a pausing tip shows like a normal one. Online games never pause.",
+    "idleGlow": "The tutorial game: seconds of doing nothing on your turn before the right thing glows (breathes like the whose-turn pulse). Try 6–15.",
+    "idleText": "The tutorial game: seconds of doing nothing before a callout says what you can do. Try 15–30 (more than the glow).",
+    "idleRepeat": "How many times each idle callout (place / move / plant / Plant / refresh) may show in one game, then it stays quiet. Try 2–5.",
+    "laterIdleText": "Later games (Tips on): seconds of doing nothing before the idle callout — no glow there. Try 20–60.",
+    "wrongRepeat": "After the first 2 turns: how many times each 'wrong action' callout (a seed before moving, a bad drop, a rival's glyphling…) may show in one game; then only the 'no' shake. On the first 2 turns it shows every time. Try 2–5."
   },
   "_labels": {
     "tipSeconds": "Tip shows for (s)",
     "selfTangleBy": "Sprout: tries to tangle one of its glyphlings from its turn…",
     "maxTurns": "Sprout: drops its tutorial habits after this many of its turns",
     "railsCalloutDelay": "Rails: next callout after (s)",
-    "railsDim": "Rails: how dark a pause dims (0–1)"
+    "railsDim": "Rails + pausing tips: how dark a pause dims (0–1)",
+    "tipDelay": "Tip: shows after the game is quiet for (s)",
+    "tipsPerTurn": "Tips: at most this many per turn",
+    "maxPauses": "Tips: at most this many pauses per game",
+    "idleGlow": "Idle nudge: glow after (s) — tutorial game",
+    "idleText": "Idle nudge: words after (s) — tutorial game",
+    "idleRepeat": "Idle nudge: times each one shows per game",
+    "laterIdleText": "Idle nudge: words after (s) — later games",
+    "wrongRepeat": "Wrong-action nudge: times each one shows per game"
   },
   "_sections": {
-    "Tutorial": ["tipSeconds", "selfTangleBy", "maxTurns", "railsCalloutDelay", "railsDim"]
+    "Tutorial": ["tipSeconds", "selfTangleBy", "maxTurns", "railsCalloutDelay", "railsDim"],
+    "Tutorial: tips + nudges": ["tipDelay", "tipsPerTurn", "maxPauses", "idleGlow", "idleText", "idleRepeat", "laterIdleText", "wrongRepeat"]
   },
   "_ranges": {
     "tipSeconds": [2, 20, 1],
     "selfTangleBy": [1, 15, 1],
     "maxTurns": [5, 40, 1],
     "railsCalloutDelay": [0, 3, 0.1],
-    "railsDim": [0, 1, 0.05]
+    "railsDim": [0, 1, 0.05],
+    "tipDelay": [0, 3, 0.1],
+    "tipsPerTurn": [1, 3, 1],
+    "maxPauses": [0, 6, 1],
+    "idleGlow": [2, 30, 1],
+    "idleText": [5, 60, 1],
+    "idleRepeat": [1, 10, 1],
+    "laterIdleText": [10, 120, 5],
+    "wrongRepeat": [1, 10, 1]
   },
   "tipSeconds": 8,
   "selfTangleBy": 6,
   "maxTurns": 20,
   "railsCalloutDelay": 0.6,
-  "railsDim": 0.6
+  "railsDim": 0.6,
+  "tipDelay": 0.6,
+  "tipsPerTurn": 1,
+  "maxPauses": 4,
+  "idleGlow": 10,
+  "idleText": 20,
+  "idleRepeat": 3,
+  "laterIdleText": 30,
+  "wrongRepeat": 3
 }
