@@ -289,6 +289,16 @@ flowchart LR
   F78 --> F80
 ```
 
+## v0.15 — Click a thing, tweak it (Dev Kit Select Mode)  ← current  · defined 2026-10-14
+Goal: Muzzy clicks anything in the game with the Dev Kit open and gets every knob for it (tuning, words, sounds) in one place, changes them live and saves. Framework-first (framework v0.8 F55–F56, design `framework/.planning/design/select-mode.md`).
+- 🔨 F86 🔧 Select Mode on Glyphtender: Dev Kit 0.14 installed · content/devkit/select.json with the 14 objects (glyphling, tray seed, planned seed, board, grown word, spotlight label, score pop, score total, vine/tangle, tray, turn indicator, Sprout's tip, award ribbon, end reveal) · data-knobs tags · a test that the file and the tags agree · e2e:devkit-select — should · framework F55, F56
+  why: one click on what he sees → every knob for it → tuning by eye without hunting through tabs
+- ⏳ F87 ❓ Muzzy tries Select Mode: are the lists right, is anything hard to click, what to add — needs: F86
+```mermaid
+flowchart LR
+  F86[🔨 F86 Select Mode] --> F87[⏳ F87 Muzzy tries it]
+```
+
 ## Later
 - 🟢 F85 ❓ Tutorial follow-ups (from F80, Muzzy's to-dos 2026-10-13): 🙋 a short looping video for each of the 3 "How to play" cards (then 🤖 wires them in) · 🙋 play it on a phone + have other people play it · 🙋 reword nudges / tips / Explore lines in Dev Kit → Text · ❓ nudge look ("a bit small and lack visibility": bigger text / brighter edge / bounce) · ❓ a "suggested word" nudge (a glow on one spot vs a "show me a move" button) · ❓ should Replay tutorial game re-lock the device for testers? · the Story grip partly covers the "R1" label — must:1.0
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
