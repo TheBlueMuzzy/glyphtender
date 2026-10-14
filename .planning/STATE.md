@@ -1,9 +1,9 @@
 ## ▶ RESUME HERE
-2026-10-13 — **Sprint 28 built: menus feel like one set** (UI kit 0.10.3 on framework dev/menu-frame): every menu one width, height fits up to a max then scrolls inside (no scroll bars, a fade), ‹ back top left · Settings = Gameplay (Play · Display · Accessibility · About) + Audio · New Game: ‹ + Start in the header · Reset tips / Reset to defaults ask first. Full check green (after 5 stale e2e fixed), shots re-recorded.
-**Muzzy:** look at the menus (PC http://localhost:5180/, phone http://192.168.1.152:5180/) → "approved" or notes · open: main-menu button width on desktop, "New game" wraps at 360 px, Reset per tab vs per section · tutorial (sprint 27) still waits: F80 to-dos. Then /deliver both.
+2026-10-14 — **Menus approved** (sprint 28, F82–F84, UI kit 0.10.4 on framework dev/menu-frame): one menu width, cards grow down then scroll inside, no scroll bars, ‹ back, Settings = Gameplay + Audio, New Game Start up top, pickers only as wide as their longest option. The one-picker-per-seat try didn't fit a phone → dropped (Muzzy's rule).
+**Muzzy:** the tutorial (sprint 27) waits on his F80 to-dos (overview videos, play-throughs, phone, rewording) → "approved" → `/deliver` ships tutorial + menus together. Next idea: `/discover` Dev Kit **Select Mode** (framework ROADMAP Ideas 2026-10-14).
 
 ## Where we are
-Stage: develop · Milestone: v0.14 The first game teaches itself · Sprint: 28 · Doing: built — waiting for Muzzy (menus) · Branch: dev/tutorial · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
+Stage: develop · Milestone: v0.14 The first game teaches itself · Sprint: 28 · Doing: menus ✅ — tutorial waits for Muzzy (F80) · Branch: dev/tutorial · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.

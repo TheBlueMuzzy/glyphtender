@@ -265,10 +265,10 @@ Goal: a brand-new player opens the link, plays one game against a gentle AI and 
 - 🎛️ F79 🎮 Explore mode: ? beside ☰ in every game → taps explain instead of act (☰ too), yours vs theirs worded apart, only ? leaves (+ a reminder), pauses local games not online, ends by itself when the game needs you (idle warning, bot takeover, disconnect, game end, handoff) — must:1.0 · needs: F73
   why: answers "what's that?" without leaving the board → Always readable
 - 🎛️ F81 🔧 Dev Kit Text tab (framework-first, DEVKIT Tier 3 "Text"): edit en.json strings live by section (tutorial first), search, Save → en.json — must:1.0
-- 🔨 F82 🧱 One menu frame (framework-first, ui-kit): one width for every menu card, height fits up to a max then scrolls inside (no scroll bar, a "more" fade), one header ‹ back · title · action — must:1.0
+- ✅ F82 🧱 One menu frame (framework-first, ui-kit): one width for every menu card, height fits up to a max then scrolls inside (no scroll bar, a "more" fade), one header ‹ back · title · action — must:1.0 · ✅ approved 2026-10-14 (UI kit 0.10.4)
   why: every screen feels like one set → "haphazard" (Muzzy) becomes calm and familiar
-- 🔨 F83 🎮 Settings: 2 tabs Gameplay · Audio (Gameplay sections: Play · Display · Accessibility · About); confirm Reset tips / Replay tutorial — must:1.0 · needs: F82
-- 🔨 F84 🎮 Every menu screen on the frame: New Game (Start up top), Credits, How to play, Mode select, Lobby, Submit word, Pause, Main menu; no native scroll bars — must:1.0 · needs: F82
+- ✅ F83 🎮 Settings: 2 tabs Gameplay · Audio (Gameplay sections: Play · Display · Accessibility · About); confirm Reset tips / Replay tutorial — must:1.0 · needs: F82
+- ✅ F84 🎮 Every menu screen on the frame: New Game (Start up top), Credits, How to play, Mode select, Lobby, Submit word, Pause, Main menu; no native scroll bars — must:1.0 · needs: F82
 - 🟢 F80 ❓ Muzzy plays the tutorial as a new player on his phone → wording, timings, Sprout's feel — must:1.0 · needs: F76, F77, F78, F79
 ```mermaid
 flowchart LR
