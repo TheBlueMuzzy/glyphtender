@@ -72,7 +72,8 @@ export function SelectTab() {
 
   // Recently on screen: showing now, then by when they were last seen, then never seen (greyed)
   const order = [...s.objects].sort((a, b) => {
-    const rank = (o: SelectObject) => (s.onScreen.includes(o.id) ? Infinity : s.seen[o.id] ?? -Infinity)
+    // (finite numbers: Infinity − Infinity would be NaN and scramble the order; ties keep the file's order)
+    const rank = (o: SelectObject) => (s.onScreen.includes(o.id) ? Number.MAX_SAFE_INTEGER : s.seen[o.id] ?? -1)
     return rank(b) - rank(a)
   })
 
