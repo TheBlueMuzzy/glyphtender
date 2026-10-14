@@ -37,9 +37,11 @@ for (const size of SIZES) {
   await shot('menu')
   await page.getByRole('button', { name: 'Settings' }).click()
   await shot('settings')
-  // Wide screens show tabs; narrow ones show one ◀ tab ▶ picker — step it to Accessibility
-  if (await page.getByRole('tab', { name: 'Accessibility' }).count()) await page.getByRole('tab', { name: 'Accessibility' }).click()
-  else for (let i = 0; i < 8 && !(await page.locator('.kit-picker').first().textContent()).includes('Accessibility'); i++) await page.locator('.kit-picker').first().locator('button').last().click()
+  // Two tabs (sprint 28): Gameplay (Play · Display · Accessibility · About) and Audio — a tab bar at every size
+  await page.getByRole('tab', { name: 'Audio' }).click()
+  await shot('settings-audio')
+  await page.getByRole('tab', { name: 'Gameplay' }).click()
+  await page.getByText('Accessibility', { exact: true }).scrollIntoViewIfNeeded()
   await shot('settings-accessibility')
   await page.keyboard.press('Escape')
   await page.waitForTimeout(400)

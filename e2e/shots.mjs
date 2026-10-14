@@ -100,8 +100,28 @@ function samePicture(a, b) {
 }
 
 /** Take the picture — kept once two in a row are the same (anything still changing shows up as a difference). */
+/** Every box on the screen that would show the browser's own scroll bar on a real device (Muzzy, sprint 28: "remove
+ *  all scroll bars and replace them with the correct scroll function we made" — the kit's ScrollArea: no bar, a fade).
+ *  Headless Chrome never draws scroll bars, so it can't be measured: a box that can scroll (overflow auto / scroll and
+ *  more content than room) must have its bar switched off (scrollbar-width: none). Runs in the page. */
+function nativeScrollBars() {
+  const found = []
+  for (const el of [document.documentElement, ...document.body.querySelectorAll('*')]) {
+    const style = getComputedStyle(el)
+    if (style.visibility !== 'visible' || !el.offsetWidth || style.scrollbarWidth === 'none') continue
+    const scrolls = (overflow, more) => (overflow === 'auto' || overflow === 'scroll') && more
+    const y = scrolls(style.overflowY, el.scrollHeight > el.clientHeight + 1)
+    const x = scrolls(style.overflowX, el.scrollWidth > el.clientWidth + 1)
+    const page = el === document.documentElement && (el.scrollHeight > innerHeight + 1 || el.scrollWidth > innerWidth + 1)
+    if (y || x || page) found.push(`${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`)
+  }
+  return found
+}
+
 async function shot(page, size, name) {
   await settle(page)
+  const bars = await page.evaluate(nativeScrollBars)
+  if (bars.length) problem(`${name}@${size.width}x${size.height}: a scroll bar shows on ${bars.join(', ')}`)
   const file = `${OUT}/${name}@${size.width}x${size.height}.png`
   let last = await page.screenshot({ animations: 'disabled' })
   for (let i = 0; i < 20; i++) {

@@ -158,6 +158,15 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D96 · 2026-10-13 · One menu frame: one width, content height up to a max, the body scrolls inside (UI kit 0.10)
+  Proposed by: Muzzy ("the menus and sub menus (including credit) should be the same width/height with internal
+  scroller"; "full width, but only go a large height as needed. if reached max, then internal scroller"; "< = back").
+  Chose: kit tokens --kit-menu-w 36rem / --kit-menu-max-h 44rem (52rem desktop); MenuHeader ‹ · title · action; ScrollArea
+  with no bar + an edge fade; cards open centred then only grow down (Screen grow="down"). Replaces end-screen.md's
+  "nothing scrolls inside a box, only the page" for menus, and New Game's whole-page <Screen scroll> (B027's one-
+  scroller rule still holds: the card's body is its only scroller). Settings = 2 tabs (Gameplay with Play · Display ·
+  Accessibility · About sections, then Audio) — the kit's standard order (Audio first, Accessibility its own tab) gives
+  way to Muzzy's: "Gameplay is first … Accessibility could be a section". e2e: shots sweep fails on any scroll bar.
 D95 · 2026-10-12 · Who gets the tutorial: brand-new devices only; one game at a time; leaving unlocks
   Proposed by: Muzzy ("only 1 game is active at a time, so they'd have to leave the tutorial game (with a confirmation)…
   it's JUST Local vs 1 AI"). Chose: locks on online, New Game, pass-and-play until the tutorial game is finished or left;

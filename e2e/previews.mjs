@@ -11,7 +11,7 @@
 // SHORT SCREENS (F67, UI kit 0.7.0): at 844×390 (a phone on its side) and 768×343 (a short window), each card screen
 // (Pause, Rules, Settings, Play online, Couldn't join, the lobby) keeps its buttons INSIDE the card and on the screen —
 // a button may only be out of view inside a scroll box; Pause shows all four buttons, Play online shows Join, the
-// 4-seat lobby shows all four seats, Settings shows the ◀ tab ▶ picker (not a tab bar), and a screen over the home
+// 4-seat lobby shows all four seats, Settings shows its 2 tabs on one bar (UI kit 0.10.0: 3 tabs or fewer → always the tab bar), and a screen over the home
 // page dims it.
 // Starts its OWN dev server (default port 5197 — never Muzzy's 5180) and closes only that one.
 //   npm run e2e:previews [outDir] [port]
@@ -100,7 +100,7 @@ function cardFit(wants) {
     if (!scrolledIn(el) && !inView(el)) problems.push(`"${name}" is cut off`)
   }
   for (const label of wants.visible ?? []) {
-    const el = [...card.querySelectorAll('button')].find((b) => b.textContent.trim() === label)
+    const el = [...card.querySelectorAll('button')].find((b) => b.textContent.trim() === label || b.getAttribute('aria-label') === label) // (‹ is named "Back")
     if (!el) problems.push(`no "${label}" button`)
     else if (!inView(el)) problems.push(`"${label}" is not in view`)
   }
@@ -111,7 +111,9 @@ function cardFit(wants) {
   }
   if (wants.picker) {
     const shows = (sel) => { const el = card.querySelector(sel); return !!el && getComputedStyle(el).display !== 'none' }
-    if (shows('.kit-settings-tabs') || !shows('.kit-settings-picker')) problems.push('Settings shows a tab bar, not the ◀ tab ▶ picker')
+    const tabs = card.querySelector('.kit-settings-few [role="tablist"]')
+    if (!shows('.kit-settings-few') || shows('.kit-settings-picker')) problems.push('Settings shows the ◀ tab ▶ picker, not its tab bar')
+    else if (tabs && tabs.scrollHeight > tabs.firstElementChild.getBoundingClientRect().height * 1.5) problems.push('the tab bar wraps onto 2 lines')
   }
   if (wants.dims && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(getComputedStyle(top.querySelector('.kit-screen')).backgroundColor)) {
     problems.push('the screen does not dim the home page under it')

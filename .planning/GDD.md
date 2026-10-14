@@ -130,7 +130,7 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 - Live Magic preview on the Cast button; words outlined as they grow
 - Tangle danger cues; tangle, game end, tangle bonus
 - Pass-and-play handoff screen; staged Magic reveal; end screen (Results · Story · Scorecard, F26)
-- Main menu, new-game setup, settings, pause — UI kit, Cozy
+- Main menu, new-game setup, settings, pause — UI kit, Cozy; every menu one card width, ‹ back top left, no scroll bars (D96). Settings = **Gameplay** (Play · Display · Accessibility · About: version, credits) · **Audio**; New Game has Start beside its title
 - Online rooms (Roll Better): create/join, 2–4, rejoin, host leaves, rematch
 - Grow animation (basic), Dev Kit tuning, GitHub Pages + PWA
 

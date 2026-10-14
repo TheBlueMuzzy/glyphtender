@@ -142,8 +142,11 @@
       grid-template-rows: auto minmax(0, 1fr) auto; column-gap: var(--gap-l); align-content: start; }
     .kit-lobby-join > :is(:first-child, .kit-scroll) { grid-column: 1 / -1; }
     .kit-lobby-join > .kit-text { grid-column: 1 / -1; grid-row: 3; }
+    /* the right column is as wide as the code boxes + Join on ONE line (at the one menu width a half-and-half split
+       wrapped Join under the boxes and pushed Create + Join into the bottom fade at 768×343 — 0.10.2); your name takes the rest */
     .kit-lobby-join > .kit-scroll > .kit-stack { display: grid; grid-auto-flow: column; grid-template-rows: auto auto;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; column-gap: var(--gap-l); }
+      grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: var(--gap-l); }
+    .kit-lobby-join > .kit-scroll > .kit-stack > .kit-row { flex-wrap: nowrap; }
     .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(n + 3) { grid-column: 1; }
     .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(-n + 2) { grid-column: 2; }
   }
