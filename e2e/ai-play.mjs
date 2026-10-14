@@ -68,11 +68,8 @@ try {
     await page.goto(URL_)
     // Settings → Gameplay → AI speed: Normal → Instant (Normal · Fast · Instant: 2 steps on)
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    // (a phone shows the tabs as one ◀ Audio ▶ picker: step it on to Gameplay)
-    const nextTab = page.locator('.kit-screen .kit-picker').first().getByRole('button').last()
-    // (by name, not a count: a tab whose rows are all "on": false disappears — v0.9.2 hid Controls)
-    for (let i = 0; i < 6 && !(await page.locator('.kit-picker-value', { hasText: 'Gameplay' }).count()); i++) await nextTab.click()
-    h.check('Settings is on Gameplay', (await page.locator('.kit-picker-value', { hasText: 'Gameplay' }).count()) === 1)
+    // (Gameplay is the first of the 2 tabs since sprint 28 — a tab bar at every size)
+    h.check('Settings is on Gameplay', (await page.getByRole('tab', { name: 'Gameplay', selected: true }).count()) === 1)
     for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Next AI speed' }).click()
     h.check('Settings → AI speed is Instant', (await page.locator('.kit-picker-value', { hasText: 'Instant' }).count()) === 1)
     await page.keyboard.press('Escape')
@@ -159,7 +156,7 @@ try {
     }
     h.check(`the AI cards keep one size through every personality (${[...sizes].join(' | ')})`, sizes.size === 1)
     // scroll to the bottom of the options (the Pink card) for a second look
-    await page.locator('.kit-screen[data-scroll]').evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    await page.locator('.new-game-panel .kit-scroll').evaluate((el) => el.scrollTo(0, el.scrollHeight)) // (the rows scroll inside the card — UI kit 0.10)
     await h.shot('2-new-game-ai-scrolled')
     // Start with Yellow first: once Yellow places, Blue (AI, Slow) thinks — the shot is taken during its thinking
     await page.getByRole('button', { name: 'Start' }).click()

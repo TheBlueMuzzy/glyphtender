@@ -455,10 +455,10 @@ try {
       const scroller = page.locator('.game-end-page .kit-scroll')
       const overflows = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight + 2)
       if (overflows) {
-        check('more rows below: the bottom edge fades', (await scroller.getAttribute('data-more')) !== null)
+        check('more rows below: the bottom edge fades', (await scroller.getAttribute('data-more-end')) !== null)
         await scroller.evaluate((el) => el.scrollTo(0, el.scrollHeight))
         await page.waitForTimeout(100)
-        check('scrolled to the end: no fade', (await scroller.getAttribute('data-more')) === null)
+        check('scrolled to the end: no fade', (await scroller.getAttribute('data-more-end')) === null)
         const lastRow = await page.locator('.game-scorecard tr').last().boundingBox()
         const view = await scroller.boundingBox()
         check('the last row is fully shown, clear of the end bar', lastRow.y + lastRow.height <= Math.min(endBar[1].y, view.y + view.height) + 0.5)

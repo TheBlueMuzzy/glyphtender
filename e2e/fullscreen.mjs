@@ -52,7 +52,7 @@ try {
   // Esc while Settings is open, then another setting changed: Full screen must stay off (code review, 2026-10-03:
   // Settings held an old "on" and saved it back)
   await pc.getByRole('button', { name: 'Settings' }).click()
-  await pc.getByRole('tab', { name: 'Display' }).click()
+  // (Full screen sits in Gameplay → Display since sprint 28: Gameplay opens first)
   await pc.getByRole('switch', { name: 'Full screen' }).click()
   await pc.waitForTimeout(300)
   check('computer: the Settings toggle goes full screen', await full(pc))
@@ -60,7 +60,7 @@ try {
   await pc.waitForTimeout(300)
   await pc.getByRole('tab', { name: 'Audio' }).click() // (any other setting: Display's Graphics quality is hidden since v0.9.2)
   await pc.getByRole('switch', { name: 'Mono audio' }).click()
-  await pc.getByRole('tab', { name: 'Display' }).click()
+  await pc.getByRole('tab', { name: 'Gameplay' }).click()
   await pc.waitForTimeout(200)
   const after = await pc.evaluate(() => Object.values(localStorage).map((v) => JSON.parse(v).fullscreen))
   const toggle = await pc.getByRole('switch', { name: 'Full screen' }).getAttribute('aria-checked')

@@ -116,7 +116,7 @@ try {
       await shot('2-pause')
       await tap(button('Submit a word'))
       await page.getByText('Not a word yet? Pick the one you meant.').waitFor({ timeout: 3000 })
-      const shown = await page.locator('section[role=dialog][aria-label="Submit a word"] .kit-button').evaluateAll((list) => list.map((b) => b.textContent.trim()).filter((t) => t !== 'Back'))
+      const shown = await page.locator('section[role=dialog][aria-label="Submit a word"] .kit-button').evaluateAll((list) => list.map((b) => b.textContent.trim()).filter((t) => t !== 'Back' && t !== '‹'))
       check(`${size.width}x${size.height}: the picker lists ${shown.join(' ')} (= the engine's, ≤ ${submit.pickerMax}, longest first)`,
         shown.join() === pick.words.join() && shown.length <= submit.pickerMax && shown.every((w, i) => i === 0 || shown[i - 1].length >= w.length))
       await shot('3-picker')
@@ -174,7 +174,7 @@ try {
     await tap(button('Submit a word'))
     const message = `Submitted words must be ${submit.minLetters} or more letters`
     const said = await page.getByText(message, { exact: true }).waitFor({ timeout: 3000 }).then(() => true, () => false)
-    const wordButtons = await page.locator('section[role=dialog][aria-label="Submit a word"] .kit-button').evaluateAll((list) => list.filter((b) => b.textContent.trim() !== 'Back').length)
+    const wordButtons = await page.locator('section[role=dialog][aria-label="Submit a word"] .kit-button').evaluateAll((list) => list.filter((b) => !['Back', '‹'].includes(b.textContent.trim())).length)
     check(`only 2-letter stretches → "${message}", no word to pick`, said && wordButtons === 0)
     await shot('5-too-short')
     await closeAll()

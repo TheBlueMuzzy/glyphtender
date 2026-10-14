@@ -1,7 +1,7 @@
 // BEFORE / AFTER SCREENSHOTS — the proof that a rebuild "looks the same" (F29 safety net).
 // Every screen at 8 window sizes: phones tall (390×844, 360×780) and on their side (844×390), a short browser window
 // (768×343), and desktops (1066×1192, 1099×846, 1440×900, 1920×1080).
-// Screens (26): main menu · Settings · Credits · Play online · New game · a 2-player game: draft, the device passed on
+// Screens (27): main menu · Settings (Gameplay, Audio) · Credits · Play online · New game · a 2-player game: draft, the device passed on
 // (Pass to …), a turn starting, a move + cast planned, the refresh step (a cast with no Magic) · Pause · Rules ·
 // the online lobby (host and guest — from the Dev Kit's preview, no server needed) · the end of a 2-player and a
 // 4-player game (e2e/fixtures/end-2p.json, end-4p.json): the Magic reveal held at its middle step, Results, Story,
@@ -154,9 +154,10 @@ async function menusAndGame(size) {
 
     await tap(page.getByRole('button', { name: 'Settings' }))
     await shot(page, size, 'settings')
-    // Credits is in the About tab (wide screens show tabs; narrow ones a ◀ tab ▶ picker)
-    if (await page.getByRole('tab', { name: 'About' }).count()) await tap(page.getByRole('tab', { name: 'About' }))
-    else for (let i = 0; i < 10 && !(await page.locator('.kit-picker').first().textContent()).includes('About'); i++) await tap(page.locator('.kit-picker').first().locator('button').last())
+    await tap(page.getByRole('tab', { name: 'Audio' }))
+    await shot(page, size, 'settings-audio')
+    // Credits: Gameplay → About, at the end of the list (sprint 28: 2 tabs, a tab bar at every size)
+    await tap(page.getByRole('tab', { name: 'Gameplay' }))
     await tap(page.getByRole('button', { name: 'Credits' }))
     await shot(page, size, 'credits')
     await page.keyboard.press('Escape')
