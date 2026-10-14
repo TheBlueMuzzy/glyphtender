@@ -53,7 +53,7 @@ export function AiPickerRows({ personalities, value, onChange, label, withPerson
           <span><Text kind="caption">{personalityWords(value.personality).bio}</Text></span>
         </span>
         <Text kind="label">{w.skill}</Text>
-        <Selector label={`${label}: ${w.skill}`} options={skillIds().map(skillName)} value={skillName(value.skill)}
+        <Selector label={withPerson ? `${label}: ${w.skill}` : w.skill} options={skillIds().map(skillName)} value={skillName(value.skill)}
           onChange={(name) => onChange({ ...value, skill: skillIds().find((id) => skillName(id) === name) ?? value.skill })} />
       </>}
     </div>

@@ -16,7 +16,8 @@
   @container (max-width: 22rem) {
     .new-game-ai > .kit-selector:nth-child(2) { grid-column: 1 / -1; }
   }
-  .new-game-ai + .kit-listrow { border-block-start: var(--border-width) solid var(--border); } /* the kit's row divider after the section */
+  /* the kit's row divider before and after each seat (a seat isn't a ListRow, so the kit's own rule doesn't reach it) */
+  .kit-listrow + .new-game-ai, .new-game-ai + .new-game-ai, .new-game-ai + .kit-listrow { border-block-start: var(--border-width) solid var(--border); }
   .new-game-bio { display: grid; }
   .new-game-bio > * { grid-area: 1 / 1; }
   .new-game-bio-sizer { visibility: hidden; }
