@@ -158,6 +158,15 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D98 · 2026-10-14 · Dev Kit Select: menus too — a kit part's knobs are the UI kit's SHARED style values
+  Proposed by: Muzzy ("It'd be nice to be able to click on a button, or a toggle and update the settings for it")
+  Chose: 12 kit-part objects in select.json found by `find` (.kit-button, .kit-toggle, .kit-slider, .kit-picker, .kit-tab,
+  .kit-listrow, .kit-badge, menu title, .kit-modal/.kit-menu, card/panel, .kit-toast, .kit-screen) with a new "style" list
+  (style.json token names) shown by the Color tab, which now also edits the non-colour values (corners, outline,
+  shadows, press feel, timings, menu sizes — Dev Kit 0.15.0 styleValues.ts). The panel says "Shared — changes every
+  button": the kit's rule is one look per part, so a per-button override was NOT added. Anything inside an [inert]
+  screen (the main menu under Settings) is never picked.
+  Over: per-button settings (breaks the kit's one-look rule; a button's own label stays in the Text tab).
 D97 · 2026-10-14 · Dev Kit Select: the object → knobs list is a content file Muzzy owns; code only marks what a thing IS
   Proposed by: Claude (Muzzy: "click on a thing > see the attributes … in one place > update those things and hit save";
   "start with these, but expand as we prove it out")

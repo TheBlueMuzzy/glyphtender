@@ -8,6 +8,9 @@
 //   Tuning tab → Recently on screen says what's showing and what hasn't been seen → (desktop) + Add a knob saves
 //   content/devkit/select.json, ✕ takes it off again, and the file ends exactly as it started → the game plays on to
 //   the end with the panel open: the end reveal lands in "Recently on screen". No console errors, nothing sideways.
+// Menus first (Dev Kit 0.15.0, F88): on the main menu, pick a Button → its shared UI style rows (Color) + 2 sounds,
+//   corners → 0rem squares every game button live, Undo puts it back; open Settings → the main menu behind it can't be
+//   picked → pick a Tab, and a Toggle switch where one isn't behind the panel (phone).
 // WRITES content/devkit/select.json (puts it back) — so check-all runs it ALONE.
 // Starts its OWN dev server (default port 5448 — never Muzzy's) and closes only that one.
 //   npm run e2e:devkit-select [outDir] [port]
@@ -41,7 +44,7 @@ function pickedView() {
   const bodies = [...document.querySelectorAll('aside.devkit .devkit-body')].filter((b) => !b.hidden)
   return {
     name: document.querySelector('.sel-picked-name')?.textContent ?? null,
-    panels: bodies.map((b) => b.getAttribute('aria-label')),
+    panels: bodies.filter(shown).map((b) => b.getAttribute('aria-label')),
     sections: [...document.querySelectorAll('.devkit-body.is-picked-view .dk-section-title, .devkit-body.is-picked-view .sb-section-head button')].filter(shown).map((t) => t.textContent.trim()),
     knobs: document.querySelectorAll('.devkit-body.is-picked-view .sel-knob').length,
     sounds: document.querySelectorAll('.devkit-body.is-picked-view .sb-sound').length,
@@ -66,12 +69,21 @@ function glyphlingSpot() {
   return null
 }
 
+/** Open the Dev Kit with ` (the menu shows a moment before the Dev Kit listens for the key — press until it opens). */
+async function openDevKit(page) {
+  for (let i = 0; i < 20 && !(await page.locator('aside.devkit:not([hidden])').count()); i++) {
+    await page.keyboard.press('Backquote')
+    await page.waitForTimeout(250)
+  }
+}
+
 /** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
 async function pickTab(page, name) {
   const inView = () => page.evaluate((name) => {
-    const view = document.querySelector('.devkit-tabs .dk-carousel-view')?.getBoundingClientRect()
-    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)?.getBoundingClientRect()
-    return !view || !tab || (tab.left >= view.left - 1 && tab.right <= view.right + 1)
+    // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
+    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)
+    const box = tab?.getBoundingClientRect()
+    return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
   }, name)
   for (let i = 0; i < 6 && !(await inView()); i++) {
     await page.getByRole('button', { name: 'Next tools' }).click()
@@ -97,12 +109,91 @@ try {
     page.on('pageerror', (e) => errors.push(e.message))
     const shot = (name) => page.screenshot({ path: `${OUT}/${size.name}-${name}.png` })
 
+    let view
+    // MENUS (Dev Kit 0.15.0, F88): the main menu's buttons and Settings' switches are pickable; their knobs are the
+    // UI kit's shared style values (the Color tab's rows), live; a screen behind a menu (inert) is never picked
+    await page.goto(`http://127.0.0.1:${PORT}/`)
+    await page.getByRole('button', { name: 'Settings', exact: true }).waitFor()
+    const settingsBtn = page.getByRole('button', { name: 'Settings', exact: true })
+    const playBox = await page.getByRole('button', { name: 'Play', exact: true }).boundingBox()
+    await openDevKit(page)
+    await page.getByRole('button', { name: /Select mode: off/ }).click()
+    const sb = await settingsBtn.boundingBox()
+    if (size.mobile) await page.touchscreen.tap(sb.x + sb.width / 2, sb.y + sb.height / 2)
+    else await page.mouse.click(sb.x + sb.width / 2, sb.y + sb.height / 2)
+    await page.waitForTimeout(400)
+    check('menu: the game ignored the click (still on the main menu)', await page.getByRole('button', { name: 'Play', exact: true }).isVisible())
+    view = await page.evaluate(pickedView)
+    check(`menu: picked ${view.name}`, view.name === 'Button')
+    const styleRows = await page.locator('.devkit-body.is-picked-view .ct-row').count()
+    check(`menu: its shared UI style rows (${styleRows}) + its sounds (${view.sounds}) from Color / Sound (${view.panels.join(', ')})`,
+      styleRows >= 15 && view.sounds === 2 && view.panels.includes('Color') && view.sections.includes('UI style'))
+    if (!size.mobile) {
+      const twins = view.boxes.filter((b) => b.startsWith('is-twin')).length
+      check(`menu: thick outline on it + ${twins} other buttons dashed (they share it)`, view.boxes.includes('is-picked:Button') && twins >= 2)
+    }
+    await page.locator('.devkit-body.is-picked-view .ct-row').first().scrollIntoViewIfNeeded()
+    await shot('0a-menu-button-picked')
+    // A style value changed under the pick restyles every button live; Undo puts it back
+    const corners = page.getByRole('textbox', { name: 'Button & input corners (radius-control) — value' })
+    const cornersWas = await corners.inputValue()
+    await corners.fill('0rem')
+    await corners.press('Enter')
+    await page.waitForTimeout(200)
+    const radius = () => page.evaluate(() => getComputedStyle([...document.querySelectorAll('.kit-button')].find((b) => !b.closest('.devkit'))).borderTopLeftRadius)
+    check(`menu: corners 0rem → the game's buttons are square (${await radius()})`, (await radius()) === '0px')
+    await page.locator('.devkit-body.is-picked-view').filter({ has: corners }).getByRole('button', { name: 'Undo unsaved' }).click()
+    await page.waitForTimeout(200)
+    check(`menu: Undo put the corners back (${await corners.inputValue()})`, (await corners.inputValue()) === cornersWas && (await radius()) !== '0px')
+    // Settings → a switch
+    if (await page.getByRole('button', { name: /Select mode: on/ }).isVisible()) await page.getByRole('button', { name: /Select mode: on/ }).click()
+    await page.keyboard.press('Backquote') // close it (on a phone it covers the menu), open Settings, open it again
+    await page.waitForTimeout(200)
+    await settingsBtn.click()
+    await page.waitForTimeout(600)
+    await openDevKit(page)
+    await page.getByRole('button', { name: /Select mode: off/ }).click()
+    if (!size.mobile) {
+      // where Play was is now the Settings card: the hidden main menu's buttons can't be picked through it
+      await page.mouse.move(playBox.x + playBox.width / 2, playBox.y + playBox.height / 2)
+      await page.waitForTimeout(150)
+      view = await page.evaluate(pickedView)
+      check(`menu: the main menu behind Settings isn't picked (hover: ${view.boxes.filter((b) => b.startsWith('is-hover')).join() || 'nothing'})`,
+        !view.boxes.some((b) => b === 'is-hover:Button') || (await page.locator('.devkit-select-box.is-hover').boundingBox()).width < playBox.width - 20)
+    }
+    // Pick a thing at its centre (phone: a tap; on a phone the pick ends select mode, so turn it back on after)
+    const pickAt = async (box) => {
+      if (!(await page.locator('aside.devkit.is-selecting').count())) await page.getByRole('button', { name: /Select mode: off/ }).click() // (phone: the bar hides the button)
+      if (size.mobile) await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2)
+      else await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      await page.waitForTimeout(400)
+      return page.evaluate(pickedView)
+    }
+    view = await pickAt(await page.getByRole('tab', { name: 'Gameplay' }).boundingBox())
+    check(`menu: picked ${view.name} with ${view.sounds} sound`, view.name === 'Tab' && view.sounds === 1)
+    // A switch — where one isn't under the Dev Kit panel (at 1440 px the Settings switches are behind it)
+    const panelLeft = (await page.locator('aside.devkit').boundingBox()).x
+    const tg = await page.locator('.kit-toggle').first().boundingBox()
+    if (size.mobile || tg.x + tg.width < panelLeft) {
+      view = await pickAt(tg)
+      check(`menu: picked ${view.name} with ${view.sounds} sounds`, view.name === 'Toggle switch' && view.sounds === 2)
+    }
+    await page.locator('.devkit-body.is-picked-view .ct-row').first().scrollIntoViewIfNeeded()
+    await shot('0b-menu-toggle-picked')
+    if (await page.getByRole('button', { name: /Select mode: on/ }).isVisible()) await page.getByRole('button', { name: /Select mode: on/ }).click()
+    await page.getByRole('button', { name: 'Clear the pick' }).click() // the game test below starts with nothing picked
+    await page.keyboard.press('Backquote') // close the Dev Kit; the game test below opens it fresh
+    await page.waitForTimeout(200)
+
     // A real game, played on until a glyphling is in danger (pieces, seeds and a warning ring on the board)
     await page.goto(`http://127.0.0.1:${PORT}/`)
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Start', exact: true }).click()
     await page.waitForFunction(() => window.__glyphtender?.store.getState().wordsStatus === 'ready', null, { timeout: 20000 })
-    await page.evaluate(() => window.__glyphtender.playUntilDanger(3))
+    // (the start is random: a seed can tangle the garden before anyone's in danger — then the helper changes nothing,
+    // and its note says try another seed)
+    const inDanger = await page.evaluate(() => [3, 1, 2, 4, 5, 6, 7, 8].some((seed) => window.__glyphtender.playUntilDanger(seed)))
+    if (!inDanger) throw new Error('no seed reached a glyphling in danger')
     await page.waitForTimeout(1500)
 
     // ` → the Select tab is first and open
@@ -112,7 +203,7 @@ try {
     check(`Select is the first tab (${tabs.slice(0, 3).join(', ')}…)`, tabs[0] === 'Select')
     check('the Select tab is open', (await page.getByRole('tab', { name: 'Select' }).getAttribute('aria-selected')) === 'true')
     await page.waitForTimeout(500) // the on-screen look runs every 300 ms
-    let view = await page.evaluate(pickedView)
+    view = await page.evaluate(pickedView)
     check(`Recently on screen: Glyphling ${view.recent.Glyphling}, Award ribbon ${view.recent['Award ribbon']}`, view.recent.Glyphling === 'on screen' && view.recent['Award ribbon'] === 'not seen yet')
     await shot('1-select-tab')
 
@@ -122,7 +213,8 @@ try {
       const bar = await page.locator('aside.devkit').boundingBox()
       check(`phone: the panel shrinks to a bar while selecting (${Math.round(bar.height)} px tall)`, bar.height < 120)
     }
-    const spot = await page.evaluate(glyphlingSpot)
+    // (under a busy machine the pieces may still be gliding into place: wait for one to settle outside the panel)
+    const spot = await page.waitForFunction(glyphlingSpot, null, { timeout: 5000 }).then((h) => h.jsonValue(), () => null)
     if (!spot) throw new Error('no glyphling outside the panel to point at')
     const options = () => page.locator('[data-option]').count()
     const optionsBefore = await options()

@@ -65,6 +65,7 @@
 
 /* Under the Select tab, each tool's block starts with a small rule so the Saves read as separate */
 .devkit-body.is-picked-view { border-top: 1px solid #34353f; }
+.devkit-body.is-picked-view:empty { display: none; } /* a tool with nothing for this pick (a glyphling has no UI style) */
 
 /* The outline layer: its own top-layer box over the whole window that never takes a click or moves the layout */
 .devkit-select-layer {

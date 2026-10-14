@@ -4,8 +4,8 @@
 //   Recently on screen: everything seen while the Dev Kit was open, newest first, then the rest greyed — tap one to
 //   pick it without catching it on screen (score pops, a flying seed, a tip that's gone).
 //   The pick: its name, how many are showing, Copy for Claude, ✕. Under this tab the Dev Kit then shows the pick's
-//   knobs with the real Tuning / Text / Sound rows (DevKit.tsx + select/pickContext.ts) — each with its own Save.
-//   + Add a knob: search every setting, text line and sound → it joins the pick (content/devkit/select.json, saved at
+//   knobs with the real Tuning / Color / Text / Sound rows (DevKit.tsx + select/pickContext.ts) — each with its own Save.
+//   + Add a knob: search every setting, text line, sound and UI style value → it joins the pick (content/devkit/select.json, saved at
 //   once in dev). ✕ on a knob row takes it off. Problems in the file (a name that doesn't exist) show in red.
 import { useEffect, useState } from 'react'
 import { copyText } from '../saveContent'
@@ -62,6 +62,7 @@ export function SelectTab() {
       ]),
       ...(obj.text.length ? [`Text (content/text/en.json): ${obj.text.join(', ')}`] : []),
       ...(obj.sounds.length ? [`Sounds (content/audio.json): ${obj.sounds.join(', ')}`] : []),
+      ...(obj.style.length ? [`UI style, shared (content/ui/style.json): ${obj.style.join(', ')}`] : []),
       ...(JSON.stringify(s.file) !== JSON.stringify(s.savedFile)
         ? [`Not saved yet — please put this object into ${SELECT_FILE}:`, JSON.stringify({ [obj.id]: (s.file.objects as Record<string, unknown>)[obj.id] })]
         : []),
@@ -178,7 +179,7 @@ function AddKnob({ obj, onDone }: { obj: SelectObject; onDone: (status: Status) 
   const [section, setSection] = useState(sections[0] ?? NEW_SECTION)
   const [newSection, setNewSection] = useState('')
   const has = (a: Addable) =>
-    a.kind === 'tuning' ? obj.knobs.some((k) => k.ids.includes(a.id)) : (a.kind === 'text' ? obj.text : obj.sounds).includes(a.id)
+    a.kind === 'tuning' ? obj.knobs.some((k) => k.ids.includes(a.id)) : obj[a.kind].includes(a.id)
   const terms = searchTerms(query)
   const results = terms.length === 0 ? [] : addable.filter((a) => !has(a) && matchesAll(terms, [a.id, a.label, a.where])).slice(0, MAX_RESULTS)
 
@@ -193,7 +194,7 @@ function AddKnob({ obj, onDone }: { obj: SelectObject; onDone: (status: Status) 
       <input
         type="search"
         className="sel-add-search"
-        placeholder="Search settings, text lines, sounds…"
+        placeholder="Search settings, text lines, sounds, UI style…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Search for a knob to add"

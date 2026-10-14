@@ -3,7 +3,7 @@
 //   its twins dashed — "affects all 8 glyphlings"). The game never sees those clicks: they're caught on the way down
 //   (capture phase) and stopped. The Dev Kit's own panel is never caught.
 //   The outlines live in their own top-layer box (a popover with pointer-events: none) so they never move the game's
-//   layout and float above it. A requestAnimationFrame loop moves them with the things (they glide, hop, scroll) —
+//   layout and float above it — with a hole cut where the Dev Kit panel is, so they never cover its rows. A requestAnimationFrame loop moves them with the things (they glide, hop, scroll) —
 //   straight on the elements' style, never React state per frame.
 //   While the Dev Kit is open it also notes what's on screen (a 300 ms look + a watch for things that pop in and out
 //   faster than that), for the Select tab's "Recently on screen" list. Closing the Dev Kit turns select mode off.
@@ -17,6 +17,8 @@ const SCAN_MS = 300
 const SWALLOW = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'touchstart', 'touchend'] as const
 // Matches select.css: below this width the panel shrinks to a bar while selecting
 const NARROW_PX = 760
+// Phone: how long after a picking tap the panel comes back (its trailing touchend / click land before that)
+const TAP_SETTLE_MS = 350
 const isNarrow = () => window.innerWidth <= NARROW_PX
 const onDevKit = (target: EventTarget | null) => !!(target as Element | null)?.closest?.('.devkit')
 
@@ -59,8 +61,12 @@ export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
       if (e.type !== 'pointerup') return
       const { clientX, clientY } = e as PointerEvent
       const found = objectAt(clientX, clientY, getSelect().objects)
-      // On a phone the panel is only a bar while selecting: a pick brings it back, showing the pick's knobs
-      if (found) setSelect({ picked: found.id, pickedEl: found.el, ...(isNarrow() ? { on: false, hover: null } : {}) })
+      if (!found) return
+      setSelect({ picked: found.id, pickedEl: found.el })
+      // On a phone the panel is only a bar while selecting: a pick brings it back, showing the pick's knobs — a
+      // moment AFTER the tap, so the tap's own trailing events (touchend, click) are still swallowed here instead of
+      // pressing whatever row of the panel would be under the finger (it re-picked "Word" from the recent list).
+      if (isNarrow()) window.setTimeout(() => setSelect({ on: false, hover: null }), TAP_SETTLE_MS)
     }
     window.addEventListener('pointermove', onMove, true)
     for (const type of SWALLOW) window.addEventListener(type, swallow, { capture: true, passive: false })
@@ -89,6 +95,11 @@ export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
         ...(main ? [{ el: main, kind: 'picked' as const, text: label(now.picked) }] : []),
         ...(hover && hover !== main ? [{ el: hover, kind: 'hover' as const, text: label(now.hover) }] : []),
       ]
+      // Never draw over the Dev Kit's own panel (a thing half under it is outlined up to its edge): cut a hole there
+      const panel = document.querySelector('.devkit:not([hidden])')?.getBoundingClientRect()
+      box.style.clipPath = panel && panel.width > 0
+        ? `path(evenodd, 'M0 0H${innerWidth}V${innerHeight}H0Z M${panel.left} ${panel.top}H${panel.right}V${panel.bottom}H${panel.left}Z')`
+        : ''
       // Reuse the outline divs; add or remove only when the count changes
       while (box.children.length < boxes.length) box.appendChild(document.createElement('div'))
       while (box.children.length > boxes.length) box.lastChild!.remove()

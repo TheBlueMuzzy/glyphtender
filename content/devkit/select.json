@@ -1,5 +1,5 @@
 {
-  "_help": "Dev Kit Select tab: what you can click in the game, and the knobs each thing shows. knobs = tuning settings by section (\"<file>.<key>\"; a group brings all of it) · text = content/text/en.json keys (a branch brings all of it) · sounds = content/audio.json names. Add knobs in the game with + Add a knob, or here. The game marks each thing with data-knobs=\"<id>\"; find = a CSS selector for kit parts the game can't mark.",
+  "_help": "Dev Kit Select tab: what you can click in the game, and the knobs each thing shows. knobs = tuning settings by section (\"<file>.<key>\"; a group brings all of it) · text = content/text/en.json keys (a branch brings all of it) · sounds = content/audio.json names · style = UI kit style values (content/ui/style.json, the Color tab) — shared by every part of that kind. Add knobs in the game with + Add a knob, or here. The game marks each thing with data-knobs=\"<id>\"; find = a CSS selector for kit parts the game can't mark.",
   "objects": {
     "glyphling": {
       "label": "Glyphling",
@@ -150,6 +150,83 @@
       },
       "text": ["game.reveal"],
       "sounds": ["reveal.tangles", "reveal.count", "reveal.bonus", "reveal.winner"]
+    },
+    "menuButton": {
+      "label": "Button",
+      "help": "Any UI kit button — menus, Pause, the HUD. Shared: changing it changes every button (main buttons use Main buttons; the quieter ones use Cards).",
+      "find": ".kit-button",
+      "style": ["primary", "on-primary", "surface", "on-surface", "danger", "on-danger", "border", "ink", "radius-control", "corner-shape", "border-width", "depth-0", "glow", "press-scale", "press-shift", "motion-fast", "ease", "text-case", "font-body"],
+      "sounds": ["ui.tap", "ui.back"]
+    },
+    "menuToggle": {
+      "label": "Toggle switch",
+      "help": "An on / off switch (Settings). Shared by every switch.",
+      "find": ".kit-toggle",
+      "style": ["primary", "muted", "surface", "ink", "border-width", "radius-control", "corner-shape", "depth-1", "glow", "motion-fast", "ease"],
+      "sounds": ["ui.toggle.on", "ui.toggle.off"]
+    },
+    "menuSlider": {
+      "label": "Slider",
+      "help": "A slider (Settings → volume). Shared by every slider.",
+      "find": ".kit-slider",
+      "style": ["primary", "surface", "border", "border-width", "radius-control", "depth-1"]
+    },
+    "menuPicker": {
+      "label": "◀ Picker ▶",
+      "help": "A Selector or Stepper: ◀ value ▶ (New Game, Settings). Shared by every picker; its ◀ ▶ are Buttons.",
+      "find": ".kit-picker",
+      "style": ["surface", "on-surface", "border", "border-width", "radius-control", "corner-shape", "font-body"],
+      "sounds": ["ui.tap"]
+    },
+    "menuTab": {
+      "label": "Tab",
+      "help": "One tab in a tab row (Settings). Shared by every tab.",
+      "find": ".kit-tab",
+      "style": ["primary", "on-primary", "surface", "on-surface", "muted", "border", "border-width", "radius-control", "corner-shape", "text-case"],
+      "sounds": ["ui.tap"]
+    },
+    "menuRow": {
+      "label": "List row",
+      "help": "A row in a list (Settings, Credits). Shared by every row.",
+      "find": ".kit-listrow",
+      "style": ["on-surface", "muted", "border", "border-width"],
+      "sounds": ["ui.tap"]
+    },
+    "menuBadge": {
+      "label": "Badge",
+      "help": "A small label chip. Shared by every badge.",
+      "find": ".kit-badge",
+      "style": ["primary", "on-primary", "surface", "on-surface", "danger", "on-danger", "border", "ink", "border-width", "radius-control", "corner-shape", "text-case"]
+    },
+    "menuTitle": {
+      "label": "Menu title",
+      "help": "The big words at the top of a menu. Shared by every title.",
+      "find": ".kit-text[data-kind=\"title\"], .kit-text[data-kind=\"display\"]",
+      "style": ["on-surface", "font-display", "font-scale", "text-size", "text-case"]
+    },
+    "menuCard": {
+      "label": "Menu card",
+      "help": "The card a menu sits on (Main menu, Pause, Settings, New Game, Credits, lobby…). Shared by every menu.",
+      "find": ".kit-modal, .kit-menu",
+      "style": ["surface", "on-surface", "border", "border-width", "radius-panel", "corner-shape", "depth-2", "panel-texture", "density", "enter", "motion-normal", "ease", "kit-menu-w", "kit-menu-max-h", "kit-menu-max-h-wide", "kit-ask-w", "kit-scroll-fade"]
+    },
+    "menuPanel": {
+      "label": "Card or panel",
+      "help": "A card or panel inside a menu or on the game. Shared by every card.",
+      "find": ".kit-card, .kit-panel:not(.kit-modal):not(.kit-menu):not(.kit-toast)",
+      "style": ["surface", "on-surface", "border", "border-width", "radius-panel", "corner-shape", "depth-1", "panel-texture", "font-display"]
+    },
+    "menuToast": {
+      "label": "Toast",
+      "help": "A short message that pops in and fades (\"Word sent\"). Shared by every toast.",
+      "find": ".kit-toast",
+      "style": ["surface", "on-surface", "danger", "border", "border-width", "radius-panel", "depth-2", "motion-normal", "ease"]
+    },
+    "menuScreen": {
+      "label": "Menu background",
+      "help": "Behind a menu: the page colour and the body text. Click an empty spot around a menu.",
+      "find": ".kit-screen",
+      "style": ["bg", "on-bg", "muted", "focus", "font-body", "text-size", "density"]
     }
   }
 }

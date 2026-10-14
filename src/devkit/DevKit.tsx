@@ -67,8 +67,9 @@ const KIT_TABS: DevKitTab[] = [
   ...(ScreensTab ? [{ id: 'screens', label: 'Screens', Panel: ScreensPanel }] : []),
 ]
 
-// The panels that show a pick's knobs under the Select tab, in this order (a game's Text and Sound tabs use these ids)
-const PICK_TABS = ['tuning', 'text', 'sound']
+// The panels that show a pick's knobs under the Select tab, in this order (a game's Text and Sound tabs use these ids;
+// Color shows the UI kit style values — a button's corners, a toggle's colours)
+const PICK_TABS = ['tuning', 'color', 'text', 'sound']
 
 const CORNER_SIZE_PX = 64 // the invisible top-right square you triple-tap on a phone
 const TRIPLE_TAP_MS = 700 // all three taps must land within this time
@@ -187,7 +188,7 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     goToSection(sectionId)
   }
 
-  // Select tab with something picked: the Tuning / Text / Sound panels show under it, filtered to the pick
+  // Select tab with something picked: the Tuning / Color / Text / Sound panels show under it, filtered to the pick
   const select = useSelect()
   const picked = tabId === 'select' ? pickedObject(select) : null
   const panelPick: PanelPick | null = picked && {

@@ -30,9 +30,9 @@ describe('Dev Kit Select: content/devkit/select.json', () => {
     expect(selectFile).not.toBeNull()
     expect(objects.length).toBeGreaterThanOrEqual(14)
   })
-  it('every knob names a setting, text line or sound that exists', () => {
+  it('every knob names a setting, text line, sound or UI style value that exists', () => {
     const { known } = catalog()
-    expect(known.tuning.length * known.text.length * known.sounds.length).toBeGreaterThan(0) // the game's files were found
+    expect(known.tuning.length * known.text.length * known.sounds.length * known.style.length).toBeGreaterThan(0) // the game's files were found
     expect(checkSelectMap(file, catalog().known)).toEqual([])
   })
   it('every object can be found on screen (a data-knobs tag in src, or a find selector)', () => {

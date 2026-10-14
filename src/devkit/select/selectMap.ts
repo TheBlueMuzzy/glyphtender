@@ -9,11 +9,13 @@
 //       "knobs": { "Look": ["garden.pieceScale"], "Drag": ["drag.liftScale", "feel.tiers"] },
 //                                             tuning settings by section: "<file>.<key path>"; a group brings all of it
 //       "text": ["explore.glyph"],            en.json keys; a key with more inside brings all of it
-//       "sounds": ["glyph.step"] } } }        content/audio.json sound names
+//       "sounds": ["glyph.step"],             content/audio.json sound names
+//       "style": ["primary", "radius-control"] } } }  UI kit style values (content/ui/style.json) — shared by every
+//                                             part of that kind: a button's style is every button's
 // On screen, the game marks the thing with data-knobs="glyphling" (several ids: space-separated) — by MEANING: the
 // thing Muzzy sees, not the bit of code that moves it.
 
-export type KnobKind = 'tuning' | 'text' | 'sounds'
+export type KnobKind = 'tuning' | 'text' | 'sounds' | 'style'
 
 export type SelectObject = {
   id: string
@@ -23,15 +25,16 @@ export type SelectObject = {
   knobs: { title: string; ids: string[] }[] // tuning, in the file's section order
   text: string[]
   sounds: string[]
+  style: string[]
 }
 
 export type SelectFile = Record<string, unknown> // the file as read (its _help and anything else are kept on Save)
 
 /** Every setting the game has, for checking the file and for "+ Add a knob". */
-export type Known = { tuning: string[]; text: string[]; sounds: string[] } // tuning = "<file>.<path>" leaves
+export type Known = { tuning: string[]; text: string[]; sounds: string[]; style: string[] } // tuning = "<file>.<path>" leaves
 
 /** The ids a Select tab picks and the panels show (DevKit.tsx hands each panel its part). */
-export type KnobPick = { objectId: string; label: string; tuning: { title: string; ids: string[] }[]; text: string[]; sounds: string[] }
+export type KnobPick = { objectId: string; label: string; tuning: { title: string; ids: string[] }[]; text: string[]; sounds: string[]; style: string[] }
 
 const isRecord = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v)
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string' && s.trim() !== '') : [])
@@ -52,6 +55,7 @@ export function readSelectObjects(file: SelectFile): SelectObject[] {
       knobs,
       text: strings(raw.text),
       sounds: strings(raw.sounds),
+      style: strings(raw.style),
     }]
   })
 }
@@ -63,13 +67,13 @@ export const coveredBy = (leaf: string, id: string) => leaf === id || leaf.start
 export const leavesOf = (id: string, all: string[]) => all.filter((leaf) => coveredBy(leaf, id))
 
 export function pickOf(obj: SelectObject): KnobPick {
-  return { objectId: obj.id, label: obj.label, tuning: obj.knobs, text: obj.text, sounds: obj.sounds }
+  return { objectId: obj.id, label: obj.label, tuning: obj.knobs, text: obj.text, sounds: obj.sounds, style: obj.style }
 }
 
 /** How many knobs an object shows (a group counts each setting in it). */
 export function countKnobs(obj: SelectObject, known: Known): number {
   const count = (ids: string[], all: string[]) => new Set(ids.flatMap((id) => leavesOf(id, all))).size
-  return count(obj.knobs.flatMap((k) => k.ids), known.tuning) + count(obj.text, known.text) + count(obj.sounds, known.sounds)
+  return count(obj.knobs.flatMap((k) => k.ids), known.tuning) + count(obj.text, known.text) + count(obj.sounds, known.sounds) + count(obj.style, known.style)
 }
 
 /**
@@ -85,6 +89,7 @@ export function checkSelectMap(file: SelectFile, known: Known): string[] {
     }
     for (const id of obj.text) if (leavesOf(id, known.text).length === 0) problems.push(`${obj.label} · Text: "${id}" — no text line has this key`)
     for (const id of obj.sounds) if (!known.sounds.includes(id)) problems.push(`${obj.label} · Sounds: "${id}" — no sound has this name`)
+    for (const id of obj.style) if (!known.style.includes(id)) problems.push(`${obj.label} · Style: "${id}" — no UI style value has this name`)
   }
   return problems
 }

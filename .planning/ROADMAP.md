@@ -293,10 +293,14 @@ flowchart LR
 Goal: Muzzy clicks anything in the game with the Dev Kit open and gets every knob for it (tuning, words, sounds) in one place, changes them live and saves. Framework-first (framework v0.8 F55–F56, design `framework/.planning/design/select-mode.md`).
 - 🔨 F86 🔧 Select Mode on Glyphtender (built 2026-10-14, waiting for Muzzy's OK): Dev Kit 0.14 installed · content/devkit/select.json with the 14 objects (glyphling, tray seed, planned seed, board, grown word, spotlight label, score pop, score total, vine/tangle, tray, turn indicator, Sprout's tip, award ribbon, end reveal) · data-knobs tags · a test that the file and the tags agree · e2e:devkit-select — should · framework F55, F56
   why: one click on what he sees → every knob for it → tuning by eye without hunting through tabs
-- ⏳ F87 ❓ Muzzy tries Select Mode: are the lists right, is anything hard to click, what to add — needs: F86
+- 🔨 F88 🔧 Select Mode on menus (built 2026-10-14, Muzzy asked the same morning): click a button, switch, slider, ◀ picker ▶, tab, list row, badge, menu title, menu card, card, toast or menu background → its shared UI style values (colours + corners, outline, shadow, press feel, timings, menu sizes) from the Color tab + its kit sounds — Dev Kit 0.15.0 · should · needs: F86 · framework F58
+  why: Muzzy sees a button he wants rounder or a switch he wants another colour → one click → the knobs → Save
+- ⏳ F87 ❓ Muzzy tries Select Mode (game things + menus): are the lists right, is anything hard to click, what to add — needs: F86, F88
 ```mermaid
 flowchart LR
   F86[🔨 F86 Select Mode] --> F87[⏳ F87 Muzzy tries it]
+  F86 --> F88[🔨 F88 Select on menus]
+  F88 --> F87
 ```
 
 ## Later

@@ -11,8 +11,13 @@ export type Found = { id: string; el: Element }
 
 const DEVKIT = '.devkit, .devkit-select-layer' // the Dev Kit's own boxes are never picked
 
-/** Is it really showing? Not hidden, not see-through (an invisible leftover score pop never counts), has a size. */
+/**
+ * Is it really showing? Not hidden, not see-through (an invisible leftover score pop never counts), has a size, and
+ * not behind an open menu: a screen under the top one (the main menu under Settings) is marked inert by the UI kit —
+ * still drawn, but covered and out of reach, so its buttons never get picked through the menu on top.
+ */
 export function isShowing(el: Element): boolean {
+  if (el.closest('[inert]')) return false
   const box = el.getBoundingClientRect()
   if (box.width <= 0 && box.height <= 0) return false
   if (typeof el.checkVisibility === 'function') return el.checkVisibility({ opacityProperty: true, visibilityProperty: true })
