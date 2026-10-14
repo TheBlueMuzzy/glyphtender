@@ -2,11 +2,13 @@
    every bio is piled in one spot (invisible copies), so the bio space is as tall as the longest bio and the real one
    sits at the top of it (NewGameScreen.tsx). */
 @layer game {
-  /* an AI seat's rows: label | selector — labels keep their width, both selectors fill the rest (same width, right edges aligned), the bio across both */
+  /* an AI seat's rows: label | selector — each selector only as wide as its longest option (the kit's Selector), on
+     the right like every other row's control; the bio right-aligned under the AI Type selector (Muzzy 2026-10-13:
+     "they should all find the longest word in them… Anchor the … personality descriptions to the right") */
   .new-game-ai { display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: var(--gap-s); }
-  .new-game-ai > .kit-selector, .new-game-ai > * > .kit-selector { justify-self: stretch; }
-  .new-game-ai > .new-game-bio { grid-column: 1 / -1; }
-  .new-game-ai .kit-picker-value { white-space: nowrap; } /* "the Strategist" on one line */
+  .new-game-ai > .kit-selector, .new-game-ai > * > .kit-selector { justify-self: end; }
+  .new-game-ai > .new-game-bio { grid-column: 1 / -1; justify-self: end; text-align: end; }
+  .new-game-ai :is(.kit-picker-value, .kit-picker-sizer) { white-space: nowrap; } /* "the Strategist" on one line */
   .new-game-ai { padding-block: var(--gap-s); }
   .new-game-ai + .kit-listrow { border-block-start: var(--border-width) solid var(--border); } /* the kit's row divider after the section */
   .new-game-bio { display: grid; }

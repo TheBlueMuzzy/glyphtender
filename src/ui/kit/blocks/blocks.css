@@ -46,6 +46,7 @@
      where six tabs wrapped onto two lines and left room for under two setting rows (0.7.0) */
   .kit-settings-picker { display: none; }
   .kit-settings-picker .kit-picker { inline-size: 100%; }
+  .kit-settings-picker .kit-picker-sized { flex: 1 1 auto; } /* (full width: ◀ and ▶ at the two ends) */
   @media (max-width: 40rem), (max-height: 30rem) {
     .kit-settings-tabs { display: none; }
     .kit-settings-picker { display: block; }

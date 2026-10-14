@@ -98,8 +98,9 @@ const lobbySeats = (p) => p.room((s) => s.room?.room?.seats?.map((seat) => `${se
 // Pick a value in a kit Selector (◀ value ▶): press ▶ until it shows `value`
 async function choose(p, label, value) {
   const selector = p.page.getByRole('group', { name: label })
-  for (let i = 0; i < 6 && (await selector.textContent()).indexOf(value) < 0; i++) await p.tap(selector.getByRole('button').last())
-  check(`${label} shows ${value}`, (await selector.textContent()).includes(value))
+  const shown = () => selector.locator('.kit-picker-value').textContent() // (the shown value — the picker also holds hidden copies of every option for its width)
+  for (let i = 0; i < 6 && (await shown()).indexOf(value) < 0; i++) await p.tap(selector.getByRole('button').last())
+  check(`${label} shows ${value}`, (await shown()).includes(value))
 }
 
 try {

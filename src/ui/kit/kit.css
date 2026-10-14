@@ -157,6 +157,11 @@
   .kit-picker > .kit-button { flex: none; }
   .kit-picker-value { flex: 1 1 5rem; min-inline-size: 0; text-align: center; font-weight: 600; overflow-wrap: anywhere; }
   .kit-stepper .kit-picker-value { flex-basis: 2.5rem; }
+  /* Sized by its values (Selector): its own width is the longest option's — every option piled in one spot, only the
+     current one seen (ArrowPicker sizes) */
+  .kit-picker-sized { display: grid; flex: 0 1 auto; min-inline-size: 0; }
+  .kit-picker-sized > * { grid-area: 1 / 1; min-inline-size: 0; }
+  .kit-picker-sizer { visibility: hidden; text-align: center; font-weight: 600; overflow-wrap: anywhere; } /* (sized like the value) */
 
   .kit-tabs { display: flex; flex-wrap: wrap; gap: var(--gap-xs); padding: var(--gap-xs); }
 
