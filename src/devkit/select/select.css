@@ -127,3 +127,36 @@
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
   }
 }
+
+/* Select mode on a desktop: the mouse leaves the panel → it slides off to the right, leaving this bar (so the whole game
+   shows); the mouse comes back over the bar → it slides back in. The slide shows it's tucked away, not gone (DevKit.tsx). */
+.devkit { transition: transform 220ms ease; }
+.devkit-tuck-bar { display: none; }
+@media (min-width: 761px) {
+  .devkit.is-tucked { transform: translateX(calc(100% - 28px)); }
+  .devkit-tuck-bar {
+    display: flex;
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 28px;
+    z-index: 1;
+    align-items: center;
+    justify-content: center;
+    background: #1d1e26;
+    border-left: 3px solid #ff4fa3;
+    color: #ff8cc4;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+  }
+  .devkit-tuck-bar span { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
+  .devkit.is-tucked .devkit-tuck-bar { opacity: 1; pointer-events: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .devkit { transition: none; }
+}

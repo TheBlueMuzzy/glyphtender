@@ -29,7 +29,7 @@ Done when: on a menu, Select mode → click a button / switch / tab… → its s
 - [x] 🤖 4. Full check 35/35 (after fixing 3 test problems: Color wording, Dev Kit tab "in view" = pressable, Select test tries several seeds), /save
 Notes:
 - One look per part (the kit's rule): a button's knobs change EVERY button — the panel says "Shared — changes every button". A per-button override was not added (D98).
-- At 1440 px wide the Dev Kit panel covers the right side of Settings (its switches): widen the window or close the panel to reach them. Ask Muzzy: worth a "slide the panel to the left" button?
+- At 1440 px wide the Dev Kit panel covers the right side of Settings (its switches). Answered by Muzzy's idea (2026-10-14), Dev Kit 0.15.1: in select mode on a desktop, the mouse leaving the panel slides it off to a pink "Dev Kit" bar on the right; the mouse back over the bar slides it in (picked or not) — the slide shows it's tucked, not gone. e2e:devkit-select now picks a Settings switch at 1440 px.
 - Fixed on the way: on a phone, the tap that picked could press the panel row that popped up under the finger (it re-picked "Word").
 
 ## F87 ❓ Muzzy tries Select Mode

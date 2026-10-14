@@ -12,8 +12,10 @@
 // sections, tapping a section title in the results clears the search and takes you there. Esc clears it, then closes.
 // Select (only when the game has content/devkit/select.json, select/): click a thing in the game → under the Select tab
 // the Tuning, Text and Sound panels show just that thing's knobs (the same panels, so every edit is the one edit).
+// While selecting on a desktop, the panel slides off to a thin pink bar on the right when the mouse leaves it (so the
+// whole game shows), and slides back when the mouse comes back over the bar — picked something or not.
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
-import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from 'react'
 import { gameTabs } from '../devkit-game/tabs'
 import { CaptureTab } from './capture/CaptureTab'
 import { Carousel } from './carousel/Carousel'
@@ -23,7 +25,7 @@ import { SearchBar } from './search/SearchBar'
 import { DevKitSearch } from './search/searchContext'
 import { goToSection } from './search/sectionState'
 import { DevKitPick, type PanelPick } from './select/pickContext'
-import { SelectLayer } from './select/SelectLayer'
+import { NARROW_PX, SelectLayer } from './select/SelectLayer'
 import { selectFile } from './select/selectFiles'
 import { pickOf, withoutKnob } from './select/selectMap'
 import { getSelect, pickedObject, saveSelectFile, setSelect, useSelect } from './select/selectStore'
@@ -195,6 +197,21 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     pick: pickOf(picked),
     remove: (kind, id) => void saveSelectFile(withoutKnob(getSelect().file, picked.id, kind, id)),
   }
+  // Select mode on a desktop: mouse off the panel → it tucks away to a bar; mouse back over it → it slides back in
+  const [tucked, setTucked] = useState(false)
+  const tuckable = select.on && open
+  const [wasTuckable, setWasTuckable] = useState(tuckable)
+  if (tuckable !== wasTuckable) {
+    setWasTuckable(tuckable)
+    if (!tuckable) setTucked(false) // select mode off or the panel closed: next time it starts slid in
+  }
+  const tuckIfSelecting = (e: ReactPointerEvent) => {
+    // The browser's own relatedTarget (React's says "window" for anything in the game's separate React root): no
+    // element = the mouse left the window (off the right edge), not onto the game — stay put
+    if (select.on && e.pointerType === 'mouse' && e.nativeEvent.relatedTarget instanceof Element && window.innerWidth > NARROW_PX) setTucked(true)
+  }
+  const classes = ['devkit', select.on && 'is-selecting', tucked && 'is-tucked'].filter(Boolean).join(' ')
+
   const showsPick = (t: DevKitTab) => panelPick !== null && PICK_TABS.includes(t.id)
   // React keeps each panel (and its unsaved edits) when they're only put in another order
   const shownTabs = panelPick
@@ -205,7 +222,14 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
   return (
     <>
     {selectFile && <SelectLayer panelOpen={open} />}
-    <aside ref={panel} {...{ popover: 'manual' }} className={select.on ? 'devkit is-selecting' : 'devkit'} data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
+    <aside ref={panel} {...{ popover: 'manual' }} className={classes} data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit"
+      onPointerLeave={tuckIfSelecting}
+      onPointerEnter={() => setTucked(false)}
+    >
+      {/* Tucked away (desktop, select mode): the bar that's left showing; hover it to bring the panel back (select.css) */}
+      <div className="devkit-tuck-bar" aria-hidden="true">
+        <span>Dev Kit</span>
+      </div>
       {/* Select mode on a narrow screen (a phone): the panel shrinks to this bar so the game can be tapped (select.css) */}
       {select.on && (
         <div className="devkit-selecting-bar">

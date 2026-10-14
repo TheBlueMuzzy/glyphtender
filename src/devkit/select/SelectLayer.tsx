@@ -16,7 +16,7 @@ const SCAN_MS = 300
 // Every kind of press a game might listen to — all stopped while select mode is on (pointerup does the picking)
 const SWALLOW = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'touchstart', 'touchend'] as const
 // Matches select.css: below this width the panel shrinks to a bar while selecting
-const NARROW_PX = 760
+export const NARROW_PX = 760
 // Phone: how long after a picking tap the panel comes back (its trailing touchend / click land before that)
 const TAP_SETTLE_MS = 350
 const isNarrow = () => window.innerWidth <= NARROW_PX

@@ -77,6 +77,14 @@ async function openDevKit(page) {
   }
 }
 
+/** Desktop select mode: the mouse leaving the panel tucked it away to a pink bar — hover the bar to slide it back. */
+async function panelBack(page) {
+  if (!(await page.locator('aside.devkit.is-tucked').count())) return
+  const bar = await page.locator('.devkit-tuck-bar').boundingBox()
+  await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2, { steps: 4 }) // (not .hover(): the panel slides in under the mouse)
+  await page.waitForTimeout(350)
+}
+
 /** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
 async function pickTab(page, name) {
   const inView = () => page.evaluate((name) => {
@@ -122,6 +130,13 @@ try {
     if (size.mobile) await page.touchscreen.tap(sb.x + sb.width / 2, sb.y + sb.height / 2)
     else await page.mouse.click(sb.x + sb.width / 2, sb.y + sb.height / 2)
     await page.waitForTimeout(400)
+    if (!size.mobile) {
+      const tuckedLeft = (await page.locator('aside.devkit').boundingBox()).x
+      check(`menu: the mouse left the panel → it tucked away to a bar (left edge ${Math.round(tuckedLeft)} of ${size.width})`, tuckedLeft > size.width - 40)
+      await shot('0-tucked')
+      await panelBack(page)
+      check('menu: the mouse back over the bar → the panel slid back in', (await page.locator('aside.devkit').boundingBox()).x < size.width - 200)
+    }
     check('menu: the game ignored the click (still on the main menu)', await page.getByRole('button', { name: 'Play', exact: true }).isVisible())
     view = await page.evaluate(pickedView)
     check(`menu: picked ${view.name}`, view.name === 'Button')
@@ -167,17 +182,18 @@ try {
       if (size.mobile) await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2)
       else await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
       await page.waitForTimeout(400)
+      await panelBack(page)
       return page.evaluate(pickedView)
     }
     view = await pickAt(await page.getByRole('tab', { name: 'Gameplay' }).boundingBox())
     check(`menu: picked ${view.name} with ${view.sounds} sound`, view.name === 'Tab' && view.sounds === 1)
-    // A switch — where one isn't under the Dev Kit panel (at 1440 px the Settings switches are behind it)
-    const panelLeft = (await page.locator('aside.devkit').boundingBox()).x
-    const tg = await page.locator('.kit-toggle').first().boundingBox()
-    if (size.mobile || tg.x + tg.width < panelLeft) {
-      view = await pickAt(tg)
-      check(`menu: picked ${view.name} with ${view.sounds} sounds`, view.name === 'Toggle switch' && view.sounds === 2)
+    // A switch (at 1440 px the Settings switches are behind the panel: the mouse leaving it tucks it away first)
+    if (!size.mobile) {
+      await page.mouse.move(10, size.height / 2, { steps: 4 })
+      await page.waitForTimeout(350)
     }
+    view = await pickAt(await page.locator('.kit-toggle').first().boundingBox())
+    check(`menu: picked ${view.name} with ${view.sounds} sounds`, view.name === 'Toggle switch' && view.sounds === 2)
     await page.locator('.devkit-body.is-picked-view .ct-row').first().scrollIntoViewIfNeeded()
     await shot('0b-menu-toggle-picked')
     if (await page.getByRole('button', { name: /Select mode: on/ }).isVisible()) await page.getByRole('button', { name: /Select mode: on/ }).click()
@@ -227,6 +243,8 @@ try {
       check(`hover: thin outline named Glyphling (${view.boxes.join(' ')})`, view.boxes.includes('is-hover:Glyphling'))
       await shot('2-hover')
       await page.mouse.click(spot.x, spot.y)
+      await page.waitForTimeout(400)
+      await panelBack(page)
     } else {
       await shot('2-selecting-bar')
       await page.touchscreen.tap(spot.x, spot.y)
