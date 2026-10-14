@@ -2,7 +2,7 @@
 // the host the table options (garden, 2-letter words, turn timer, word indicators) + Start. Everyone else: I'm ready.
 // Leave goes through useRoom.leave(). Kit Lobby with a room code; the option rows are kit ListRows.
 // AI seats (F43): the host adds one from a card under the players (the next seat's glyphling, the personality's name
-// and bio — the same AI Type · bio · Skill rows as New Game's AI seats, AiPickerRows.tsx) and can Remove
+// and bio — the same AI rows as New Game's AI seats, AiPickerRows.tsx) and can Remove
 // it again. An AI seat shows 🤖 + its skill under its name; the server plays it (party/turnClock.ts).
 import { useState } from 'react'
 import text from '../../../content/text/en.json'
@@ -60,8 +60,9 @@ function AddAi({ seat, onAdd }: { seat: number; onAdd: (ai: AiPick) => void }) {
   return (
     <Card title={<Row gap="s"><Avatar name={shown.name} src={glyphlingArt(seat)} color={colours[colourOf(seat)]} /><span>{w.lobby.addAiTitle}</span></Row>}>
       <Stack gap="s">
-        {/* the same rows as New Game's AI seats (Muzzy 2026-10-08) — no "Surprise me" online (the name would give it away) */}
-        <AiPickerRows personalities={personalityIds()} personality={ai.personality} skill={ai.skill} onChange={(part) => setAi({ ...ai, ...part })} />
+        {/* the same picker as New Game's AI seats (Muzzy 2026-10-08) — no "Surprise me" online (the name would give it away) */}
+        <AiPickerRows label={text.newGame.aiType} personalities={personalityIds()} value={{ ai: true, ...ai }}
+          onChange={(pick) => setAi({ personality: pick.personality, skill: pick.skill })} />
         <Button variant="secondary" onClick={() => onAdd(ai)}>{w.lobby.addAi}</Button>
       </Stack>
     </Card>

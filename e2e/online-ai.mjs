@@ -97,9 +97,10 @@ async function playUntil(players, done, seconds = 120) {
 const lobbySeats = (p) => p.room((s) => s.room?.room?.seats?.map((seat) => `${seat.name}|${seat.kind}|${seat.profile ?? ''}`) ?? [])
 // Pick a value in a kit Selector (◀ value ▶): press ▶ until it shows `value`
 async function choose(p, label, value) {
-  const selector = p.page.getByRole('group', { name: label })
-  for (let i = 0; i < 6 && (await selector.textContent()).indexOf(value) < 0; i++) await p.tap(selector.getByRole('button').last())
-  check(`${label} shows ${value}`, (await selector.textContent()).includes(value))
+  const selector = p.page.getByRole('group', { name: label, exact: true })
+  const shown = () => selector.locator('.kit-picker-value').textContent() // (the shown value — the picker also holds hidden copies of every option for its width)
+  for (let i = 0; i < 6 && (await shown()).indexOf(value) < 0; i++) await p.tap(selector.getByRole('button').last())
+  check(`${label} shows ${value}`, (await shown()).includes(value))
 }
 
 try {
@@ -112,7 +113,7 @@ try {
   const code = await ada.room((s) => s.code)
   console.log(`     room ${code}`)
   await shot(ada, '1-lobby-alone')
-  await choose(ada, 'Personality', 'Scholar')
+  await choose(ada, 'AI Type', 'Scholar')
   await choose(ada, 'Skill', 'Archmage')
   await ada.tap(ada.page.getByRole('button', { name: 'Add AI' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 2, null, { timeout: 5000 }).catch(() => {})
@@ -121,7 +122,7 @@ try {
   await ada.tap(ada.page.getByRole('button', { name: 'Remove The Scholar' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 1, null, { timeout: 5000 }).catch(() => {})
   check('Remove takes the AI out again', (await lobbySeats(ada)).length === 1)
-  await choose(ada, 'Personality', 'Strategist')
+  await choose(ada, 'AI Type', 'Strategist')
   await choose(ada, 'Skill', 'Apprentice')
   await ada.tap(ada.page.getByRole('button', { name: 'Add AI' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 2, null, { timeout: 5000 }).catch(() => {})
@@ -191,8 +192,18 @@ try {
   })
   const idleBar = ada.page.locator('.kit-idle .kit-idle-bar')
   const takenAt = await ada.store((s) => s.game.turnCount) // (F62: her turn, not played yet — the bot plays it)
+  // (Muzzy, 2026-10-13: Explore taps don't count as "I'm here", and the idle bar closes Explore.) She explores and
+  // taps the board the whole time — the bar still comes.
+  const exploreButton = ada.page.locator('[data-explore-button]')
+  await exploreButton.click()
+  const exploreOn = (await exploreButton.getAttribute('aria-pressed')) === 'true'
+  const tapping = setInterval(() => { ada.page.locator('.game-board, canvas, svg').first().click({ force: true, position: { x: 40, y: 40 } }).catch(() => {}) }, 1500)
   const barShown = await idleBar.waitFor({ timeout: IDLE_WARN_MS + 5000 }).then(() => true, () => false)
-  check('Ada idles on her turn: the draining bar shows on her screen', barShown)
+  clearInterval(tapping)
+  check('Explore was on while Ada tapped around', exploreOn)
+  check('Ada idles on her turn (exploring and tapping don\'t count): the draining bar shows on her screen', barShown)
+  await ada.page.waitForTimeout(300)
+  check('…and the bar closed Explore, so she knows she has to play', (await exploreButton.getAttribute('aria-pressed')) !== 'true')
   check('…and only on hers (not on Bo\'s)', (await bo.page.locator('.kit-idle').count()) === 0)
   check('the bar\'s one line', (await ada.page.getByText('Still there? A bot plays for you soon').count()) === 1)
   for (const size of [TALL, WIDE, DESK]) { // (the bar is up for IDLE_TAKEOVER_MS - IDLE_WARN_MS: room for three shots)

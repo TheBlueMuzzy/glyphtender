@@ -3,8 +3,11 @@
 // Online, a badge beside the portrait says who's really at that seat (B015): a robot while a bot plays it,
 // "Away" while their connection is down and the seat waits for them. On this device, an AI seat (F42) gets the same robot.
 // Online, the room code sits quietly beside the Menu button ("Room: BAKU") — to invite or rejoin without remembering it.
+// The ? beside ☰ turns Explore mode on and off (F79, src/tutorial/ExploreLayer.tsx): lit (primary) while it's on.
+// data-part names the parts Explore explains (the turn bar, ☰); in Explore a tap only explains them.
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
+import { setExploring, useExplore } from '../store/explore'
 import { isLocalBot } from '../store/seats'
 import { Avatar, Badge, Button, HudText, Row, fill, screens } from '../ui/kit'
 import { seatStatus } from '../ui/online/seatStatus'
@@ -27,9 +30,10 @@ export function TurnBar() {
   const localAi = !state.online && playing && isLocalBot(state.seats[seat])
   const w = text.online.seats
   const code = useOnline((s) => s.code)
+  const exploring = useExplore((s) => s.on)
   return (
     <Row gap="s" justify="between" className="game-turn-bar">
-      <Row gap="s">
+      <Row gap="s" data-part="turnBar">
         <Avatar name={name} src={glyphlingArt(seat)} color={colours[colourOf(seat)]} active />
         {status === 'bot' && <Badge variant="primary"><span role="img" aria-label={fill(roomSeat?.profile ? text.game.aiSeat : w.bot, { name })} data-seat-status="bot">{ROBOT}</span></Badge>}
         {localAi && <Badge variant="primary"><span role="img" aria-label={fill(text.game.aiSeat, { name })} data-seat-status="ai">{ROBOT}</span></Badge>}
@@ -37,7 +41,11 @@ export function TurnBar() {
       </Row>
       <Row gap="s">
         {state.online && code && <span data-room-label><HudText size="s">{fill(text.online.roomLabel, { code })}</HudText></span>}
-        <Button variant="secondary" icon aria-label={text.game.buttons.menu} onClick={() => screens.push('pause')}>☰</Button>
+        {playing && (
+          <Button variant={exploring ? 'primary' : 'secondary'} icon aria-label={text.game.buttons.explore} aria-pressed={exploring}
+            data-explore-button="" onClick={() => setExploring(!exploring)}>?</Button>
+        )}
+        <Button variant="secondary" icon aria-label={text.game.buttons.menu} data-part="menu" onClick={() => screens.push('pause')}>☰</Button>
       </Row>
     </Row>
   )

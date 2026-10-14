@@ -73,7 +73,8 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
   const wide = useMedia('(min-aspect-ratio: 1/1)') // a phone on its side or a desktop: everyone in one row (a podium)
   const short = useMedia('(max-height: 32rem)') // a phone on its side: everything a size smaller (game.css matches)
   const [page, setPage] = useState<Page>('results')
-  // The Story chart's scrub line: a round, rounds + 1 = the Tangles column, null = not touched yet
+  // The Story chart's scrub line: a round, rounds + 1 = the Tangles column, null = not touched yet (it shows on
+  // round 1 then — Muzzy, 2026-10-13: "information immediately there", the line an invitation to scan the turns)
   const [scrub, setScrub] = useState<number | null>(null)
   // The Results page's Highlights carousel: which award shows
   const [awardAt, setAwardAt] = useState(0)
@@ -135,18 +136,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
     }
   }, [page, end, pageSize, tuning.pageFill, tuning.maxZoom])
 
-  // More below? The page's bottom edge fades (game.css) until it's scrolled to the end — so a cut-off row reads as "scroll"
-  useLayoutEffect(() => {
-    const scroller = pageBox.current?.querySelector<HTMLElement>('.kit-scroll')
-    if (!scroller) return
-    const check = () => scroller.toggleAttribute('data-more', scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2)
-    check()
-    scroller.addEventListener('scroll', check, { passive: true })
-    const watcher = new ResizeObserver(check)
-    watcher.observe(scroller)
-    if (scroller.firstElementChild) watcher.observe(scroller.firstElementChild)
-    return () => { scroller.removeEventListener('scroll', check); watcher.disconnect() }
-  }, [page, end])
+  // (More below? The kit's ScrollArea fades the edge that has more — UI kit 0.10.0, it was the game's own until then)
 
   // Swipe sideways to turn the page (up/down still scrolls it)
   const swipe = useRef<{ x: number; y: number } | null>(null)
@@ -166,10 +156,10 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
   // endscreen.json carouselSeconds (one moment: the timer just keeps showing it)
   const moveLine = (x: number) => { setScrub(x); setMomentAt(0) }
   useEffect(() => {
-    if (page !== 'story' || scrub === null) return
+    if (page !== 'story') return
     const timer = setInterval(() => setMomentAt((i) => i + 1), tuning.carouselSeconds * 1000)
     return () => clearInterval(timer)
-  }, [page, scrub, tuning.carouselSeconds])
+  }, [page, tuning.carouselSeconds])
 
   if (!game || !end) return null
   const name = playerName
@@ -184,8 +174,10 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
     const plays = playsAt(x, 200)
     return plays ? playsText(plays.title, plays.rows, name) : spotName(x)
   }
-  const scrubbed = scrub !== null && scrub > end.chart.rounds + 1 ? null : scrub // (another game since)
-  const moments = scrubbed === null ? [] : end.awardMarks.filter((m) => m.x === scrubbed)
+  const firstRound = end.chart.rounds >= 1 ? 1 : 0 // (the line never sits on the start: nothing happened there)
+  const untouched = scrub === null || scrub > end.chart.rounds + 1 // (another game since)
+  const scrubbed = untouched ? firstRound : scrub
+  const moments = end.awardMarks.filter((m) => m.x === scrubbed)
   const moment = moments.length ? moments[momentAt % moments.length] : null
   const awardOf = (m: ChartMarker | null) => m?.kind === 'award' ? end.awards.find((a) => a.id === m.award && a.holder === m.seat) ?? null : null
   const slotAward = awardOf(moment)
@@ -237,7 +229,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
                   <div className="game-end-caption" aria-live="polite" data-moments={moments.length}>
                     <div key={`${scrubbed}:${momentAt % Math.max(1, moments.length)}`} className="game-end-moment">
                       {slotAward ? <AwardRow award={slotAward} name={name} />
-                        : scrubbed === null && <Text kind="caption">{w.chart.hint}</Text>}
+                        : untouched && <Text kind="caption">{w.chart.hint}</Text>}
                     </div>
                   </div>
                 </div>

@@ -31,7 +31,7 @@ export interface ThinkResult {
   decision: Decision<Action>
 }
 
-export const personalities: Personality[] = personalitiesFile.personalities
+export const personalities = personalitiesFile.personalities as unknown as Personality[] // (JSON infers each one separately: Sprout has an extra trait)
 export const skills: Skill[] = skillsFile.skills
 
 // An unknown id (a renamed personality in an old save, say) plays as the default AI (store/seats.ts defaultAi)

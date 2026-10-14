@@ -153,7 +153,9 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
 
   // The scrub line's spots: each round's x, and the middle of the Tangles column
   const spots = Array.from({ length: end + 1 }, (_, i) => (i === end ? X(chart.rounds) + tangleW / 2 : X(i)))
-  const nearest = (px: number) => spots.reduce((best, x, i) => (Math.abs(x - px) < Math.abs(spots[best] - px) ? i : best), 0)
+  // (round 0 — the start — is drawn, but the line starts on round 1 and never goes back past it: nothing happened there)
+  const first = chart.rounds >= 1 ? 1 : 0
+  const nearest = (px: number) => spots.reduce((best, x, i) => (i >= first && Math.abs(x - px) < Math.abs(spots[best] - px) ? i : best), first)
   const scrubTo = (e: PointerEvent<SVGSVGElement>) => onScrub(nearest(e.clientX - e.currentTarget.getBoundingClientRect().left))
   // (the pointer events stop here, so dragging the line never also turns the page — GameOver.tsx's swipe)
   const down = (e: PointerEvent<SVGSVGElement>) => {
@@ -174,9 +176,9 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
     const by = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
     if (!by) return
     e.preventDefault()
-    onScrub(Math.max(0, Math.min(end, (scrub ?? -1) + by)))
+    onScrub(Math.max(first, Math.min(end, (scrub ?? first - 1) + by)))
   }
-  const at = scrub ?? 0
+  const at = scrub ?? first
   const lineX = spots[at] ?? PAD.left
 
   const colour = (seat: number) => colours[colourOf(seat)]
@@ -201,7 +203,7 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
     <div ref={box} className="game-end-chart">
       {width > 0 && (
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="game-end-chart-svg"
-          role="slider" tabIndex={0} aria-label={w.label} aria-valuemin={0} aria-valuemax={end} aria-valuenow={at} aria-valuetext={spotLabel(at)}
+          role="slider" tabIndex={0} aria-label={w.label} aria-valuemin={first} aria-valuemax={end} aria-valuenow={at} aria-valuetext={spotLabel(at)}
           onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onKeyDown={key} data-scrub={scrub ?? undefined}>
           {/* The Tangles column, shaded (darker while the line is in it) */}
           <rect x={X(chart.rounds)} y={PAD.top} width={tangleW} height={plotH} fill="var(--border)" opacity={scrub === end ? 0.55 : 0.3} rx={6} />

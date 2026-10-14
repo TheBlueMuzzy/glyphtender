@@ -214,3 +214,31 @@ describe('turn order (GDD §9, F46 — Muzzy: "shuffle the whole order")', () =>
     expect(new Set(orders.map((o) => o[0]))).toEqual(new Set([0, 1, 2, 3]))
   })
 })
+
+describe('a fixed start (F76 stack — the tutorial game)', () => {
+  const stack = { hands: [['C', 'J', 'V', 'E', 'R', 'S', 'N', 'O'], ['T', 'E']], next: ['A', 'L'] }
+
+  it('deals the stacked hands when the draft ends, and the bag gives `next` after them', () => {
+    const game = draftAll(newGame({ players: 2, seed: 9, stack }))
+    expect(game.hands[0].map((p) => p.letter)).toEqual(stack.hands[0])
+    expect(game.hands[1].map((p) => p.letter).slice(0, 2)).toEqual(['T', 'E']) // a short hand is topped up from the bag
+    expect(game.hands[1]).toHaveLength(8)
+    expect(game.bag.slice(0, 2).map((p) => p.letter)).toEqual(['A', 'L'])
+  })
+
+  it('keeps every seed of the box once, with normal ids', () => {
+    const game = newGame({ players: 2, seed: 9, stack })
+    expect(game.bag.map((p) => p.letter).sort()).toEqual(fullBag().sort())
+    expect(new Set(game.bag.map((p) => p.id)).size).toBe(game.bag.length)
+    expect(game.bag.every((p) => /^seed-\d+$/.test(p.id))).toBe(true)
+  })
+
+  it('refuses letters the box has run out of, and a hand that is too big', () => {
+    expect(() => newGame({ players: 2, seed: 1, stack: { next: ['J', 'J'] } })).toThrow()
+    expect(() => newGame({ players: 2, seed: 1, stack: { hands: [Array(9).fill('E')] } })).toThrow()
+  })
+
+  it('without a stack, the game is exactly as before', () => {
+    expect(newGame({ players: 2, seed: 9, stack: undefined })).toEqual(newGame({ players: 2, seed: 9 }))
+  })
+})

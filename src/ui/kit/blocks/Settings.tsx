@@ -2,7 +2,9 @@
 // content/ui/settings.json, then switch rows off ("on": false) or add your own. Add a row → it appears.
 //   <Settings schema={settingsJson} onChange={(values) => applyAudioSettings(audio, values)} />   (framework audio module)
 // Row types: slider · toggle · selector · stepper · button (calls onAction(id)) · link (opens url)
-//            · destructive (asks first, then onAction(id)) · info (read-only, e.g. the version).
+//            · destructive (asks first, then onAction(id)) · info (read-only, e.g. the version)
+//            · heading (0.10.0: a section title in the tab's list, e.g. { "id": "secPlay", "type": "heading", "label": "Play" }).
+// A button row with "confirm": "<question>" asks first too (a plain OK, not the red one), then calls onAction(id).
 // Values are remembered in the browser, in a slot of the game's own (or pass your own load/save).
 // At start-up, call applyAccessibility(loadSettings(schema)) so text size and reduce motion apply
 // before Settings opens.
@@ -11,6 +13,7 @@ import { Panel, Row, Screen } from '../layout'
 import { Button, ListRow, ScrollArea, Selector, Slider, Stepper, Tabs, Text, Toggle } from '../controls'
 import { screens } from '../screens'
 import { askConfirm } from './dialogs'
+import { MenuHeader } from './MenuHeader'
 import defaultSchema from './settings.default.json'
 
 export type SettingValue = number | boolean | string
@@ -18,9 +21,17 @@ export type SettingsValues = Record<string, SettingValue>
 export type SettingRow = {
   id: string; type: string; label: string; detail?: string; on?: boolean; default?: SettingValue
   min?: number; max?: number; step?: number; options?: string[] // slider / stepper / selector
-  url?: string; button?: string; confirm?: string // link / destructive
+  url?: string; button?: string // link / destructive
+  confirm?: string // destructive (always asks), or a button row: the question to ask before it acts
 }
 export type SettingsSchema = { tabs: { id: string; label: string; rows: SettingRow[] }[] }
+
+// What a tab really shows: rows switched off or hidden go; a heading goes too when no row is left under it
+// (before the next heading, or the end) — so a section never shows a title over nothing.
+function visibleRows(rows: SettingRow[], hide: string[]) {
+  const shown = rows.filter((row) => row.on !== false && !hide.includes(row.id))
+  return shown.filter((row, i) => row.type !== 'heading' || (shown[i + 1] && shown[i + 1].type !== 'heading'))
+}
 
 // Only rows that hold a value are saved (not buttons, links or info lines).
 const holdsValue = (row: SettingRow) => ['slider', 'toggle', 'selector', 'stepper'].includes(row.type)
@@ -92,7 +103,7 @@ export function applyAccessibility(values: SettingsValues, root = document.docum
   root.toggleAttribute('data-reduce-motion', values.reduceMotion === true)
 }
 
-export const settingsWords = { title: 'Settings', back: 'Back', reset: 'Reset to defaults' }
+export const settingsWords = { title: 'Settings', back: 'Back', reset: 'Reset to defaults', resetAsk: 'Every setting on this tab goes back to how it started.' }
 type SettingsProps = {
   schema?: SettingsSchema
   onChange?: (values: SettingsValues, changedId: string) => void
@@ -111,8 +122,8 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
   const w = { ...settingsWords, ...words }
   const [values, setValues] = useState(() => withSaved(schema, load()))
   const tabs = schema.tabs
-    .map((tab) => ({ ...tab, rows: tab.rows.filter((row) => row.on !== false && !hide.includes(row.id)) }))
-    .filter((tab) => tab.rows.length > 0)
+    .map((tab) => ({ ...tab, rows: visibleRows(tab.rows, hide) }))
+    .filter((tab) => tab.rows.length > 0) // (a tab of only headings has none left by now)
   const [tabId, setTabId] = useState<string | undefined>(tabs[0]?.id)
   const tab = tabs.find((t) => t.id === tabId) ?? tabs[0]
   const labelOf = (item: { id: string; label: string }) => labels[item.id] ?? item.label
@@ -142,41 +153,65 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
   }
   // Links only open web and mail addresses (never javascript: or file:)
   const openLink = (url?: string) => { if (url && /^(https?:|mailto:)/i.test(url)) window.open(url, '_blank', 'noopener') }
+  // A button row with "confirm" asks first ("Change your name?" + its question), then acts — a plain OK, not the red one
+  const pressButton = (row: SettingRow, label: string) => () => row.confirm
+    ? askConfirm({ title: `${label}?`, message: row.confirm, words: { yes: row.button ?? label }, onConfirm: () => onAction?.(row.id) })
+    : onAction?.(row.id)
   const openRow = (row: SettingRow) =>
-    row.type === 'link' ? () => openLink(row.url) : row.type === 'button' ? () => onAction?.(row.id) : undefined
+    row.type === 'link' ? () => openLink(row.url) : row.type === 'button' ? pressButton(row, labelOf(row)) : undefined
 
   const tabPicker = {
     label: w.title, tabs: tabs.map(labelOf), value: tab ? labelOf(tab) : '',
     onChange: (label: string) => setTabId(tabs.find((t) => labelOf(t) === label)?.id),
   }
 
+  // One tab's list: its rows (headings as section titles), then Reset — which scrolls with the rows, so short
+  // landscape phones keep their room for rows
+  const page = (t: (typeof tabs)[number]) => <>
+    {t.rows.map((row) => row.type === 'heading' ? (
+      <div key={row.id} className="kit-settings-heading"><Text kind="heading">{labelOf(row)}</Text></div>
+    ) : (
+      <ListRow key={row.id} label={labelOf(row)} detail={row.detail} onClick={openRow(row)}>
+        {openRow(row) ? <Text kind="caption">›</Text> : control(row, labelOf(row))}
+      </ListRow>
+    ))}
+    {t.rows.some(holdsValue) && (
+      <Row justify="end">
+        {/* asks first: a tab can hold several sections (a game's Gameplay: Play · Display · Accessibility), and one
+            tap would also put back text size or full screen (0.10.3) */}
+        <Button variant="ghost" onClick={() => askConfirm({ title: `${w.reset}?`, message: w.resetAsk,
+          words: { yes: w.reset }, onConfirm: () => update({ ...values, ...defaultValues(schema, t.id) }, t.id) })}>{w.reset}</Button>
+      </Row>
+    )}
+  </>
+
   return (
-    <Screen label={w.title}>
-      {/* Several tabs: a steady tall panel, so it doesn't jump when switching. One tab: as tall as its rows. */}
-      <Panel depth={2} gap="m" className={tabs.length > 1 ? 'kit-wide kit-tall' : 'kit-wide'}>
-        <Row gap="s" justify="between">
-          <Text kind="title">{w.title}</Text>
-          <Button variant="secondary" sound="back" onClick={onBack}>{w.back}</Button>
-        </Row>
-        {/* Phones get ◀ Audio ▶ instead of a tab bar: 8 tabs would fill half the screen. One tab: no picker. */}
-        {tabs.length > 1 && <>
+    <Screen label={w.title} grow="down">
+      <Panel depth={2} gap="m" className="kit-wide">
+        <MenuHeader title={w.title} onBack={onBack} backLabel={w.back} />
+        {/* 3 tabs or fewer: always the tab bar, on one line. More: phones and short screens get ◀ Audio ▶ instead
+            (8 tabs would fill half the screen). One tab: no picker at all. */}
+        {tabs.length > 1 && tabs.length <= 3 && <div className="kit-settings-few"><Tabs {...tabPicker} /></div>}
+        {tabs.length > 3 && <>
           <div className="kit-settings-tabs"><Tabs {...tabPicker} /></div>
           <div className="kit-settings-picker"><Selector {...tabPicker} options={tabPicker.tabs} /></div>
         </>}
+        {/* Every tab's page is drawn in the same spot, so the TALLEST one sets the card's height: switching tabs never
+            resizes the card or moves its header (Muzzy 2026-10-13). Each page is its OWN scroller, so a short tab
+            neither scrolls into the tall one's empty space nor fades as if there were more (0.10.3). Only the current
+            one shows; the others are inert and hidden from screen readers. */}
         {tab && (
-          <ScrollArea label={labelOf(tab)}>
-            {tab.rows.map((row) => (
-              <ListRow key={row.id} label={labelOf(row)} detail={row.detail} onClick={openRow(row)}>
-                {openRow(row) ? <Text kind="caption">›</Text> : control(row, labelOf(row))}
-              </ListRow>
-            ))}
-            {/* Reset scrolls with the rows, so short landscape phones keep their room for rows */}
-            {tab.rows.some(holdsValue) && (
-              <Row justify="end">
-                <Button variant="ghost" onClick={() => update({ ...values, ...defaultValues(schema, tab.id) }, tab.id)}>{w.reset}</Button>
-              </Row>
-            )}
-          </ScrollArea>
+          <div className="kit-settings-pages">
+            {tabs.map((t) => {
+              const current = t.id === tab.id
+              return (
+                <div key={t.id} className="kit-settings-page" data-current={current || undefined}
+                  aria-hidden={!current || undefined} inert={!current || undefined}>
+                  <ScrollArea label={labelOf(t)}>{page(t)}</ScrollArea>
+                </div>
+              )
+            })}
+          </div>
         )}
       </Panel>
     </Screen>

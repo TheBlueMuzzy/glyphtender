@@ -290,7 +290,7 @@ try {
         await p.tap(page.locator(`[data-tray-pos="${pos}"]`))
         await p.tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
       }
-      await p.tap(page.locator('.game-actions button').last()) // Cast (or End turn)
+      await p.tap(page.locator('.game-actions button').last()) // Plant (or End turn)
     }
     await page.waitForFunction(() => { const s = window.__glyphtender.store.getState(); return !s.flying && !s.waiting }, null, { timeout: 10000 })
   }

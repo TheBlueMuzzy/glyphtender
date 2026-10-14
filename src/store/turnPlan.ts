@@ -1,10 +1,11 @@
 // Planning a turn on screen before it's cast — plain functions the game store uses (and tests check).
 // Nothing here changes the game: the planned move and cast only become real when Cast sends the action.
-import { legalCasts } from '../engine/engine'
+import { legalCasts, legalMoves } from '../engine/engine'
 import { sameHex, type Hex } from '../engine/hex'
 import type { Action, GameState, SeedPiece } from '../engine/types'
 import { mayMoveOnly as rulesMayMoveOnly } from '../engine/rules'
 import { isMyTurn } from './myTurn'
+import { railsLimit, railsPiece } from './railsLimit'
 import type { Seat } from './seats'
 import type { Trail } from './trail'
 import { undoStep, type TurnSteps } from '../table/flow'
@@ -29,6 +30,10 @@ export type Selection = { kind: 'glyphling'; id: number } | { kind: 'seed'; id: 
 export interface Highlight {
   hexes: Hex[]
   kind: 'move' | 'cast'
+  /** The tutorial's rails: the one hex the step sends the piece to — drawn extra bright over the template. */
+  target?: Hex
+  /** Whose colour (default: the player whose turn it is) — the rails can show a rival glyphling's room. */
+  seat?: number
 }
 
 /** A step of one turn. */
@@ -68,6 +73,10 @@ export function heldPiece(game: GameState, move: PlannedMove | null, selected: S
   if (game.phase === 'draft') return NEW_GLYPHLING
   if (game.phase !== 'play') return null
   if (selected?.kind === 'glyphling') return selected
+  // The tutorial's rails (railsLimit.ts): the glow is about the step's one piece — its one hex glows before it's picked up
+  const rails = railsLimit()?.piece
+  if (rails?.kind === 'glyphling' && !move && !selected) return rails
+  if (rails?.kind === 'seed' && move && selected?.kind !== 'seed') return rails
   const hand = game.hands[game.current]
   if (!move || hand.length === 0) return null
   return selected?.kind === 'seed' ? selected : { kind: 'seed', id: hand[0].id } // (any seed: they all fly the same)
@@ -81,10 +90,21 @@ const kindOf = (piece: Piece): Highlight['kind'] => (piece.kind === 'seed' ? 'ca
  * `mayAct` = may the current seat act at all (left out: yes, the rules alone decide).
  */
 export function highlightFor(game: GameState, move: PlannedMove | null, selected: Selection, mayAct: (seat: number) => boolean = () => true): Highlight | null {
+  const rails = railsLimit()
+  if (rails?.showMoves !== undefined) { // (a rails step about a glyphling's room: its whole template, its owner's colour)
+    const g = game.glyphlings.find((x) => x.id === rails.showMoves)
+    return g ? { hexes: legalMoves(game, g.id), kind: 'move', seat: g.seat } : null
+  }
   const piece = heldPiece(game, move, selected)
   if (!piece) return null
-  const lit = refereeFor({ game, move }, mayAct).targetsFor(game.current, piece, boardTargets(game))
-  return { hexes: lit.flatMap((t) => (t.kind === 'hex' ? [t.hex] : [])), kind: kindOf(piece) }
+  // On the rails the step's piece shows its WHOLE template (what the rules allow), its one hex extra bright — only that
+  // hex takes the drop (the referee keeps the rails). The draft too: every legal spot, the step's one brighter (Muzzy) —
+  // and on Sprout's draft turns its spots as in any game (Muzzy: "the AI doesn't show their draft placement template")
+  const onRails = !!rails && railsPiece(piece, rails)
+  const lit = refereeFor({ game, move }, mayAct, !onRails && game.phase !== 'draft').targetsFor(game.current, piece, boardTargets(game))
+  const hexes = lit.flatMap((t) => (t.kind === 'hex' ? [t.hex] : []))
+  const target = onRails && rails.to && hexes.some((h) => sameHex(h, rails.to!)) ? rails.to : undefined
+  return { hexes, kind: kindOf(piece), ...(target && { target }) }
 }
 
 /**

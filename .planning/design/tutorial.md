@@ -11,7 +11,7 @@
 - **Pause** — a rare tip that dims the game and waits for "Got it" (≤ 4 in the whole tutorial game).
 - **Nudge** — a callout after X seconds of doing nothing, or straight after a wrong action. Says what you *can* do.
 - **Explore** — the **?** button: tap anything and read what it is, instead of using it. Only ? leaves it.
-- **Plant** — replaces "cast" in every player-facing word (button: **Plant · +5**).
+- **Plant** — replaces "cast" in every player-facing word (button: **Plant +5**).
 
 ## 0. Before the tutorial: who gets it
 1. A **brand-new player** opens the game → the menu shows **Play**. Online, New Game and pass-and-play are greyed out with a small lock.
@@ -51,7 +51,7 @@ You're Yellow, the tutorial AI is Blue, and you go first. The board, Blue's move
 **Turn 2 — your first word**
 12. One move hex glows (you can now reach the gap). **"Move here."**
 13. The gap glows, and the A is lit. **"Plant the A between C and T."**
-14. The button reads **Plant · +5**. Callout: **"The button shows your Magic first."**
+14. The button reads **Plant +5**. Callout: **"The button shows your Magic first."**
 15. Tap Plant → the score pops play: C +2 · A +2 · T +1. Callout: **"Your seeds count +2. Others' count +1."**
 16. Callout on the total: **"Magic is secret — only you saw that."**
 17. **Pause — hand over:** *"You're on your own now! Tap **?** any time to learn about anything."* → Play.
@@ -102,7 +102,7 @@ Each idle nudge shows ≤ `idleRepeat` (3) times per game, then it stops. **Late
 - **After the rails:** Apprentice skill and the **smallest vocabulary** (common short words). It isn't greedy: it spells some, blocks a little, and wanders.
 - **It tries to get ONE glyphling tangled:** from mid-game (`selfTangleBy` turn 6) it prefers moves that walk one glyphling into a pocket — next to your pieces when it can, so you see the "you create" pause. If the board never offers a pocket, it doesn't happen.
 - **It tries not to make the second tangle.** It prefers moves that keep its other glyphling free, so ending the game is usually *your* call (the "One to go" tip).
-- **It always plays a legal turn.** These are preferences, not rules: if every move it has tangles itself (say you walled its glyphling in), it takes one and the game ends as normal. It never waits, skips or stalls. After `maxTurns` (20 each) it drops the preferences and plays like any Apprentice.
+- **It always plays a legal turn.** These are preferences, not rules: if every move it has tangles itself (say you walled its glyphling in), it takes one and the game ends as normal. It never waits, skips or stalls. It keeps both preferences all game (Muzzy, 2026-10-13).
 - Beatable, but you can lose. Target length: one game in about 10–12 minutes.
 
 ## 6. Explore mode — the ? button (must, every game)
@@ -121,7 +121,7 @@ Each idle nudge shows ≤ `idleRepeat` (3) times per game, then it stops. **Late
 - **While in Explore:** no tips and no nudges. A tutorial pause that comes due waits until you leave Explore. If the thing a callout points at moves or disappears (online), the callout closes.
 
 ## 7. What's tuneable (content/tuning/tutorial.json)
-`overviewCards` · `tipSeconds` 8 · `tipsPerTurn` 1 · `maxPauses` 4 · `idleGlow` 10 · `idleText` 20 · `idleRepeat` 3 · `laterIdleText` 30 · `wrongRepeat` 3 · `exploreRemind` 15 · `selfTangleBy` 6 · `maxTurns` 20 · `dimAmount` (rails / Explore) · the rails layout (content/tutorial/rails.json — the board, the draft hexes, the bag order, Blue's turn 1).
+`overviewCards` · `tipSeconds` 8 · `tipsPerTurn` 1 · `maxPauses` 4 · `idleGlow` 6 · `idleText` 12 (Muzzy 2026-10-13: "a little long"; were 10 · 20) · `idleRepeat` 3 · `laterIdleText` 30 · `wrongRepeat` 3 · `exploreRemind` 15 · `selfTangleBy` 6 · `dimAmount` (rails / Explore) · the rails layout (content/tutorial/rails.json — the board, the draft hexes, the bag order, Blue's turn 1).
 
 ## Muzzy's answers (2026-10-13)
 - Explore is a **must** — "it's useful… there's not that much to tap on after all."

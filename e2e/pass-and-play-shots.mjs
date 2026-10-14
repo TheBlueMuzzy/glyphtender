@@ -183,7 +183,7 @@ try {
           plan.mode === 'plan' && plan.seat === seat && plan.strokes === colourOf(seat) && !plan.arc
           && plan.options === castColour(colourOf(seat), garden.background, garden.castShade))
       }
-      await tap(page.locator('.game-actions button').last()) // Cast (or End turn)
+      await tap(page.locator('.game-actions button').last()) // Plant (or End turn)
       await waitLanded()
       if (await store((s) => s.handoff?.afterGrow === true)) {
         // everyone watches the seed grow (and its words' Magic pop) first: the handoff box waits for it

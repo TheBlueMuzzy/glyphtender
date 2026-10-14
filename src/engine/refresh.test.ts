@@ -65,7 +65,7 @@ describe('refresh (GDD §4.7)', () => {
     expect(() => applyAt(played, { type: 'refresh', setAside: [] }, words)).toThrow(/no Magic/)
   })
 
-  it('the tangle check waits until the refresh is done', () => {
+  it('a no-word turn that ends the game skips the refresh (Muzzy, 2026-10-13)', () => {
     const s = position({
       glyphlings: { 0: 'C1-1', 1: 'C1-4', 2: 'C11-1', 3: 'C6-5' },
       seeds: [{ 'C10-2': 'A', 'C10-3': 'B' }, { 'C2-2': 'C', 'C2-3': 'D', 'C11-2': 'E' }],
@@ -73,9 +73,7 @@ describe('refresh (GDD §4.7)', () => {
       bag: ['R'],
     })
     const cast = applyAt(s, { type: 'turn', glyphling: 1, to: hexAt('C1-3'), seed: 0, target: hexAt('C1-2') }, words)
-    expect(cast.phase).toBe('refresh')
-    const done = applyAt(cast, { type: 'refresh', setAside: [] }, words)
-    expect(done.phase).toBe('over')
-    expect(done.tangled.sort()).toEqual([0, 2])
+    expect(cast.phase).toBe('over') // (no refresh first: it can't untangle anything)
+    expect(cast.tangled.sort()).toEqual([0, 2])
   })
 })

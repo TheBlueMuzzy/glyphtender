@@ -1,0 +1,49 @@
+{
+  "_help": "The tutorial game's fixed setup (design/tutorial.md §2), found by scripts/tutorial/find-rails.mjs (--write saves here). stack = each seat's starting hand + what the bag gives next; draft/turn1/aiTurn1/turn2 = the scripted opening as hex labels (C4-3 = column 4, 3rd hex from the top). Hand edits must still pass src/tutorial/rails.test.ts (npm test).",
+  "seed": 20261013,
+  "boardName": "small",
+  "minWordLength": 3,
+  "turnOrder": [0, 1],
+  "you": 0,
+  "ai": {
+    "seat": 1,
+    "personality": "sprout",
+    "skill": "seedling"
+  },
+  "stack": {
+    "hands": [
+      ["C", "J", "V", "E", "R", "S", "N", "O"],
+      ["T", "E", "R", "S", "L", "I", "O", "N"]
+    ],
+    "next": ["A", "I", "L", "E", "D"]
+  },
+  "draft": {
+    "you": ["C10-3", "C7-5"],
+    "ai": ["C5-7", "C5-5"]
+  },
+  "turn1": {
+    "glyphling": "first",
+    "to": "C8-5",
+    "blockedAt": "C5-7",
+    "seed": "C",
+    "plant": "C6-4",
+    "overOwn": "C7-5",
+    "blocks": "C5-5",
+    "refresh": ["J", "V"]
+  },
+  "aiTurn1": {
+    "glyphling": "first",
+    "to": "C5-6",
+    "seed": "T",
+    "plant": "C6-6"
+  },
+  "aiRefresh": [],
+  "turn2": {
+    "glyphling": "first",
+    "to": "C7-6",
+    "seed": "A",
+    "plant": "C6-5",
+    "word": "CAT",
+    "magic": 5
+  }
+}

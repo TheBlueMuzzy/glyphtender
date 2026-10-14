@@ -3,6 +3,7 @@ import { hexAt, lettersOf, position, wordsOf } from '../engine/testkit'
 import { hexKey, type Hex } from '../engine/hex'
 import { legalDraftHexes } from '../engine/engine'
 import { useGameStore } from './gameStore'
+import { setRails } from './railsLimit'
 import { castOptions, dropKind, highlightFor, letterIn, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
 import { moveInRack, shuffleRack } from '../table/rack'
 
@@ -113,6 +114,50 @@ describe('game store — planning a turn (One Cast + undo)', () => {
     expect(store().move).not.toBeNull()
     store().tapHex(hexAt('C6-7')) // the ghost
     expect(store().move).toBeNull()
+  })
+
+  it('on the rails, taps never select or place — they shake the step\'s piece (drag only); a refused seed is never held', () => {
+    yellowToPlay()
+    setRails({ piece: { kind: 'glyphling', id: 0 }, to: hexAt('C6-6'), reason: 'drag it' }, false)
+    try {
+      const shakes = store().nope?.count ?? 0
+      store().tapGlyphling(0)
+      expect(store().selected).toBeNull()
+      expect(store().nope).toMatchObject({ kind: 'glyph', key: '0', count: shakes + 1 })
+      store().tapHex(hexAt('C6-6'))
+      expect(store().move).toBeNull()
+      store().grabGlyphling(0) // (a drag picks it up)
+      store().tapHex(hexAt('C6-6'), true) // …and drops it there
+      expect(store().move).toMatchObject({ glyphling: 0 })
+      // only the C may be planted: another seed can't be picked up, and what was held stays held
+      setRails({ piece: { kind: 'seed', id: seed(0) }, to: hexAt('C6-4'), reason: 'this one' }, false)
+      store().grabSeed(seed(0))
+      store().grabSeed(seed(1))
+      expect(store().selected).toEqual({ kind: 'seed', id: seed(0) })
+    } finally {
+      setRails(null, false)
+    }
+  })
+
+  it('a seed DROPPED on the ghost where it may not go just goes home — the move stays (Muzzy, 2026-10-13)', () => {
+    yellowToPlay()
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    // (the tutorial's rails: this seed may only go to C6-4, so the ghost's hex refuses it)
+    setRails({ piece: { kind: 'seed', id: seed(0) }, to: hexAt('C6-4'), reason: 'there' }, false)
+    try {
+      store().grabSeed(seed(0))
+      store().tapHex(hexAt('C6-7'), true) // dropped on the ghost
+      expect(store().move).not.toBeNull()
+      expect(store().cast).toBeNull()
+      store().tapHex(hexAt('C6-7')) // on the rails a tap does nothing (they teach dragging)
+      expect(store().move).not.toBeNull()
+      setRails(null, false)
+      store().tapHex(hexAt('C6-7')) // off them, a TAP on the ghost still takes the move back
+      expect(store().move).toBeNull()
+    } finally {
+      setRails(null, false)
+    }
   })
 
   it('gold cast ranges show as soon as the move is planned — before a seed is picked, while aiming, and after Undo of the cast', () => {

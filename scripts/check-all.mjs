@@ -43,6 +43,10 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['drag', 'e2e/drag-styles.mjs', 'e2e-shots 5432'], // (F63: carry styles A–D × draft / seed / reorder / move, phone + desktop)
   ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — 3 sizes)
   ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
+  ['tutorial-shell', 'e2e/tutorial-shell.mjs', 'e2e-shots/tutorial-shell 5440'], // (F74: new device → locks, overview, Leave tutorial unlocks; returning device; Replay)
+  ['tutorial-rails', 'e2e/tutorial-rails.mjs', 'e2e-shots/tutorial-rails 5445'], // (F76: the tutorial game's draft + first 2 turns by drag / tap, phone + desktop — one callout, one live target, Sprout's script, then free play)
+  ['tutorial-tips', 'e2e/tutorial-tips.mjs', 'e2e-shots/tutorial-tips 5446'], // (F77–F78: first-time tips once each + the pause hold, idle glow then words, wrong-action callouts, Tips off → none; phone + desktop)
+  ['explore', 'e2e/explore.mjs', 'e2e-shots/explore 5447'], // (F79: the ? button — vs AI at 3 sizes: taps explain, ☰ doesn't open, the AI waits; pass-and-play: the handoff ends it)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 

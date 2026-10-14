@@ -6,6 +6,7 @@ import { Grid, Panel, Row, Screen, Stack } from '../layout'
 import { Button, Card, Badge, ScrollArea, Text } from '../controls'
 import { screens } from '../screens'
 import { Pips } from './hud'
+import { MenuHeader } from './MenuHeader'
 import { fill } from './words'
 
 // MAIN MENU — the game's name, then its big buttons. The first one is the main (primary) one.
@@ -14,7 +15,9 @@ import { fill } from './words'
 //          primary: true marks the main button(s); if none is marked, the first one is.
 //   or the named ones (onContinue, onPlay, onSettings…): shown in that fixed order. Ignored when items is given.
 export const mainMenuWords = { continue: 'Continue', play: 'Play', settings: 'Settings', howToPlay: 'How to play', credits: 'Credits', quit: 'Quit' }
-export type MainMenuItem = { label: string; onClick: () => void; primary?: boolean }
+// locked: true = greyed like a disabled button, but a tap still calls onClick, so the game can say why
+// (e.g. a Callout: "Finish your first game to unlock this"). Screen readers hear it as unavailable.
+export type MainMenuItem = { label: string; onClick: () => void; primary?: boolean; locked?: boolean }
 type MainMenuProps = {
   title: string; subtitle?: string; version?: string; children?: ReactNode // children: extra buttons
   items?: MainMenuItem[]
@@ -40,7 +43,8 @@ export function MainMenu({ title, subtitle, version, children, items, words, ...
         </Stack>
         <Stack gap="s" className="kit-main-menu-buttons">
           {buttons.map((item, i) => (
-            <Button key={`${i}-${item.label}`} variant={isPrimary(item, i) ? 'primary' : 'secondary'} onClick={item.onClick}>{item.label}</Button>
+            <Button key={`${i}-${item.label}`} variant={isPrimary(item, i) ? 'primary' : 'secondary'} onClick={item.onClick}
+              sound={item.locked ? false : undefined} aria-disabled={item.locked || undefined} data-locked={item.locked || undefined}>{item.label}</Button>
           ))}
           {children && <div className="kit-main-menu-extra">{children}</div>}
         </Stack>
@@ -49,7 +53,7 @@ export function MainMenu({ title, subtitle, version, children, items, words, ...
   )
 }
 
-// MODE SELECT — a card per mode (Solo, Party, Online…); pick one, then Start.
+// MODE SELECT — a card per mode (Solo, Party, Online…); pick one, then Start. ‹ (top left) goes back.
 export const modeSelectWords = { title: 'Choose a mode', start: 'Start', back: 'Back' }
 type Mode = { id: string; name: string; description?: string; badge?: string }
 type ModeSelectProps = {
@@ -59,19 +63,20 @@ type ModeSelectProps = {
 export function ModeSelect({ modes, value, onChange, onStart, onBack = () => screens.pop(), words }: ModeSelectProps) {
   const w = { ...modeSelectWords, ...words }
   return (
-    <Screen label={w.title}>
+    <Screen label={w.title} grow="down">
       <Panel depth={2} gap="m" className="kit-wide">
-        <Text kind="title">{w.title}</Text>
-        <Grid gap="m" min="s">
-          {modes.map((mode) => (
-            <Card key={mode.id} title={mode.name} selected={mode.id === value} onClick={() => onChange(mode.id)}>
-              {mode.description && <Text kind="caption">{mode.description}</Text>}
-              {mode.badge && <Badge variant="primary">{mode.badge}</Badge>}
-            </Card>
-          ))}
-        </Grid>
+        <MenuHeader title={w.title} onBack={onBack} backLabel={w.back} />
+        <ScrollArea label={w.title}>
+          <Grid gap="m" min="s">
+            {modes.map((mode) => (
+              <Card key={mode.id} title={mode.name} selected={mode.id === value} onClick={() => onChange(mode.id)}>
+                {mode.description && <Text kind="caption">{mode.description}</Text>}
+                {mode.badge && <Badge variant="primary">{mode.badge}</Badge>}
+              </Card>
+            ))}
+          </Grid>
+        </ScrollArea>
         <Row gap="s" justify="end">
-          <Button variant="ghost" sound="back" onClick={onBack}>{w.back}</Button>
           <Button onClick={onStart}>{w.start}</Button>
         </Row>
       </Panel>
@@ -80,23 +85,32 @@ export function ModeSelect({ modes, value, onChange, onStart, onBack = () => scr
 }
 
 // HOW TO PLAY — pages you flip through (a title, a picture, a few lines each).
-export const howToPlayWords = { title: 'How to play', next: 'Next', back: 'Back', done: 'Got it', page: 'Page {n} of {total}' }
+// onSkip: a Skip button on every page but the last (e.g. a first-game overview: Skip goes straight to the game).
+// ‹ (top left, 0.10.0) closes it — onClose, by default screens.pop(); the page's own Back / Next stay at the bottom.
+// The page (title, picture, words) scrolls inside the card when it's taller than the room.
+export const howToPlayWords = { title: 'How to play', next: 'Next', back: 'Back', close: 'Close', done: 'Got it', skip: 'Skip', page: 'Page {n} of {total}' }
 type HowToPage = { title: string; body: ReactNode; image?: string }
-export function HowToPlay({ pages, onDone = () => screens.pop(), words }: { pages: HowToPage[]; onDone?: () => void; words?: Partial<typeof howToPlayWords> }) {
+type HowToPlayProps = { pages: HowToPage[]; onDone?: () => void; onSkip?: () => void; onClose?: () => void; words?: Partial<typeof howToPlayWords> }
+export function HowToPlay({ pages, onDone = () => screens.pop(), onSkip, onClose = () => screens.pop(), words }: HowToPlayProps) {
   const w = { ...howToPlayWords, ...words }
   const [index, setIndex] = useState(0)
   const page = pages[index]
   const last = index === pages.length - 1
   return (
-    <Screen label={w.title}>
+    <Screen label={w.title} grow="down">
       <Panel depth={2} gap="m" className="kit-modal">
-        <Text kind="caption">{w.title}</Text>
-        <Text kind="title">{page.title}</Text>
-        {page.image && <img className="kit-picture" src={page.image} alt="" />}
-        <Text>{page.body}</Text>
+        <MenuHeader title={w.title} onBack={onClose} backLabel={w.close} />
+        <ScrollArea key={index} label={page.title}>
+          <Stack gap="m">
+            <Text kind="heading">{page.title}</Text>
+            {page.image && <img className="kit-picture" src={page.image} alt="" />}
+            <Text>{page.body}</Text>
+          </Stack>
+        </ScrollArea>
         <Row gap="s" justify="between">
           <Pips count={pages.length} filled={index + 1} label={fill(w.page, { n: index + 1, total: pages.length })} />
           <Row gap="s">
+            {onSkip && !last && <Button variant="ghost" onClick={onSkip}>{w.skip}</Button>}
             {index > 0 && <Button variant="ghost" sound="back" onClick={() => setIndex(index - 1)}>{w.back}</Button>}
             <Button onClick={() => (last ? onDone() : setIndex(index + 1))}>{last ? w.done : w.next}</Button>
           </Row>
@@ -107,7 +121,7 @@ export function HowToPlay({ pages, onDone = () => screens.pop(), words }: { page
 }
 
 // CREDITS — the people, then every font/art/sound credit from the game's content/credits.json
-// (pass the file's contents as `assets`). Entries without a credit line use author + licence.
+// (pass the file's contents as `assets`). Entries without a credit line use author + licence. ‹ (top left) goes back.
 export const creditsWords = { title: 'Credits', assets: 'Fonts, art & sound', back: 'Back' }
 type CreditEntry = { credit?: string; author?: string; licence?: string; url?: string }
 type CreditsProps = {
@@ -117,9 +131,9 @@ type CreditsProps = {
 export function Credits({ people = [], assets = [], onBack = () => screens.pop(), words }: CreditsProps) {
   const w = { ...creditsWords, ...words }
   return (
-    <Screen label={w.title}>
-      <Panel depth={2} gap="m" className="kit-modal kit-tall">
-        <Text kind="title">{w.title}</Text>
+    <Screen label={w.title} grow="down">
+      <Panel depth={2} gap="m" className="kit-modal">
+        <MenuHeader title={w.title} onBack={onBack} backLabel={w.back} />
         <ScrollArea label={w.title}>
           <Stack gap="l">
             {people.map((group) => (
@@ -136,7 +150,6 @@ export function Credits({ people = [], assets = [], onBack = () => screens.pop()
             )}
           </Stack>
         </ScrollArea>
-        <Row justify="end"><Button variant="secondary" sound="back" onClick={onBack}>{w.back}</Button></Row>
       </Panel>
     </Screen>
   )

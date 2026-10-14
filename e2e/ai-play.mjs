@@ -68,24 +68,22 @@ try {
     await page.goto(URL_)
     // Settings → Gameplay → AI speed: Normal → Instant (Normal · Fast · Instant: 2 steps on)
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    // (a phone shows the tabs as one ◀ Audio ▶ picker: step it on to Gameplay)
-    const nextTab = page.locator('.kit-screen .kit-picker').first().getByRole('button').last()
-    // (by name, not a count: a tab whose rows are all "on": false disappears — v0.9.2 hid Controls)
-    for (let i = 0; i < 6 && !(await page.locator('.kit-picker-value', { hasText: 'Gameplay' }).count()); i++) await nextTab.click()
-    h.check('Settings is on Gameplay', (await page.locator('.kit-picker-value', { hasText: 'Gameplay' }).count()) === 1)
+    // (Gameplay is the first of the 2 tabs since sprint 28 — a tab bar at every size)
+    h.check('Settings is on Gameplay', (await page.getByRole('tab', { name: 'Gameplay', selected: true }).count()) === 1)
     for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Next AI speed' }).click()
     h.check('Settings → AI speed is Instant', (await page.locator('.kit-picker-value', { hasText: 'Instant' }).count()) === 1)
     await page.keyboard.press('Escape')
     // New game: Blue = AI → its card (Surprise me at First Class) → the Strategist, Apprentice
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
-    h.check('Blue switched to AI shows its personality card', (await page.locator('.new-game-ai').count()) === 1)
+    h.check('Blue switched to AI shows its bio and Skill row', (await page.locator('.new-game-ai [data-ai-bio]').count()) === 1
+      && (await page.getByRole('group', { name: 'Player 2: Skill' }).count()) === 1)
     h.check('a new AI seat starts as "Surprise me" at First Class',
       (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Surprise me' }).count()) === 1
       && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
     // Step through the personalities until the Strategist shows (the list is data — don't count on its order)
     for (let i = 0; i < 6 && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 0; i++) {
-      await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
+      await page.getByRole('button', { name: 'Next Player 2', exact: true }).click() // (one picker: Person · AI - Surprise me · AI - … — Muzzy 2026-10-14)
     }
     await page.getByRole('button', { name: 'Previous Player 2: Skill' }).click()
     h.check('picked the Strategist at Apprentice', (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 1
@@ -148,18 +146,21 @@ try {
     const h = helpers(page, size.mobile, size.name)
     await page.goto(URL_)
     await page.getByRole('button', { name: 'Play', exact: true }).click()
-    h.check('two AI cards', (await page.locator('.new-game-ai').count()) === 2)
+    h.check('two AI seats (a bio each)', (await page.locator('.new-game-ai [data-ai-bio]').count()) === 2)
     await h.shot('1-new-game-ai')
-    // the cards hold one size whatever personality shows: flip Blue's through all 8 (Surprise me + 7)
+    // the seat holds one size whatever personality shows: flip Blue's through every AI choice (Person, which has no
+    // bio or Skill row, is stepped over)
     const cardSize = () => page.evaluate(() => [...document.querySelectorAll('.new-game-ai')].map((c) => `${Math.round(c.getBoundingClientRect().width)}×${Math.round(c.getBoundingClientRect().height)}`).join(' '))
     const sizes = new Set()
+    const next = () => page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
     for (let i = 0; i < 8; i++) {
       sizes.add(await cardSize())
-      await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
+      await next()
+      if ((await page.getByRole('group', { name: 'Player 2', exact: true }).locator('.kit-picker-value').textContent()) === 'Person') await next()
     }
     h.check(`the AI cards keep one size through every personality (${[...sizes].join(' | ')})`, sizes.size === 1)
     // scroll to the bottom of the options (the Pink card) for a second look
-    await page.locator('.kit-screen[data-scroll]').evaluate((el) => el.scrollTo(0, el.scrollHeight))
+    await page.locator('.new-game-panel .kit-scroll').evaluate((el) => el.scrollTo(0, el.scrollHeight)) // (the rows scroll inside the card — UI kit 0.10)
     await h.shot('2-new-game-ai-scrolled')
     // Start with Yellow first: once Yellow places, Blue (AI, Slow) thinks — the shot is taken during its thinking
     await page.getByRole('button', { name: 'Start' }).click()
@@ -261,7 +262,7 @@ function helpers(page, mobile, tag) {
           await tap(page.locator(`[data-tray-pos="${pos}"]`))
           await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
         }
-        await tap(page.locator('.game-actions button').last()) // Cast (or End turn)
+        await tap(page.locator('.game-actions button').last()) // Plant (or End turn)
         await page.waitForFunction(() => !window.__glyphtender.store.getState().flying, null, { timeout: 8000 })
       }
       if (seen.handoffs > maxHandoffs) fail(`${tag}: ${seen.handoffs} handoffs (expected at most ${maxHandoffs})`)

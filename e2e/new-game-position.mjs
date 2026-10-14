@@ -1,13 +1,14 @@
 // NEW GAME OPENS CENTRED, THEN ONLY GROWS DOWN (F58 — Muzzy 2026-10-10: "it should start in the center and only
-// expand downwards"; UI kit 0.4.4 <Screen scroll>). At 5 sizes, a fresh New Game (2 players, both people):
-//   · on open the panel is in the middle: the gap above it = the gap below it (±4 px) — or, when it's taller than the
-//     window (small phone, phone on its side), it starts at the top (the screen's padding + the empty top row's gap;
-//     on a short screen — 30rem tall or less — just the padding: there a card takes the empty rows too, UI kit 0.7.0)
-//     and the screen scrolls
+// expand downwards"). Since UI kit 0.10.0 (sprint 28) it's a menu card: the header (‹ · New game · Start) stays, the
+// rows scroll INSIDE the card (no scroll bar) once it's as tall as it may get (Screen grow="down"). At 5 sizes, a fresh
+// New Game (2 players, both people):
+//   · on open the card is in the middle: the gap above it = the gap below it (±4 px)
 //   · Players + to the most (2 → 4) and then the 2nd seat Person → AI (its picker rows appear): the Players + button
-//     stays at the same y every time (±1 px) — the rows grow underneath it, the top never moves
+//     stays at the same y every time (±1 px) — the card grows underneath it, its top never moves; at its max height
+//     the rows scroll inside, and growing never scrolls them by itself
+//   · phones: a finger swipe up on the rows scrolls them (B027: a swipe must never be eaten by the wrong box)
 //   · AI → Person and Players − back to 2: rows go away underneath, + still at the same y
-//   · desktop: the window made 150 px shorter → the panel is placed in the middle again
+//   · desktop: the window made 150 px shorter → the card is placed in the middle again
 // Screenshots (open + grown) of each size go to the out folder.
 // Starts its OWN dev server (default port 5419) and closes only that one.
 //   npm run e2e:new-game [outDir] [port]
@@ -33,17 +34,16 @@ const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
 const ok = (good, what) => { if (!good) fail(what); else console.log(`ok   ${what}`) }
 const round = (n) => Math.round(n * 10) / 10
 
-/** The New Game panel against its screen (runs in the page). */
+/** The New Game card against the window, and its rows' scroller (runs in the page). */
 function measure() {
-  const screen = document.querySelector('.kit-screen[data-scroll]')
-  const s = screen.getBoundingClientRect()
-  const p = screen.querySelector('.kit-panel').getBoundingClientRect()
+  const panel = document.querySelector('.new-game-panel')
+  const p = panel.getBoundingClientRect()
+  const rows = panel.querySelector('.kit-scroll')
   const plus = document.querySelector('[aria-label="Next Players"]').getBoundingClientRect()
-  const style = getComputedStyle(screen)
   return {
-    top: p.top - s.top, bottom: s.bottom - p.bottom, plusY: plus.top,
-    padTop: parseFloat(style.paddingTop), rowGap: parseFloat(style.rowGap), short: matchMedia('(max-height: 30rem)').matches,
-    margin: parseFloat(getComputedStyle(screen.querySelector('[data-slot="center"]')).marginTop), scrolls: screen.scrollHeight > screen.clientHeight + 1, scrollTop: screen.scrollTop,
+    top: p.top, bottom: innerHeight - p.bottom, plusY: plus.top,
+    scrolls: rows.scrollHeight > rows.clientHeight + 1, scrollTop: rows.scrollTop,
+    bar: rows.offsetWidth - rows.clientWidth, // a native scroll bar's width (0 = none)
   }
 }
 
@@ -72,13 +72,8 @@ try {
     const open = await page.evaluate(measure)
     await page.screenshot({ path: `${OUT}/${name}-1-open.png` })
 
-    if (open.scrolls) {
-      const rowGap = open.short ? 0 : open.rowGap // (a short screen: the card takes the empty top row and its gap)
-      ok(open.margin === 0 && Math.abs(open.top - open.padTop - rowGap) <= 1,
-        `${name}: taller than the window → starts at the top (gap ${round(open.top)} = padding ${open.padTop} + row gap ${rowGap}) and scrolls`)
-    } else {
-      ok(Math.abs(open.top - open.bottom) <= CENTRE_SLACK, `${name}: opens centred — gap above ${round(open.top)} · below ${round(open.bottom)}`)
-    }
+    ok(Math.abs(open.top - open.bottom) <= CENTRE_SLACK, `${name}: opens centred — gap above ${round(open.top)} · below ${round(open.bottom)}${open.scrolls ? ' (rows scroll inside)' : ''}`)
+    ok(open.bar === 0, `${name}: no scroll bar on the rows (${open.bar} px)`)
 
     // Grow: Players + until the most, then the 2nd seat → AI. The + must not move.
     const plusYs = [open.plusY]
@@ -94,21 +89,22 @@ try {
     const players = await page.locator('[aria-label="Players"]').first().textContent()
     ok(plusYs.every((y) => Math.abs(y - open.plusY) <= STILL_SLACK),
       `${name}: Players + (${plusYs.length - 2} presses → ${players.replace(/\D/g, '')} players) then a seat → AI: the + stays put (y ${plusYs.map(round).join(' → ')})`)
-    ok(grown.scrollTop === 0, `${name}: growing didn't scroll the screen (scrollTop ${grown.scrollTop})`)
+    ok(grown.scrollTop === 0, `${name}: growing didn't scroll the rows (scrollTop ${grown.scrollTop})`)
+    ok(grown.bottom >= -0.5, `${name}: grown, the card still ends inside the window (${round(grown.bottom)} px to spare)`)
 
-    // A finger swipe that starts ON the card scrolls the screen (phones: the card was a scroll box of its own and kept
-    // the swipe — only the strip round it scrolled, so Start was out of reach; UI kit 0.8.2, B-lobby-scroll 2026-10-12)
+    // A finger swipe that starts ON the rows scrolls them (B027: a scroll box that can't take the swipe must never keep
+    // it — UI kit 0.8.2; since 0.10.0 the rows are the card's one scroller)
     if (size.mobile && grown.scrolls) {
-      const card = await page.locator('.kit-screen[data-scroll] .kit-panel').boundingBox()
-      const x = card.x + card.width / 2, y0 = size.height * 0.8, y1 = size.height * 0.2
+      const rows = await page.locator('.new-game-panel .kit-scroll').boundingBox()
+      const x = rows.x + rows.width / 2, y0 = rows.y + rows.height * 0.85, y1 = rows.y + rows.height * 0.15
       const cdp = await context.newCDPSession(page)
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: y0 }] })
       for (let i = 1; i <= 10; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y0 + (y1 - y0) * i / 10 }] })
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
       await page.waitForTimeout(600)
       const swiped = await page.evaluate(measure)
-      ok(swiped.scrollTop > 100, `${name}: a swipe up on the card scrolls the screen (scrollTop ${round(swiped.scrollTop)})`)
-      await page.evaluate(() => { document.querySelector('.kit-screen[data-scroll]').scrollTop = 0 })
+      ok(swiped.scrollTop > 40, `${name}: a swipe up on the rows scrolls them (scrollTop ${round(swiped.scrollTop)})`)
+      await page.evaluate(() => { document.querySelector('.new-game-panel .kit-scroll').scrollTop = 0 })
       await page.waitForTimeout(100)
     }
 
@@ -128,13 +124,7 @@ try {
       await page.setViewportSize({ width: size.width, height: size.height - 150 })
       await page.waitForTimeout(300)
       const resized = await page.evaluate(measure)
-      if (resized.scrolls) { // (taller than the shorter window — F71's two rows did it at 1440x750: top + scroll, as on open)
-        const rowGap = resized.short ? 0 : resized.rowGap
-        ok(Math.abs(resized.top - resized.padTop - rowGap) <= 1,
-          `${name}: window resized to ${size.width}x${size.height - 150} → taller than it, so it starts at the top (gap ${round(resized.top)}) and scrolls`)
-      } else {
-        ok(Math.abs(resized.top - resized.bottom) <= CENTRE_SLACK, `${name}: window resized to ${size.width}x${size.height - 150} → centred again (gap above ${round(resized.top)} · below ${round(resized.bottom)})`)
-      }
+      ok(Math.abs(resized.top - resized.bottom) <= CENTRE_SLACK, `${name}: window resized to ${size.width}x${size.height - 150} → centred again (gap above ${round(resized.top)} · below ${round(resized.bottom)})`)
     }
 
     if (errors.length) fail(`${name}: console errors: ${errors.join(' | ')}`)

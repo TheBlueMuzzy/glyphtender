@@ -20,7 +20,9 @@
     "shifts": "Mood shifts: when a reading (0–10) climbs from `from` to `full`, the trait's whole range moves by up to `by`. `from` above `full` = it grows as the reading FALLS. Readings: myDanger, rivalDanger, fill (board fill), behind / ahead (believed Magic gap), handQuality (10 = great), territory, endNear.",
     "chattiness": "0–100: how likely it is to say something at a banter moment (big moments only).",
     "extras.nerve": "How far ahead (in believed Magic) it must think it is before it ends the game itself (\"calls it\"). Lower = bolder, calls it wrong more often.",
-    "extras.extraWordBonus": "SCORE goal: bonus per extra word made in one cast (the original: 3). The Strategist — the two-words-one-move specialist — gets more."
+    "extras.extraWordBonus": "SCORE goal: bonus per extra word made in one cast (the original: 3). The Strategist — the two-words-one-move specialist — gets more.",
+    "hidden": "true = never offered to players (New Game, Surprise me, the online lobby) and left out of the Personality Check and the AI sims. Sprout, the tutorial game's AI, is hidden: only the tutorial plays it. The Dev Kit still shows it so it can be tuned.",
+    "traits.clumsiness": "SELFTANGLE (Sprout only) — from turn selfTangleBy (content/tuning/tutorial.json) it prefers walking ONE of its glyphlings into a pocket, next to your pieces when it can; once one is tangled it prefers keeping the other free (so ending the game is usually your call). Preferences only: it always plays a legal turn. It keeps both all game."
   },
   "_labels": {
     "id": "Name (code)",
@@ -47,10 +49,12 @@
     "chattiness": "Banter: how chatty (0–100)",
     "extras": "Glyphtender extras (nerve, multi-word bonus)",
     "extras.nerve": "Calls it when it thinks it's this far ahead (Magic)",
-    "extras.extraWordBonus": "SCORE: bonus per extra word in one cast"
+    "extras.extraWordBonus": "SCORE: bonus per extra word in one plant",
+    "hidden": "Hidden from players (tutorial only)",
+    "traits.clumsiness": "Clumsiness → SELFTANGLE (Sprout only)"
   },
   "_sections": {
-    "AI: who it is": ["id", "homeMode", "switches", "goals", "nudge", "focus", "steady", "sight"],
+    "AI: who it is": ["id", "hidden", "homeMode", "switches", "goals", "nudge", "focus", "steady", "sight"],
     "AI: traits": ["traits"],
     "AI: mood shifts": ["shifts"],
     "AI: banter, nerve & words": ["chattiness", "extras"]
@@ -143,6 +147,31 @@
       "switches": [{ "reading": "garden", "atLeast": 5, "to": "Focus" }],
       "chattiness": 70,
       "extras": { "nerve": 6, "extraWordBonus": 3 }
+    },
+    {
+      "id": "sprout",
+      "hidden": true,
+      "traits": {
+        "aggression": { "min": 10, "max": 25 },
+        "greed": { "min": 40, "max": 60 },
+        "spite": { "min": 10, "max": 25 },
+        "caution": { "min": 10, "max": 25 },
+        "patience": { "min": 30, "max": 50 },
+        "opportunism": { "min": 10, "max": 25 },
+        "pragmatism": { "min": 40, "max": 60 },
+        "clumsiness": { "min": 75, "max": 90 }
+      },
+      "goals": ["SCORE", "SELFTANGLE", "DUMP", "BUILD", "DENY", "ESCAPE", "STEAL", "TRAP"],
+      "nudge": 0.3,
+      "focus": 0.8,
+      "steady": { "SCORE": 0.3, "SELFTANGLE": 1 },
+      "shifts": [
+        { "reading": "handQuality", "from": 4, "full": 0, "trait": "pragmatism", "by": 15 }
+      ],
+      "homeMode": "Focus",
+      "switches": [],
+      "chattiness": 40,
+      "extras": { "nerve": 60, "extraWordBonus": 3 }
     }
   ]
 }

@@ -4,14 +4,14 @@
 // An AI seat opens a card under its row (Muzzy 2026-10-05): AI Type ◀ personality ▶ · its bio · Skill ◀ skill ▶ — the
 // two selectors right-aligned, the same width (newGame.css). "Surprise me" = a random personality picked at Start.
 // The card never changes size as you flip through personalities: an invisible copy of every bio, piled in one spot,
-// holds it as tall as the longest. The whole screen scrolls (kit <Screen scroll>, no scroll bar — Muzzy: "when it
-// expands down, they just drag and the entire screen moves"): the menu opens centred, then its top stays put (UI kit 0.4.4), so opening an AI seat pushes
-// the rows below DOWN, the Person / AI button you tapped stays under your finger, and Start scrolls with the rest.
-// Built like the kit's Settings screen: Panel, a title row with Back, rows (ListRow + Stepper / Selector /
-// Toggle), and the Start button. Words: content/text/en.json → newGame, ai.
+// holds it as tall as the longest. The kit's menu frame (UI kit 0.10.0, sprint 28): the one menu width, ‹ back + the
+// title + Start in the header (Muzzy: "Start button … should be up next to Main Menu"; "< = back"), the rows in the
+// card's own scroller (no scroll bar). The card opens centred, then its top stays put (Screen grow="down"), so opening
+// an AI seat pushes the rows below DOWN and the Person / AI button you tapped stays under your finger; at the max
+// height the rows scroll inside. Words: content/text/en.json → newGame, ai.
 import { useState } from 'react'
 import text from '../../content/text/en.json'
-import { Button, ListRow, Panel, Row, Screen, Selector, Stepper, Text, Toggle, screens } from './kit'
+import { Button, ListRow, MenuHeader, Panel, Screen, ScrollArea, Selector, Stepper, Text, Toggle, screens } from './kit'
 import {
   SURPRISE, boardNames, hasPerson, loadChoices, personalityIds, startNewGame, withPlayers, withSeat, type NewGameChoices, type SeatChoice,
 } from './newGame'
@@ -31,13 +31,12 @@ export function NewGameScreen() {
   const seats = choices.seats.slice(0, choices.players)
 
   return (
-    <Screen label={w.title} scroll>
+    <Screen label={w.title} grow="down">
       <Panel depth={2} gap="m" className="kit-modal new-game-panel">
-        <Row gap="s" justify="between">
-          <Text kind="title">{w.title}</Text>
-          <Button variant="secondary" onClick={() => screens.pop()}>{w.back}</Button>
-        </Row>
-        <div>
+        <MenuHeader title={w.title} onBack={() => screens.pop()} backLabel={w.back}
+          action={<Button compact disabled={!hasPerson(choices)} onClick={() => startNewGame(choices)}>{w.start}</Button>} />
+        {!hasPerson(choices) && <Text kind="caption">{w.needPerson}</Text>}
+        <ScrollArea label={w.title}>
           <ListRow label={w.players}>
             <Stepper label={w.players} value={choices.players} min={2} max={4} onChange={(count) => setChoices(withPlayers(choices, count))} />
           </ListRow>
@@ -63,28 +62,14 @@ export function NewGameScreen() {
           <ListRow label={w.wordIndicators} detail={w.wordIndicatorsDetail}>
             <Toggle label={w.wordIndicators} on={choices.wordIndicators} onChange={(on) => change({ wordIndicators: on })} />
           </ListRow>
-        </div>
-        {hasPerson(choices)
-          ? <Button onClick={() => startNewGame(choices)}>{w.start}</Button>
-          : <Button disabled>{w.needPerson}</Button>}
+        </ScrollArea>
       </Panel>
     </Screen>
   )
 }
 
-/** One seat after yours: "Player 2" + Person / AI — and, for the AI, the personality card. */
+/** One seat after yours: "Player 2" ◀ Person · AI - Surprise me · AI - Scholar · … ▶ — and, for an AI, its bio + Skill. */
 function SeatRows({ index, seat, onChange }: { index: number; seat: SeatChoice; onChange: (part: Partial<SeatChoice>) => void }) {
   const name = w.playerN.replace('{n}', String(index + 1))
-  const kinds = [w.person, w.ai]
-  return (
-    <>
-      <ListRow label={name}>
-        <Selector label={name} options={kinds} value={seat.ai ? w.ai : w.person} onChange={(kind) => onChange({ ai: kind === w.ai })} />
-      </ListRow>
-      {seat.ai && (
-        <AiPickerRows personalities={personalityOptions} personality={seat.personality} skill={seat.skill} onChange={onChange}
-          name={name} attrs={{ 'data-seat': index }} />
-      )}
-    </>
-  )
+  return <AiPickerRows label={name} personalities={personalityOptions} value={seat} onChange={onChange} withPerson attrs={{ 'data-seat': index }} />
 }

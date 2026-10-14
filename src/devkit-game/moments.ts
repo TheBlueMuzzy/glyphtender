@@ -30,7 +30,7 @@ export const moments: DevKitMoment[] = [
   // ─── On the board ─────────────────────────────────────────────────────────────────────────────────
   {
     id: 'score-pop', screen: 'board', label: 'Score pop',
-    note: 'A cast that grows one word: each seed\'s "+1" pops over it, a note higher each time, then flies into the glyphling\'s total',
+    note: 'A plant that grows one word: each seed\'s "+1" pops over it, a note higher each time, then flies into the glyphling\'s total',
     play: async () => (await plays()).castMoment('oneWord', ['cast.throw', 'seed.land', 'sprout.grow', 'score.pop', 'score.arrive', 'word.chord', 'glyph.step']),
     knobs: [
       tier('seedPop', 'grow'),
@@ -47,7 +47,7 @@ export const moments: DevKitMoment[] = [
   },
   {
     id: 'seed-lands', screen: 'board', label: 'Seed lands + sprout',
-    note: 'A cast that grows no word: the hop and throw, the seed lands, the runeblossom sprouts',
+    note: 'A plant that grows no word: the hop and throw, the seed lands, the runeblossom sprouts',
     play: async () => (await plays()).castMoment('noWords', ['cast.throw', 'seed.land', 'sprout.grow', 'glyph.step']),
     knobs: [
       anim('hopTime'),
@@ -64,8 +64,8 @@ export const moments: DevKitMoment[] = [
     ],
   },
   {
-    id: 'two-birds', screen: 'board', label: 'Two birds (2-word cast)',
-    note: 'A cast that grows two words: they score one after the other, the total grows with every point, then the magic flourish',
+    id: 'two-birds', screen: 'board', label: 'Two birds (2-word plant)',
+    note: 'A plant that grows two words: they score one after the other, the total grows with every point, then the magic flourish',
     play: async () => (await plays()).castMoment('twoWords', ['cast.throw', 'seed.land', 'sprout.grow', 'score.pop', 'score.arrive', 'word.chord', 'cast.flourish', 'glyph.step']),
     knobs: [
       anim('scorePopDelay'),

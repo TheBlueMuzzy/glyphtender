@@ -76,20 +76,32 @@ export function winnersOf(magic: number[]): number[] {
  * then either ends the game or passes play to the next seat. `refreshed` = seeds set aside on a refresh (null = none).
  * `fast` (bots, sims): no log entry and no log end — the game itself plays exactly the same.
  */
+/** Who plays after this turn (the Table's flow): the next seat in this game's turn order, skipping any seat whose
+ *  glyphlings are all tangled — it has no move to make. null = nobody left who can move (only possible when
+ *  tanglesToEnd is set above 2). (Walks the order's places round like seats round a table.) */
+function nextSeat(state: GameState, tangled: number[]): number | null {
+  const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
+  const order = turnOrderOf(state)
+  const place = nextClockwise(order.indexOf(state.current), order.length, (p) => canMove(order[p]))
+  return place === null ? null : order[place]
+}
+
+/** Does the game end when this turn is done (enough glyphlings tangled, or nobody left who can move)? A turn that
+ *  ends it never gets a refresh (turn.ts — Muzzy, 2026-10-13: "if a game ending tangle happens, it shouldn't make
+ *  you do a refresh"). */
+export function endsTheGame(state: GameState): boolean {
+  const tangled = tangledIds(state)
+  return tangled.length >= state.config.rules.tanglesToEnd || nextSeat(state, tangled) === null
+}
+
 export function endTurn(state: GameState, refreshed: number | null = null, fast = false): GameState {
   const tangled = tangledIds(state)
   const turnCount = state.turnCount + 1
   const entry = fast ? null : logTurn(state, tangled, refreshed)
   const before = logOf(state)
   const log = entry ? { turns: [...before.turns, entry], end: null } : { ...emptyLog(), ...before }
-  // Who plays next (the Table's flow): the next seat in this game's turn order, skipping any seat whose glyphlings are
-  // all tangled — it has no move to make. Nobody left who can move (only possible when tanglesToEnd is set above 2)
-  // also ends the game. (Walks the order's places round like seats round a table.)
-  const canMove = (seat: number) => state.glyphlings.some((g) => g.seat === seat && !tangled.includes(g.id))
-  const order = turnOrderOf(state)
-  const place = nextClockwise(order.indexOf(state.current), order.length, (p) => canMove(order[p]))
-  const next = place === null ? null : order[place]
-  if (tangled.length >= state.config.rules.tanglesToEnd || next === null) {
+  const next = nextSeat(state, tangled)
+  if (tangled.length >= state.config.rules.tanglesToEnd || next === null) { // (endsTheGame)
     const tangles = tangleDetails(state, tangled)
     const tangleMagic = tangleBonus(state, tangled)
     const magic = state.magic.map((m, seat) => m + tangleMagic[seat])

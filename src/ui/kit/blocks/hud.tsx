@@ -11,6 +11,7 @@ import { fill } from './words'
 // PAUSE — a dialog over the game. Resume closes it; Quit asks first (turn off with confirmQuit={false}).
 // note: one quiet caption line under the title, above the buttons (e.g. this game's settings: "Small garden · 2-letter words off").
 // items (0.8.0): the game's own rows, after How to play and before Quit (e.g. "Submit a word"); disabled rows stay visible.
+// No ‹ in its header (0.10.0): Resume is the way back. Its title uses the menu header like every other card.
 export const pauseWords = { title: 'Paused', resume: 'Resume', settings: 'Settings', howToPlay: 'How to play', quit: 'Quit', quitTitle: 'Quit this game?', quitMessage: 'Your progress in this round will be lost.' }
 type PauseProps = {
   onResume?: () => void; onSettings?: () => void; onHowToPlay?: () => void; onQuit?: () => void

@@ -14,7 +14,7 @@ import type { Seat as RoomSeat } from '../rooms/protocol'
 import { useGameStore, type OnlineLink } from '../store/gameStore'
 import { onlineSeats } from '../store/seats'
 import text from '../../content/text/en.json'
-import { fill, screens, toast } from '../ui/kit'
+import { Callout, fill, screens, toast } from '../ui/kit'
 import { closedMessage, useOnline, type Room } from '../ui/online/session'
 import { PreviewApp } from './PreviewApp'
 import { midGame, takeoverTurns, type SampleGame } from './sampleGames'
@@ -169,7 +169,24 @@ export const previews: DevKitPreview[] = [
     },
   },
   {
-    id: 'words-failed', label: 'Word list didn\'t load', group: 'Problems', note: 'A first visit on a bad connection: the warning, and Cast becomes Retry (Retry fails here too)',
+    id: 'callout', label: 'Tutorial callout', group: 'Tutorial',
+    note: 'The kit Callout over a mid-game board (F73) — a tip on a glyphling, and a pause that dims everything but its target',
+    variants: [{ id: 'tip', label: 'Tip (no pause)' }, { id: 'pause', label: 'Pause (dim + Got it)' }],
+    async show({ variant }) {
+      loadGame(midGame(2, await words()), { hideSeeds: false })
+      const glyphling = `[data-glyph="${useGameStore.getState().game?.current === 1 ? 2 : 0}"]`
+      return (
+        <>
+          <PreviewApp />
+          {variant === 'pause'
+            ? <Callout target="[data-hand]" title="No word, no Magic" text="You can swap seeds you don't want." action="Got it" dim onDismiss={nothing} />
+            : <Callout target={glyphling} text="Drag one of your glyphlings to a new spot." pulse onDismiss={nothing} />}
+        </>
+      )
+    },
+  },
+  {
+    id: 'words-failed', label: 'Word list didn\'t load', group: 'Problems', note: 'A first visit on a bad connection: the warning, and Plant becomes Retry (Retry fails here too)',
     async show(sandbox: PreviewSandbox) {
       loadGame(midGame(2, await words()))
       sandbox.failRequests(wordListUrl()) // the game screen tries again on its own; that fails, as it would

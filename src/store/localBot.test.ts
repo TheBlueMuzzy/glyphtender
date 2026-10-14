@@ -11,7 +11,11 @@ import { glideSeconds } from '../game/glide'
 import { parseWordList } from '../engine/words'
 import type { WordList } from '../engine/types'
 import { useGameStore } from './gameStore'
-import { driveLocalBots, onAiDecision, playLocalBot, setAiSpeedOverride } from './localBot'
+import { driveLocalBots, onAiDecision, playLocalBot, setAiSpeedOverride, setBotScript } from './localBot'
+import { setRails } from './railsLimit'
+import { setExploring } from './explore'
+import { hexKey } from '../engine/hex'
+import { rails, railsAction, railsHex } from '../tutorial/rails'
 import { isBusy } from './myTurn'
 import { viewerOf } from './viewer'
 
@@ -218,6 +222,71 @@ describe('the AI on this device (driveLocalBots)', () => {
       store().startGame({ players: 2, seed: 4, hideSeeds: false, bots: [1] }) // now seat 0 is a person
       await vi.advanceTimersByTimeAsync(10_000)
       expect(store().game!.glyphlings).toHaveLength(0) // nothing played into the new game
+    } finally {
+      stop()
+    }
+  })
+})
+
+// The tutorial's script (F76): when it has an action for the bot's seat, the bot plays THAT (no thinking) at the same
+// person-like pace; a rails hold stops it from starting until it's released.
+describe('a scripted bot (the tutorial game’s rails)', () => {
+  afterEach(() => { setBotScript(null); setRails(null, false); setAiSpeedOverride(null) })
+  const lands = () => { if (store().botDraft) store().landBotDraft() }
+
+  it('plays the script’s draft hexes, waits under a hold, then goes on', async () => {
+    setAiSpeedOverride('normal')
+    store().startGame({
+      players: 2, boardName: rails.boardName, seed: rails.seed, turnOrder: rails.turnOrder, minWordLength: rails.minWordLength,
+      hideSeeds: false, stack: rails.stack, bots: [rails.ai.seat], ai: { [rails.ai.seat]: { personality: rails.ai.personality, skill: rails.ai.skill } },
+    })
+    setBotScript((game) => railsAction(game))
+    const stop = driveLocalBots()
+    try {
+      store().tapHex(railsHex(rails.draft.you[0]))
+      expect(store().game!.current).toBe(rails.ai.seat)
+      setRails(null, true) // a pause is up: Sprout waits
+      await vi.advanceTimersByTimeAsync(20_000)
+      lands()
+      expect(store().game!.glyphlings).toHaveLength(1)
+      setRails(null, false) // released: it looks again
+      for (let i = 0; i < 2; i++) {
+        await vi.advanceTimersByTimeAsync(5_000)
+        lands()
+      }
+      const theirs = store().game!.glyphlings.filter((g) => g.seat === rails.ai.seat).map((g) => hexKey(g.hex))
+      expect(theirs).toEqual(rails.draft.ai.map((label) => hexKey(railsHex(label))))
+    } finally {
+      stop()
+    }
+  })
+})
+
+// Explore mode (F79): while the player explores (the ? button), a game on this device pauses — the AI waits its turn
+// until they tap ? again.
+describe('Explore pauses the AIs on this device', () => {
+  afterEach(() => { setBotScript(null); setExploring(false); setAiSpeedOverride(null) })
+  const lands = () => { if (store().botDraft) store().landBotDraft() }
+
+  it('the AI does not start its turn while exploring; it plays once Explore is off', async () => {
+    setAiSpeedOverride('normal')
+    store().startGame({
+      players: 2, boardName: rails.boardName, seed: rails.seed, turnOrder: rails.turnOrder, minWordLength: rails.minWordLength,
+      hideSeeds: false, stack: rails.stack, bots: [rails.ai.seat], ai: { [rails.ai.seat]: { personality: rails.ai.personality, skill: rails.ai.skill } },
+    })
+    setBotScript((game) => railsAction(game))
+    const stop = driveLocalBots()
+    try {
+      store().tapHex(railsHex(rails.draft.you[0]))
+      expect(store().game!.current).toBe(rails.ai.seat)
+      setExploring(true) // the player taps ?: the AI waits
+      await vi.advanceTimersByTimeAsync(20_000)
+      lands()
+      expect(store().game!.glyphlings).toHaveLength(1)
+      setExploring(false) // ? again: it looks again
+      await vi.advanceTimersByTimeAsync(5_000)
+      lands()
+      expect(store().game!.glyphlings.length).toBeGreaterThan(1)
     } finally {
       stop()
     }

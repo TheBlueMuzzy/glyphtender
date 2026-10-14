@@ -1,5 +1,5 @@
 // THE BUTTONS under the tray — change with the moment:
-//   play:    Shuffle · Undo · "Cast · +N" (N = Magic from THIS cast only; totals stay secret) or End turn
+//   play:    Shuffle · Undo · "Plant +N" (N = Magic from THIS plant only; totals stay secret) or End turn
 //            (word indicators off: plain "Cast" — the +N would tell you a word is there)
 //            (Retry instead of Cast if the word list couldn't be loaded — End turn never needs it)
 //   refresh: Keep all · Refresh N
@@ -8,9 +8,12 @@
 //            results · New game) sits at the bottom, in the very same spot as on the end screen.
 // Sound: a button whose press has its own sound (Shuffle, Undo, Cast with a seed → the throw, Refresh N) says
 // sound={false}, so the kit's ui.tap never doubles it.
+// data-action names each button (the tutorial's rails point at them; Explore mode explains them — F79), and the Plant
+// button says when it is End turn (data-end-turn) and the Magic it shows (data-magic).
 import text from '../../content/text/en.json'
 import { useGameStore } from '../store/gameStore'
 import { isMyTurn } from '../store/myTurn'
+import { railsAllowsRefresh, useRails } from '../store/railsLimit'
 import { mayMoveOnly, undoNow } from '../store/turnPlan'
 import { revealSteps } from '../store/revealPlan'
 import { Button, Row, fill } from '../ui/kit'
@@ -22,10 +25,10 @@ const w = text.game.buttons
 
 /** size: how tall the buttons are, in px — about a board hex (finger-sized, like a glyphling), never below 44.
  *  fixed: hold the space for the tallest row of buttons the game can show (B013) — hidden copies of every row,
- *  with the longest labels, are piled behind the real one. On a narrow phone "Cast · +3" can wrap the row onto
+ *  with the longest labels, are piled behind the real one. On a narrow phone "Plant +3" can wrap the row onto
  *  2 lines while "Keep all · Refresh" fits on 1; without this the board would jump each time.
  *  In portrait the buttons are also compact (kit: less room each side of the label), so the longest row,
- *  "Shuffle · Undo · Cast · +88", fits ONE line on a 360-wide phone — no second row of space held under them. */
+ *  "Shuffle · Undo · Plant +88", fits ONE line on a 360-wide phone ("Plant · +88" was 3 px too wide there — sprint 26) — no second row of space held under them. */
 export function ActionBar({ size, fixed }: { size: number; fixed: boolean }) {
   const phase = useGameStore((s) => s.game!.phase)
   if (phase === 'draft') return null
@@ -57,18 +60,20 @@ export function ActionBar({ size, fixed }: { size: number; fixed: boolean }) {
 /** The real buttons for this moment. */
 function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const s = useGameStore()
+  const rails = useRails() // (the tutorial's rails: a pause holds every button; the refresh step's buttons follow it)
   const preview = usePreview()
   const game = s.game!
   if (game.phase === 'draft') return null
-  // Not a turn this device plays (online, another device's turn), or my move is on its way to the server — the buttons wait
-  const notNow = s.waiting || !isMyTurn(s)
+  // Not a turn this device plays (online, another device's turn), my move is on its way to the server, or a tutorial
+  // pause is up — the buttons wait
+  const notNow = s.waiting || !isMyTurn(s) || rails.hold
 
   if (game.phase === 'refresh') {
     const refreshing = notNow || s.refreshFx !== null // (the refresh playing out on the tray)
     return (
       <Row gap="s" justify="center" className="game-actions">
-        <Button size={size} compact={fixed} variant="secondary" disabled={refreshing} onClick={() => s.refresh(true)}>{w.keepAll}</Button>
-        <Button size={size} compact={fixed} sound={false} disabled={refreshing || s.setAside.length === 0} onClick={() => s.refresh()}>{fill(w.refresh, { n: s.setAside.length })}</Button>
+        <Button size={size} compact={fixed} variant="secondary" data-action="keep-all" disabled={refreshing || !railsAllowsRefresh(true, [], rails.limit)} onClick={() => s.refresh(true)}>{w.keepAll}</Button>
+        <Button size={size} compact={fixed} sound={false} data-action="refresh" disabled={refreshing || s.setAside.length === 0 || !railsAllowsRefresh(false, s.setAside, rails.limit)} onClick={() => s.refresh()}>{fill(w.refresh, { n: s.setAside.length })}</Button>
       </Row>
     )
   }
@@ -90,9 +95,9 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   if (!moveOnly && s.wordsStatus === 'failed') {
     return (
       <Row gap="s" justify="center" className="game-actions">
-        <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-        <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
-        <Button size={size} compact={fixed} onClick={() => s.loadWords(wordListUrl())}>{w.retryWords}</Button>
+        <Button size={size} compact={fixed} variant="ghost" sound={false} data-action="shuffle" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
+        <Button size={size} compact={fixed} variant="secondary" sound={false} data-action="undo" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
+        <Button size={size} compact={fixed} data-action="retry" onClick={() => s.loadWords(wordListUrl())}>{w.retryWords}</Button>
       </Row>
     )
   }
@@ -100,9 +105,9 @@ function ActionRow({ size, fixed }: { size: number; fixed: boolean }) {
   const castLabel = moveOnly ? w.endTurn : showMagic ? fill(w.castMagic, { n: preview.magic }) : w.cast
   return (
     <Row gap="s" justify="center" className="game-actions">
-      <Button size={size} compact={fixed} variant="ghost" sound={false} disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
-      <Button size={size} compact={fixed} variant="secondary" sound={false} disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
-      <Button size={size} compact={fixed} sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
+      <Button size={size} compact={fixed} variant="ghost" sound={false} data-action="shuffle" disabled={busy} onClick={s.shuffleTray}>{w.shuffle}</Button>
+      <Button size={size} compact={fixed} variant="secondary" sound={false} data-action="undo" disabled={busy || nothingToUndo} onClick={s.undo}>{w.undo}</Button>
+      <Button size={size} compact={fixed} data-action="plant" data-end-turn={moveOnly || undefined} data-magic={showMagic ? preview.magic : undefined} sound={s.cast ? false : 'tap'} disabled={busy || !(s.cast || moveOnly) || (s.cast !== null && !preview)} onClick={s.startCast}>{castLabel}</Button>
     </Row>
   )
 }

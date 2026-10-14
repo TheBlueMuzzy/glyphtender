@@ -22,19 +22,22 @@ import { hexKey, sameHex, type Hex } from '../engine/hex'
 import { migrateGame } from '../engine/migrate'
 import { parseWordFile, wordListFor, type WordFile } from '../engine/words'
 import type { Action, ExtraWords, GameState, WordList } from '../engine/types'
+import type { SeedStack } from '../engine/setup'
 import type { Applied } from '../table/core'
 import { drawnIds, eventOf, setAsideIds, startedTurn, turnOf, type Happened } from './happened'
 import {
   isCurrents, mayMoveOnly, TRAY_GAP, turnAction, undoNow, type PlannedCast, type PlannedMove, type Selection,
 } from './turnPlan'
-import { NEW_GLYPHLING, onHex, playReferee, type Piece } from './referee'
+import { NEW_GLYPHLING, onHex, playReferee, targetsOf, type Piece } from './referee'
 import { defaultAi, isLocalBot, localSeats, needsHandoff, type AiPick, type Seat } from './seats'
 import { glideSeconds } from '../game/glide'
 import { firstViewer, viewerOf } from './viewer'
 import { canPlayNow, isBusy } from './myTurn'
+import { railsAllowsRefresh, railsAllowsSetAside, railsLimit } from './railsLimit'
 import { addTurn, emptyStats, type PlayerStats } from './stats'
 import { revealSteps } from './revealPlan'
 import { nopeFor, type NopeTarget, type Tap } from './nope'
+import { recordWrongDrop } from './wrongDrop'
 import { refreshTimes, type RefreshFx } from './refreshFx'
 import { moveInRack, placesOf, rackOf, refillRack, shuffleRack, swapInRack } from '../table/rack'
 import { landingSeconds } from './wordMarks'
@@ -132,7 +135,7 @@ export interface GameStore {
 
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
    *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
-  startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick>; extraWords?: ExtraWords }) => void
+  startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick>; extraWords?: ExtraWords; stack?: SeedStack }) => void
   leaveGame: () => void
   /** The next player has the device: show their seeds. */
   showSeeds: () => void
@@ -146,7 +149,8 @@ export interface GameStore {
   grabGlyphling: (id: number, opts?: { startOver?: boolean }) => void
   tapSeed: (id: string) => void
   grabSeed: (id: string) => void
-  tapHex: (hex: Hex) => void
+  /** `dropped`: a dragged piece let go here (not a tap) — a seed dropped on the ghost never takes the move back. */
+  tapHex: (hex: Hex, dropped?: boolean) => void
   undo: () => void
   startCast: () => void
   finishCast: () => void
@@ -185,6 +189,18 @@ const anim = liveTuning('anim', animFile) // the refresh's timings (read when a 
 const SCORE_BEAT_MS = 120 // the score sequence's timer waits this much past the fade (see startScoring)
 
 export const useGameStore = create<GameStore>()((set, get) => {
+  // May this piece be picked up at all right now (the drag referee — the same answer as the shake and the glow)?
+  const mayLift = (game: GameState, piece: Piece) => playReferee(get()).mayPickUp(game.current, piece, targetsOf(game, piece)).ok
+  // The tutorial's rails teach DRAGGING (Muzzy, 2026-10-13): a tap does nothing but shake the step's piece — "drag
+  // this one" — and its callout pops up again (TutorialLayer counts the shakes)
+  const dragOnRails = () => {
+    const piece = railsLimit()?.piece
+    if (!piece) return
+    const shake: NopeTarget = piece.kind === 'glyphling' ? { kind: 'glyph', key: String(piece.id) }
+      : piece.kind === 'seed' ? { kind: 'hand', key: piece.id } : { kind: 'draft', key: 'next' }
+    set({ nope: { ...shake, count: (get().nope?.count ?? 0) + 1 }, selected: null })
+  }
+
   // Sends an engine action; says "problem" instead of crashing if it was somehow illegal.
   // Gives back the new game and its events (null = refused).
   const send = (action: Action): Applied<GameState, GameEvent> | null => {
@@ -350,8 +366,8 @@ export const useGameStore = create<GameStore>()((set, get) => {
     scoring: null,
     happened: null,
 
-    startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {}, extraWords }) => {
-      const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined, extraWords })
+    startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {}, extraWords, stack }) => {
+      const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined, extraWords, stack })
       const options: GameOptions = {
         players, boardName: game.config.boardName, minWordLength: game.config.rules.minWordLength, hideSeeds: hideSeeds ?? true,
         wordIndicators: wordIndicators ?? true,
@@ -399,6 +415,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     tapGlyphling: (id) => {
       const { selected } = get()
       if (!canPlayAt('play')) return
+      if (railsLimit()?.piece) return dragOnRails()
       if (selected?.kind === 'glyphling' && selected.id === id) return set({ selected: null })
       get().grabGlyphling(id)
     },
@@ -407,6 +424,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (!game || !canPlayAt('play')) return
       if (!isCurrents(game, id)) return set({ note: 'notYours' })
       if (game.tangled.includes(id)) return set({ selected: null, note: 'tangled' })
+      if (!mayLift(game, { kind: 'glyphling', id })) return // (it shook: nothing to hold — what was held stays held)
       if (move?.glyphling === id && !opts?.startOver) return set({ selected: { kind: 'glyphling', id }, note: null })
       set({ ...noPlan(), selected: { kind: 'glyphling', id } }) // a different glyphling: the old plan goes
     },
@@ -418,6 +436,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       if (game.phase === 'refresh') return get().toggleSetAside(id)
       if (game.phase !== 'play') return
       if (!move) return set({ note: 'moveFirst' })
+      if (railsLimit()?.piece) return dragOnRails()
       if (cast?.seed !== id && selected?.kind === 'seed' && selected.id === id) {
         playSound('seed.drop') // (let go: it settles back in its place)
         return set({ selected: null })
@@ -427,6 +446,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     grabSeed: (id) => {
       const { game, cast, move } = get()
       if (!game || !canPlayAt('play') || !move) return
+      if (!mayLift(game, { kind: 'seed', id })) return // (it shook: a seed that can't go anywhere isn't picked up)
       playSound('seed.pick')
       // Picking up ANY seed (a tap or a drag) = a new decision: the seed aimed before goes back to the tray at once —
       // one undo (Muzzy 2026-10-10: "we're essentially counting a click/drag as an undo to make another decision")
@@ -435,11 +455,12 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     // Tap a hex: place (draft), move there, cast there, or take back what's planned there.
-    tapHex: (hex) => {
+    tapHex: (hex, dropped = false) => {
       const { game, move, cast, selected } = get()
       if (!game || !canPlay()) return
       // May this piece go on this hex? The drag referee's answer (the same one the glow and the shake ask)
       const allowed = (piece: Piece) => playReferee(get()).judge(game.current, piece, onHex(hex)).ok
+      if (!dropped && railsLimit()?.piece) return dragOnRails()
       if (game.phase === 'draft') {
         if (!allowed(NEW_GLYPHLING)) return // not a glowing hex: nothing happens
         if (get().online) {
@@ -456,19 +477,27 @@ export const useGameStore = create<GameStore>()((set, get) => {
         playSound('seed.aim')
         return set({ cast: { seed: selected.id, target: hex }, selected: null, note: null })
       }
-      if (cast && sameHex(cast.target, hex)) { // the seed goes back to the tray
+      // (a seed DROPPED where it can't go just goes home — over the ghost too: only a tap there, or the moved glyphling
+      // dragged back onto it, takes the move back — Muzzy, 2026-10-13)
+      const seedDropped = dropped && selected?.kind === 'seed'
+      if (!seedDropped && cast && sameHex(cast.target, hex)) { // the seed goes back to the tray
         playSound('seed.drop')
         return set({ cast: null, note: null })
       }
       const origin = move && game.glyphlings.find((g) => g.id === move.glyphling)?.hex
-      if (origin && sameHex(origin, hex)) { // tapped the ghost: the glyphling goes back
+      if (!seedDropped && origin && sameHex(origin, hex)) { // tapped the ghost: the glyphling goes back
         playSound('undo')
         return set({ ...noPlan() })
       }
-      if (cast && !selected && allowed({ kind: 'seed', id: cast.seed })) { // aim it elsewhere
+      if (!seedDropped && cast && !selected && allowed({ kind: 'seed', id: cast.seed })) { // aim it elsewhere
         playSound('seed.aim')
         return set({ cast: { ...cast, target: hex }, note: null })
       }
+      // A held piece let go where it can't go (it goes home): the tutorial's nudges say why (wrongDrop.ts) — but not a
+      // glyphling put back down on its own hex (a change of mind)
+      const home = selected?.kind === 'glyphling' ? game.glyphlings.find((g) => g.id === selected.id)?.hex : undefined
+      const putBack = !!home && sameHex(home, hex)
+      if (selected && !putBack) recordWrongDrop(selected.kind === 'glyphling' ? 'glyphlingHex' : 'seedHex', String(selected.id))
       set({ selected: null })
     },
 
@@ -541,7 +570,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
 
     toggleSetAside: (id) => {
       const { setAside } = get()
-      if (!canPlayAt('refresh')) return
+      if (!canPlayAt('refresh') || !railsAllowsSetAside(id)) return // (the tutorial's rails: only the step's seeds)
       set({ setAside: setAside.includes(id) ? setAside.filter((x) => x !== id) : [...setAside, id] })
     },
     // Refresh N (or Keep all = set nothing aside): refill to a full hand; set-aside seeds go back in the bag.
@@ -549,7 +578,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     // (B011, refreshFx.ts): the set-aside seeds shrink away, the new ones grow into their slots, THEN play passes on.
     refresh: (keepAll = false) => {
       const { game, setAside } = get()
-      if (!game || !canPlayAt('refresh')) return
+      if (!game || !canPlayAt('refresh') || !railsAllowsRefresh(keepAll, setAside)) return // (the rails: the step's refresh only)
       // (in hand order, whatever order they were tapped in — the order they go back into the bag in)
       refreshNow(keepAll ? [] : game.hands[game.current].filter((seed) => setAside.includes(seed.id)).map((seed) => seed.id))
     },

@@ -177,7 +177,7 @@ function Capture({ game, query }: { game: DevKitGame; query: string }) {
             setNote(e.target.value)
             setSent(null)
           }}
-          placeholder="e.g. I cast on the glowing hex and nothing happened"
+          placeholder="e.g. I tapped the glowing hex and nothing happened"
           rows={3}
         />
       </label>

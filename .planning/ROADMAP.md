@@ -247,45 +247,50 @@ Goal: the word list is fair — no slurs or swears, nothing missing by mistake, 
 - ✅ F70 🔧 Dev Kit Words tab: 3-state Open / Yes / No, Open on top, Save re-sorts, search; Save → Cloudflare + words.csv + submitted.csv — should · needs: F68, F69, fw review-list tab · sprint 25
 - ✅ F71 ⚙️ Word switches: **British spelling** + **Vulgar words** as table options in New Game and the host's lobby (like 2-letter words; off at first), fixed per game; words.csv tags B / V; Words tab B / V marks (Dev Kit 0.12.x) — could · sprint 25 · needs: F68, F70
 
-## v0.14 — The first game teaches itself  ← current  (→ 1.0)  · defined 2026-10-12
+## v0.14 — The first game teaches itself  ✅ released 2026-10-14 (v0.10.0)  · defined 2026-10-12
 Goal: a brand-new player opens the link, plays one game against a gentle AI and knows how to play — taught in the moment, never a wall of text; everything else unlocks after. Design: [design/tutorial.md](design/tutorial.md).
-- 🟢 F72 🎮 "Plant" everywhere: every player-facing "cast" → "plant" (Plant · +5, prompts, How to play, Dev Kit labels, GDD); code names stay — must:1.0
+- ✅ F72 🎮 "Plant" everywhere: every player-facing "cast" → "plant" (Plant +5, prompts, How to play, Dev Kit labels, GDD); code names stay — must:1.0
   why: one name for one action; a garden word → a new player reads "plant" and knows what happens
-- 🟢 F73 🧱 Callouts + tips (framework-first: ui-kit **Callout** — rounded rectangle + pointer aimed at an element or a board point, never covers it, fits on screen; a tips store: seen once, Tips switch, Reset tips) + Settings → Tips · Reset tips — must:1.0
-- 🟢 F74 🧱 Tutorial game shell: brand-new player → Play → 3 overview cards → the tutorial game (you Yellow, first, vs 1 AI, fixed board + bag from content/tutorial/rails.json); locks on online · New Game · pass-and-play ("Finish your first game to unlock this"); Leave tutorial (confirm) or finish → unlocked; players who already played count as done; Settings → Replay tutorial game — must:1.0
+- ✅ F73 🧱 Callouts + tips (framework-first: ui-kit **Callout** — rounded rectangle + pointer aimed at an element or a board point, never covers it, fits on screen; a tips store: seen once, Tips switch, Reset tips) + Settings → Tips · Reset tips — must:1.0
+- ✅ F74 🧱 Tutorial game shell: brand-new player → Play → 3 overview cards → the tutorial game (you Yellow, first, vs 1 AI, fixed board + bag from content/tutorial/rails.json); locks on online · New Game · pass-and-play ("Finish your first game to unlock this"); Leave tutorial (confirm) or finish → unlocked; players who already played count as done; Settings → Replay tutorial game — must:1.0
   why: one game at a time, the first one teaches → nobody starts online not knowing the rules
-- ⏳ F75 🎮 Tutorial AI "Sprout" (hidden personality, name ✅ Muzzy): Apprentice + the smallest vocabulary; PREFERS to tangle ONE glyphling from mid-game (next to your pieces when it can) and to keep its other one free — preferences only: it always plays a legal turn, even one that tangles itself — must:1.0 · needs: F74
+- ✅ F75 🎮 Tutorial AI "Sprout" (hidden personality, name ✅ Muzzy): Apprentice + the smallest vocabulary; PREFERS to tangle ONE glyphling from mid-game (next to your pieces when it can) and to keep its other one free — preferences only: it always plays a legal turn, even one that tangles itself — must:1.0 · needs: F74
   why: the tangle lesson always comes up, and ending the game stays the player's call → Secret-Magic tension
-- ⏳ F76 🎮 The rails: draft + turn 1 (move, blocked path, plant over your own piece, block Blue, refresh) + turn 2 (first word C-A-T, Plant · +5, +2 / +1 pops, secret Magic) + hand-over — one live target, the rest dimmed; layout found by a script so every step works — must:1.0 · needs: F72, F73, F74
+- ✅ F76 🎮 The rails: draft + turn 1 (move, blocked path, plant over your own piece, block Blue, refresh) + turn 2 (first word C-A-T, Plant +5, +2 / +1 pops, secret Magic) + hand-over — one live target, the rest dimmed; layout found by a script so every step works — must:1.0 · needs: F72, F73, F74
   why: 12 of 14 must-knows in 2 turns, with no way to go wrong → Cozy cleverness from turn 3
-- ⏳ F77 🎮 Tips in play: the 10 first-time tips + 3 pauses (you create · tangled · one to go), 1 per turn — must:1.0 · needs: F73, F75, ~F76
+- ✅ F77 🎮 Tips in play: the 10 first-time tips + 3 pauses (you create · tangled · one to go), 1 per turn — must:1.0 · needs: F73, F75, ~F76
   why: each rule arrives the moment it matters → "it only teaches you things when it matters" (Muzzy)
-- ⏳ F78 🎮 Nudges: idle (glow 10 s → text 20 s, 3× each; later games text at 30 s) + wrong action (instantly; 3× each, then the shake; every time on the rails); every delay + glow in Dev Kit Tuning, every line in the Text tab — framework-first: a nudge timer in the kit — must:1.0 · needs: F73, F81, ~F76
+- ✅ F78 🎮 Nudges: idle (glow 10 s → text 20 s, 3× each; later games text at 30 s) + wrong action (instantly; 3× each, then the shake; every time on the rails); every delay + glow in Dev Kit Tuning, every line in the Text tab — framework-first: a nudge timer in the kit — must:1.0 · needs: F73, F81, ~F76
   why: "if you aren't doing the right thing, it gently lets you know what you can do" (Muzzy)
-- ⏳ F79 🎮 Explore mode: ? beside ☰ in every game → taps explain instead of act (☰ too), yours vs theirs worded apart, only ? leaves (+ a reminder), pauses local games not online, ends by itself when the game needs you (idle warning, bot takeover, disconnect, game end, handoff) — must:1.0 · needs: F73
+- ✅ F79 🎮 Explore mode: ? beside ☰ in every game → taps explain instead of act (☰ too), yours vs theirs worded apart, only ? leaves (+ a reminder), pauses local games not online, ends by itself when the game needs you (idle warning, bot takeover, disconnect, game end, handoff) — must:1.0 · needs: F73
   why: answers "what's that?" without leaving the board → Always readable
-- 🟢 F81 🔧 Dev Kit Text tab (framework-first, DEVKIT Tier 3 "Text"): edit en.json strings live by section (tutorial first), search, Save → en.json — must:1.0
-- ⏳ F80 ❓ Muzzy plays the tutorial as a new player on his phone → wording, timings, Sprout's feel — must:1.0 · needs: F76, F77, F78, F79
+- ✅ F81 🔧 Dev Kit Text tab (framework-first, DEVKIT Tier 3 "Text"): edit en.json strings live by section (tutorial first), search, Save → en.json — must:1.0
+- ✅ F82 🧱 One menu frame (framework-first, ui-kit): one width for every menu card, height fits up to a max then scrolls inside (no scroll bar, a "more" fade), one header ‹ back · title · action — must:1.0 · ✅ approved 2026-10-14 (UI kit 0.10.4)
+  why: every screen feels like one set → "haphazard" (Muzzy) becomes calm and familiar
+- ✅ F83 🎮 Settings: 2 tabs Gameplay · Audio (Gameplay sections: Play · Display · Accessibility · About); confirm Reset tips / Replay tutorial — must:1.0 · needs: F82
+- ✅ F84 🎮 Every menu screen on the frame: New Game (Start up top), Credits, How to play, Mode select, Lobby, Submit word, Pause, Main menu; no native scroll bars — must:1.0 · needs: F82
+- ✅ F80 ❓ Muzzy plays the tutorial as a new player → wording, timings, Sprout's feel — must:1.0 · needs: F76, F77, F78, F79 · 2 play-throughs on the PC (2026-10-13), approved 2026-10-14; the phone test + the rest → F85
 ```mermaid
 flowchart LR
-  F72[🟢 F72 Plant wording] --> F76[⏳ F76 Rails]
-  F73[🟢 F73 Callouts + tips] --> F76
-  F74[🟢 F74 Tutorial shell] --> F76
-  F74 --> F75[⏳ F75 Sprout AI]
-  F73 --> F77[⏳ F77 Tips]
+  F72[✅ F72 Plant wording] --> F76[✅ F76 Rails]
+  F73[✅ F73 Callouts + tips] --> F76
+  F74[✅ F74 Tutorial shell] --> F76
+  F74 --> F75[✅ F75 Sprout AI]
+  F73 --> F77[✅ F77 Tips]
   F75 --> F77
   F76 -.-> F77
-  F73 --> F78[⏳ F78 Nudges]
-  F81[🟢 F81 Dev Kit Text] --> F78
+  F73 --> F78[✅ F78 Nudges]
+  F81[✅ F81 Dev Kit Text] --> F78
   F79 --> F80
   F76 -.-> F78
-  F73 --> F79[⏳ F79 Explore]
-  F76 --> F80[⏳ F80 Muzzy plays it]
+  F73 --> F79[✅ F79 Explore]
+  F76 --> F80[✅ F80 Muzzy plays it]
   F77 --> F80
   F78 --> F80
 ```
 
 ## Later
+- 🟢 F85 ❓ Tutorial follow-ups (from F80, Muzzy's to-dos 2026-10-13): 🙋 a short looping video for each of the 3 "How to play" cards (then 🤖 wires them in) · 🙋 play it on a phone + have other people play it · 🙋 reword nudges / tips / Explore lines in Dev Kit → Text · ❓ nudge look ("a bit small and lack visibility": bigger text / brighter edge / bounce) · ❓ a "suggested word" nudge (a glow on one spot vs a "show me a move" button) · ❓ should Replay tutorial game re-lock the device for testers? · the Story grip partly covers the "R1" label — must:1.0
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
 - **1.0:** tutorial → v0.14 · accessibility pass (Muzzy 2026-10-11: not until the final art is being worked on) · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
@@ -293,6 +298,11 @@ flowchart LR
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-10-13 — **Awards celebrated during the game** (Muzzy: "achievements to show up during the game somehow. some sort of celebration… any that are 'biggest' or 'longest' … only during the end screen as they do now"). Today all 15 are worked out once, after the game (stats.ts earnedAwards). Sorted:
+  - **Live, the moment it happens (8):** Lockdown · Weed toss · Through the hedge · Complete tangle · Power Play · Long word · Hijack · Super Bridge (end of the planting turn).
+  - **Live but "for now" (3):** Bridge (may become Super Bridge later) · Pincer (the hunt can keep growing) · Walled garden (fires turns after the wall, once 30 Magic is made inside).
+  - **End only (4):** Biggest comeback (only the biggest counts) · Trickster's Victory · Called it (need the winner, after the tangle bonus) · Close call (needs "never tangled all game").
+  - Each player keeps their BEST of each award, so a live one can later be beaten by a bigger moment of the same kind (celebrate it again?). Online: the celebration must not show a rival's secret Magic.
 - 2026-10-12 — **Multi-state checkbox for the game UI kit** (Muzzy: "the multi-toggle checkbox is a great UI piece for the kit"): one box that cycles its states on each tap (☐ → ✓ → ✗ → B → V), like the Dev Kit 0.12.1 review box — a kit part for in-game lists (filters, word toggles). Build framework-first when a game screen needs it.
 - 2026-10-10 — → F63–F65 (v0.11). **Dragging leaves a solid copy in the tray** (Muzzy: draft glyphling + planning a seed) → framework idea "Drag carry styles" (A Pick it up · B Lift, mark home · C Aim · D Float); pick per phase after seeing them live. No change until then.
 - 2026-10-09 — **From the GMTK research** (`~/.claude/references/gmtk.md`; Mark Brown's Word Play is a word game — its reviews are our warning list):

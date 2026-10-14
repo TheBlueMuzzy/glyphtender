@@ -21,10 +21,10 @@
       "draft": "{player} — place a glyphling ({n} of {total})",
       "move": "Move a glyphling",
       "moveHeld": "Move it to a glowing hex",
-      "cast": "Cast a seed from here",
-      "castHeld": "Cast it onto a pale hex",
-      "ready": "Happy? Cast it — or undo",
-      "moveOnly": "No seed to cast — end your turn",
+      "cast": "Plant a seed from here",
+      "castHeld": "Plant it on a pale hex",
+      "ready": "Happy? Plant it — or undo",
+      "moveOnly": "No seed to plant — end your turn",
       "flying": "Planting…",
       "refresh": "No Magic this turn — refresh seeds?",
       "refreshDetail": "Tap seeds to set them aside",
@@ -51,13 +51,14 @@
     "spotlightLabel": "{word} +{n}",
     "buttons": {
       "undo": "Undo",
-      "cast": "Cast",
-      "castMagic": "Cast · +{n}",
+      "cast": "Plant",
+      "castMagic": "Plant +{n}",
       "endTurn": "End turn",
       "shuffle": "Shuffle",
       "refresh": "Refresh {n}",
       "keepAll": "Keep all",
       "menu": "Menu",
+      "explore": "Explore",
       "results": "See results",
       "newGame": "New game",
       "skip": "Skip",
@@ -78,7 +79,7 @@
     },
     "submitWord": {
       "pauseRow": "Submit a word",
-      "placeSeed": "Place a seed first (don't cast it), then come back here to pick its letters.",
+      "placeSeed": "Place a seed first (don't plant it), then come back here to pick its letters.",
       "title": "Submit a word",
       "pick": "Not a word yet? Pick the one you meant.",
       "sent": "Word submitted",
@@ -236,7 +237,7 @@
       "pages": [
         {
           "title": "Your turn",
-          "body": "Move one of your glyphlings any distance along a leyline — it can’t pass through anything. Then cast a seed from where it landed, along any leyline, onto an empty hex."
+          "body": "Move one of your glyphlings any distance along a leyline — it can’t pass through anything. Then plant a seed from where it landed, along any leyline, onto an empty hex."
         },
         {
           "title": "Words make Magic",
@@ -279,6 +280,7 @@
     "players": "Players",
     "playerN": "Player {n}",
     "aiType": "AI Type",
+    "aiChoice": "AI - {type}",
     "board": "Garden",
     "boards": {
       "small": "Small",
@@ -394,12 +396,134 @@
     "personality": {
       "Scholar": {"name": "the Scholar", "type": "Scholar", "bio": "It eats words for breakfast."},
       "Survivor": {"name": "the Survivor", "type": "Survivor", "bio": "Head on a swivel like an owl."},
-      "Strategist": {"name": "the Strategist", "type": "Strategist", "bio": "Always two moves ahead."}
+      "Strategist": {"name": "the Strategist", "type": "Strategist", "bio": "Always two moves ahead."},
+      "sprout": {"name": "Sprout", "type": "Sprout", "bio": "New to the garden, and happy you’re here."}
     },
     "skill": {
       "Apprentice": "Apprentice",
       "FirstClass": "First Class",
-      "Archmage": "Archmage"
+      "Archmage": "Archmage",
+      "seedling": "Seedling"
+    }
+  },
+  "tutorial": {
+    "_help": "The first game teaches itself (design/tutorial.md). Callouts: one idea, 12 words or fewer, verb first.",
+    "tipsReset": "Every tip will show again",
+    "locked": "Finish your first game to unlock this.",
+    "unlocked": "Everything's unlocked!",
+    "overview": {
+      "title": "How to play",
+      "next": "Next",
+      "back": "Back",
+      "done": "Let's play!",
+      "skip": "Skip",
+      "page": "Page {n} of {total}",
+      "pages": [
+        { "title": "Move, then plant", "body": "Move one of your glyphlings, then plant a seed from where it lands." },
+        { "title": "Words make Magic", "body": "Spell words to make Magic. Most Magic wins." },
+        { "title": "A tangled garden", "body": "A glyphling that can't move is tangled. The game ends when any 2 glyphlings are tangled." }
+      ]
+    },
+    "leave": {
+      "button": "Leave tutorial",
+      "title": "Leave the tutorial game?",
+      "message": "Everything unlocks. You can replay it from Settings."
+    },
+    "replay": {
+      "title": "Replay the tutorial game?",
+      "message": "This game ends, and the tutorial game starts.",
+      "yes": "Replay"
+    },
+    "rails": {
+      "_help": "The tutorial game's first 2 turns (design/tutorial.md §2), one callout at a time. {rival} = Sprout's colour (Blue). Every line must stay literally true.",
+      "next": "Next",
+      "gotIt": "Got it",
+      "play": "Play",
+      "draft1": "Drag your glyphling to the bright hex.",
+      "draft2": "Drag your second glyphling to the bright hex.",
+      "lines": "Glyphlings move in straight lines.",
+      "block": "Pieces block the way — glyphlings can't pass through them.",
+      "move1": "Drag your glyphling here.",
+      "overOwn": "Seeds fly over your own pieces — not other players'.",
+      "seed1": "Plant the {letter}: drag it to the bright hex.",
+      "plant1": "Happy? Tap Plant.",
+      "blocks": "Your seed blocks {rival}'s glyphling. Hemming glyphlings in can win games.",
+      "noWord": "No word, no Magic. You can swap seeds you don't want.",
+      "swap": "Tap {first} and {second}, then Refresh.",
+      "refresh": "Tap Refresh — new seeds grow in.",
+      "move2": "Drag either of your glyphlings here.",
+      "seed2": "Plant the {letter} between your {yours} and {rival}'s {theirs}.",
+      "preview": "The button shows the Magic you'll make. Tap Plant!",
+      "counts": "Your seeds count +2 in a word. Others' count +1.",
+      "secret": "Magic is secret until the end — {rival} can't see yours.",
+      "handOver": "You're on your own now — have fun!"
+    },
+    "tips": {
+      "_help": "First-time tips in play (design/tutorial.md §3): each shows ONCE, the first time it happens (Settings → Tips on). {player} = whose glyphling (Blue), {n} / {bonus} = numbers. 12 words or fewer, every line literally true, Magic is created — never gained.",
+      "yourDanger": "1 move left! Move it now, or it may get tangled.",
+      "theirDanger": "{player}'s glyphling has 1 move left. Block it to tangle it.",
+      "tangleTheirs": "{player}'s glyphling is tangled! Your pieces beside it create +{bonus} Magic each.",
+      "tangleYours": "Your glyphling is tangled! Rival pieces beside it create +{bonus} Magic each.",
+      "oneToGo": "One more tangle ends the game. Ahead? Try ending it yourself.",
+      "twoWords": "One seed, {n} words — each one created Magic!",
+      "longestCounts": "Only the longest word on each line counts.",
+      "swapAgain": "No word — you can swap seeds again.",
+      "cantPlant": "No seed fits from here — tap End turn.",
+      "reveal": "Here's everyone's secret Magic!"
+    },
+    "nudges": {
+      "_help": "Nudges (design/tutorial.md §4): 'idle' after a while of doing nothing on your turn, 'wrong' straight after a refused tap or drop. {player} = whose glyphling (Blue), {colour} = yours (yellow). 12 words or fewer, say what you CAN do.",
+      "idle": {
+        "draft": "Drag a glyphling onto a glowing hex.",
+        "move": "Drag one of your glyphlings to a new spot.",
+        "plant": "Drag a seed onto a pale hex.",
+        "commit": "Happy? Tap Plant — or Undo.",
+        "endTurn": "Tap End turn — no seed fits from here.",
+        "refresh": "Tap seeds to swap, then Refresh — or Keep all."
+      },
+      "wrong": {
+        "seedFirst": "Move a glyphling first — then plant from where it lands.",
+        "glyphlingHex": "Glyphlings move in straight lines and can't pass through pieces.",
+        "seedHex": "Seeds fly straight from your glyphling — not over others' pieces.",
+        "rival": "That's {player}'s. Yours are {colour}.",
+        "plantNothing": "Drag a seed onto a pale hex first."
+      }
+    },
+    "explore": {
+      "_help": "Explore mode — the ? button (design/tutorial.md §6): tap anything and read what it is. {player} = whose it is, {moves} = how many moves it has, {own} / {other} = what a seed counts in its owner's words / anyone else's. Every line must stay literally true.",
+      "bar": "Explore — tap anything.",
+      "barDetail": "Tap ? to go back.",
+      "remind": "Tap ? to go back to the game.",
+      "yourGlyphling": "Your glyphling · {moves} moves. Drag it to move.",
+      "yourGlyphlingDanger": "Your glyphling · 1 move left. One more block tangles it.",
+      "yourGlyphlingTangled": "Your glyphling, tangled: rivals' pieces beside it create Magic if it stays.",
+      "theirGlyphling": "{player}'s glyphling · {moves} moves. Block it to tangle it.",
+      "theirGlyphlingDanger": "{player}'s glyphling · 1 move left. Block it to tangle it.",
+      "theirGlyphlingTangled": "Tangled! Your pieces beside it will create Magic if it stays.",
+      "yourSeed": "Your seed — counts +{own} in your words, +{other} in others'.",
+      "theirSeed": "{player}'s seed — +{own} in {player}'s words, +{other} in yours.",
+      "plannedSeed": "Aimed, not planted yet. Plant grows it; Undo takes it back.",
+      "moveOption": "Your glyphling can move here.",
+      "draftOption": "You can place your glyphling here.",
+      "plantOption": "You can plant a seed here.",
+      "emptyHex": "An empty hex of the garden.",
+      "traySeed": "Your {letter} seed. After you move, plant it in a straight line.",
+      "traySeedRefresh": "Your {letter} seed. Tap it to swap it, then Refresh.",
+      "part": {
+        "plant": "Plant — grows your aimed seed in the garden.",
+        "plantMagic": "Plant +{n} — grows your aimed seed and creates {n} Magic.",
+        "endTurn": "End turn — there's nowhere to plant from here.",
+        "retry": "Retry — loads the word list again.",
+        "undo": "Undo — takes back your last step this turn.",
+        "shuffle": "Shuffle — mixes up the order of your tray.",
+        "refresh": "Refresh — swaps the seeds you tapped for new ones.",
+        "keepAll": "Keep all — keep every seed and end your turn.",
+        "turnBar": "Whose turn it is right now.",
+        "menu": "Menu — settings, rules and leaving the game.",
+        "ghost": "Where your glyphling started. Tap it to take the move back.",
+        "prompt": "Explore is on: taps explain things instead of playing.",
+        "draft": "Your next glyphling. Drag it onto a glowing hex."
+      }
     }
   }
 }

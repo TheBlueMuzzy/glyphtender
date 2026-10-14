@@ -10,6 +10,10 @@
 // Its picks are repeatable: each seat has its own random position from the game's seed (botSeed), moved on only by
 // the actions it really plays. A new game, leaving the game or the game moving on drops any thinking in progress.
 // It never gets a handoff screen: there's nobody to hide the seeds from (seats.ts needsHandoff).
+// THE TUTORIAL (F76): a script (setBotScript) can hand it the exact action to play — then it doesn't think, but still
+// takes its moment and plays like a person. A tutorial pause (railsLimit.ts hold) stops it starting until released.
+// EXPLORE MODE (F79, store/explore.ts): while the player explores with the ? button, a game on this device pauses the
+// same way — no AI starts or plays its turn until they tap ? again (online the server plays on: not paused).
 // playLocalBot (below) is the old instant greedy bot — tests only. If thinking ever fails, the greedy bot plays that
 // one move instead, so a game never freezes.
 import paceFile from '../../content/ai/pace.json'
@@ -24,9 +28,13 @@ import { seatToAct } from '../table/flow'
 import { useGameSettings, type AiSpeed } from '../ui/gameSettings'
 import { useGameStore } from './gameStore'
 import { isBusy } from './myTurn'
+import { useExplore } from './explore'
+import { railsHold, useRails } from './railsLimit'
 import { defaultAi, isLocalBot } from './seats'
 
 const store = () => useGameStore.getState()
+/** Held: a tutorial pause is up, or the player is exploring (the ? button) — the AIs here wait. */
+const held = () => railsHold() || useExplore.getState().on
 
 /** content/ai/pace.json in the kit's Pace shape: think times per kind of action — draft, moveCast (a turn), refresh. */
 const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, timeBudgetMs: paceFile.timeBudgetMs }
@@ -35,8 +43,16 @@ const pace: Pace = { think: paceFile.thinkSeconds, speeds: paceFile.speeds, time
  *  thinkSeconds.aim at the AI speed; 0 = none — a turn with no seed to throw, or Instant). */
 function aimPause(action: Action, rng: number): { ms: number; rng: number } {
   if (action.type !== 'turn' || action.seed === null) return { ms: 0, rng }
-  return thinkDelay(pace, 'aim', aiSpeed(), rng)
+  return slower(thinkDelay(pace, 'aim', aiSpeed(), rng))
 }
+
+let pauseScale = 1
+/** The AIs' pauses (thinking, holding the aim) × this — the tutorial game sets it (tutorial.json sproutSlowdown) so a
+ *  new player can follow what Sprout does; 1 = as Settings → AI speed says. */
+export function setAiPauseScale(scale: number) {
+  pauseScale = scale
+}
+const slower = (delay: { ms: number; rng: number }) => ({ ...delay, ms: Math.round(delay.ms * pauseScale) })
 
 /** The kind of action (pace.json thinkSeconds) for the step the game is at. */
 const paceKind = (game: GameState) => (game.phase === 'draft' ? 'draft' : game.phase === 'refresh' ? 'refresh' : 'moveCast')
@@ -57,6 +73,18 @@ export function setAiSpeedOverride(speed: AiSpeed | null) {
   speedOverride = speed
 }
 const aiSpeed = () => speedOverride ?? useGameSettings.getState().aiSpeed
+
+// ─── The tutorial's script (F76) ───
+
+/** Gives the action a bot seat must play now, or null = let it think as usual. */
+export type BotScript = (game: GameState, seat: number) => Action | null
+let script: BotScript | null = null
+/** Play the bots from a script instead of thinking whenever it has an action for this game state + seat (the tutorial
+ *  game's rails: Sprout's fixed draft, turn 1 and Keep all — src/tutorial/railsDirector.ts). A scripted action is
+ *  played exactly like a decided one — the same person-like pace, glide, aim and throw (F50). null = no script. */
+export function setBotScript(next: BotScript | null) {
+  script = next
+}
 
 // ─── The driver ───
 
@@ -104,16 +132,31 @@ export function driveLocalBots(): () => void {
       if (job.game === game) return // still thinking / waiting its moment
       dropJob() // the game moved on without it (an undo in the Dev Kit, a jump)
     }
-    if (!s.words || isBusy(s)) return // its turn starts in a quiet moment
+    if (!s.words || isBusy(s) || held()) return // its turn starts in a quiet moment (never under a tutorial pause, or while exploring)
     if (s.move) return // (its turn is already playing out: the glide before the throw)
     const seat = seatToAct(flowOf(game))
     if (seat === null || !isLocalBot(s.seats[seat])) return
+    const mine: Job = { game, seat, dropped: false }
+    const delay = slower(thinkDelay(pace, paceKind(game), aiSpeed(), paceRng))
+    // The tutorial's script has this action for it: no thinking — the same person-like moment, then it plays it
+    const scripted = script?.(game, seat) ?? null
+    if (scripted) {
+      job = mine
+      paceRng = delay.rng
+      timer = setTimeout(() => {
+        timer = null
+        job = null
+        if (mine.dropped || store().game !== mine.game || held()) return check()
+        const aim = aimPause(scripted, paceRng)
+        paceRng = aim.rng
+        store().botPlays(scripted, true, aim.ms)
+      }, delay.ms)
+      return
+    }
     thinker ??= makeGameThinker(s.words)
     const ai = s.seats[seat].ai ?? defaultAi()
-    const mine: Job = { game, seat, dropped: false }
     job = mine
     const started = performance.now()
-    const delay = thinkDelay(pace, paceKind(game), aiSpeed(), paceRng)
     paceRng = delay.rng
     thinker
       .think({ view: viewFor(game, seat), seat, rng: rngs[seat], personalityId: ai.personality, skillId: ai.skill, custom: ai.custom })
@@ -122,7 +165,7 @@ export function driveLocalBots(): () => void {
         timer = setTimeout(() => {
           timer = null
           job = null
-          if (mine.dropped || store().game !== mine.game) return check()
+          if (mine.dropped || store().game !== mine.game || held()) return check()
           rngs[seat] = answer.rng
           for (const listener of decisionListeners) listener(seat, answer.decision)
           const aim = aimPause(answer.action, paceRng)
@@ -137,7 +180,7 @@ export function driveLocalBots(): () => void {
         console.warn('The AI could not decide — playing a simple move instead', error)
         job = null
         const s = store()
-        if (!s.words || s.game !== mine.game) return check()
+        if (!s.words || s.game !== mine.game || held()) return check() // (never under a pause — review)
         const fallback = greedyBot(s.words)(viewFor(mine.game, seat), seat, rngs[seat])
         rngs[seat] = fallback.rng
         const aim = aimPause(fallback.action, paceRng)
@@ -147,9 +190,13 @@ export function driveLocalBots(): () => void {
   }
 
   const unsubscribe = useGameStore.subscribe(check)
+  const unsubscribeRails = useRails.subscribe(check) // (a tutorial pause released: the bots look again)
+  const unsubscribeExplore = useExplore.subscribe(check) // (back from Explore: the bots look again)
   check()
   return () => {
     unsubscribe()
+    unsubscribeRails()
+    unsubscribeExplore()
     closeThinker()
   }
 }

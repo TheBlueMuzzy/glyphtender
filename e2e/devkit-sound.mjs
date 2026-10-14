@@ -56,7 +56,7 @@ function testWav(silence = 0.1, tone = 0.3) {
 const MOMENTS = [
   { id: 'score-pop', label: 'Score pop', screen: 'board', sounds: ['seed.land', 'score.pop', 'score.arrive'] },
   { id: 'seed-lands', label: 'Seed lands + sprout', screen: 'board', sounds: ['cast.throw', 'seed.land', 'sprout.grow'] },
-  { id: 'two-birds', label: 'Two birds (2-word cast)', screen: 'board', sounds: ['score.pop', 'cast.flourish'] },
+  { id: 'two-birds', label: 'Two birds (2-word plant)', screen: 'board', sounds: ['score.pop', 'cast.flourish'] },
   { id: 'tangle', label: 'Tangle', screen: 'board', sounds: ['seed.land', 'tangle'] },
   { id: 'no-shake', label: '"No" shake', screen: 'board', sounds: ['no'] },
   { id: 'your-turn', label: 'Your turn', screen: 'board', sounds: ['turn.yours'] },

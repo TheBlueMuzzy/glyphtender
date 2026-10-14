@@ -1,10 +1,11 @@
 // MENUS — the home page and the screens it opens, all built from the UI kit.
 // Words: content/text/en.json · settings rows: content/ui/settings.json · look: content/ui/style.json
-import { Button, Credits, HowToPlay, MainMenu, Pause, Settings, fill, screens } from './kit'
+import { useEffect, useState } from 'react'
+import { Button, Callout, Credits, HowToPlay, MainMenu, Pause, Settings, fill, screens } from './kit'
 import { getAudio, useAudioSnapshot } from '../audio'
 import { GameOverScreen } from '../game/GameOver'
 import { leaveToMenu, newGameFromEnd, openNewGame } from './newGame'
-import { settings, settingsChanged } from './gameSettings'
+import { resetTips, settings, settingsChanged } from './gameSettings'
 import { canFullscreen, hiddenFullscreenRows, isInstalled, setFullscreen, useFullscreen } from './fullscreen'
 import { LobbyScreen } from './online/LobbyScreen'
 import { OnlineStartScreen } from './online/OnlineStartScreen'
@@ -14,13 +15,25 @@ import { useGameStore } from '../store/gameStore'
 import text from '../../content/text/en.json'
 import credits from '../../content/credits.json'
 import version from '../../version.json'
+import tutorialTuning from '../../content/tuning/tutorial.json'
+import { useTutorial } from '../tutorial/progress'
+import { leaveTutorial, openTutorial, replayTutorial, showUnlockedToast, startTutorialGame } from '../tutorial/start'
 
 // Online needs a live server: shown in local dev, and on the live site only once VITE_PARTY_HOST is set at build time.
 const onlineAvailable = import.meta.env.DEV || !!import.meta.env.VITE_PARTY_HOST
 
 // HOME — title, tagline, and the menu buttons in our order (Play is the main button).
+// A brand-new device (F74): Play opens the tutorial's overview, and Play online is locked — a tap on it says why.
 export function MainMenuScreen() {
   const w = text.mainMenu
+  const tutorialDone = useTutorial((s) => s.done)
+  const [lockedHint, setLockedHint] = useState(false)
+  useEffect(() => {
+    if (!lockedHint) return
+    const timer = setTimeout(() => setLockedHint(false), tutorialTuning.tipSeconds * 1000)
+    return () => clearTimeout(timer)
+  }, [lockedHint])
+  const closing = (go: () => void) => () => { setLockedHint(false); go() } // any other button closes the locked hint
   // Full screen / Leave full screen — only where it can work and isn't already app-like (fullscreen.ts)
   const fullscreen = useFullscreen((s) => s.on)
   const fullscreenButton = canFullscreen() && !isInstalled()
@@ -29,14 +42,17 @@ export function MainMenuScreen() {
       title={w.title}
       subtitle={w.subtitle}
       items={[
-        { label: w.play, onClick: openNewGame, primary: true },
-        ...(onlineAvailable ? [{ label: w.playOnline, onClick: () => screens.push('online') }] : []),
-        { label: w.settings, onClick: () => screens.push('settings') },
+        { label: w.play, onClick: closing(tutorialDone ? openNewGame : openTutorial), primary: true },
+        ...(onlineAvailable ? [tutorialDone
+          ? { label: w.playOnline, onClick: () => screens.push('online') }
+          : { label: w.playOnline, onClick: () => setLockedHint(true), locked: true }] : []),
+        { label: w.settings, onClick: closing(() => screens.push('settings')) },
       ]}
     >
       {fullscreenButton && (
         <Button variant="ghost" onClick={() => setFullscreen(!fullscreen)}>{fullscreen ? w.exitFullscreen : w.fullscreen}</Button>
       )}
+      {lockedHint && <Callout target="[data-locked]" text={text.tutorial.locked} placement="bottom" onDismiss={() => setLockedHint(false)} />}
     </MainMenu>
   )
 }
@@ -49,6 +65,8 @@ export { LobbyScreen, OnlineStartScreen }
 export function SettingsScreen() {
   const onAction = (id: string) => {
     if (id === 'credits') screens.push('credits')
+    if (id === 'resetTips') resetTips()
+    if (id === 'replayTutorial') replayTutorial()
   }
   // (Esc on a computer turns Full screen off from outside this screen: key = start again from the saved values)
   const resaved = useFullscreen((s) => s.resaved)
@@ -77,7 +95,11 @@ export function PauseScreen() {
   // Submit a word (F69): always there; with no seed placed, its screen says to place one first (a greyed row's hint
   // wrapped onto two lines on a phone)
   const submitRow = { label: text.game.submitWord.pauseRow, onClick: () => screens.push('submitWord') }
-  return <Pause words={w} note={note} items={[submitRow]} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={leaveToMenu} />
+  // The tutorial game (F74): Leave tutorial — its confirm says leaving unlocks everything
+  const tutorial = useTutorial((s) => s.active)
+  const leave = text.tutorial.leave
+  const words = tutorial ? { ...w, quit: leave.button, quitTitle: leave.title, quitMessage: leave.message } : w
+  return <Pause words={words} note={note} items={[submitRow]} onHowToPlay={() => screens.push('rules')} onSettings={() => screens.push('settings')} onQuit={tutorial ? leaveTutorial : leaveToMenu} />
 }
 
 // RULES — a short how-to-play in three pages (words: en.json → game.rules), opened from Pause.
@@ -86,7 +108,14 @@ export function RulesScreen() {
   return <HowToPlay pages={pages} words={words} />
 }
 
+// TUTORIAL OVERVIEW (F74) — 3 cards before the tutorial game; the last card's button (or Skip) deals it.
+export function TutorialOverviewScreen() {
+  const { pages, ...words } = text.tutorial.overview
+  return <HowToPlay pages={pages} words={words} onDone={startTutorialGame} onSkip={startTutorialGame} />
+}
+
 // GAME OVER — the end table over the tangled garden (src/game/GameOver.tsx).
 export function GameOverDialog() {
+  useEffect(showUnlockedToast, []) // the tutorial game just finished: "Everything's unlocked!"
   return <GameOverScreen onNewGame={newGameFromEnd} onMenu={leaveToMenu} />
 }

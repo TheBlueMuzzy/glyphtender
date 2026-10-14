@@ -25,6 +25,7 @@ import { TRAY_GAP } from '../store/turnPlan'
 import { restoredSeats, type Seat } from '../store/seats'
 import type { PlayerStats } from '../store/stats'
 import { closeAllScreens } from '../ui/newGame'
+import { setTutorialActive } from '../tutorial/progress'
 
 /** What a snapshot holds for Glyphtender. */
 export interface GlyphtenderMoment {
@@ -92,7 +93,7 @@ function changeLines(events: GameEvent[], was: GameState, now: GameState): strin
   if (placed) lines.push(`draft: ${seatName(placed.seat)} placed a glyphling at ${hexName(now, placed.hex)}`)
   const t = turnOf(events)
   if (t) {
-    const cast = t.letter ? `, cast ${t.letter} at ${hexName(now, t.target)}` : ', move only'
+    const cast = t.letter ? `, planted ${t.letter} at ${hexName(now, t.target)}` : ', move only'
     // (its Magic is worked out from the board, like the score pops — events carry no Magic before the end)
     const words = t.words.length ? ` → ${t.words.map((w) => w.word).join(', ')} (${popsTotal(scorePops(now, t))} Magic)` : ''
     lines.push(`${seatName(t.seat)} moved glyphling ${t.glyphlingId} ${hexName(now, t.from)} → ${hexName(now, t.to)}${cast}${words}`)
@@ -153,6 +154,7 @@ export const glyphtenderAdapter: DevKitGame = {
     if (!isMoment(state)) throw new Error("that isn't a Glyphtender snapshot")
     const store = useGameStore.getState()
     closeAllScreens() // a menu from the moment we're leaving (the end table, Pause) would sit on top, stuck
+    setTutorialActive(false) // a restored game is never the tutorial game (its Pause would say Leave tutorial)
     if (!state.game) return store.leaveGame()
     const stats = state.stats?.length === state.game.config.players ? state.stats : undefined
     const seats = restoredSeats(state.seats, state.game.config.players, text.game.players) ?? undefined // AIs play on from here

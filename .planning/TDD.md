@@ -94,6 +94,7 @@ flowchart LR
 ## 3. Data the game reads (editable by Muzzy — in Obsidian or the Dev Kit)
 | File | What's in it | Edited with |
 |---|---|---|
+| `content/tutorial/rails.json` · `content/tuning/tutorial.json` | the tutorial game's fixed setup (seed, board, turn order, Sprout's seat — F76 fills in the found layout) · Sprout's habits (selfTangleBy — kept all game) + tipSeconds; words in `en.json → tutorial`; Sprout / Seedling are `hidden: true` in content/ai (v0.14) | Obsidian · Dev Kit Tuning → Tutorial |
 | `content/data/boards.json` | board shapes (column heights), default board per player count | Obsidian |
 | `content/data/bag.json` | seed counts per letter (a plain `Q` since D47) | Obsidian / Dev Kit → Tuning |
 | `content/tuning/endscreen.json` | end screen: which awards may show and their carousel order (awardOrder, 0 = off), carouselSeconds 4 / carouselPauseSeconds 4, place ribbons ribbon1–4 + ribbonSize, the award thresholds — PROVISIONAL (D54; lockdown ≥ 6 / ≤ 1 left, pincer: a hunt over your turns took ≥ 75% of a ≥ 8-move glyphling's room (D68), weed toss ≥ 14 blocked or ≥ 10 cut, walled garden ≥ 30 Magic in ≤ 10 hexes, hedge ≥ 3 seeds, power play ≥ 4 words, long word ≥ 6, hijack from ≥ 3 letters, bridge ≥ 2 each side, comeback = the biggest (no minimum), trickster / called it ≥ 10, close call ≥ 4), the chart's marker cap, draw-in time, line width, height | Dev Kit → Tuning |
@@ -157,6 +158,15 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D96 · 2026-10-13 · One menu frame: one width, content height up to a max, the body scrolls inside (UI kit 0.10)
+  Proposed by: Muzzy ("the menus and sub menus (including credit) should be the same width/height with internal
+  scroller"; "full width, but only go a large height as needed. if reached max, then internal scroller"; "< = back").
+  Chose: kit tokens --kit-menu-w 36rem / --kit-menu-max-h 44rem (52rem desktop); MenuHeader ‹ · title · action; ScrollArea
+  with no bar + an edge fade; cards open centred then only grow down (Screen grow="down"). Replaces end-screen.md's
+  "nothing scrolls inside a box, only the page" for menus, and New Game's whole-page <Screen scroll> (B027's one-
+  scroller rule still holds: the card's body is its only scroller). Settings = 2 tabs (Gameplay with Play · Display ·
+  Accessibility · About sections, then Audio) — the kit's standard order (Audio first, Accessibility its own tab) gives
+  way to Muzzy's: "Gameplay is first … Accessibility could be a section". e2e: shots sweep fails on any scroll bar.
 D95 · 2026-10-12 · Who gets the tutorial: brand-new devices only; one game at a time; leaving unlocks
   Proposed by: Muzzy ("only 1 game is active at a time, so they'd have to leave the tutorial game (with a confirmation)…
   it's JUST Local vs 1 AI"). Chose: locks on online, New Game, pass-and-play until the tutorial game is finished or left;

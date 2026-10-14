@@ -385,7 +385,7 @@ export function usePieceInput(drag: CarryLayer, layout: LayoutTuning, size: numb
     } else if (game && hex) {
       // A board hex — the referee's answer, the same as the glow's
       if (dropKind({ ...s, game }, hex) !== null) target = centreOf(document.querySelector(`.game-garden [data-hex="${hexKey(hex)}"]`))
-      commit = () => store().tapHex(hex)
+      commit = () => store().tapHex(hex, true)
       after = commit
     }
     if (!carry || !p.style || !p.home) { // (nothing carried on screen: just do it)

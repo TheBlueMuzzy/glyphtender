@@ -9,15 +9,32 @@
   }
   :root[data-reduce-motion] button.kit-target:active { transform: none !important; }
 
-  /* Dialog-sized boxes: never wider than the screen */
-  .kit-modal { inline-size: 28rem; max-inline-size: 100%; }
-  .kit-menu { inline-size: 22rem; max-inline-size: 100%; }
-  .kit-wide { inline-size: 40rem; max-inline-size: 100%; }
-  .kit-tall { block-size: 44rem; max-block-size: 100%; }
-  /* Desktop windows: a tall card grows to use the window (up to 52rem) before its list scrolls — at 1440×900 Settings
-     stopped on a half-cut row with ~100 px of empty screen above and below (0.7.0). Phones keep 44rem. */
-  @media (min-width: 40rem) and (min-height: 30rem) { .kit-tall { block-size: 52rem; } }
+  /* THE MENU FRAME (0.10.0). Every menu card — Main menu, Pause, Settings, Credits, Mode select, How to play, Lobby,
+     Results, any Modal — is ONE width, --kit-menu-w (default 36rem), never wider than the screen (Muzzy 2026-10-13:
+     "the menus and sub menus (including credit) should be the same width/height with internal scroller"). The old
+     three sizes (menu 22 · modal 28 · wide 40rem) are now names for that one width. A yes / no question on top of
+     another screen (Confirm: kit-ask) stays narrower, --kit-ask-w (28rem): it's a question, not a menu. */
+  :is(.kit-modal, .kit-menu, .kit-wide) { inline-size: var(--kit-menu-w, 36rem); max-inline-size: 100%; }
+  .kit-modal.kit-ask { inline-size: var(--kit-ask-w, 28rem); }
+  /* Height: as tall as its contents ("only go a large height as needed"), up to --kit-menu-max-h (44rem; desktop
+     windows --kit-menu-max-h-wide, 52rem) and never past the screen. Past that only its ScrollArea body gives up height
+     (kit.css): the header and the footer row keep theirs. Not in <Screen scroll>, where the whole screen scrolls instead.
+     (.kit-tall forced a fixed height until 0.10.0; it's now a leftover name that does nothing.) */
+  .kit-screen:not([data-scroll]) > [data-slot="center"] > :is(.kit-modal, .kit-menu, .kit-wide) { max-block-size: var(--kit-menu-max-h, 44rem); }
+  @media (min-width: 40rem) and (min-height: 30rem) {
+    .kit-screen:not([data-scroll]) > [data-slot="center"] > :is(.kit-modal, .kit-menu, .kit-wide) { max-block-size: var(--kit-menu-max-h-wide, 52rem); }
+  }
   .kit-menu .kit-button { inline-size: 100%; }
+
+  /* MenuHeader: ‹ · title · action on one line. The title takes what's left (and wraps on a narrow phone); the ‹ and
+     the action never shrink. Its gaps are inside the card's padding, so nothing touches the card's edge. */
+  .kit-menu-header { display: flex; align-items: center; gap: var(--gap-s); min-inline-size: 0; }
+  .kit-menu-header-title { flex: 1 1 auto; min-inline-size: 0; }
+  .kit-menu-header > .kit-button, .kit-menu-header-action { flex: none; }
+  /* ‹ is a small, low glyph in most fonts: drawn bigger, so it reads as an arrow and not a speck (the button stays
+     square and at least 44px) */
+  .kit-menu-header > .kit-button[data-icon] { font-size: calc(var(--text-title) * 1.4); }
+  .kit-menu-header-action { display: flex; align-items: center; gap: var(--gap-s); }
   /* A menu inside a dialog (Pause) fills the dialog's width, so the room left and right of the buttons is the
      dialog's own padding on both sides — even all round (it used to keep its 22rem and leave a wide gap on the right) */
   .kit-modal > .kit-menu { inline-size: 100%; }
@@ -29,10 +46,26 @@
      where six tabs wrapped onto two lines and left room for under two setting rows (0.7.0) */
   .kit-settings-picker { display: none; }
   .kit-settings-picker .kit-picker { inline-size: 100%; }
+  .kit-settings-picker .kit-picker-sized { flex: 1 1 auto; } /* (full width: ◀ and ▶ at the two ends) */
   @media (max-width: 40rem), (max-height: 30rem) {
     .kit-settings-tabs { display: none; }
     .kit-settings-picker { display: block; }
   }
+  /* 3 tabs or fewer (0.10.0): always the real tab bar, on one line at every size — each tab shares the line and gives
+     up its side padding first, so three tabs never wrap onto two lines on a 360-wide phone */
+  .kit-settings-few .kit-tabs { flex-wrap: nowrap; }
+  .kit-settings-few .kit-tab { flex: 1 1 0; min-inline-size: 0; padding-inline: var(--gap-xs); }
+  /* Every tab's page sits in the same spot (one grid cell): the tallest one sets the card's height, so switching tabs
+     never changes the card's size or moves its header. Only the current page shows (the others are also inert). */
+  /* The pages' cell: as tall as the tallest page, and the one part of the card that gives up height (each page then
+     scrolls inside itself — 0.10.3) */
+  .kit-screen > [data-slot="center"] > .kit-panel.kit-wide > .kit-settings-pages { flex: 1 1 auto; min-block-size: 0; }
+  .kit-settings-pages { display: grid; grid-template-rows: minmax(0, 1fr); }
+  .kit-settings-page { grid-area: 1 / 1; min-inline-size: 0; min-block-size: 0; display: flex; flex-direction: column; visibility: hidden; }
+  .kit-settings-page[data-current] { visibility: visible; }
+  /* A section heading row ("type": "heading"): breathing room above it, except at the very top */
+  .kit-settings-heading { padding-block: var(--gap-l) var(--gap-xs); }
+  .kit-settings-heading:first-child { padding-block-start: 0; }
 
   /* Pips: little segments (lives, hearts, page dots) */
   .kit-pip { inline-size: 0.875rem; block-size: 0.875rem; }
@@ -85,7 +118,7 @@
   /* Results on a short, wide screen (a phone on its side): title, message and buttons on the left,
      the list on the right, so the list keeps its height instead of shrinking to one row */
   @media (max-height: 30rem) and (min-width: 40rem) {
-    .kit-results { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    .kit-results { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
       grid-template-rows: auto auto minmax(0, 1fr); align-content: start; }
     .kit-results > :not(.kit-scroll) { grid-column: 1; }
     .kit-results > .kit-scroll { grid-column: 2; grid-row: 1 / -1; }
@@ -96,26 +129,28 @@
      Pause: title + note on the left, its buttons on the right (like the main menu).
      Lobby room: code + Copy, the waiting line and Leave / Start on the left; the players (+ the host's rows) on the
      right with the whole card's height — it showed a row and a half of players.
-     Lobby join: your name + Create on the left, "or join a friend's room" + the code boxes + Join on the right; along
-     the bottom Back on the left and a "couldn't join" message on the right, under the code it's about. */
+     Lobby join: the header (‹ + title) across the top; your name + Create on the left, "or join a friend's room" +
+     the code boxes + Join on the right; a "couldn't join" message along the bottom. All at the one menu width. */
   @media (max-height: 30rem) and (min-width: 40rem) {
-    .kit-modal.kit-pause { display: grid; inline-size: 40rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    .kit-modal.kit-pause { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
       grid-template-rows: auto minmax(0, 1fr); align-content: start; }
     .kit-pause > :not(.kit-menu) { grid-column: 1; }
     .kit-pause > .kit-menu { grid-column: 2; grid-row: 1 / -1; }
-    .kit-modal.kit-lobby-room { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    .kit-modal.kit-lobby-room { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
       grid-template-rows: auto auto minmax(0, 1fr); align-content: start; }
     .kit-lobby-room > :not(.kit-scroll) { grid-column: 1; }
     .kit-lobby-room > .kit-row:first-child .kit-result-name > .kit-text { white-space: normal; } /* the code wraps, never "Room BA…" */
     .kit-lobby-room > .kit-scroll { grid-column: 2; grid-row: 1 / -1; }
     .kit-lobby-room > .kit-row:last-child { grid-row: 3; align-self: end; }
-    .kit-modal.kit-lobby-join { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    .kit-modal.kit-lobby-join { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-rows: auto minmax(0, 1fr) auto; column-gap: var(--gap-l); align-content: start; }
     .kit-lobby-join > :is(:first-child, .kit-scroll) { grid-column: 1 / -1; }
-    .kit-lobby-join > .kit-text:not(:first-child) { grid-column: 2; grid-row: 3; align-self: center; }
-    .kit-lobby-join > .kit-row:last-child { grid-column: 1; grid-row: 3; }
+    .kit-lobby-join > .kit-text { grid-column: 1 / -1; grid-row: 3; }
+    /* the right column is as wide as the code boxes + Join on ONE line (at the one menu width a half-and-half split
+       wrapped Join under the boxes and pushed Create + Join into the bottom fade at 768×343 — 0.10.2); your name takes the rest */
     .kit-lobby-join > .kit-scroll > .kit-stack { display: grid; grid-auto-flow: column; grid-template-rows: auto auto;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; column-gap: var(--gap-l); }
+      grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: var(--gap-l); }
+    .kit-lobby-join > .kit-scroll > .kit-stack > .kit-row { flex-wrap: nowrap; }
     .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(n + 3) { grid-column: 1; }
     .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(-n + 2) { grid-column: 2; }
   }
@@ -124,7 +159,7 @@
   /* Main menu on a short, wide screen (a phone on its side): the title on the left, the buttons on the right.
      With six or more buttons they go in two columns (main one(s) and extra buttons across both), so they still fit. */
   @media (max-height: 30rem) and (min-width: 40rem) {
-    .kit-main-menu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: center; inline-size: 46rem; }
+    .kit-main-menu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: center; }
     .kit-main-menu-buttons:has(> .kit-button:nth-child(6)) { display: grid; grid-template-columns: 1fr 1fr; }
     .kit-main-menu-buttons > .kit-button[data-variant="primary"], .kit-main-menu-extra > * { grid-column: 1 / -1; }
   }
@@ -243,3 +278,68 @@
 
 /* The +N float-up: rises and fades (a style's motion-normal × 4) */
 @keyframes kit-float-up { to { opacity: 0; transform: translateY(-1.75em); } }
+
+/* ───────────── Callout (teach.tsx): a speech bubble pointing at something ─────────────
+   One popover over the whole window (the top layer: above the game and every screen). Inside it everything sits in
+   the same grid cell and is moved into place with translate, from CSS variables teach.tsx writes every frame:
+   --kit-callout-x / -y (the bubble's top-left), --kit-callout-tip-x / -y (the pointer, inside the bubble) and
+   --kit-hole-l / -t / -r / -b (the target, grown by gap-s: the spotlight's hole and the glow ring).
+   .kit-callout-frame is never seen: it is the room the bubble may use (window or game picture, minus the edge room). */
+@layer kit-base {
+  .kit-callout-layer { inset: 0; inline-size: auto; block-size: auto; max-inline-size: none; max-block-size: none;
+    margin: 0; padding: 0; border: 0; background: none; overflow: hidden; display: none; pointer-events: none;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+  .kit-callout-layer:popover-open { display: grid; }
+  .kit-callout-layer > * { grid-area: 1 / 1; }
+  .kit-callout-frame { place-self: center; inline-size: var(--kit-frame-w, 100%); block-size: var(--kit-frame-h, 100%);
+    padding: max(var(--gap-m), env(safe-area-inset-top)) max(var(--gap-m), env(safe-area-inset-right))
+             max(var(--gap-m), env(safe-area-inset-bottom)) max(var(--gap-m), env(safe-area-inset-left));
+    column-gap: var(--gap-s); /* (read by teach.tsx: the room round the target) */
+    visibility: hidden; pointer-events: none; }
+  /* The bubble: as wide as its words up to 22em (never wider than the game picture), so it never changes width as it moves */
+  .kit-callout { justify-self: start; align-self: start; display: grid; inline-size: max-content;
+    max-inline-size: min(22em, calc(var(--kit-frame-w, 100vw) - 2 * var(--gap-m)));
+    translate: var(--kit-callout-x, 0) var(--kit-callout-y, 0);
+    transform-origin: var(--kit-callout-tip-x, 50%) var(--kit-callout-tip-y, 50%); /* its entrance grows out of the pointer */
+    pointer-events: auto; visibility: hidden; }
+  .kit-callout > * { grid-area: 1 / 1; }
+  .kit-callout[data-dismissible] { cursor: pointer; }
+  .kit-callout-body { padding: var(--gap-m); min-inline-size: 0; } /* breathing room: words never touch the edge */
+  /* The pointer: a turned square, half of it out past the bubble's edge, covering the border where it joins */
+  .kit-callout-tip { justify-self: start; align-self: start; inline-size: 1rem; block-size: 1rem;
+    translate: calc(var(--kit-callout-tip-x, 0) - 50%) calc(var(--kit-callout-tip-y, 0) - 50%); rotate: 45deg; pointer-events: none; }
+  /* The dim: everything but a hole round the target. clip-path also shapes where it catches taps, so taps in the
+     hole reach the target underneath */
+  .kit-callout-dim { pointer-events: auto; visibility: hidden;
+    clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+      var(--kit-hole-l, 0) var(--kit-hole-t, 0), var(--kit-hole-r, 0) var(--kit-hole-t, 0), var(--kit-hole-r, 0) var(--kit-hole-b, 0),
+      var(--kit-hole-l, 0) var(--kit-hole-b, 0), var(--kit-hole-l, 0) var(--kit-hole-t, 0)); }
+  .kit-callout-ring { justify-self: start; align-self: start; translate: var(--kit-hole-l, 0) var(--kit-hole-t, 0);
+    inline-size: calc(var(--kit-hole-r, 0) - var(--kit-hole-l, 0)); block-size: calc(var(--kit-hole-b, 0) - var(--kit-hole-t, 0));
+    pointer-events: none; visibility: hidden; }
+  /* Shown once placed; hidden while the target is missing */
+  .kit-callout-layer[data-ready] :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { visibility: visible; }
+}
+@layer kit-style {
+  .kit-callout { background: var(--surface) var(--panel-texture); color: var(--on-surface); border: var(--border-width) solid var(--border);
+    border-radius: var(--radius-panel); corner-shape: var(--corner-shape); box-shadow: var(--depth-2); }
+  .kit-callout-layer[data-ready] .kit-callout { animation: var(--enter) var(--motion-normal) var(--ease) backwards; }
+  .kit-callout-tip { background: var(--surface); border: 0 solid var(--border); }
+  /* Only the two sides that point out get the outline (the square is turned 45°) */
+  .kit-callout-layer[data-side="top"] .kit-callout-tip { border-inline-end-width: var(--border-width); border-block-end-width: var(--border-width); }
+  .kit-callout-layer[data-side="bottom"] .kit-callout-tip { border-inline-start-width: var(--border-width); border-block-start-width: var(--border-width); }
+  .kit-callout-layer[data-side="left"] .kit-callout-tip { border-inline-end-width: var(--border-width); border-block-start-width: var(--border-width); }
+  .kit-callout-layer[data-side="right"] .kit-callout-tip { border-inline-start-width: var(--border-width); border-block-end-width: var(--border-width); }
+  /* A dark see-through screen (game-shade is dark in every style); --kit-callout-dim = how dark (the dimAmount prop) */
+  .kit-callout-dim { background: color-mix(in srgb, var(--game-shade) var(--kit-callout-dim, 65%), transparent); animation: kit-fade var(--motion-normal) var(--ease); }
+  /* pulse: the target glows — a steady accent ring, with a soft glow breathing out of it */
+  .kit-callout-ring { border-radius: var(--radius-control); corner-shape: var(--corner-shape); outline: 0.1875rem solid var(--accent); filter: var(--glow);
+    animation: kit-callout-pulse calc(var(--motion-normal) * 5) ease-in-out infinite; }
+  /* Reduce motion (device or the kit's switch): no entrance, no breathing — the ring just stays lit */
+  @media (prefers-reduced-motion: reduce) { :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { animation: none !important; } }
+  :root[data-reduce-motion] :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { animation: none !important; }
+}
+@keyframes kit-callout-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  60% { box-shadow: 0 0 0 0.75rem color-mix(in srgb, var(--accent) 0%, transparent); }
+}

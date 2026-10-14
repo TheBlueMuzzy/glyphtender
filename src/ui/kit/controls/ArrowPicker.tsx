@@ -4,12 +4,15 @@
 import type { KeyboardEvent, ReactNode } from 'react'
 import { Button } from './Button'
 
+// sizes: every value it can show (Selector: its options). Invisible copies are piled in the value's spot, so the picker
+// is as wide as its LONGEST value and never changes width as you step (0.10.4 — Muzzy: "they should all find the
+// longest word in them, and be the size that allows for the longest word to fit comfortably").
 type ArrowPickerProps = {
   label: string; display: ReactNode; onStep: (direction: -1 | 1) => void
-  canPrev: boolean; canNext: boolean; prevIcon: string; nextIcon: string; kind: string
+  canPrev: boolean; canNext: boolean; prevIcon: string; nextIcon: string; kind: string; sizes?: ReactNode[]
 }
 
-export function ArrowPicker({ label, display, onStep, canPrev, canNext, prevIcon, nextIcon, kind }: ArrowPickerProps) {
+export function ArrowPicker({ label, display, onStep, canPrev, canNext, prevIcon, nextIcon, kind, sizes }: ArrowPickerProps) {
   // (At an end the key still belongs to the picker: nothing happens, rather than the page scrolling sideways)
   function onKeyDown(e: KeyboardEvent) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
@@ -20,7 +23,12 @@ export function ArrowPicker({ label, display, onStep, canPrev, canNext, prevIcon
   return (
     <div className={`kit-picker kit-${kind}`} role="group" aria-label={label} tabIndex={0} onKeyDown={onKeyDown}>
       <Button variant="ghost" icon tabIndex={-1} aria-label={`Previous ${label}`} disabled={!canPrev} onClick={() => onStep(-1)}>{prevIcon}</Button>
-      <output className="kit-picker-value" aria-live="polite">{display}</output>
+      {sizes ? (
+        <span className="kit-picker-sized">
+          {sizes.map((size, i) => <span key={i} className="kit-picker-sizer" aria-hidden="true">{size}</span>)}
+          <output className="kit-picker-value" aria-live="polite">{display}</output>
+        </span>
+      ) : <output className="kit-picker-value" aria-live="polite">{display}</output>}
       <Button variant="ghost" icon tabIndex={-1} aria-label={`Next ${label}`} disabled={!canNext} onClick={() => onStep(1)}>{nextIcon}</Button>
     </div>
   )

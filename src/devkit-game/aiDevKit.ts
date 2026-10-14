@@ -21,8 +21,9 @@ import type { DevKitAi } from '../devkit/ai/aiTypes'
 import { runCheckInWorker } from './aiCheck'
 import { startWatch } from './aiWatch'
 
-// Only its goals (ids + traits) are used, to check personalities — so no word list is needed
-const plugForChecks = glyphtenderPlug(new Map())
+// Only its goals (ids + traits) are used, to check personalities — so no word list is needed. Each personality is
+// checked against the goals IT gets: the 7 shared + any personal one it lists (Sprout's SELFTANGLE, plug.ts).
+const plugForChecks = (p: Personality) => glyphtenderPlug(new Map(), 0.5, p.goals)
 
 export const glyphtenderAi: DevKitAi = {
   personalities: { path: 'content/ai/personalities.json', data: personalitiesFile, listKey: 'personalities' },
@@ -39,7 +40,7 @@ export const glyphtenderAi: DevKitAi = {
     { path: 'content/ai/pace.json', data: paceFile },
   ],
   readings: [...READINGS],
-  validate: (p) => personalityProblems(p as unknown as Personality, plugForChecks, MODES),
+  validate: (p) => personalityProblems(p as unknown as Personality, plugForChecks(p as unknown as Personality), MODES),
   watch: startWatch,
   runCheck: runCheckInWorker,
 }

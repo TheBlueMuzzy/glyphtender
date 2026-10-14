@@ -1,7 +1,7 @@
 // BEFORE / AFTER SCREENSHOTS — the proof that a rebuild "looks the same" (F29 safety net).
 // Every screen at 8 window sizes: phones tall (390×844, 360×780) and on their side (844×390), a short browser window
 // (768×343), and desktops (1066×1192, 1099×846, 1440×900, 1920×1080).
-// Screens (26): main menu · Settings · Credits · Play online · New game · a 2-player game: draft, the device passed on
+// Screens (27): main menu · Settings (Gameplay, Audio) · Credits · Play online · New game · a 2-player game: draft, the device passed on
 // (Pass to …), a turn starting, a move + cast planned, the refresh step (a cast with no Magic) · Pause · Rules ·
 // the online lobby (host and guest — from the Dev Kit's preview, no server needed) · the end of a 2-player and a
 // 4-player game (e2e/fixtures/end-2p.json, end-4p.json): the Magic reveal held at its middle step, Results, Story,
@@ -100,8 +100,28 @@ function samePicture(a, b) {
 }
 
 /** Take the picture — kept once two in a row are the same (anything still changing shows up as a difference). */
+/** Every box on the screen that would show the browser's own scroll bar on a real device (Muzzy, sprint 28: "remove
+ *  all scroll bars and replace them with the correct scroll function we made" — the kit's ScrollArea: no bar, a fade).
+ *  Headless Chrome never draws scroll bars, so it can't be measured: a box that can scroll (overflow auto / scroll and
+ *  more content than room) must have its bar switched off (scrollbar-width: none). Runs in the page. */
+function nativeScrollBars() {
+  const found = []
+  for (const el of [document.documentElement, ...document.body.querySelectorAll('*')]) {
+    const style = getComputedStyle(el)
+    if (style.visibility !== 'visible' || !el.offsetWidth || style.scrollbarWidth === 'none') continue
+    const scrolls = (overflow, more) => (overflow === 'auto' || overflow === 'scroll') && more
+    const y = scrolls(style.overflowY, el.scrollHeight > el.clientHeight + 1)
+    const x = scrolls(style.overflowX, el.scrollWidth > el.clientWidth + 1)
+    const page = el === document.documentElement && (el.scrollHeight > innerHeight + 1 || el.scrollWidth > innerWidth + 1)
+    if (y || x || page) found.push(`${el.tagName.toLowerCase()}${[...el.classList].map((c) => `.${c}`).join('')}`)
+  }
+  return found
+}
+
 async function shot(page, size, name) {
   await settle(page)
+  const bars = await page.evaluate(nativeScrollBars)
+  if (bars.length) problem(`${name}@${size.width}x${size.height}: a scroll bar shows on ${bars.join(', ')}`)
   const file = `${OUT}/${name}@${size.width}x${size.height}.png`
   let last = await page.screenshot({ animations: 'disabled' })
   for (let i = 0; i < 20; i++) {
@@ -134,9 +154,10 @@ async function menusAndGame(size) {
 
     await tap(page.getByRole('button', { name: 'Settings' }))
     await shot(page, size, 'settings')
-    // Credits is in the About tab (wide screens show tabs; narrow ones a ◀ tab ▶ picker)
-    if (await page.getByRole('tab', { name: 'About' }).count()) await tap(page.getByRole('tab', { name: 'About' }))
-    else for (let i = 0; i < 10 && !(await page.locator('.kit-picker').first().textContent()).includes('About'); i++) await tap(page.locator('.kit-picker').first().locator('button').last())
+    await tap(page.getByRole('tab', { name: 'Audio' }))
+    await shot(page, size, 'settings-audio')
+    // Credits: Gameplay → About, at the end of the list (sprint 28: 2 tabs, a tab bar at every size)
+    await tap(page.getByRole('tab', { name: 'Gameplay' }))
     await tap(page.getByRole('button', { name: 'Credits' }))
     await shot(page, size, 'credits')
     await page.keyboard.press('Escape')
@@ -167,7 +188,7 @@ async function menusAndGame(size) {
     await tap(page.getByRole('button', { name: 'Show my seeds' }))
     await shot(page, size, 'game-play')
 
-    // A move and a cast that makes NO Magic, planned → Cast → the refresh step
+    // A move and a cast that makes NO Magic, planned → Plant → the refresh step
     const mine = await store(page, (s) => s.game.glyphlings.filter((g) => g.seat === s.game.current).map((g) => g.id))
     await tapGlyph(page.locator(`[data-glyph="${mine[0]}"]`))
     await tap(option('move', Math.floor((await optionCount('move')) / 2)))
@@ -177,7 +198,7 @@ async function menusAndGame(size) {
     await tap(page.locator(`[data-tray-pos="${pos}"]`))
     await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     await shot(page, size, 'game-planned')
-    await tap(page.locator('.game-actions button').last()) // Cast
+    await tap(page.locator('.game-actions button').last()) // Plant
     await page.waitForFunction(() => window.__glyphtender.store.getState().game.phase === 'refresh', null, { timeout: 8000 })
     await shot(page, size, 'game-refresh')
 
@@ -229,7 +250,7 @@ async function endOfGame(size, { name, file }) {
     await shot(page, size, `${name}-story`)
     // F61: the line moved to round 6 (Start + 6 presses of →): the turn list in the chart's top-left, awards under the key
     await page.locator('.game-end-chart-svg').focus()
-    for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight')
+    for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight') // (the line starts on round 1 — Muzzy, 2026-10-13)
     await page.locator('.game-end-plays').waitFor({ timeout: 3000 })
     await shot(page, size, `${name}-story-round6`)
     await tap(page.getByRole('tab', { name: 'Scorecard' }))

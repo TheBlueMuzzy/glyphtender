@@ -14,8 +14,10 @@ const TRAITS = ['aggression', 'greed', 'spite', 'caution', 'patience', 'opportun
 const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead', 'garden']
 const IDS = ['Scholar', 'Survivor', 'Strategist'] // the rock-paper-scissors three (Muzzy, 2026-10-04)
 
-const personalities: Personality[] = personalitiesFile.personalities
-const skills: Skill[] = skillsFile.skills
+const isHidden = (item: object) => 'hidden' in item && item.hidden === true
+// The ones players can pick (hidden = Sprout / Seedling, the tutorial game's AI — checked on their own below)
+const personalities = personalitiesFile.personalities.filter((p) => !isHidden(p)) as unknown as Personality[]
+const skills: Skill[] = skillsFile.skills.filter((s) => !isHidden(s))
 
 /** Every setting's path inside one item, the way _labels names it ("traits.aggression.min" → "traits.aggression"). */
 function paths(item: object, prefix = ''): string[] {
@@ -87,6 +89,32 @@ describe('skills.json', () => {
       expect(labelled(skillsFile._labels, path), path).toBe(true)
       expect(sections.some((x) => path === x || path.startsWith(`${x}.`)), path).toBe(true)
     }
+  })
+})
+
+describe('Sprout (the hidden tutorial AI)', () => {
+  const sprout = personalitiesFile.personalities.find((p) => p.id === 'sprout') as unknown as Personality
+  const seedling = skillsFile.skills.find((s) => s.id === 'seedling') as unknown as Skill
+  it('is hidden, plays the 7 shared goals + SELFTANGLE, and has a name and bio', () => {
+    expect(isHidden(sprout)).toBe(true)
+    expect([...sprout.goals].sort()).toEqual([...GOALS, 'SELFTANGLE'].sort())
+    expect(Object.keys(sprout.traits).sort()).toEqual([...TRAITS, 'clumsiness'].sort())
+    expect(sprout.switches ?? []).toEqual([]) // a mode switch would swap in a goal list without SELFTANGLE
+    const t = (text.ai.personality as Record<string, { name: string; bio: string }>).sprout
+    expect(t.name).toBe('Sprout')
+    expect(t.bio.length).toBeGreaterThan(10)
+    const sections = Object.values(personalitiesFile._sections).flat()
+    for (const path of paths(sprout)) {
+      expect(labelled(personalitiesFile._labels, path), path).toBe(true)
+      expect(sections.some((s) => path === s || path.startsWith(`${s}.`)), path).toBe(true)
+    }
+  })
+  it('its Seedling skill is hidden, Apprentice-like, with the smallest vocabulary', () => {
+    const apprentice = skills.find((s) => s.id === 'Apprentice')!
+    expect(isHidden(seedling)).toBe(true)
+    expect(seedling.extras!.zipf).toBeGreaterThan(Math.max(...skills.map((s) => s.extras!.zipf)))
+    expect(seedling.candidates).toBeLessThanOrEqual(apprentice.candidates)
+    expect((text.ai.skill as Record<string, string>).seedling).toBeTruthy()
   })
 })
 
