@@ -56,8 +56,11 @@
   .kit-settings-few .kit-tab { flex: 1 1 0; min-inline-size: 0; padding-inline: var(--gap-xs); }
   /* Every tab's page sits in the same spot (one grid cell): the tallest one sets the card's height, so switching tabs
      never changes the card's size or moves its header. Only the current page shows (the others are also inert). */
-  .kit-settings-pages { display: grid; }
-  .kit-settings-page { grid-area: 1 / 1; min-inline-size: 0; visibility: hidden; }
+  /* The pages' cell: as tall as the tallest page, and the one part of the card that gives up height (each page then
+     scrolls inside itself — 0.10.3) */
+  .kit-screen > [data-slot="center"] > .kit-panel.kit-wide > .kit-settings-pages { flex: 1 1 auto; min-block-size: 0; }
+  .kit-settings-pages { display: grid; grid-template-rows: minmax(0, 1fr); }
+  .kit-settings-page { grid-area: 1 / 1; min-inline-size: 0; min-block-size: 0; display: flex; flex-direction: column; visibility: hidden; }
   .kit-settings-page[data-current] { visibility: visible; }
   /* A section heading row ("type": "heading"): breathing room above it, except at the very top */
   .kit-settings-heading { padding-block: var(--gap-l) var(--gap-xs); }

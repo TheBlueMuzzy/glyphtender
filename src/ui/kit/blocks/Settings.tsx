@@ -103,7 +103,7 @@ export function applyAccessibility(values: SettingsValues, root = document.docum
   root.toggleAttribute('data-reduce-motion', values.reduceMotion === true)
 }
 
-export const settingsWords = { title: 'Settings', back: 'Back', reset: 'Reset to defaults' }
+export const settingsWords = { title: 'Settings', back: 'Back', reset: 'Reset to defaults', resetAsk: 'Every setting on this tab goes back to how it started.' }
 type SettingsProps = {
   schema?: SettingsSchema
   onChange?: (values: SettingsValues, changedId: string) => void
@@ -177,7 +177,10 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
     ))}
     {t.rows.some(holdsValue) && (
       <Row justify="end">
-        <Button variant="ghost" onClick={() => update({ ...values, ...defaultValues(schema, t.id) }, t.id)}>{w.reset}</Button>
+        {/* asks first: a tab can hold several sections (a game's Gameplay: Play · Display · Accessibility), and one
+            tap would also put back text size or full screen (0.10.3) */}
+        <Button variant="ghost" onClick={() => askConfirm({ title: `${w.reset}?`, message: w.resetAsk,
+          words: { yes: w.reset }, onConfirm: () => update({ ...values, ...defaultValues(schema, t.id) }, t.id) })}>{w.reset}</Button>
       </Row>
     )}
   </>
@@ -194,20 +197,21 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
           <div className="kit-settings-picker"><Selector {...tabPicker} options={tabPicker.tabs} /></div>
         </>}
         {/* Every tab's page is drawn in the same spot, so the TALLEST one sets the card's height: switching tabs never
-            resizes the card or moves its header (Muzzy 2026-10-13). Only the current one shows; the others are inert
-            and hidden from screen readers. A new tab starts scrolled to its top (key). */}
+            resizes the card or moves its header (Muzzy 2026-10-13). Each page is its OWN scroller, so a short tab
+            neither scrolls into the tall one's empty space nor fades as if there were more (0.10.3). Only the current
+            one shows; the others are inert and hidden from screen readers. */}
         {tab && (
-          <ScrollArea key={tab.id} label={labelOf(tab)}>
-            <div className="kit-settings-pages">
-              {tabs.map((t) => {
-                const current = t.id === tab.id
-                return (
-                  <div key={t.id} className="kit-settings-page" data-current={current || undefined}
-                    aria-hidden={!current || undefined} inert={!current || undefined}>{page(t)}</div>
-                )
-              })}
-            </div>
-          </ScrollArea>
+          <div className="kit-settings-pages">
+            {tabs.map((t) => {
+              const current = t.id === tab.id
+              return (
+                <div key={t.id} className="kit-settings-page" data-current={current || undefined}
+                  aria-hidden={!current || undefined} inert={!current || undefined}>
+                  <ScrollArea label={labelOf(t)}>{page(t)}</ScrollArea>
+                </div>
+              )
+            })}
+          </div>
         )}
       </Panel>
     </Screen>
