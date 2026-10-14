@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "build": 0,
   "history": [
     {
@@ -82,6 +82,11 @@
       "version": "0.9.3",
       "date": "2026-10-12",
       "summary": "Phones: the New Game screen scrolls again when you swipe on it — with 4 players or AI seats, Start and the word options were out of reach"
+    },
+    {
+      "version": "0.10.0",
+      "date": "2026-10-14",
+      "summary": "The first game teaches itself — a guided game against Sprout (the first two turns step by step, then tips as things happen, gentle nudges when you're stuck), a ? button that explains anything you tap, 'plant' instead of 'cast', and tidier menus (one size, ‹ back, no scroll bars, Settings in two tabs, Start at the top of New Game)"
     }
   ]
 }
