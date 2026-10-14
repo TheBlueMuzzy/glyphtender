@@ -68,19 +68,8 @@ export function NewGameScreen() {
   )
 }
 
-/** One seat after yours: "Player 2" + Person / AI — and, for the AI, the personality card. */
+/** One seat after yours: "Player 2" ◀ Person · AI - Surprise me · AI - Scholar · … ▶ — and, for an AI, its bio + Skill. */
 function SeatRows({ index, seat, onChange }: { index: number; seat: SeatChoice; onChange: (part: Partial<SeatChoice>) => void }) {
   const name = w.playerN.replace('{n}', String(index + 1))
-  const kinds = [w.person, w.ai]
-  return (
-    <>
-      <ListRow label={name}>
-        <Selector label={name} options={kinds} value={seat.ai ? w.ai : w.person} onChange={(kind) => onChange({ ai: kind === w.ai })} />
-      </ListRow>
-      {seat.ai && (
-        <AiPickerRows personalities={personalityOptions} personality={seat.personality} skill={seat.skill} onChange={onChange}
-          name={name} attrs={{ 'data-seat': index }} />
-      )}
-    </>
-  )
+  return <AiPickerRows label={name} personalities={personalityOptions} value={seat} onChange={onChange} withPerson attrs={{ 'data-seat': index }} />
 }

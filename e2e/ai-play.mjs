@@ -76,13 +76,14 @@ try {
     // New game: Blue = AI → its card (Surprise me at First Class) → the Strategist, Apprentice
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
-    h.check('Blue switched to AI shows its personality card', (await page.locator('.new-game-ai').count()) === 1)
+    h.check('Blue switched to AI shows its bio and Skill row', (await page.locator('.new-game-ai [data-ai-bio]').count()) === 1
+      && (await page.getByRole('group', { name: 'Player 2: Skill' }).count()) === 1)
     h.check('a new AI seat starts as "Surprise me" at First Class',
       (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Surprise me' }).count()) === 1
       && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'First Class' }).count()) === 1)
     // Step through the personalities until the Strategist shows (the list is data — don't count on its order)
     for (let i = 0; i < 6 && (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 0; i++) {
-      await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
+      await page.getByRole('button', { name: 'Next Player 2', exact: true }).click() // (one picker: Person · AI - Surprise me · AI - … — Muzzy 2026-10-14)
     }
     await page.getByRole('button', { name: 'Previous Player 2: Skill' }).click()
     h.check('picked the Strategist at Apprentice', (await page.locator('.new-game-ai .kit-picker-value', { hasText: 'Strategist' }).count()) === 1
@@ -145,14 +146,17 @@ try {
     const h = helpers(page, size.mobile, size.name)
     await page.goto(URL_)
     await page.getByRole('button', { name: 'Play', exact: true }).click()
-    h.check('two AI cards', (await page.locator('.new-game-ai').count()) === 2)
+    h.check('two AI seats (a bio each)', (await page.locator('.new-game-ai [data-ai-bio]').count()) === 2)
     await h.shot('1-new-game-ai')
-    // the cards hold one size whatever personality shows: flip Blue's through all 8 (Surprise me + 7)
+    // the seat holds one size whatever personality shows: flip Blue's through every AI choice (Person, which has no
+    // bio or Skill row, is stepped over)
     const cardSize = () => page.evaluate(() => [...document.querySelectorAll('.new-game-ai')].map((c) => `${Math.round(c.getBoundingClientRect().width)}×${Math.round(c.getBoundingClientRect().height)}`).join(' '))
     const sizes = new Set()
+    const next = () => page.getByRole('button', { name: 'Next Player 2', exact: true }).click()
     for (let i = 0; i < 8; i++) {
       sizes.add(await cardSize())
-      await page.getByRole('button', { name: 'Next Player 2: Personality' }).click()
+      await next()
+      if ((await page.getByRole('group', { name: 'Player 2', exact: true }).locator('.kit-picker-value').textContent()) === 'Person') await next()
     }
     h.check(`the AI cards keep one size through every personality (${[...sizes].join(' | ')})`, sizes.size === 1)
     // scroll to the bottom of the options (the Pink card) for a second look

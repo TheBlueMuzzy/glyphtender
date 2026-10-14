@@ -280,6 +280,7 @@
     "players": "Players",
     "playerN": "Player {n}",
     "aiType": "AI Type",
+    "aiChoice": "AI - {type}",
     "board": "Garden",
     "boards": {
       "small": "Small",
