@@ -1,9 +1,9 @@
 ## ▶ RESUME HERE
-2026-10-13 — **Muzzy's play-throughs #1 + #2 fixed** (F80): rails drag only · whole move/plant template with the step's hex extra bright · "blocks Blue" shows Blue's room · turn 2 either glyphling · no prompt flash · Sprout ×2 slower (sproutSlowdown) and keeps its habits · Explore taps ≠ "I'm here" online · nudges 6/12 s, online 15 s · **all games:** a seed dropped on the ghost no longer undoes the move; a no-word game-ending turn skips the refresh (golden re-recorded); Story line starts on R1. Full check green.
-**Muzzy:** his F80 to-dos in SPRINT.md (overview videos, more play-throughs, phone test, rewording in Dev Kit → Text). Open: nudge look, a "suggested word" nudge, re-lock for testers, Story grip covers the "R1" label. Then /develop "approved" → /deliver.
+2026-10-13 — **Sprint 28: menus that feel like one set** (F82 one menu frame in the ui-kit → F83 Settings = Gameplay · Audio → F84 every menu screen on the frame). Muzzy's size call: "full width, but only go a large height as needed. if reached max, then internal scroller" (Main menu + Pause too). The tutorial (sprint 27) is built and waits — not delivered; Muzzy: "the tutorial is good for now… let's get the menu sprint finished."
+**Muzzy:** F80 to-dos (overview videos, play-throughs, phone, rewording) · open picks: nudge look, suggested-word nudge, re-lock for testers.
 
 ## Where we are
-Stage: develop · Milestone: v0.14 The first game teaches itself · Sprint: 27 · Doing: built — waiting for Muzzy (F80: his play-through) · Branch: dev/tutorial · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
+Stage: develop · Milestone: v0.14 The first game teaches itself · Sprint: 28 · Doing: F82 — building · Branch: dev/tutorial · Version: 0.9.3.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.9.3, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
