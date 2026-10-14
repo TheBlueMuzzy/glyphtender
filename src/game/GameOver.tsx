@@ -136,18 +136,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
     }
   }, [page, end, pageSize, tuning.pageFill, tuning.maxZoom])
 
-  // More below? The page's bottom edge fades (game.css) until it's scrolled to the end — so a cut-off row reads as "scroll"
-  useLayoutEffect(() => {
-    const scroller = pageBox.current?.querySelector<HTMLElement>('.kit-scroll')
-    if (!scroller) return
-    const check = () => scroller.toggleAttribute('data-more', scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2)
-    check()
-    scroller.addEventListener('scroll', check, { passive: true })
-    const watcher = new ResizeObserver(check)
-    watcher.observe(scroller)
-    if (scroller.firstElementChild) watcher.observe(scroller.firstElementChild)
-    return () => { scroller.removeEventListener('scroll', check); watcher.disconnect() }
-  }, [page, end])
+  // (More below? The kit's ScrollArea fades the edge that has more — UI kit 0.10.0, it was the game's own until then)
 
   // Swipe sideways to turn the page (up/down still scrolls it)
   const swipe = useRef<{ x: number; y: number } | null>(null)

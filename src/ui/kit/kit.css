@@ -57,8 +57,17 @@
      a short browser window) the card takes the height there is and scrolls inside, so no button ever hangs out of it
      (Pause's Leave game did at 768×343 — 0.7.0). Its title, words and buttons keep their size; a ScrollArea in it
      still gives up height first. Popovers (tooltips, toasts) sit in the top layer, so the scroll never clips them. */
-  .kit-screen > [data-slot="center"] > .kit-panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+  /* (0.10.0: the last resort only — its ScrollArea body is what normally scrolls — so it hides its bar like every scroller) */
+  .kit-screen > [data-slot="center"] > .kit-panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .kit-screen > [data-slot="center"] > .kit-panel::-webkit-scrollbar { display: none; }
   .kit-screen > [data-slot="center"] > .kit-panel > :not(.kit-scroll) { flex-shrink: 0; }
+  /* <Screen grow="down"> (0.10.0, every kit menu): the card OPENS in the middle, then its top stays put and it only grows
+     or shrinks DOWNWARD, so a control just tapped stays under the finger (Muzzy 2026-10-10: "it should start in the
+     center and only expand downwards"). layout.tsx measures where the middle is when it opens (and again only on a
+     window resize / rotate, or once the fonts load) and keeps that as --kit-grow-top. Its height limit loses the same
+     amount, so the card never runs off the bottom: it stops there and its body scrolls. */
+  .kit-screen[data-grow="down"] > [data-slot="center"] { align-self: start; margin-block-start: var(--kit-grow-top, 0rem);
+    max-block-size: calc(100% - var(--kit-grow-top, 0rem)); }
   /* Short windows: a card's centre also takes the empty top / bottom slot rows (and the gaps beside them), so a
      card on a phone on its side gets the whole height, not 20 px less at each end */
   @media (max-height: 30rem) {
@@ -77,8 +86,7 @@
   .kit-screen[data-scroll]::-webkit-scrollbar { display: none; }
   /* …and its card is NOT a scroll box of its own (it never runs out of room here): one would catch every swipe that
      starts on it and keep it (overscroll contain), so on a phone only the thin strip round the card scrolled (0.8.2) */
-  .kit-screen[data-scroll] > [data-slot="center"] > .kit-panel { overflow: visible; overscroll-behavior: auto; }
-  .kit-screen[data-scroll] > [data-slot="center"] { align-self: start; max-block-size: none; } /* at the top of its row, pushed down to the middle by a top margin measured when it opens (layout.tsx keepCentredOnOpen), so it then only grows DOWN and a control you just tapped (+ / −, Person ▶ AI) stays under your finger; taller than the screen → it scrolls (Muzzy 2026-10-05, 2026-10-10) */
+  .kit-screen[data-scroll] > [data-slot="center"] > .kit-panel { overflow: visible; overscroll-behavior: auto; }  .kit-screen[data-scroll] > [data-slot="center"] { align-self: start; max-block-size: none; } /* at the top of its row, pushed down to the middle by a top margin measured when it opens (layout.tsx keepCentredOnOpen), so it then only grows DOWN and a control you just tapped (+ / −, Person ▶ AI) stays under your finger; taller than the screen → it scrolls (Muzzy 2026-10-05, 2026-10-10) */
   /* Screen stack layers: no box of their own, they only carry "inert" for the screens inside */
   .kit-layer { display: contents; }
   /* An open screen with another one on top is hidden (ScreenStack sets data-covered): only the top screen shows.
@@ -193,8 +201,13 @@
 
   /* A scroll box clips at its edge, so it keeps a little room inside for outlines, drop shadows and focus rings
      (Cartoon's ink + press shadow poke out) and gives it back with a matching negative margin: text stays aligned. */
-  .kit-scroll { flex: 1 1 auto; min-block-size: 0; overflow: auto; overscroll-behavior: contain;
-    padding: 0.5rem; margin: -0.5rem; }
+  /* No scroll bar (0.10.0, Muzzy: "remove all scroll bars"): drag, swipe, wheel and keys still scroll it, and its edges
+     fade while there's more that way (kit-style below). It only keeps swipes to itself (overscroll contain) while it
+     really can scroll (data-scrolls, set by ScrollArea.tsx): one that fits must never eat a swipe (B027). */
+  .kit-scroll { flex: 1 1 auto; min-block-size: 0; overflow: auto; overscroll-behavior: auto;
+    scrollbar-width: none; padding: 0.5rem; margin: -0.5rem; }
+  .kit-scroll::-webkit-scrollbar { display: none; }
+  .kit-scroll[data-scrolls] { overscroll-behavior: contain; }
   .kit-scroll[data-max="s"] { max-block-size: 10rem; }
   .kit-scroll[data-max="m"] { max-block-size: 18rem; }
   .kit-scroll[data-max="l"] { max-block-size: 28rem; }
@@ -290,6 +303,18 @@
   .kit-tab[data-state="active"] { background: var(--primary); color: var(--on-primary); }
 
   .kit-listrow + .kit-listrow { border-block-start: var(--border-width) solid var(--border); }
+
+  /* A scroll box's "more this way" cue (0.10.0): its top / bottom edge fades out while there's more above / below
+     (ScrollArea.tsx sets data-more-start / data-more-end). A mask only reads opacity — black = shown, transparent =
+     faded — so these two words are not paint. Fade height: --kit-scroll-fade (default 2rem), but never more than
+     what's hidden that way (--kit-more-start / -end, from ScrollArea.tsx): a sliver hidden → a sliver of fade, and
+     the fade grows in as you scroll away from an end. Nothing is animated, so reduce motion has nothing to stop. */
+  .kit-scroll { --kit-fade-start: black; --kit-fade-end: black; }
+  .kit-scroll[data-more-start] { --kit-fade-start: transparent; }
+  .kit-scroll[data-more-end] { --kit-fade-end: transparent; }
+  .kit-scroll:is([data-more-start], [data-more-end]) {
+    mask-image: linear-gradient(to bottom, var(--kit-fade-start), black min(var(--kit-scroll-fade, 2rem), var(--kit-more-start, 2rem)),
+      black calc(100% - min(var(--kit-scroll-fade, 2rem), var(--kit-more-end, 2rem))), var(--kit-fade-end)); }
 
   .kit-card { background: var(--surface) var(--panel-texture); color: var(--on-surface); }
   .kit-card[data-state="selected"] { border-color: var(--primary); outline: 0.1875rem solid var(--primary); outline-offset: -0.1875rem; }

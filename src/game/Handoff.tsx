@@ -50,9 +50,10 @@ export function Handoff({ stacked, flipped }: { stacked: boolean; flipped: boole
 
   const player = playerName(handoff.seat)
   const colour = colours[colourOf(handoff.seat)]
-  // The button wears the player's colour, with dark words on it so every player colour reads
+  // The button wears the player's colour, with dark words on it so every player colour reads. kit-ask: a small box at
+  // the corner, not a menu — it keeps the narrower width (UI kit 0.10.0 made menu cards wider)
   const box = (
-    <Panel depth={2} gap="m" className="kit-modal kit-centred" style={{ '--primary': colour, '--on-primary': colours.background } as CSSProperties}>
+    <Panel depth={2} gap="m" className="kit-modal kit-ask kit-centred" style={{ '--primary': colour, '--on-primary': colours.background } as CSSProperties}>
       <span><Avatar name={player} src={glyphlingArt(handoff.seat)} color={colour} active /></span>
       <Text kind="title">{fill(w.title, { player })}</Text>
       <Text>{fill(w.message, { player })}</Text>

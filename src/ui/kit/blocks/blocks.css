@@ -9,15 +9,32 @@
   }
   :root[data-reduce-motion] button.kit-target:active { transform: none !important; }
 
-  /* Dialog-sized boxes: never wider than the screen */
-  .kit-modal { inline-size: 28rem; max-inline-size: 100%; }
-  .kit-menu { inline-size: 22rem; max-inline-size: 100%; }
-  .kit-wide { inline-size: 40rem; max-inline-size: 100%; }
-  .kit-tall { block-size: 44rem; max-block-size: 100%; }
-  /* Desktop windows: a tall card grows to use the window (up to 52rem) before its list scrolls — at 1440×900 Settings
-     stopped on a half-cut row with ~100 px of empty screen above and below (0.7.0). Phones keep 44rem. */
-  @media (min-width: 40rem) and (min-height: 30rem) { .kit-tall { block-size: 52rem; } }
+  /* THE MENU FRAME (0.10.0). Every menu card — Main menu, Pause, Settings, Credits, Mode select, How to play, Lobby,
+     Results, any Modal — is ONE width, --kit-menu-w (default 36rem), never wider than the screen (Muzzy 2026-10-13:
+     "the menus and sub menus (including credit) should be the same width/height with internal scroller"). The old
+     three sizes (menu 22 · modal 28 · wide 40rem) are now names for that one width. A yes / no question on top of
+     another screen (Confirm: kit-ask) stays narrower, --kit-ask-w (28rem): it's a question, not a menu. */
+  :is(.kit-modal, .kit-menu, .kit-wide) { inline-size: var(--kit-menu-w, 36rem); max-inline-size: 100%; }
+  .kit-modal.kit-ask { inline-size: var(--kit-ask-w, 28rem); }
+  /* Height: as tall as its contents ("only go a large height as needed"), up to --kit-menu-max-h (44rem; desktop
+     windows --kit-menu-max-h-wide, 52rem) and never past the screen. Past that only its ScrollArea body gives up height
+     (kit.css): the header and the footer row keep theirs. Not in <Screen scroll>, where the whole screen scrolls instead.
+     (.kit-tall forced a fixed height until 0.10.0; it's now a leftover name that does nothing.) */
+  .kit-screen:not([data-scroll]) > [data-slot="center"] > :is(.kit-modal, .kit-menu, .kit-wide) { max-block-size: var(--kit-menu-max-h, 44rem); }
+  @media (min-width: 40rem) and (min-height: 30rem) {
+    .kit-screen:not([data-scroll]) > [data-slot="center"] > :is(.kit-modal, .kit-menu, .kit-wide) { max-block-size: var(--kit-menu-max-h-wide, 52rem); }
+  }
   .kit-menu .kit-button { inline-size: 100%; }
+
+  /* MenuHeader: ‹ · title · action on one line. The title takes what's left (and wraps on a narrow phone); the ‹ and
+     the action never shrink. Its gaps are inside the card's padding, so nothing touches the card's edge. */
+  .kit-menu-header { display: flex; align-items: center; gap: var(--gap-s); min-inline-size: 0; }
+  .kit-menu-header-title { flex: 1 1 auto; min-inline-size: 0; }
+  .kit-menu-header > .kit-button, .kit-menu-header-action { flex: none; }
+  /* ‹ is a small, low glyph in most fonts: drawn bigger, so it reads as an arrow and not a speck (the button stays
+     square and at least 44px) */
+  .kit-menu-header > .kit-button[data-icon] { font-size: calc(var(--text-title) * 1.4); }
+  .kit-menu-header-action { display: flex; align-items: center; gap: var(--gap-s); }
   /* A menu inside a dialog (Pause) fills the dialog's width, so the room left and right of the buttons is the
      dialog's own padding on both sides — even all round (it used to keep its 22rem and leave a wide gap on the right) */
   .kit-modal > .kit-menu { inline-size: 100%; }
@@ -33,6 +50,18 @@
     .kit-settings-tabs { display: none; }
     .kit-settings-picker { display: block; }
   }
+  /* 3 tabs or fewer (0.10.0): always the real tab bar, on one line at every size — each tab shares the line and gives
+     up its side padding first, so three tabs never wrap onto two lines on a 360-wide phone */
+  .kit-settings-few .kit-tabs { flex-wrap: nowrap; }
+  .kit-settings-few .kit-tab { flex: 1 1 0; min-inline-size: 0; padding-inline: var(--gap-xs); }
+  /* Every tab's page sits in the same spot (one grid cell): the tallest one sets the card's height, so switching tabs
+     never changes the card's size or moves its header. Only the current page shows (the others are also inert). */
+  .kit-settings-pages { display: grid; }
+  .kit-settings-page { grid-area: 1 / 1; min-inline-size: 0; visibility: hidden; }
+  .kit-settings-page[data-current] { visibility: visible; }
+  /* A section heading row ("type": "heading"): breathing room above it, except at the very top */
+  .kit-settings-heading { padding-block: var(--gap-l) var(--gap-xs); }
+  .kit-settings-heading:first-child { padding-block-start: 0; }
 
   /* Pips: little segments (lives, hearts, page dots) */
   .kit-pip { inline-size: 0.875rem; block-size: 0.875rem; }
@@ -85,7 +114,7 @@
   /* Results on a short, wide screen (a phone on its side): title, message and buttons on the left,
      the list on the right, so the list keeps its height instead of shrinking to one row */
   @media (max-height: 30rem) and (min-width: 40rem) {
-    .kit-results { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    .kit-results { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
       grid-template-rows: auto auto minmax(0, 1fr); align-content: start; }
     .kit-results > :not(.kit-scroll) { grid-column: 1; }
     .kit-results > .kit-scroll { grid-column: 2; grid-row: 1 / -1; }
@@ -96,24 +125,23 @@
      Pause: title + note on the left, its buttons on the right (like the main menu).
      Lobby room: code + Copy, the waiting line and Leave / Start on the left; the players (+ the host's rows) on the
      right with the whole card's height — it showed a row and a half of players.
-     Lobby join: your name + Create on the left, "or join a friend's room" + the code boxes + Join on the right; along
-     the bottom Back on the left and a "couldn't join" message on the right, under the code it's about. */
+     Lobby join: the header (‹ + title) across the top; your name + Create on the left, "or join a friend's room" +
+     the code boxes + Join on the right; a "couldn't join" message along the bottom. All at the one menu width. */
   @media (max-height: 30rem) and (min-width: 40rem) {
-    .kit-modal.kit-pause { display: grid; inline-size: 40rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    .kit-modal.kit-pause { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
       grid-template-rows: auto minmax(0, 1fr); align-content: start; }
     .kit-pause > :not(.kit-menu) { grid-column: 1; }
     .kit-pause > .kit-menu { grid-column: 2; grid-row: 1 / -1; }
-    .kit-modal.kit-lobby-room { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    .kit-modal.kit-lobby-room { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
       grid-template-rows: auto auto minmax(0, 1fr); align-content: start; }
     .kit-lobby-room > :not(.kit-scroll) { grid-column: 1; }
     .kit-lobby-room > .kit-row:first-child .kit-result-name > .kit-text { white-space: normal; } /* the code wraps, never "Room BA…" */
     .kit-lobby-room > .kit-scroll { grid-column: 2; grid-row: 1 / -1; }
     .kit-lobby-room > .kit-row:last-child { grid-row: 3; align-self: end; }
-    .kit-modal.kit-lobby-join { display: grid; inline-size: 44rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    .kit-modal.kit-lobby-join { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-rows: auto minmax(0, 1fr) auto; column-gap: var(--gap-l); align-content: start; }
     .kit-lobby-join > :is(:first-child, .kit-scroll) { grid-column: 1 / -1; }
-    .kit-lobby-join > .kit-text:not(:first-child) { grid-column: 2; grid-row: 3; align-self: center; }
-    .kit-lobby-join > .kit-row:last-child { grid-column: 1; grid-row: 3; }
+    .kit-lobby-join > .kit-text { grid-column: 1 / -1; grid-row: 3; }
     .kit-lobby-join > .kit-scroll > .kit-stack { display: grid; grid-auto-flow: column; grid-template-rows: auto auto;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; column-gap: var(--gap-l); }
     .kit-lobby-join > .kit-scroll > .kit-stack > :nth-last-child(n + 3) { grid-column: 1; }
@@ -124,7 +152,7 @@
   /* Main menu on a short, wide screen (a phone on its side): the title on the left, the buttons on the right.
      With six or more buttons they go in two columns (main one(s) and extra buttons across both), so they still fit. */
   @media (max-height: 30rem) and (min-width: 40rem) {
-    .kit-main-menu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: center; inline-size: 46rem; }
+    .kit-main-menu { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: center; }
     .kit-main-menu-buttons:has(> .kit-button:nth-child(6)) { display: grid; grid-template-columns: 1fr 1fr; }
     .kit-main-menu-buttons > .kit-button[data-variant="primary"], .kit-main-menu-extra > * { grid-column: 1 / -1; }
   }

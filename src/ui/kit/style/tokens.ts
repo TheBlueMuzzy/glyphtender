@@ -55,6 +55,16 @@ export const optionalTokens = {
   'panel-texture': 'none',
 } as const
 
+// Menu sizes (0.10.0): a style or a game's tweaks MAY set these; left out, the kit's CSS uses the default shown.
+// They're not written onto the page unless set, so the desktop default (menu-max-h-wide) can differ from the phone one.
+export const menuSizeTokens = {
+  'kit-menu-w': '36rem — the ONE width of every menu card (Main menu, Pause, Settings, Credits, lobby, results…); never wider than the screen',
+  'kit-menu-max-h': '44rem — tallest a menu card gets before its body scrolls inside (phones and short windows)',
+  'kit-menu-max-h-wide': '52rem — the same on desktop windows (at least 40rem wide and 30rem tall)',
+  'kit-ask-w': '28rem — a yes / no question on top of another screen (Confirm) stays narrower: it is a question, not a menu',
+  'kit-scroll-fade': '2rem — how tall the soft "more this way" fade is at a scroll box\'s top / bottom edge',
+} as const
+
 // Worked out by applyStyle from the settings above — presets don't set these.
 export const derivedTokens = {
   'gap-xs': '1 step of the 4-based spacing scale × density',
@@ -70,7 +80,7 @@ export const derivedTokens = {
 } as const
 
 type RequiredName = keyof typeof colourTokens | keyof typeof lineColourTokens | keyof typeof otherTokens
-export type TokenName = RequiredName | keyof typeof optionalTokens
+export type TokenName = RequiredName | keyof typeof optionalTokens | keyof typeof menuSizeTokens
 export type StylePreset = Record<RequiredName, string | number> & Partial<Record<TokenName, string | number>>
 export type StyleTweaks = Partial<Record<TokenName, string | number>>
 
@@ -79,5 +89,5 @@ export const requiredTokenNames = [...Object.keys(colourTokens), ...Object.keys(
 
 // Every CSS variable the kit may read (the rule checker uses this list).
 export const allVariableNames = [
-  ...requiredTokenNames, ...Object.keys(optionalTokens), ...Object.keys(derivedTokens),
+  ...requiredTokenNames, ...Object.keys(optionalTokens), ...Object.keys(menuSizeTokens), ...Object.keys(derivedTokens),
 ]

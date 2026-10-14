@@ -19,14 +19,19 @@ type ScreenProps = {
   // "it should start in the center and only expand downwards"). It's placed again only when the window changes size
   // (resize, rotate). No ScrollArea inside: the panel's own buttons (Start, Save) scroll with it, always reachable.
   scroll?: boolean
+  // grow="down" (0.10.0 — every kit menu card uses it): the screen itself never scrolls; the centre card OPENS in the
+  // middle, then its top stays put and it only grows or shrinks DOWNWARD (same rule as scroll above). It never runs
+  // off the bottom: there it stops, and the card's ScrollArea body scrolls inside instead.
+  grow?: 'down'
 }
-export function Screen({ children, label, dialog, scroll, ...slots }: ScreenProps) {
+export function Screen({ children, label, dialog, scroll, grow, ...slots }: ScreenProps) {
   const slotNames = { topLeft: 'top-left', top: 'top', topRight: 'top-right', bottomLeft: 'bottom-left', bottom: 'bottom', bottomRight: 'bottom-right' }
   const centre = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => (scroll && centre.current ? keepCentredOnOpen(centre.current) : undefined), [scroll])
+  const keepTop = scroll ? 'margin' : grow === 'down' ? 'variable' : null // (scroll wins if both are given)
+  useLayoutEffect(() => (keepTop && centre.current ? keepCentredOnOpen(centre.current, keepTop) : undefined), [keepTop])
   return (
     <section className="kit-screen" aria-label={label} data-dialog={dialog || undefined} data-scroll={scroll || undefined}
-      role={dialog ? 'dialog' : undefined} aria-modal={dialog || undefined}>
+      data-grow={!scroll && grow ? grow : undefined} role={dialog ? 'dialog' : undefined} aria-modal={dialog || undefined}>
       {Object.entries(slotNames).map(([prop, slot]) => {
         const content = slots[prop as keyof typeof slots]
         return content ? <div key={slot} data-slot={slot}>{content}</div> : null
@@ -40,7 +45,9 @@ export function Screen({ children, label, dialog, scroll, ...slots }: ScreenProp
 // middle at the size it OPENS with. Measured before the first paint (no jump): where would it be if centred? That gap
 // becomes its top margin, and stays — the content growing or shrinking afterwards moves only its bottom edge.
 // Placed again only when the screen's own size changes (window resize, phone rotated) or once the fonts have loaded.
-function keepCentredOnOpen(box: HTMLDivElement) {
+// <Screen grow="down"> does the same, but writes the gap into --kit-grow-top: kit.css uses it as the top margin AND
+// takes it off the centre's height limit, so a card pinned lower down still stops at the screen's bottom edge.
+function keepCentredOnOpen(box: HTMLDivElement, keep: 'margin' | 'variable') {
   const screen = box.parentElement
   if (!screen) return
   let measuredFor = ''
@@ -48,11 +55,14 @@ function keepCentredOnOpen(box: HTMLDivElement) {
     const size = `${screen!.clientWidth}x${screen!.clientHeight}`
     if (size === measuredFor && !always) return // (only the content changed: leave it where it is)
     measuredFor = size
-    box.style.marginBlockStart = '0'
+    if (keep === 'margin') box.style.marginBlockStart = '0'
+    else box.style.removeProperty('--kit-grow-top')
     box.style.alignSelf = 'center'
     const centredTop = box.offsetTop
     box.style.alignSelf = ''
-    box.style.marginBlockStart = `${Math.max(0, centredTop - box.offsetTop)}px` // taller than the window: 0, at the top
+    const gap = `${Math.max(0, centredTop - box.offsetTop)}px` // taller than the window: 0, at the top
+    if (keep === 'margin') box.style.marginBlockStart = gap
+    else box.style.setProperty('--kit-grow-top', gap)
   }
   place(true)
   let open = true

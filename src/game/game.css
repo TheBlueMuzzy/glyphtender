@@ -250,9 +250,6 @@
     .game-end-page .game-scorecard { border-spacing: 0; }
     .game-end-page .game-scorecard-group th { padding-block-start: var(--gap-xs); }
   }
-  /* More to scroll to: the bottom edge fades out (GameOver.tsx sets data-more until it's scrolled to the end).
-     KIT GAP (for the framework): the kit's ScrollArea has no "more below" cue. (A mask only reads opacity: black = shown.) */
-  .game-end-page .kit-scroll[data-more] { mask-image: linear-gradient(to bottom, black calc(100% - 3rem), transparent); }
   /* KIT GAP (logged for the framework): the kit's Tabs wrap 3 tabs onto 2 lines on a 390-wide phone because each tab
      keeps its wide side padding. Here the tabs share one line and give up padding first. */
   .game-end-tabs .kit-tabs { flex-wrap: nowrap; }

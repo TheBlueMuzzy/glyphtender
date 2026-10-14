@@ -77,7 +77,7 @@ export function Results({ players, meId, lowestWins, title, message, onContinue,
   const stagger = reduceMotion() ? 0 : 1 // 1: each row waits a little longer than the one above it; 0: all at once
   const hasButtons = actions || onQuit || onRematch || onContinue
   return (
-    <Screen label={heading} dialog={dim}>
+    <Screen label={heading} dialog={dim} grow="down">
       <Panel depth={2} gap="m" className="kit-modal kit-results">
         <span className="kit-end-title"><Text kind="title">{heading}</Text></span>
         {message && <Text>{message}</Text>}

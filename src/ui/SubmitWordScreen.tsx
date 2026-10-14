@@ -35,11 +35,11 @@ export function SubmitWordScreen() {
   }
 
   return (
-    <Modal title={w.title} actions={<Button variant="secondary" sound="back" onClick={() => screens.pop()}>{w.back}</Button>}>
+    <Modal title={w.title} onBack={() => screens.pop()} backLabel={w.back}>
       {choices.kind === 'list' && (
         <>
           <Text kind="caption">{w.pick}</Text>
-          {/* the list scrolls inside the card on a short screen, so Back always stays in sight */}
+          {/* the list scrolls inside the card on a short screen, so the header's ‹ always stays in sight */}
           <ScrollArea label={w.title}>
             <Stack gap="s">
               {choices.words.map((word) => (

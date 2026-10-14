@@ -1,7 +1,7 @@
 // ONLINE — Lobby (create a room, or join one by its code; then who's in and who's ready)
 // Reconnecting (lost connection / can't connect), SeatPicker and IdleWarning (your turn, nothing done: a bot soon). The game does the networking and
 // passes in what's true right now; these screens only show it and report button presses.
-// Optional: onBack (a Back button on the create / join card), onReady (leave it out for games
+// Optional: onBack (‹ back in the create / join card's header — 0.10.0; the room keeps its labelled Leave, which disconnects), onReady (leave it out for games
 // that mark players ready by themselves: no Ready button, and Start doesn't wait for it),
 // children (the room: extra rows under the players, e.g. the host's game options — they scroll with the list),
 // onRemove (the host's ✕ Remove button on bots — players marked `bot`, who never show Ready: they always are).
@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { Panel, Row, Screen, Stack } from '../layout'
 import { Avatar, Badge, Button, ListRow, RoomCodeInput, ScrollArea, Text, TextInput } from '../controls'
 import { Modal, Spinner, toast } from './dialogs'
+import { MenuHeader } from './MenuHeader'
 import { reduceMotion } from './motion'
 import { fill } from './words'
 
@@ -30,7 +31,7 @@ type LobbyProps = {
   onReady?: (ready: boolean) => void // leave out when the game marks players ready itself
   onStart: () => void; onLeave: () => void
   onRemove?: (id: string) => void // the host's ✕ Remove button on bots
-  onBack?: () => void // shows a Back button on the create / join card
+  onBack?: () => void // shows ‹ back in the create / join card's header
   words?: Partial<typeof lobbyWords>
   children?: ReactNode // the room only: extra rows under the players (e.g. the host's game options)
 }
@@ -38,7 +39,7 @@ type LobbyProps = {
 export function Lobby(props: LobbyProps) {
   const w = { ...lobbyWords, ...props.words }
   return (
-    <Screen label={w.title}>
+    <Screen label={w.title} grow="down">
       {/* kit-lobby-room / kit-lobby-join: their side-by-side layout on a phone on its side (blocks.css) */}
       <Panel depth={2} gap="m" className={props.roomCode ? 'kit-modal kit-lobby-room' : 'kit-modal kit-lobby-join'}>
         {props.roomCode ? <Room {...props} w={w} roomCode={props.roomCode} /> : <JoinOrCreate {...props} w={w} />}
@@ -51,8 +52,8 @@ function JoinOrCreate({ w, busy, error, name, onNameChange, onCreate, onJoin, on
   const [code, setCode] = useState('')
   return (
     <>
-      <Text kind="title">{w.title}</Text>
-      {/* Scrolls on short screens (landscape phones), so Back and the error below always show */}
+      <MenuHeader title={w.title} onBack={onBack} backLabel={w.back} />
+      {/* Scrolls on short screens (landscape phones), so the error below always shows */}
       <ScrollArea label={w.title}>
         <Stack gap="m">
           {onNameChange && <TextInput label={w.name} value={name ?? ''} onChange={(e) => onNameChange(e.target.value)} />}
@@ -65,7 +66,6 @@ function JoinOrCreate({ w, busy, error, name, onNameChange, onCreate, onJoin, on
         </Stack>
       </ScrollArea>
       {error && <Text kind="caption"><span className="kit-error">{error}</span></Text>}
-      {onBack && <Row gap="s"><Button variant="ghost" sound="back" onClick={onBack}>{w.back}</Button></Row>}
     </>
   )
 }
@@ -183,7 +183,7 @@ type SeatPickerProps = {
 export function SeatPicker({ seats, onPick, onCancel, waiting, error, words }: SeatPickerProps) {
   const w = { ...seatPickerWords, ...words }
   return (
-    <Screen label={w.title}>
+    <Screen label={w.title} grow="down">
       <Panel depth={2} gap="m" className="kit-modal">
         <Stack gap="xs">
           <Text kind="title">{w.title}</Text>

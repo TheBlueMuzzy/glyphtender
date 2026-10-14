@@ -4,6 +4,7 @@ import './blocks.css'
 
 export { fill, noOrphan } from './words'
 export { reduceMotion, motionTime, useCountUp } from './motion'
+export * from './MenuHeader'
 export * from './dialogs'
 export * from './frontend'
 export * from './hud'

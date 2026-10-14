@@ -8,15 +8,20 @@ import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from '
 import { Grid, Panel, Row, Screen, Stack } from '../layout'
 import { Button, Card, Text } from '../controls'
 import { screens } from '../screens'
+import { MenuHeader } from './MenuHeader'
 
 // MODAL — a dialog box on top of whatever is open. actions = its buttons (bottom right).
-// className: added to the box (kit-modal), for a block's own layout (Pause: kit-pause).
-type ModalProps = { title: string; children?: ReactNode; actions?: ReactNode; className?: string }
-export function Modal({ title, children, actions, className }: ModalProps) {
+// className: added to the box (kit-modal), for a block's own layout (Pause: kit-pause; Confirm: kit-ask, narrower).
+// It's a menu card (0.10.0): the one menu width, the MenuHeader title row, as tall as its contents — it opens in the
+// middle and then only grows downward (Screen grow="down"). Put a ScrollArea in it for anything long.
+// onBack: a ‹ in the header (0.10.1) — for a modal that is a sub-menu (the game's Submit a word), instead of a Back
+// button in `actions`; backLabel = how a screen reader says it.
+type ModalProps = { title: string; children?: ReactNode; actions?: ReactNode; className?: string; onBack?: () => void; backLabel?: string }
+export function Modal({ title, children, actions, className, onBack, backLabel }: ModalProps) {
   return (
-    <Screen dialog label={title}>
+    <Screen dialog label={title} grow="down">
       <Panel depth={2} gap="m" className={className ? `kit-modal ${className}` : 'kit-modal'}>
-        <Text kind="title">{title}</Text>
+        <MenuHeader title={title} onBack={onBack} backLabel={backLabel} />
         {children}
         {actions && <Row gap="s" justify="end">{actions}</Row>}
       </Panel>
@@ -25,6 +30,7 @@ export function Modal({ title, children, actions, className }: ModalProps) {
 }
 
 // CONFIRM — "Are you sure?". danger paints the yes-button red (reset progress, quit, delete).
+// A question, not a menu: it stays narrower than the menu cards (kit-ask, --kit-ask-w).
 // Either button closes it first, then calls your function. Closing it any other way (Esc, phone
 // Back, tapping the dim) counts as Cancel. onCancel runs once at most, and never after onConfirm.
 export const confirmWords = { yes: 'OK', no: 'Cancel' }
@@ -52,7 +58,7 @@ export function Confirm({ title, message, danger, onConfirm, onCancel, words }: 
     }
   }, [onCancel])
   return (
-    <Modal title={title} actions={<>
+    <Modal title={title} className="kit-ask" actions={<>
       <Button variant="secondary" onClick={() => close(onCancel)}>{w.no}</Button>
       <Button variant={danger ? 'danger' : 'primary'} onClick={() => close(onConfirm)}>{w.yes}</Button>
     </>}>
