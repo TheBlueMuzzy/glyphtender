@@ -7,7 +7,10 @@
 //   Log    — what played and what was dropped, and why (SoundLog.tsx).
 // Every change is live: the engine gets the edited file (audio.setConfig) and the game hears the Dev Kit's usual
 // tuning event for "audio" (liveTuning.ts sendTuning) — Save writes content/audio.json (its _help stays).
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+// Under the Select tab (a DevKitPick, select/pickContext.ts): only the picked object's sounds (no Music, Mixer, Log),
+// each with ✕ to take it off the object — same rows, same editor, same Save.
+import { useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { DevKitPick } from '../select/pickContext'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { sendTuning } from '../tuning/liveTuning'
 import { Mixer } from './Mixer'
@@ -37,6 +40,7 @@ type Status = { kind: 'ok' | 'error' | 'info'; text: string }
 
 export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = '' }: SoundTabProps) {
   const audio = getAudio()
+  const picking = useContext(DevKitPick)
   const [edited, setEdited] = useState<RawAudio>(() => structuredClone(file))
   const [saved, setSaved] = useState<RawAudio>(() => structuredClone(file))
   const [selected, setSelected] = useState<string | null>(null)
@@ -96,9 +100,14 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
     setStatus(ok ? { kind: 'ok', text: 'Copied — paste it into your chat with Claude.' } : { kind: 'error', text: 'The browser blocked copying.' })
   }
 
-  const groups = soundGroups(edited, query)
+  const groups = picking
+    ? soundGroups(edited)
+        .map((g) => ({ ...g, sounds: g.sounds.filter((row) => picking.pick.sounds.includes(row.name)) }))
+        .filter((g) => g.sounds.length > 0)
+    : soundGroups(edited, query)
   const total = countSounds(soundGroups(edited))
-  const searching = query.trim() !== ''
+  const searching = !picking && query.trim() !== ''
+  if (picking && groups.length === 0) return null
   const section = (key: keyof typeof open, title: string, count: string, body: () => ReactNode) => (
     <section className="sb-section" data-open={open[key] || undefined}>
       <h3 className="sb-section-head">
@@ -112,9 +121,9 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
 
   return (
     <div className="tt sb">
-      <p className="tt-legend"><span className="tt-dot" /> = changed, not saved yet · ↺ = back to saved · every change plays in the game at once</p>
+      {!picking && <p className="tt-legend"><span className="tt-dot" /> = changed, not saved yet · ↺ = back to saved · every change plays in the game at once</p>}
 
-      {section('sounds', 'Sounds', searching ? `${countSounds(groups)} of ${total}` : String(total), () => (
+      {section('sounds', 'Sounds', searching || picking ? `${countSounds(groups)} of ${total}` : String(total), () => (
         <>
           {groups.length === 0 && <p className="sb-note">No sound matches “{query}”.</p>}
           {groups.map((group) => (
@@ -133,6 +142,9 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
                         </button>
                         {row.tier && <span className="sb-badge" title={`The ${row.tier} feel tier's sound`}>{row.tier}</span>}
                         <span className="sb-files-count" title="How many files (variants)">{row.files.length} {row.files.length === 1 ? 'file' : 'files'}</span>
+                        {picking && (
+                          <button type="button" className="sel-remove" onClick={() => picking.remove('sounds', row.name)} aria-label={`Take ${row.name} off ${picking.pick.label}`} title={`Take "${row.name}" off ${picking.pick.label} (the sound itself stays)`}>✕</button>
+                        )}
                         <button type="button" className="sb-icon" onClick={() => void playTimes(audio, row.name, 1)} aria-label={`Play ${row.name}`}>▶</button>
                         {isLoop
                           ? <button type="button" className="sb-icon" onClick={() => audio.stop(row.name, { fadeMs: 300 })} aria-label={`Stop ${row.name}`}>■</button>
@@ -164,6 +176,7 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
         </>
       ))}
 
+      {!picking && <>
       {section('music', 'Music', searching ? `${trackNames(edited, query).length} of ${trackNames(edited).length}` : `${trackNames(edited).length} · layers · intensity · rests`, () => (
         <MusicSection audio={audio} edited={edited} saved={saved} query={query} onChange={change} />
       ))}
@@ -173,9 +186,10 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
       ))}
 
       {section('log', 'Log', 'what played, what was dropped', () => <SoundLog audio={audio} query={query} />)}
+      </>}
 
       <footer className="devkit-footer">
-        {CAN_SAVE && <button className="devkit-btn devkit-btn-main" disabled={!unsaved} onClick={save}>Save</button>}
+        {CAN_SAVE && <button className="devkit-btn devkit-btn-main" disabled={!unsaved} onClick={save}>{picking ? 'Save sounds' : 'Save'}</button>}
         <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} disabled={!unsaved} onClick={copyForClaude}>Copy for Claude</button>
         <button className="devkit-btn" disabled={!unsaved} onClick={() => { setEdited(saved); setGameHearsSaved(false) }} title="Put every sound back to what's saved">
           Undo unsaved

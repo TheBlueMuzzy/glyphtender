@@ -143,7 +143,7 @@ export function RevealPanel({ compact, big }: { compact: boolean; big: boolean }
   const many = game.magic.length > 2
   const size: 'm' | 's' | 'xs' = compact || (many && !big) ? 'xs' : 'm'
   return (
-    <div ref={panel} className="game-reveal" data-size={size} role="group" aria-label={w.label}>
+    <div ref={panel} className="game-reveal" data-knobs="reveal" data-size={size} role="group" aria-label={w.label}>
       {game.magic.map((_, seat) => {
         const score = view.scores[seat]
         const winner = view.announced && game.winners.includes(seat)

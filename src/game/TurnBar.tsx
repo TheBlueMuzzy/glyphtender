@@ -33,7 +33,7 @@ export function TurnBar() {
   const exploring = useExplore((s) => s.on)
   return (
     <Row gap="s" justify="between" className="game-turn-bar">
-      <Row gap="s" data-part="turnBar">
+      <Row gap="s" data-part="turnBar" data-knobs="turnBar">
         <Avatar name={name} src={glyphlingArt(seat)} color={colours[colourOf(seat)]} active />
         {status === 'bot' && <Badge variant="primary"><span role="img" aria-label={fill(roomSeat?.profile ? text.game.aiSeat : w.bot, { name })} data-seat-status="bot">{ROBOT}</span></Badge>}
         {localAi && <Badge variant="primary"><span role="img" aria-label={fill(text.game.aiSeat, { name })} data-seat-status="ai">{ROBOT}</span></Badge>}

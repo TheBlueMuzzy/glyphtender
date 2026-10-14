@@ -10,6 +10,8 @@
 // Under the tabs: a search box (search/SearchBar.tsx) that searches ONLY the open tab ("Search Tuning…"): the tab gets
 // the text as its `query` prop and filters its own rows, highlighted. Picking another tab clears it. In a tab with
 // sections, tapping a section title in the results clears the search and takes you there. Esc clears it, then closes.
+// Select (only when the game has content/devkit/select.json, select/): click a thing in the game → under the Select tab
+// the Tuning, Text and Sound panels show just that thing's knobs (the same panels, so every edit is the one edit).
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react'
 import { gameTabs } from '../devkit-game/tabs'
@@ -20,6 +22,12 @@ import { CAN_SAVE } from './saveContent'
 import { SearchBar } from './search/SearchBar'
 import { DevKitSearch } from './search/searchContext'
 import { goToSection } from './search/sectionState'
+import { DevKitPick, type PanelPick } from './select/pickContext'
+import { SelectLayer } from './select/SelectLayer'
+import { selectFile } from './select/selectFiles'
+import { pickOf, withoutKnob } from './select/selectMap'
+import { getSelect, pickedObject, saveSelectFile, useSelect } from './select/selectStore'
+import { SelectTab } from './select/SelectTab'
 import { SnapshotsTab } from './snapshots/SnapshotsTab'
 import { TuningTab } from './tuning/TuningTab'
 import { tuningFiles } from './tuning/tuningFiles'
@@ -47,6 +55,8 @@ function ScreensPanel({ query }: { query?: string }) {
 const previewOpen = () => document.querySelector('dialog.devkit-preview[open]') !== null
 
 const KIT_TABS: DevKitTab[] = [
+  // Only when the game has content/devkit/select.json (its object → knobs list)
+  ...(selectFile ? [{ id: 'select', label: 'Select', Panel: SelectTab, searchable: false }] : []),
   { id: 'color', label: 'Color', Panel: ColorTab },
   // Only when the game has content/tuning/*.json files
   ...(tuningFiles.length > 0 ? [{ id: 'tuning', label: 'Tuning', Panel: TuningTab }] : []),
@@ -56,6 +66,9 @@ const KIT_TABS: DevKitTab[] = [
   // Screen previews: DEV ONLY — never in a release build, even while inReleaseBuilds is true (previews/PreviewsTab.tsx)
   ...(ScreensTab ? [{ id: 'screens', label: 'Screens', Panel: ScreensPanel }] : []),
 ]
+
+// The panels that show a pick's knobs under the Select tab, in this order (a game's Text and Sound tabs use these ids)
+const PICK_TABS = ['tuning', 'text', 'sound']
 
 const CORNER_SIZE_PX = 64 // the invisible top-right square you triple-tap on a phone
 const TRIPLE_TAP_MS = 700 // all three taps must land within this time
@@ -174,8 +187,23 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     goToSection(sectionId)
   }
 
+  // Select tab with something picked: the Tuning / Text / Sound panels show under it, filtered to the pick
+  const select = useSelect()
+  const picked = tabId === 'select' ? pickedObject(select) : null
+  const panelPick: PanelPick | null = picked && {
+    pick: pickOf(picked),
+    remove: (kind, id) => void saveSelectFile(withoutKnob(getSelect().file, picked.id, kind, id)),
+  }
+  const showsPick = (t: DevKitTab) => panelPick !== null && PICK_TABS.includes(t.id)
+  // React keeps each panel (and its unsaved edits) when they're only put in another order
+  const shownTabs = panelPick
+    ? [...tabs.filter((t) => t.id === 'select'), ...PICK_TABS.flatMap((id) => tabs.filter((t) => t.id === id)), ...tabs.filter((t) => t.id !== 'select' && !PICK_TABS.includes(t.id))]
+    : tabs
+
   // The panel stays mounted while hidden, so unsaved edits survive closing and reopening it.
   return (
+    <>
+    {selectFile && <SelectLayer panelOpen={open} />}
     <aside ref={panel} {...{ popover: 'manual' }} className="devkit" data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
       {/* Two rows: a small title + ✕, then the tool tabs across the panel's FULL width (more tabs per page) */}
       <header className="devkit-top">
@@ -207,13 +235,22 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
       {/* One scrolling area for every tab (each remembers its own scroll position) */}
       <div ref={scroller} className="devkit-scroll">
         <DevKitSearch.Provider value={{ goTo }}>
-          {tabs.map((t) => (
-            <section key={t.id} className="devkit-body" hidden={t.id !== tabId} role="tabpanel" aria-label={t.label}>
-              <t.Panel query={t.id === tabId ? query : ''} />
+          {shownTabs.map((t) => (
+            <section
+              key={t.id}
+              className={showsPick(t) ? 'devkit-body is-picked-view' : 'devkit-body'}
+              hidden={t.id !== tabId && !showsPick(t)}
+              role="tabpanel"
+              aria-label={t.label}
+            >
+              <DevKitPick.Provider value={showsPick(t) ? panelPick : null}>
+                <t.Panel query={t.id === tabId ? query : ''} />
+              </DevKitPick.Provider>
             </section>
           ))}
         </DevKitSearch.Provider>
       </div>
     </aside>
+    </>
   )
 }

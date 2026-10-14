@@ -25,7 +25,7 @@ export function RevealMarks({ game, steps, at, colours, timing }: Props) {
   const view = revealView(steps, at)
   const bonus = view.current?.kind === 'bonus' ? view.current : null // the bonus popping + flying right now
   return (
-    <g data-reveal pointerEvents="none">
+    <g data-reveal data-knobs="reveal" pointerEvents="none">
       {game.tangled.map((id) => {
         const g = game.glyphlings.find((x) => x.id === id)
         if (!g) return null

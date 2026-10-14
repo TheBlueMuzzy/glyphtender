@@ -96,8 +96,8 @@ export function ScorePops({ game, turn, colours, timing, pxPerHex, view }: Props
   )
   return (
     <g ref={groupRef} data-score-pops pointerEvents="none">
-      {pops.map((p, i) => label(`pop-${i}`, spots[i].x, spots[i].y, fill(text.game.scorePop, { n: p.amount }), colours.scorePopSize * grow, { 'data-score-pop': i }))}
-      <g data-score-total className="game-pop">
+      {pops.map((p, i) => label(`pop-${i}`, spots[i].x, spots[i].y, fill(text.game.scorePop, { n: p.amount }), colours.scorePopSize * grow, { 'data-score-pop': i, 'data-knobs': 'scorePop' }))}
+      <g data-score-total data-knobs="scoreTotal" className="game-pop">
         {seq.arrivals.map((a, k) => label(`total-${k}`, total.x, total.y, fill(text.game.scorePop, { n: a.total }), totalSize, { 'data-score-count': k }))}
       </g>
     </g>

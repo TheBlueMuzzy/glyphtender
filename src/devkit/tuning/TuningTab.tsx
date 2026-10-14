@@ -7,11 +7,14 @@
 //   Slider ranges: the file's optional "_ranges" { "key.path": [min, max, step] }, else a guess (tuningLogic.ts).
 // Live: each change is sent to the game as it happens (liveTuning.ts) — the game shows it if it reads its tuning
 // through liveTuning / useLiveTuning. ↺ on a row = back to the saved value. A dot = changed, not saved yet.
+// Under the Select tab (a DevKitPick, select/pickContext.ts): only the picked object's settings, in ITS sections,
+// each with ✕ to take it off the object — the same rows and Save as here, so an edit is one edit wherever it's made.
 import { useContext, useState } from 'react'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { copyForClaudeText } from '../color/colorLogic'
 import { Highlight, SearchCount, Section, SectionIndex } from '../search/Section'
 import { DevKitSearch } from '../search/searchContext'
+import { DevKitPick, pickedSections } from '../select/pickContext'
 import { countFound, searchTerms } from '../search/searchLogic'
 import { FieldRow } from './FieldRow'
 import { sendTuning } from './liveTuning'
@@ -34,6 +37,7 @@ type Props = {
 
 export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '' }: Props) {
   const search = useContext(DevKitSearch)
+  const picking = useContext(DevKitPick)
   const [loaded] = useState(() => byName(files)) // as the page loaded — ranges and Copy for Claude start from this
   const [sections] = useState(() => tuningSections(files, order)) // names and sections never change while it runs
   const [values, setValues] = useState(loaded) // what the game uses right now
@@ -79,10 +83,80 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '
     }
   }
 
-  const terms = searchTerms(query)
+  const terms = picking ? [] : searchTerms(query)
   const searching = terms.length > 0
   const shown = searching ? searchTuning(sections, query) : sections
   const isChanged = (item: TuningItem) => valueAt(values[item.file], item.path) !== valueAt(saved[item.file], item.path)
+
+  const row = (item: TuningItem) => (
+    <FieldRow
+      filePath={pathOf(item.file)}
+      item={item}
+      value={valueAt(values[item.file], item.path)}
+      savedValue={valueAt(saved[item.file], item.path)}
+      loadedValue={valueAt(loaded[item.file], item.path)}
+      ranges={values[item.file]._ranges}
+      choices={values[item.file]._choices}
+      terms={terms}
+      onChange={(value) => change(item.file, item.path, value)}
+    />
+  )
+
+  const footer = (
+    <footer className="devkit-footer">
+      {/* Live build: no dev server to save through, so Copy for Claude is the main button (see CAN_SAVE) */}
+      {CAN_SAVE && (
+        <button className="devkit-btn devkit-btn-main" disabled={unsaved.length === 0} onClick={save}>
+          {picking ? 'Save tuning' : 'Save'}
+        </button>
+      )}
+      <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} onClick={copyForClaude}>
+        Copy for Claude
+      </button>
+      <button className="devkit-btn" disabled={unsaved.length === 0} onClick={undo} title="Put every value back to what's saved">
+        {CAN_SAVE ? 'Undo unsaved' : 'Undo changes'}
+      </button>
+      {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
+      {copyFallback && <textarea className="tt-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}
+    </footer>
+  )
+
+  // Under the Select tab: the picked object's settings only, in its own sections
+  if (picking) {
+    const picked = pickedSections(picking.pick, sections.flatMap((s) => s.items))
+    if (picked.length === 0) return null
+    return (
+      <div className="tt">
+        {picked.map((section) => (
+          <Section
+            key={section.id}
+            id={section.id}
+            title={section.title}
+            count={section.rows.length}
+            terms={[]}
+            defaultOpen
+            changed={section.rows.some(({ item }) => isChanged(item))}
+          >
+            {section.rows.map(({ id, item }) => (
+              <div key={`${item.file}:${item.path}`} className="sel-knob">
+                {row(item)}
+                <button
+                  type="button"
+                  className="sel-remove"
+                  onClick={() => picking.remove('tuning', id)}
+                  aria-label={`Take ${id} off ${picking.pick.label}`}
+                  title={`Take "${id}" off ${picking.pick.label} (the setting itself stays)`}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </Section>
+        ))}
+        {footer}
+      </div>
+    )
+  }
 
   return (
     <div className="tt">
@@ -113,39 +187,14 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '
             return (
               <div key={`${item.file}:${item.path}`}>
                 {newGroup && <h4 className="tt-group">{group}</h4>}
-                <FieldRow
-                  filePath={pathOf(item.file)}
-                  item={item}
-                  value={valueAt(values[item.file], item.path)}
-                  savedValue={valueAt(saved[item.file], item.path)}
-                  loadedValue={valueAt(loaded[item.file], item.path)}
-                  ranges={values[item.file]._ranges}
-                  choices={values[item.file]._choices}
-                  terms={terms}
-                  onChange={(value) => change(item.file, item.path, value)}
-                />
+                {row(item)}
               </div>
             )
           })}
         </Section>
       ))}
 
-      <footer className="devkit-footer">
-        {/* Live build: no dev server to save through, so Copy for Claude is the main button (see CAN_SAVE) */}
-        {CAN_SAVE && (
-          <button className="devkit-btn devkit-btn-main" disabled={unsaved.length === 0} onClick={save}>
-            Save
-          </button>
-        )}
-        <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} onClick={copyForClaude}>
-          Copy for Claude
-        </button>
-        <button className="devkit-btn" disabled={unsaved.length === 0} onClick={undo} title="Put every value back to what's saved">
-          {CAN_SAVE ? 'Undo unsaved' : 'Undo changes'}
-        </button>
-        {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
-        {copyFallback && <textarea className="tt-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}
-      </footer>
+      {footer}
     </div>
   )
 }

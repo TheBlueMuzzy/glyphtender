@@ -1,0 +1,155 @@
+{
+  "_help": "Dev Kit Select tab: what you can click in the game, and the knobs each thing shows. knobs = tuning settings by section (\"<file>.<key>\"; a group brings all of it) · text = content/text/en.json keys (a branch brings all of it) · sounds = content/audio.json names. Add knobs in the game with + Add a knob, or here. The game marks each thing with data-knobs=\"<id>\"; find = a CSS selector for kit parts the game can't mark.",
+  "objects": {
+    "glyphling": {
+      "label": "Glyphling",
+      "help": "A player's piece — on the board, or waiting in the tray during the draft. Its settings change all of them.",
+      "knobs": {
+        "Look": ["garden.pieceScale", "garden.yellow", "garden.blue", "garden.purple", "garden.pink", "garden.ghostOpacity"],
+        "Drag": ["drag.styles.move", "drag.styles.draft", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift"],
+        "Move": ["anim.moveBase", "anim.movePerHex", "anim.moveSettle"],
+        "Turn pulse & \"no\" shake": ["anim.turnPulseTime", "feel.events.turnPulse", "anim.noShakeTime", "feel.events.noShake"]
+      },
+      "text": ["tutorial.explore.yourGlyphling", "tutorial.explore.yourGlyphlingDanger", "tutorial.explore.yourGlyphlingTangled", "tutorial.explore.theirGlyphling", "tutorial.explore.theirGlyphlingDanger", "tutorial.explore.theirGlyphlingTangled"],
+      "sounds": ["draft.place", "glyph.lift", "glyph.step", "no"]
+    },
+    "seed": {
+      "label": "Seed",
+      "help": "A letter seed — in the tray, flying, or planted on the board.",
+      "knobs": {
+        "Look": ["anim.seedSize", "garden.seedShine"],
+        "Tray": ["layout.trayTileMin", "layout.trayGap"],
+        "Drag": ["drag.styles.seed", "drag.targets.seed"],
+        "Throw": ["anim.flightBase", "anim.flightPerHex", "anim.arcHeight", "anim.hopHeight", "anim.hopTime"],
+        "Grow": ["anim.growTime", "anim.growFrom"]
+      },
+      "text": ["tutorial.explore.traySeed", "tutorial.explore.traySeedRefresh", "tutorial.explore.yourSeed", "tutorial.explore.theirSeed"],
+      "sounds": ["seed.pick", "seed.drop", "seed.aim", "cast.throw", "seed.land", "sprout.grow"]
+    },
+    "plannedSeed": {
+      "label": "Planned seed",
+      "help": "A seed you've aimed but not planted yet (the see-through one).",
+      "knobs": {
+        "Look": ["garden.plannedSeedLook", "garden.plannedSeedOpacity", "garden.plannedMist", "garden.plannedMistStrength"],
+        "Moon": ["garden.plannedMoonLight", "garden.plannedMoonShadow", "garden.plannedMoonBrightness"],
+        "Stencil": ["garden.plannedStencilLetter", "garden.plannedStencilTile", "garden.plannedStencilCut", "garden.plannedStencilSoftness"],
+        "Pulse": ["anim.pulseTime"]
+      },
+      "text": ["tutorial.explore.plannedSeed"]
+    },
+    "board": {
+      "label": "Board",
+      "help": "The garden: the hexes, their highlights and the turn trails.",
+      "knobs": {
+        "Look": ["garden.background", "garden.hexFill", "garden.hexLine", "garden.hexLineWidth"],
+        "Highlights": ["garden.glowStrength", "garden.castFill", "garden.castShade", "garden.dropStrength"],
+        "Turn trails": ["garden.trailWidth", "garden.trailStrength", "anim.trailLead", "anim.trailHold"],
+        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare"]
+      },
+      "text": ["tutorial.explore.emptyHex", "tutorial.explore.moveOption", "tutorial.explore.plantOption", "tutorial.explore.draftOption"]
+    },
+    "word": {
+      "label": "Word",
+      "help": "A word's outline — grown, or the preview while you plan one.",
+      "knobs": {
+        "Look": ["garden.wordBorder", "garden.wordBorderWidth", "garden.grownGlowStrength"],
+        "Timing": ["anim.wordGlowTime"],
+        "Sound rules": ["feel.sounds"]
+      },
+      "sounds": ["word.chord", "cast.flourish"]
+    },
+    "spotlight": {
+      "label": "Spotlight label",
+      "help": "The word + points label that shows over a new word (\"QUA +4\").",
+      "knobs": {
+        "Look": ["garden.spotlightLabel", "garden.spotlightLabelSize", "garden.spotlightLabelMinPx"],
+        "Timing": ["anim.spotlightHold", "anim.spotlightFade"]
+      },
+      "text": ["game.spotlightLabel"]
+    },
+    "scorePop": {
+      "label": "Score pop",
+      "help": "The +2 / +1 that pops off each seed and flies into the total.",
+      "knobs": {
+        "Look": ["garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
+        "Timing": ["anim.scorePopDelay", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime"],
+        "Feel": ["feel.events.seedPop"]
+      },
+      "text": ["game.scorePop"],
+      "sounds": ["score.pop"]
+    },
+    "scoreTotal": {
+      "label": "Score total",
+      "help": "The running total over the glyphling's head that counts up as the pops land.",
+      "knobs": {
+        "Look": ["garden.scoreTotalSize", "garden.scorePop"],
+        "Timing": ["anim.scoreTotalHold", "anim.scoreTotalFade", "anim.scoreTotalGrow", "anim.scoreTotalMaxGrow"],
+        "Feel": ["feel.events.totalPop"]
+      },
+      "sounds": ["score.arrive"]
+    },
+    "tangle": {
+      "label": "Danger & tangle",
+      "help": "The dashed warning ring round a glyphling in danger, and the vine on a tangled one.",
+      "knobs": {
+        "Warning": ["garden.warningWidth", "garden.warningDash"],
+        "Vine": ["garden.vine", "garden.vineWidth", "garden.tangledDim"],
+        "End reveal": ["anim.tangleBlinkTime"]
+      },
+      "text": ["tutorial.tips.yourDanger", "tutorial.tips.theirDanger", "tutorial.tips.tangleYours", "tutorial.tips.tangleTheirs"],
+      "sounds": ["danger.warn", "tangle"]
+    },
+    "tray": {
+      "label": "Seed tray",
+      "help": "Your hand of seeds along the bottom (or side).",
+      "find": "svg.game-tray",
+      "knobs": {
+        "Size": ["layout.trayTileMin", "layout.trayGap"],
+        "Reorder": ["drag.styles.reorder", "drag.targets.reorder", "drag.makeRoom", "drag.roomTime", "drag.trayLeave"],
+        "Refresh": ["anim.refreshShrinkTime", "anim.refreshGrowTime", "anim.refreshStagger", "anim.refreshPause", "feel.events.refreshGrow"]
+      },
+      "sounds": ["refresh.out", "refresh.in", "tray.shuffle"]
+    },
+    "turnBar": {
+      "label": "Turn indicator",
+      "help": "Whose turn it is (the avatar + name at the top).",
+      "knobs": {
+        "Turn pulse": ["anim.turnPulseTime", "feel.events.turnPulse"],
+        "Side panel": ["layout.sidePanelShare", "layout.sideShortHeight", "layout.sideShortMaxShare"]
+      },
+      "text": ["game.turnOf", "tutorial.explore.bar", "tutorial.explore.barDetail"],
+      "sounds": ["turn.yours"]
+    },
+    "tip": {
+      "label": "Sprout's tip",
+      "help": "A tutorial callout or tip bubble.",
+      "find": ".kit-callout",
+      "knobs": {
+        "Timing": ["tutorial.tipSeconds", "tutorial.tipDelay", "tutorial.tipsPerTurn", "tutorial.maxPauses", "tutorial.railsCalloutDelay"],
+        "Nudges": ["tutorial.idleGlow", "tutorial.idleText", "tutorial.idleRepeat", "tutorial.laterIdleText", "tutorial.onlineIdleText", "tutorial.wrongRepeat"],
+        "Look": ["tutorial.calloutRoom", "tutorial.railsDim"]
+      },
+      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails"]
+    },
+    "ribbon": {
+      "label": "Award ribbon",
+      "help": "The place ribbon on the end screen.",
+      "knobs": {
+        "Look": ["endscreen.ribbon1", "endscreen.ribbon2", "endscreen.ribbon3", "endscreen.ribbon4", "endscreen.ribbonSize"],
+        "Awards carousel": ["endscreen.carouselSeconds", "endscreen.carouselPauseSeconds"]
+      },
+      "sounds": ["end.award"]
+    },
+    "reveal": {
+      "label": "End reveal",
+      "help": "The end-of-game ceremony: tangles, bonuses, the count, the winner.",
+      "knobs": {
+        "Timing": ["anim.revealTangles", "anim.tangleBlinkTime", "anim.revealBonus", "anim.revealCount", "anim.revealWinner", "anim.revealPopTime"],
+        "Music": ["anim.revealMusicCalm", "anim.revealMusicPeak", "anim.revealMusicSettle"],
+        "Look": ["garden.revealPop", "garden.revealPopSize", "layout.revealBigZoom", "layout.revealMinZoom"]
+      },
+      "text": ["game.reveal"],
+      "sounds": ["reveal.tangles", "reveal.count", "reveal.bonus", "reveal.winner"]
+    }
+  }
+}

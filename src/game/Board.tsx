@@ -172,7 +172,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
   }
 
   return (
-    <svg ref={svgRef} className="game-garden" viewBox={`${view.minX - shift.x} ${view.minY - shift.y} ${view.w} ${view.h}`}
+    <svg ref={svgRef} className="game-garden" data-knobs="board" viewBox={`${view.minX - shift.x} ${view.minY - shift.y} ${view.w} ${view.h}`}
       preserveAspectRatio="xMidYMid meet" role="img" aria-label="Garden">
       <defs><PlannedSeedFilter colours={colours} /></defs>
       {board.cells.map((h) => {
@@ -233,12 +233,12 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       {Object.entries(game.seeds).map(([key, seed]) => {
         const [q, r] = key.split(',').map(Number)
         const { x, y } = at({ q, r })
-        return <image key={key} className="game-seed" data-hex={key} data-seed={key} href={seedArt(seed.letter, seed.seat)}
+        return <image key={key} className="game-seed" data-knobs="seed" data-hex={key} data-seed={key} href={seedArt(seed.letter, seed.seat)}
           x={x - s} y={y - s} width={2 * s} height={2 * s} />
       })}
 
       {cast && plannedLetter && (
-        <g data-planned-seed>
+        <g data-planned-seed data-knobs="plannedSeed">
           <image data-hex={hexKey(cast.target)} href={seedArt(plannedLetter, seat)} x={at(cast.target).x - s} y={at(cast.target).y - s}
             width={2 * s} height={2 * s} filter={`url(#${PLANNED_FILTER_ID})`} />
           {ring(cast.target, player, true)}
@@ -254,7 +254,7 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
         const danger = held || planned || home ? undefined : inDanger.get(g.id) // held/planned rings win over the danger cue
         const shown = home === 'empty' ? 0 : home === 'ghost' ? carried!.ghostOpacity : danger === 'tangled' ? colours.tangledDim : 1
         return (
-          <g key={g.id} data-glide={g.id} data-carried={home}>
+          <g key={g.id} data-glide={g.id} data-carried={home} data-knobs="glyphling">
             <g data-lift={g.id} className="game-lift">
             <g data-shake={g.id}>
               <g data-pulse={g.id} className="game-pulse">

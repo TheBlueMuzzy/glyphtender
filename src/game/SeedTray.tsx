@@ -113,7 +113,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
     places = Array.from({ length: 2 - placed }, (_, pos) => ({
       key: `draft-${pos}`,
       piece: { kind: 'glyphling', next: pos === 0 && (myTurn || aiDrafting) },
-      attrs: { 'data-draft': pos === 0 ? 'next' : undefined },
+      attrs: { 'data-draft': pos === 0 ? 'next' : undefined, 'data-knobs': 'glyphling' },
       ...(pos === 0 ? carriedHome(originOf(carried, { kind: 'draft' })) : {}),
     }))
   } else {
@@ -126,7 +126,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
       if (id === TRAY_GAP) return { key: `empty-${pos}`, attrs: { 'data-tray-pos': pos } } // a cast seed's place (a seed can be dropped into it)
       const letter = id === undefined ? undefined : letterIn(hand, id)
       if (id === undefined || letter === undefined) return { key: `empty-${pos}` }
-      const seed = { key: `hand-${id}`, piece: { kind: 'seed', letter } as const, attrs: { 'data-hand': id, 'data-tray-pos': pos } }
+      const seed = { key: `hand-${id}`, piece: { kind: 'seed', letter } as const, attrs: { 'data-hand': id, 'data-tray-pos': pos, 'data-knobs': 'seed' } }
       if (myTurn && cast?.seed === id) return { ...seed, aimed: true } // on the board, waiting for Cast
       const inRefresh = (stage === 'in' ? refreshing?.newSlots : refreshing?.slots)?.includes(pos) ?? false // its seed going, or its new one coming
       if (inRefresh && stage === 'gone') return { key: `empty-${pos}` } // (online: waiting for the new seeds)

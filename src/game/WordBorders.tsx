@@ -45,7 +45,7 @@ export function WordBorders({ planned, grown, grownKey, colours }: Props) {
   }
   const words = (kind: SpotKind, list: GrownWord[], peak: number) =>
     list.map((w, i) => (
-      <g key={`${kind}-${grownKey}-${i}-${w.word}`} data-spot-of={kind} data-spot-word={i} data-word={w.word}
+      <g key={`${kind}-${grownKey}-${i}-${w.word}`} data-spot-of={kind} data-spot-word={i} data-word={w.word} data-knobs="word"
         opacity={kind === 'grown' || list.length > 1 ? 0 : peak}>
         {w.hexes.map((h) => border(h, hexKey(h)))}
       </g>
@@ -85,7 +85,7 @@ export function WordLabels({ planned, grown, grownKey, colours, taken, view, pxP
 
   const labels = (kind: SpotKind, list: GrownWord[], spots: ReturnType<typeof place>, peak: number) =>
     spots.map((s, i) => (
-      <g key={`${kind}-${grownKey}-${i}-${list[i].word}`} data-spot-of={kind} data-spot-word={i} data-spot-label={s.words}
+      <g key={`${kind}-${grownKey}-${i}-${list[i].word}`} data-spot-of={kind} data-spot-word={i} data-spot-label={s.words} data-knobs="spotlight"
         opacity={kind === 'grown' || list.length > 1 ? 0 : peak}>
         <rect x={s.x - s.width / 2} y={s.y - s.height / 2} width={s.width} height={s.height} rx={s.height / 2}
           fill={colours.background} fillOpacity={0.88} stroke={colours.wordBorder} strokeWidth={size * 0.1} />

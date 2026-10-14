@@ -8,7 +8,11 @@
 //   words (the save asks the dev server for Vite's reload: saveContentFile's reload option).
 //   Just before saving it reads the file fresh, so words another tab saved meanwhile (the AI tab's bios) are kept.
 //   The Dev Kit's search box filters the strings by key or words while this tab is open (the `query` prop).
+//   Under the Select tab (a DevKitPick, select/pickContext.ts): only the picked object's lines, in one "Text" section,
+//   each with ✕ to take it off the object — same boxes, same Save.
 import { useContext, useState } from 'react'
+import { DevKitPick } from '../select/pickContext'
+import { coveredBy } from '../select/selectMap'
 import { copyForClaudeText } from '../color/colorLogic'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { Highlight, SearchCount, Section, SectionIndex } from '../search/Section'
@@ -65,6 +69,7 @@ async function readFresh(file: string): Promise<object | null> {
 
 export function TextTab({ file, data, label = 'Text', query = '' }: Props) {
   const search = useContext(DevKitSearch)
+  const picking = useContext(DevKitPick)
   const [leaves, setLeaves] = useState(() => flattenText(data)) // the file's shape (what Save writes the words into)
   const [{ notes, sections }, setSections] = useState(() => textSections(data))
   const [loaded] = useState(() => textValues(leaves)) // as the page loaded — Copy for Claude starts from this
@@ -119,7 +124,7 @@ export function TextTab({ file, data, label = 'Text', query = '' }: Props) {
     }
   }
 
-  const terms = searchTerms(query)
+  const terms = picking ? [] : searchTerms(query)
   const searching = terms.length > 0
   const shown = searchText(sections, query, values)
   const found = shown.reduce((n, s) => n + allFields(s).filter((f) => f.kind === 'text').length, 0)
@@ -153,6 +158,64 @@ export function TextTab({ file, data, label = 'Text', query = '' }: Props) {
     </div>
   )
 
+  const footer = (
+    <footer className="devkit-footer">
+      <p className="tx-count" role="status">
+        {unsaved.length === 0 ? 'No changes' : unsaved.length === 1 ? '1 change' : `${unsaved.length} changes`}
+        {problemCount > 0 && ` · Save waits: ${problemCount === 1 ? '1 text has' : `${problemCount} texts have`} lost a {placeholder} (⚠ above)`}
+      </p>
+      {/* Live build: no dev server to save through, so Copy for Claude is the main button (see CAN_SAVE) */}
+      {CAN_SAVE && (
+        <button className="devkit-btn devkit-btn-main" disabled={unsaved.length === 0 || problemCount > 0} onClick={save}>
+          {picking ? 'Save words' : 'Save'}
+        </button>
+      )}
+      <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} onClick={copyForClaude}>
+        Copy for Claude
+      </button>
+      <button className="devkit-btn" disabled={unsaved.length === 0} onClick={() => setValues(saved)} title="Put every text back to what's saved">
+        {CAN_SAVE ? 'Undo unsaved' : 'Undo changes'}
+      </button>
+      {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
+      {copyFallback && <textarea className="tt-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}
+    </footer>
+  )
+
+  // Under the Select tab: the picked object's lines only
+  if (picking) {
+    const fields = sections.flatMap(allFields).filter((f) => f.kind === 'text')
+    const rows = picking.pick.text.flatMap((id) => fields.filter((f) => coveredBy(f.key, id)).map((f) => ({ id, f })))
+    if (rows.length === 0) return null
+    return (
+      <div className="tt tx">
+        <Section
+          id={`select:${picking.pick.objectId}:text`}
+          title={label}
+          count={rows.length}
+          terms={[]}
+          defaultOpen
+          changed={rows.some(({ f }) => values[f.key] !== saved[f.key])}
+        >
+          {rows.map(({ id, f }) => (
+            <div key={f.key} className="sel-knob">
+              <TextRow field={{ ...f, label: f.key }} value={values[f.key]} savedValue={saved[f.key]} terms={[]} onChange={(w) => change(f.key, w)} />
+              <button
+                type="button"
+                className="sel-remove"
+                onClick={() => picking.remove('text', id)}
+                aria-label={`Take ${id} off ${picking.pick.label}`}
+                title={`Take "${id}" off ${picking.pick.label} (the words themselves stay)`}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </Section>
+        {footer}
+      </div>
+    )
+  }
+
   return (
     <div className="tt tx">
       <SearchCount query={query} found={found} what="string" where={label} />
@@ -167,26 +230,7 @@ export function TextTab({ file, data, label = 'Text', query = '' }: Props) {
       )}
       {shown.map((s) => renderSection(s, 0))}
 
-      <footer className="devkit-footer">
-        <p className="tx-count" role="status">
-          {unsaved.length === 0 ? 'No changes' : unsaved.length === 1 ? '1 change' : `${unsaved.length} changes`}
-          {problemCount > 0 && ` · Save waits: ${problemCount === 1 ? '1 text has' : `${problemCount} texts have`} lost a {placeholder} (⚠ above)`}
-        </p>
-        {/* Live build: no dev server to save through, so Copy for Claude is the main button (see CAN_SAVE) */}
-        {CAN_SAVE && (
-          <button className="devkit-btn devkit-btn-main" disabled={unsaved.length === 0 || problemCount > 0} onClick={save}>
-            Save
-          </button>
-        )}
-        <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} onClick={copyForClaude}>
-          Copy for Claude
-        </button>
-        <button className="devkit-btn" disabled={unsaved.length === 0} onClick={() => setValues(saved)} title="Put every text back to what's saved">
-          {CAN_SAVE ? 'Undo unsaved' : 'Undo changes'}
-        </button>
-        {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
-        {copyFallback && <textarea className="tt-copy" readOnly value={copyFallback} onFocus={(e) => e.target.select()} />}
-      </footer>
+      {footer}
     </div>
   )
 }
