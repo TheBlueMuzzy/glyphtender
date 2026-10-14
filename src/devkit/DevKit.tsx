@@ -26,7 +26,7 @@ import { DevKitPick, type PanelPick } from './select/pickContext'
 import { SelectLayer } from './select/SelectLayer'
 import { selectFile } from './select/selectFiles'
 import { pickOf, withoutKnob } from './select/selectMap'
-import { getSelect, pickedObject, saveSelectFile, useSelect } from './select/selectStore'
+import { getSelect, pickedObject, saveSelectFile, setSelect, useSelect } from './select/selectStore'
 import { SelectTab } from './select/SelectTab'
 import { SnapshotsTab } from './snapshots/SnapshotsTab'
 import { TuningTab } from './tuning/TuningTab'
@@ -204,7 +204,16 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
   return (
     <>
     {selectFile && <SelectLayer panelOpen={open} />}
-    <aside ref={panel} {...{ popover: 'manual' }} className="devkit" data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
+    <aside ref={panel} {...{ popover: 'manual' }} className={select.on ? 'devkit is-selecting' : 'devkit'} data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
+      {/* Select mode on a narrow screen (a phone): the panel shrinks to this bar so the game can be tapped (select.css) */}
+      {select.on && (
+        <div className="devkit-selecting-bar">
+          <span>Tap something in the game to pick it</span>
+          <button type="button" className="devkit-btn" onClick={() => setSelect({ on: false, hover: null })}>
+            Done
+          </button>
+        </div>
+      )}
       {/* Two rows: a small title + ✕, then the tool tabs across the panel's FULL width (more tabs per page) */}
       <header className="devkit-top">
         <div className="devkit-title-row">

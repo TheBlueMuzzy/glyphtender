@@ -15,6 +15,9 @@ import { getSelect, setSelect, useSelect } from './selectStore'
 const SCAN_MS = 300
 // Every kind of press a game might listen to — all stopped while select mode is on (pointerup does the picking)
 const SWALLOW = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'touchstart', 'touchend'] as const
+// Matches select.css: below this width the panel shrinks to a bar while selecting
+const NARROW_PX = 760
+const isNarrow = () => window.innerWidth <= NARROW_PX
 const onDevKit = (target: EventTarget | null) => !!(target as Element | null)?.closest?.('.devkit')
 
 export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
@@ -56,7 +59,8 @@ export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
       if (e.type !== 'pointerup') return
       const { clientX, clientY } = e as PointerEvent
       const found = objectAt(clientX, clientY, getSelect().objects)
-      if (found) setSelect({ picked: found.id, pickedEl: found.el })
+      // On a phone the panel is only a bar while selecting: a pick brings it back, showing the pick's knobs
+      if (found) setSelect({ picked: found.id, pickedEl: found.el, ...(isNarrow() ? { on: false, hover: null } : {}) })
     }
     window.addEventListener('pointermove', onMove, true)
     for (const type of SWALLOW) window.addEventListener(type, swallow, { capture: true, passive: false })
