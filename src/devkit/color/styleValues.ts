@@ -45,6 +45,13 @@ export const UI_SHAPES: StyleValue[] = [
   { token: 'kit-scroll-fade', name: 'Scroll fade height', slider: { rem: [0, 4, 0.25] }, fallback: '2rem' },
 ]
 
+/** Values to take off the page after applyStyle: only menu sizes left at the kit's default (applyStyle only sets
+ *  values, and the kit CSS has its own menu-size defaults). Optional extras (glow, panel texture) are never cleared —
+ *  applyStyle always writes them, and a missing --panel-texture blanks every panel's background. */
+export function shapesToClear(preset: Record<string, unknown>, tweaks: Record<string, unknown>): string[] {
+  return UI_SHAPES.filter(({ token }) => token.startsWith('kit-') && preset[token] === undefined && tweaks[token] === undefined).map((s) => s.token)
+}
+
 export const isUiShape = (token: string) => UI_SHAPES.some((s) => s.token === token)
 export const shapeOf = (token: string) => UI_SHAPES.find((s) => s.token === token)
 

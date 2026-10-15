@@ -16,7 +16,7 @@ import { ColourBlindPreview } from './ColourBlindPreview'
 import { ColourRow } from './ColourRow'
 import { StyleRow } from './StyleRow'
 import { UI_COLOUR_SECTION, UI_SHAPE_SECTION, copyForClaudeText, isUiShape, searchUiColours, listChanges, sameColour, tweaksToSave, uiChanged, uiColoursFrom, uiLabel } from './colorLogic'
-import { shapeDefault, UI_SHAPES, uiShapesFrom } from './styleValues'
+import { shapeDefault, shapesToClear, uiShapesFrom } from './styleValues'
 import { styleFile, uiKit } from './uiKit'
 import './color.css'
 
@@ -73,10 +73,8 @@ function UiColoursEditor({ query }: { query: string }) {
   useEffect(() => {
     const tweaks = tweaksToSave(preset, colours, savedTweaks)
     kit.applyStyle({ preset: presetName, tweaks })
-    // applyStyle only sets values: one put back to the kit's default (a menu size) is taken off the page again
-    for (const { token } of UI_SHAPES) {
-      if (preset[token] === undefined && tweaks[token] === undefined) document.documentElement.style.removeProperty(`--${token}`)
-    }
+    // applyStyle only sets values: a menu size put back to the kit's default is taken off the page again
+    for (const token of shapesToClear(preset, tweaks)) document.documentElement.style.removeProperty(`--${token}`)
   }, [kit, preset, presetName, colours, savedTweaks])
 
   const row = (token: string, display: ReactNode) => {
