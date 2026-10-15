@@ -1,17 +1,20 @@
 {
-  "_help": "Dev Kit Select tab: what you can click in the game, and the knobs each thing shows. knobs = tuning settings by section (\"<file>.<key>\"; a group brings all of it) · text = content/text/en.json keys (a branch brings all of it) · sounds = content/audio.json names · style = UI kit style values (content/ui/style.json, the Color tab) — shared by every part of that kind. Add knobs in the game with + Add a knob, or here. The game marks each thing with data-knobs=\"<id>\"; find = a CSS selector for kit parts the game can't mark.",
+  "_help": "Dev Kit Select tab: what you can click in the game, and the knobs each thing shows. knobs = tuning settings by section (\"<file>.<key>\"; a group brings all of it) · text = content/text/en.json keys (a branch brings all of it) · sounds = content/audio.json names · style = UI kit style values (content/ui/style.json, the Color tab) — shared by every part of that kind. Every tuning setting is on the thing it affects (rules too) — src/devkit-game/select.test.ts fails if one is missing; a thing's parts (a glyphling's danger ring) carry its tag. The game marks each thing with data-knobs=\"<id>\"; find = a CSS selector for kit parts the game can't mark.",
   "objects": {
     "glyphling": {
       "label": "Glyphling",
-      "help": "A player's piece — on the board, or waiting in the tray during the draft. Its settings change all of them.",
+      "help": "A player's piece — on the board, or waiting in the tray during the draft — with its danger ring and tangle vine. Its settings change all of them.",
       "knobs": {
         "Look": ["garden.pieceScale", "garden.yellow", "garden.blue", "garden.purple", "garden.pink", "garden.ghostOpacity"],
-        "Drag": ["drag.styles.move", "drag.styles.draft", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift"],
+        "Drag": ["drag.styles.move", "drag.styles.draft", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift", "drag.targets.move", "drag.targets.draft", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance"],
         "Move": ["anim.moveBase", "anim.movePerHex", "anim.moveSettle"],
-        "Turn pulse & \"no\" shake": ["anim.turnPulseTime", "feel.events.turnPulse", "anim.noShakeTime", "feel.events.noShake"]
+        "Turn pulse & \"no\" shake": ["anim.turnPulseTime", "feel.events.turnPulse", "anim.noShakeTime", "feel.events.noShake"],
+        "Danger ring": ["garden.warningWidth", "garden.warningDash"],
+        "Tangle vine": ["garden.vine", "garden.vineWidth", "garden.tangledDim", "anim.tangleBlinkTime"],
+        "Rules": ["rules.tanglesToEnd", "rules.tangleBonus"]
       },
-      "text": ["tutorial.explore.yourGlyphling", "tutorial.explore.yourGlyphlingDanger", "tutorial.explore.yourGlyphlingTangled", "tutorial.explore.theirGlyphling", "tutorial.explore.theirGlyphlingDanger", "tutorial.explore.theirGlyphlingTangled"],
-      "sounds": ["draft.place", "glyph.lift", "glyph.step", "no"]
+      "text": ["tutorial.explore.yourGlyphling", "tutorial.explore.yourGlyphlingDanger", "tutorial.explore.yourGlyphlingTangled", "tutorial.explore.theirGlyphling", "tutorial.explore.theirGlyphlingDanger", "tutorial.explore.theirGlyphlingTangled", "tutorial.tips.yourDanger", "tutorial.tips.theirDanger", "tutorial.tips.tangleYours", "tutorial.tips.tangleTheirs"],
+      "sounds": ["draft.place", "glyph.lift", "glyph.step", "no", "danger.warn", "tangle"]
     },
     "seed": {
       "label": "Seed",
@@ -19,7 +22,7 @@
       "knobs": {
         "Look": ["anim.seedSize", "garden.seedShine"],
         "Tray": ["layout.trayTileMin", "layout.trayGap"],
-        "Drag": ["drag.styles.seed", "drag.targets.seed"],
+        "Drag": ["drag.styles.seed", "drag.targets.seed", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance"],
         "Throw": ["anim.flightBase", "anim.flightPerHex", "anim.arcHeight", "anim.hopHeight", "anim.hopTime"],
         "Grow": ["anim.growTime", "anim.growFrom"]
       },
@@ -44,7 +47,7 @@
         "Look": ["garden.background", "garden.hexFill", "garden.hexLine", "garden.hexLineWidth"],
         "Highlights": ["garden.glowStrength", "garden.castFill", "garden.castShade", "garden.dropStrength"],
         "Turn trails": ["garden.trailWidth", "garden.trailStrength", "anim.trailLead", "anim.trailHold"],
-        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare"]
+        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare", "layout.promptGap"]
       },
       "text": ["tutorial.explore.emptyHex", "tutorial.explore.moveOption", "tutorial.explore.plantOption", "tutorial.explore.draftOption"]
     },
@@ -54,7 +57,8 @@
       "knobs": {
         "Look": ["garden.wordBorder", "garden.wordBorderWidth", "garden.grownGlowStrength"],
         "Timing": ["anim.wordGlowTime"],
-        "Sound rules": ["feel.sounds"]
+        "Sound rules": ["feel.sounds"],
+        "Rules": ["rules.minWordLength", "rules.ownershipBonus", "rules.twoLetterWordsAtStart", "rules.britishWordsAtStart", "rules.vulgarWordsAtStart"]
       },
       "sounds": ["word.chord", "cast.flourish"]
     },
@@ -73,7 +77,7 @@
       "knobs": {
         "Look": ["garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
         "Timing": ["anim.scorePopDelay", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime"],
-        "Feel": ["feel.events.seedPop"]
+        "Feel": ["feel.events.seedPop", "feel.tiers"]
       },
       "text": ["game.scorePop"],
       "sounds": ["score.pop"]
@@ -84,29 +88,19 @@
       "knobs": {
         "Look": ["garden.scoreTotalSize", "garden.scorePop"],
         "Timing": ["anim.scoreTotalHold", "anim.scoreTotalFade", "anim.scoreTotalGrow", "anim.scoreTotalMaxGrow"],
-        "Feel": ["feel.events.totalPop"]
+        "Feel": ["feel.events.totalPop", "feel.tiers"]
       },
       "sounds": ["score.arrive"]
-    },
-    "tangle": {
-      "label": "Danger & tangle",
-      "help": "The dashed warning ring round a glyphling in danger, and the vine on a tangled one.",
-      "knobs": {
-        "Warning": ["garden.warningWidth", "garden.warningDash"],
-        "Vine": ["garden.vine", "garden.vineWidth", "garden.tangledDim"],
-        "End reveal": ["anim.tangleBlinkTime"]
-      },
-      "text": ["tutorial.tips.yourDanger", "tutorial.tips.theirDanger", "tutorial.tips.tangleYours", "tutorial.tips.tangleTheirs"],
-      "sounds": ["danger.warn", "tangle"]
     },
     "tray": {
       "label": "Seed tray",
       "help": "Your hand of seeds along the bottom (or side).",
       "find": "svg.game-tray",
       "knobs": {
-        "Size": ["layout.trayTileMin", "layout.trayGap"],
+        "Size": ["layout.trayTileMin", "layout.trayGap", "layout.stackedAspect", "layout.bottomRoom"],
         "Reorder": ["drag.styles.reorder", "drag.targets.reorder", "drag.makeRoom", "drag.roomTime", "drag.trayLeave"],
-        "Refresh": ["anim.refreshShrinkTime", "anim.refreshGrowTime", "anim.refreshStagger", "anim.refreshPause", "feel.events.refreshGrow"]
+        "Refresh": ["anim.refreshShrinkTime", "anim.refreshGrowTime", "anim.refreshStagger", "anim.refreshPause", "feel.events.refreshGrow"],
+        "Rules": ["rules.handSize"]
       },
       "sounds": ["refresh.out", "refresh.in", "tray.shuffle"]
     },
@@ -115,7 +109,8 @@
       "help": "Whose turn it is (the avatar + name at the top).",
       "knobs": {
         "Turn pulse": ["anim.turnPulseTime", "feel.events.turnPulse"],
-        "Side panel": ["layout.sidePanelShare", "layout.sideShortHeight", "layout.sideShortMaxShare"]
+        "Side panel": ["layout.sidePanelShare", "layout.sideShortHeight", "layout.sideShortMaxShare"],
+        "Rules": ["rules.randomTurnOrder"]
       },
       "text": ["game.turnOf", "tutorial.explore.bar", "tutorial.explore.barDetail"],
       "sounds": ["turn.yours"]
@@ -127,7 +122,9 @@
       "knobs": {
         "Timing": ["tutorial.tipSeconds", "tutorial.tipDelay", "tutorial.tipsPerTurn", "tutorial.maxPauses", "tutorial.railsCalloutDelay"],
         "Nudges": ["tutorial.idleGlow", "tutorial.idleText", "tutorial.idleRepeat", "tutorial.laterIdleText", "tutorial.onlineIdleText", "tutorial.wrongRepeat"],
-        "Look": ["tutorial.calloutRoom", "tutorial.railsDim"]
+        "Look": ["tutorial.calloutRoom", "tutorial.railsDim"],
+        "Sprout": ["tutorial.selfTangleBy", "tutorial.sproutSlowdown"],
+        "Explore": ["tutorial.exploreRemind", "tutorial.exploreDim"]
       },
       "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails"]
     },
@@ -135,10 +132,37 @@
       "label": "Award ribbon",
       "help": "The place ribbon on the end screen.",
       "knobs": {
-        "Look": ["endscreen.ribbon1", "endscreen.ribbon2", "endscreen.ribbon3", "endscreen.ribbon4", "endscreen.ribbonSize"],
-        "Awards carousel": ["endscreen.carouselSeconds", "endscreen.carouselPauseSeconds"]
+        "Look": ["endscreen.ribbon1", "endscreen.ribbon2", "endscreen.ribbon3", "endscreen.ribbon4", "endscreen.ribbonSize"]
+      }
+    },
+    "award": {
+      "label": "Award",
+      "help": "One award in the end screen's highlights: who earned it and why.",
+      "knobs": {
+        "Which comes first": ["endscreen.awardOrder"],
+        "When it is earned": ["endscreen.lockdownMinDrop", "endscreen.lockdownMaxAfter", "endscreen.pincerMinFrom", "endscreen.pincerMinShare", "endscreen.weedMaxMagic", "endscreen.weedMinBlocked", "endscreen.weedMinCut", "endscreen.walledMinMagic", "endscreen.walledMaxSize", "endscreen.hedgeMinOver", "endscreen.powerPlayMin", "endscreen.powerPlayMinLetters", "endscreen.longWordMinSmall", "endscreen.longWordMinLarge", "endscreen.hijackMinFrom", "endscreen.bridgeMinLength", "endscreen.superBridgeMinLength", "endscreen.closeCallMinAfter", "endscreen.tricksterMinBehind", "endscreen.calledItMinLead"],
+        "Carousel": ["endscreen.carouselSeconds", "endscreen.carouselPauseSeconds"]
       },
+      "text": ["game.gameOver.awards", "game.gameOver.highlights"],
       "sounds": ["end.award"]
+    },
+    "storyChart": {
+      "label": "Story chart",
+      "help": "The end screen's Story page: everyone's Magic over the game, with moment markers and the turn list.",
+      "knobs": {
+        "Chart": ["endscreen.maxMarkers", "endscreen.chartDrawSeconds", "endscreen.chartLineWidth", "endscreen.chartHeight"],
+        "Bot band": ["endscreen.botBandWidth", "endscreen.botBandDarken", "endscreen.botBandOpacity"],
+        "Turn list": ["endscreen.storyListFontScale", "endscreen.storyListMaxWordChars", "endscreen.storyListBackdrop", "endscreen.storyListMaxWidth", "endscreen.storyListMaxHeight", "endscreen.storyListSmallest"]
+      },
+      "text": ["game.gameOver.chart"]
+    },
+    "resultsPage": {
+      "label": "Results page",
+      "help": "A page of the end screen (results, story, scorecard) — how big it may grow.",
+      "knobs": {
+        "Size": ["endscreen.pageFill", "endscreen.maxZoom"]
+      },
+      "text": ["game.gameOver.tabs", "game.gameOver.card"]
     },
     "reveal": {
       "label": "End reveal",

@@ -1,9 +1,9 @@
 // SELECT MODE — what the Dev Kit tells a panel (Tuning, Text, Sound) while it's shown under the Select tab:
-// which of its rows the picked object has, in which sections, and how to take one off. null = the panel's own view.
+// which of its rows the picked object has, and in which sections. null = the panel's own view.
 import { createContext } from 'react'
-import { coveredBy, type KnobKind, type KnobPick } from './selectMap'
+import { coveredBy, type KnobPick } from './selectMap'
 
-export type PanelPick = { pick: KnobPick; remove: (kind: KnobKind, id: string) => void }
+export type PanelPick = { pick: KnobPick }
 
 export const DevKitPick = createContext<PanelPick | null>(null)
 

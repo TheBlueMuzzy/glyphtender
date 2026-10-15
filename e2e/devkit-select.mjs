@@ -5,13 +5,14 @@
 //   (desktop: thin pink outline named "Glyphling") → click / tap it: the game does NOT react (no move options), it's
 //   picked (desktop: thick outline + its twins dashed; phone: the panel comes back) → the panel lists its knobs in
 //   its own sections (Look · Drag · Move…) + its Text + Sounds → a slider changed there is the SAME value in the
-//   Tuning tab → Recently on screen says what's showing and what hasn't been seen → (desktop) + Add a knob saves
-//   content/devkit/select.json, ✕ takes it off again, and the file ends exactly as it started → the game plays on to
-//   the end with the panel open: the end reveal lands in "Recently on screen". No console errors, nothing sideways.
+//   Tuning tab → Recently on screen says what's showing and what hasn't been seen → a click on a danger ring picks the
+//   Glyphling (the ring is part of it: its Danger ring + Rules sections show) → closing the Dev Kit forgets the pick
+//   (Dev Kit 0.16.0) → the game plays on to the end with the panel open: the end reveal lands in "Recently on screen".
+//   No console errors, nothing sideways.
 // Menus first (Dev Kit 0.15.0, F88): on the main menu, pick a Button → its shared UI style rows (Color) + 2 sounds,
 //   corners → 0rem squares every game button live, Undo puts it back; open Settings → the main menu behind it can't be
 //   picked → pick a Tab, and a Toggle switch where one isn't behind the panel (phone).
-// WRITES content/devkit/select.json (puts it back) — so check-all runs it ALONE.
+// Never writes content/devkit/select.json since 0.16.0 (it still puts the file back if something did).
 // Starts its OWN dev server (default port 5448 — never Muzzy's) and closes only that one.
 //   npm run e2e:devkit-select [outDir] [port]
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -46,7 +47,7 @@ function pickedView() {
     name: document.querySelector('.sel-picked-name')?.textContent ?? null,
     panels: bodies.filter(shown).map((b) => b.getAttribute('aria-label')),
     sections: [...document.querySelectorAll('.devkit-body.is-picked-view .dk-section-title, .devkit-body.is-picked-view .sb-section-head button')].filter(shown).map((t) => t.textContent.trim()),
-    knobs: document.querySelectorAll('.devkit-body.is-picked-view .sel-knob').length,
+    knobs: document.querySelectorAll('.devkit-body.is-picked-view :is(.tt-row, .tx-row)').length,
     sounds: document.querySelectorAll('.devkit-body.is-picked-view .sb-sound').length,
     boxes: [...document.querySelectorAll('.devkit-select-box')].map((b) => `${b.className.replace('devkit-select-box ', '')}:${b.dataset.label}`),
     recent: Object.fromEntries([...document.querySelectorAll('.sel-recent .sel-item')].map((b) => [b.querySelector('.sel-item-name').textContent, b.querySelector('.sel-item-when').textContent])),
@@ -57,14 +58,11 @@ function pickedView() {
 function glyphlingSpot() {
   const panel = document.querySelector('aside.devkit').getBoundingClientRect()
   const free = (x, y) => panel.height < 200 ? y < panel.top : x < panel.left
-  // not one in danger: its warning ring is a smaller box round the same spot, so a click there picks the ring
-  const rings = [...document.querySelectorAll('[data-knobs="tangle"]')].map((el) => el.getBoundingClientRect())
-  const inRing = (x, y) => rings.some((r) => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)
   for (const g of document.querySelectorAll('.game-garden [data-knobs="glyphling"]')) {
     const r = g.getBoundingClientRect()
     const x = r.left + r.width / 2
     const y = r.top + r.height / 2
-    if (r.width > 4 && free(x, y) && !inRing(x, y)) return { x, y }
+    if (r.width > 4 && free(x, y)) return { x, y }
   }
   return null
 }
@@ -263,12 +261,12 @@ try {
       check('phone: a pick brings the whole panel back', (await page.locator('aside.devkit').boundingBox()).height > 400)
     }
     check(`its knobs in its own sections: ${view.sections.join(' · ')}`, ['Look', 'Drag', 'Move', 'Text', 'Sounds'].every((t) => view.sections.some((s) => s.includes(t))))
-    check(`${view.knobs} knob rows + ${view.sounds} sounds, from Tuning / Text / Sound (${view.panels.join(', ')})`, view.knobs >= 20 && view.sounds === 4 && view.panels.join() === 'Select,Tuning,Text,Sound')
+    check(`${view.knobs} knob rows + ${view.sounds} sounds, from Tuning / Text / Sound (${view.panels.join(', ')})`, view.knobs >= 20 && view.sounds === 6 && view.panels.join() === 'Select,Tuning,Text,Sound')
     await page.locator('.devkit-body.is-picked-view').first().scrollIntoViewIfNeeded()
     await shot('4-picked-knobs')
 
     // A knob changed here is the same value in the Tuning tab (one source of truth)
-    const sizeBox = page.locator('.devkit-body.is-picked-view .sel-knob').first().locator('input[type="number"]')
+    const sizeBox = page.locator('.devkit-body.is-picked-view .tt-row').first().locator('input[type="number"]')
     const was = await sizeBox.inputValue()
     await sizeBox.fill('0.8')
     await sizeBox.press('Enter')
@@ -282,23 +280,29 @@ try {
     await pickTab(page, 'Select')
     check(`Undo put it back (${was})`, (await sizeBox.inputValue()) === was)
 
-    if (!size.mobile) {
-      // + Add a knob → saved; ✕ → saved; the file ends exactly as it started
-      await page.getByRole('button', { name: '+ Add a knob' }).click()
-      await page.getByRole('searchbox', { name: 'Search for a knob to add' }).fill('hex line width')
-      await page.getByLabel('Settings go in').selectOption({ label: 'New section…' })
-      await page.getByRole('textbox', { name: 'New section name' }).fill('E2E test')
-      await page.locator('.sel-add .sel-item').first().click()
-      await page.waitForTimeout(500)
-      const added = JSON.parse(readFileSync(SELECT_FILE, 'utf8')).objects.glyphling.knobs['E2E test']
-      check(`+ Add a knob saved it to select.json (${JSON.stringify(added)})`, JSON.stringify(added) === '["garden.hexLineWidth"]')
-      view = await page.evaluate(pickedView)
-      check('the new section shows in the pick', view.sections.includes('E2E test'))
-      await shot('5-added-knob')
-      await page.getByRole('button', { name: 'Take garden.hexLineWidth off Glyphling' }).click()
-      await page.waitForTimeout(500)
-      check('✕ took it off and the file is exactly as it started', readFileSync(SELECT_FILE, 'utf8') === original)
-    }
+    check('no + Add a knob / ✕ — the lists are Claude\'s to keep complete', (await page.getByRole('button', { name: '+ Add a knob' }).count()) === 0)
+    // A danger ring is part of the glyphling: a click on it picks the Glyphling, with the ring's sections and the rules
+    if (!(await page.locator('aside.devkit.is-selecting').count())) await page.getByRole('button', { name: /Select mode: off/ }).click() // (phone: panel → bar)
+    const ring = await page.evaluate(() => {
+      const panel = document.querySelector('aside.devkit').getBoundingClientRect()
+      for (const el of document.querySelectorAll('[data-danger]')) {
+        const r = el.getBoundingClientRect()
+        const x = r.left + r.width / 2
+        const y = r.top + r.height * 0.2 // inside the ring's hex, above the middle (its edge borders the next hex's seed)
+        if (r.width > 4 && (panel.height < 200 ? y < panel.top : x < panel.left)) return { x: x - 1, y: y - 1, width: 2, height: 2 }
+      }
+      return null
+    })
+    if (ring) {
+      view = await pickAt(ring)
+      check(`a click on a danger ring picks ${view.name} (${view.sections.join(' · ')})`, view.name === 'Glyphling' && view.sections.includes('Danger ring') && view.sections.includes('Rules'))
+    } else fail('no danger ring on screen to click')
+    // Closing the Dev Kit forgets the pick
+    if (await page.getByRole('button', { name: /Select mode: on/ }).isVisible()) await page.getByRole('button', { name: /Select mode: on/ }).click()
+    await page.keyboard.press('Backquote')
+    await page.waitForTimeout(200)
+    await openDevKit(page)
+    check('closing the Dev Kit forgot the pick', (await page.locator('.sel-picked').count()) === 0)
 
     // The game plays on to the end with the panel open: the reveal is seen
     await page.getByRole('button', { name: /Select mode: on/ }).click().catch(() => {})

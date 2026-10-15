@@ -9,7 +9,7 @@
 // through liveTuning / useLiveTuning. ↺ on a row = back to the saved value. A dot = changed, not saved yet.
 // Under the Select tab (a DevKitPick, select/pickContext.ts): only the picked object's settings, in ITS sections,
 // each with ✕ to take it off the object — the same rows and Save as here, so an edit is one edit wherever it's made.
-import { useContext, useState } from 'react'
+import { Fragment, useContext, useState } from 'react'
 import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
 import { copyForClaudeText } from '../color/colorLogic'
 import { Highlight, SearchCount, Section, SectionIndex } from '../search/Section'
@@ -137,20 +137,7 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '
             defaultOpen
             changed={section.rows.some(({ item }) => isChanged(item))}
           >
-            {section.rows.map(({ id, item }) => (
-              <div key={`${item.file}:${item.path}`} className="sel-knob">
-                {row(item)}
-                <button
-                  type="button"
-                  className="sel-remove"
-                  onClick={() => picking.remove('tuning', id)}
-                  aria-label={`Take ${id} off ${picking.pick.label}`}
-                  title={`Take "${id}" off ${picking.pick.label} (the setting itself stays)`}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+            {section.rows.map(({ item }) => <Fragment key={`${item.file}:${item.path}`}>{row(item)}</Fragment>)}
           </Section>
         ))}
         {footer}

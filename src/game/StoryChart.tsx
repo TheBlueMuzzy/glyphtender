@@ -200,7 +200,7 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
   const ring = (x: number, y: number, r: number) => <circle cx={x} cy={y} r={r} fill="none" stroke="var(--focus)" strokeWidth={2.5} />
 
   return (
-    <div ref={box} className="game-end-chart">
+    <div ref={box} className="game-end-chart" data-knobs="storyChart">
       {width > 0 && (
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="game-end-chart-svg"
           role="slider" tabIndex={0} aria-label={w.label} aria-valuemin={first} aria-valuemax={end} aria-valuenow={at} aria-valuetext={spotLabel(at)}

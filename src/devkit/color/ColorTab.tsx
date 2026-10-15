@@ -4,7 +4,7 @@
 // ↺ on a row = back to the preset. A dot next to a name = changed, not saved yet.
 // The Dev Kit's search box filters the rows (the `query` prop); the colour-blind preview hides while searching.
 // Under the Select tab (a DevKitPick, select/pickContext.ts): only the picked object's style values, in one section,
-//   each with ✕ to take it off the object — same rows, same Save. They're shared: a button's corners are every button's.
+//   same rows, same Save. They're shared: a button's corners are every button's.
 // A game's own colours (e.g. a 3D table) go in a game tab: src/devkit-game/ (ColourRow is free to use there).
 import { useContext, useEffect, useState, type ReactNode } from 'react'
 import { Highlight, SearchCount, Section } from '../search/Section'
@@ -118,7 +118,7 @@ function UiColoursEditor({ query }: { query: string }) {
     }
   }
 
-  // Under the Select tab: the picked object's style values only, each with ✕
+  // Under the Select tab: the picked object's style values only
   const pickedTokens = picking ? picking.pick.style.filter((t) => t in colours) : []
   if (picking && pickedTokens.length === 0) return null
 
@@ -134,20 +134,7 @@ function UiColoursEditor({ query }: { query: string }) {
           changed={pickedTokens.some((t) => !sameColour(colours[t], saved[t]))}
         >
           <p className="ct-legend">Shared — changes every {picking.pick.label.toLowerCase()} (and anything else using it) · content/ui/style.json</p>
-          {pickedTokens.map((token) => (
-            <div key={token} className="sel-knob">
-              {row(token, uiLabel(token))}
-              <button
-                type="button"
-                className="sel-remove"
-                onClick={() => picking.remove('style', token)}
-                aria-label={`Take ${token} off ${picking.pick.label}`}
-                title={`Take "${token}" off ${picking.pick.label} (the value itself stays)`}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+          {pickedTokens.map((token) => row(token, uiLabel(token)))}
         </Section>
       ) : (
         <>

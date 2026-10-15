@@ -1,7 +1,7 @@
 // SELECT MODE — the game's object → knobs list (content/devkit/select.json), kept apart from the page so it can be
 // tested (selectMap.test.ts). Nothing here touches the page or the files.
 //
-// content/devkit/select.json (the game's — Muzzy owns it; "+ Add a knob" in the Select tab writes it too):
+// content/devkit/select.json (the game's — Claude keeps it complete; the Dev Kit only reads it):
 //   { "objects": { "glyphling": {
 //       "label": "Glyphling",                 the name shown on the outline and in the panel
 //       "help": "A player's piece.",          optional line under it
@@ -30,7 +30,7 @@ export type SelectObject = {
 
 export type SelectFile = Record<string, unknown> // the file as read (its _help and anything else are kept on Save)
 
-/** Every setting the game has, for checking the file and for "+ Add a knob". */
+/** Every setting the game has, for checking the file (and that every setting is on some object). */
 export type Known = { tuning: string[]; text: string[]; sounds: string[]; style: string[] } // tuning = "<file>.<path>" leaves
 
 /** The ids a Select tab picks and the panels show (DevKit.tsx hands each panel its part). */
@@ -94,40 +94,10 @@ export function checkSelectMap(file: SelectFile, known: Known): string[] {
   return problems
 }
 
-/** The file with one knob added to an object (tuning goes in `section`; a new section is made if needed). */
-export function withKnob(file: SelectFile, objectId: string, kind: KnobKind, id: string, section = 'More'): SelectFile {
-  const objects = objectsOf(file)
-  const obj = isRecord(objects[objectId]) ? objects[objectId] : { label: objectId }
-  let next: Record<string, unknown>
-  if (kind === 'tuning') {
-    const knobs = isRecord(obj.knobs) ? obj.knobs : {}
-    const list = strings(knobs[section])
-    if (list.includes(id)) return file
-    next = { ...obj, knobs: { ...knobs, [section]: [...list, id] } }
-  } else {
-    const list = strings(obj[kind])
-    if (list.includes(id)) return file
-    next = { ...obj, [kind]: [...list, id] }
-  }
-  return { ...file, objects: { ...objects, [objectId]: next } }
-}
-
-/** The file with one knob taken off an object (an emptied tuning section goes too). */
-export function withoutKnob(file: SelectFile, objectId: string, kind: KnobKind, id: string): SelectFile {
-  const objects = objectsOf(file)
-  const obj = objects[objectId]
-  if (!isRecord(obj)) return file
-  let next: Record<string, unknown>
-  if (kind === 'tuning') {
-    const knobs = isRecord(obj.knobs) ? obj.knobs : {}
-    const kept = Object.entries(knobs)
-      .map(([title, ids]) => [title, strings(ids).filter((k) => k !== id)] as const)
-      .filter(([, ids]) => ids.length > 0)
-    next = { ...obj, knobs: Object.fromEntries(kept) }
-  } else {
-    next = { ...obj, [kind]: strings(obj[kind]).filter((k) => k !== id) }
-  }
-  return { ...file, objects: { ...objects, [objectId]: next } }
+/** Settings no object lists — the game's test wants none, so a click on anything shows everything that affects it. */
+export function unlistedSettings(file: SelectFile, tuning: string[]): string[] {
+  const ids = readSelectObjects(file).flatMap((o) => o.knobs.flatMap((k) => k.ids))
+  return tuning.filter((leaf) => !ids.some((id) => coveredBy(leaf, id)))
 }
 
 /** The ids written on an element: data-knobs="glyphling board" → ['glyphling', 'board']. */

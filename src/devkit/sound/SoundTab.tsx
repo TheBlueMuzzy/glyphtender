@@ -142,9 +142,6 @@ export function SoundTab({ getAudio, file, path, tuningName, baseUrl, query = ''
                         </button>
                         {row.tier && <span className="sb-badge" title={`The ${row.tier} feel tier's sound`}>{row.tier}</span>}
                         <span className="sb-files-count" title="How many files (variants)">{row.files.length} {row.files.length === 1 ? 'file' : 'files'}</span>
-                        {picking && (
-                          <button type="button" className="sel-remove" onClick={() => picking.remove('sounds', row.name)} aria-label={`Take ${row.name} off ${picking.pick.label}`} title={`Take "${row.name}" off ${picking.pick.label} (the sound itself stays)`}>✕</button>
-                        )}
                         <button type="button" className="sb-icon" onClick={() => void playTimes(audio, row.name, 1)} aria-label={`Play ${row.name}`}>▶</button>
                         {isLoop
                           ? <button type="button" className="sb-icon" onClick={() => audio.stop(row.name, { fadeMs: 300 })} aria-label={`Stop ${row.name}`}>■</button>

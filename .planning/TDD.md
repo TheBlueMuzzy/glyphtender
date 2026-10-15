@@ -158,6 +158,19 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D99 · 2026-10-14 · Dev Kit Select: a click shows EVERYTHING that affects the thing — nothing to manage, nothing remembered
+  Proposed by: Muzzy ("I want confidence that if I click something, it will show a list of associated attributes";
+  "selecting the glyphling would show the attributes associated with all the components that deal with the glyphling,
+  including the tangled and danger rings"; the pick "deselects" when you leave the Dev Kit — "I don't see why it would
+  ever carry over"; the tucking panel was his idea too)
+  Chose: Dev Kit 0.16.0 — no + Add a knob / ✕ (Claude keeps select.json complete; select.test.ts fails if any tuning
+  setting is on no object: unlistedSettings). Rules are in, on the thing they affect (Glyphling: tangles to end, tangle
+  bonus · Word: shortest word, own-seed bonus, word lists at start · Seed tray: hand size · Turn indicator: random
+  order). A thing's parts carry its tag: the danger ring + tangle vine are the Glyphling's (no separate "Danger &
+  tangle" object). New end-screen things: Award, Story chart, Results page. Closing the Dev Kit forgets the pick; only
+  the Outline slider is remembered in the browser. 0.15.1: while selecting on a desktop, the panel tucks to a pink bar
+  when the mouse leaves it and slides back when it returns.
+  Over: lists Muzzy edits in the Dev Kit (more to manage, less trust); rules kept out (an exception to remember).
 D98 · 2026-10-14 · Dev Kit Select: menus too — a kit part's knobs are the UI kit's SHARED style values
   Proposed by: Muzzy ("It'd be nice to be able to click on a button, or a toggle and update the settings for it")
   Chose: 12 kit-part objects in select.json found by `find` (.kit-button, .kit-toggle, .kit-slider, .kit-picker, .kit-tab,

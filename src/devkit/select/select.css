@@ -37,31 +37,7 @@
 .sel-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .sel-nothing { margin: 0; }
 
-.sel-add { display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 6px; background: #1d1e26; }
-.sel-add-search, .sel-add-section input, .sel-add-section select {
-  padding: 4px 6px;
-  background: #101116;
-  border: 1px solid #4a4c5c;
-  border-radius: 4px;
-}
-.sel-add-section { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #c9cad6; }
 
-/* A knob row under the Select tab: the real row + ✕ to take it off the object */
-.sel-knob { display: grid; grid-template-columns: 1fr 26px; align-items: start; gap: 4px; }
-.sel-knob > :first-child { min-width: 0; }
-.sel-remove {
-  width: 26px;
-  height: 26px;
-  margin-top: 4px;
-  padding: 0;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  color: #9a9bab;
-  cursor: pointer;
-}
-.sel-remove:hover { border-color: #ff4fa3; color: #ff8cc4; }
-.sb-sound .sel-remove { margin-top: 0; }
 
 /* Under the Select tab, each tool's block starts with a small rule so the Saves read as separate */
 .devkit-body.is-picked-view { border-top: 1px solid #34353f; }

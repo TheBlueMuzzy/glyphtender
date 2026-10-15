@@ -6,7 +6,8 @@
 //   layout and float above it — with a hole cut where the Dev Kit panel is, so they never cover its rows. A requestAnimationFrame loop moves them with the things (they glide, hop, scroll) —
 //   straight on the elements' style, never React state per frame.
 //   While the Dev Kit is open it also notes what's on screen (a 300 ms look + a watch for things that pop in and out
-//   faster than that), for the Select tab's "Recently on screen" list. Closing the Dev Kit turns select mode off.
+//   faster than that), for the Select tab's "Recently on screen" list. Closing the Dev Kit turns select mode off and
+//   forgets the pick.
 import { useEffect, useRef } from 'react'
 import { elementsOf, idsOnScreen, objectAt } from './domPicker'
 import { tagsOf } from './selectMap'
@@ -28,9 +29,9 @@ export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
   const hoverEl = useRef<Element | null>(null)
   const drawing = panelOpen && s.on
 
-  // Closing the Dev Kit ends select mode (the pick stays)
+  // Closing the Dev Kit ends select mode and forgets the pick (picking is for a change you're making now)
   useEffect(() => {
-    if (!panelOpen && getSelect().on) setSelect({ on: false, hover: null })
+    if (!panelOpen && (getSelect().on || getSelect().picked)) setSelect({ on: false, hover: null, picked: null, pickedEl: null })
   }, [panelOpen])
 
   // The outline box sits in the top layer only while it's drawing

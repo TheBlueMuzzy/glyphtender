@@ -27,8 +27,8 @@ import { goToSection } from './search/sectionState'
 import { DevKitPick, type PanelPick } from './select/pickContext'
 import { NARROW_PX, SelectLayer } from './select/SelectLayer'
 import { selectFile } from './select/selectFiles'
-import { pickOf, withoutKnob } from './select/selectMap'
-import { getSelect, pickedObject, saveSelectFile, setSelect, useSelect } from './select/selectStore'
+import { pickOf } from './select/selectMap'
+import { pickedObject, setSelect, useSelect } from './select/selectStore'
 import { SelectTab } from './select/SelectTab'
 import { SnapshotsTab } from './snapshots/SnapshotsTab'
 import { TuningTab } from './tuning/TuningTab'
@@ -193,10 +193,7 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
   // Select tab with something picked: the Tuning / Color / Text / Sound panels show under it, filtered to the pick
   const select = useSelect()
   const picked = tabId === 'select' ? pickedObject(select) : null
-  const panelPick: PanelPick | null = picked && {
-    pick: pickOf(picked),
-    remove: (kind, id) => void saveSelectFile(withoutKnob(getSelect().file, picked.id, kind, id)),
-  }
+  const panelPick: PanelPick | null = picked && { pick: pickOf(picked) }
   // Select mode on a desktop: mouse off the panel → it tucks away to a bar; mouse back over it → it slides back in
   const [tucked, setTucked] = useState(false)
   const tuckable = select.on && open

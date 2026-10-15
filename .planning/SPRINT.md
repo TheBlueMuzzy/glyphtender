@@ -11,11 +11,11 @@ Done when: with the Dev Kit open, Select → select mode on → hover a glyphlin
 - [x] 🤖 5. Glyphtender src/devkit-game/select.test.ts (file ↔ tags agree, no unknown keys) + e2e/devkit-select.mjs (port 5448) + screenshots
 - [x] 🤖 6. Full check, code review, /save
 Check: e2e:devkit-select phone + desktop screenshots (hover, pick, knobs list, recent list); devkit tests; check:full.
-Ask Muzzy: (4 questions — see also the danger-ring note in Notes) (1) knob lists in content/devkit/select.json that you own, with "+ Add a knob" — OK? (recommended in chat 2026-10-14, no objection) (2) game rules left out of Select (add one with + Add a knob if you want it) — agree? (3) the outline slider + the pick are remembered per browser (not in a synced file) — fine?
+Answered by Muzzy 2026-10-14 (TDD D99, Dev Kit 0.16.0): (1) no + Add a knob / ✕ — a click shows everything that affects the thing, Claude keeps the lists complete (a test checks every setting is on some object) (2) rules are in, on the thing they affect (3) closing the Dev Kit forgets the pick; only the outline slider is remembered (4) the danger ring and tangle vine are part of the Glyphling.
 Notes:
 - Built 2026-10-14 overnight (auto). Framework branch dev/select-mode (Dev Kit 0.14.0, pushed); game branch dev/select-mode.
 - Phone (found while writing the e2e): the panel covers most of a 390 px screen, so select mode shrinks it to a bar at the bottom ("Tap something in the game to pick it · Done"); a tap picks and brings the panel back with the pick.
-- A glyphling in danger: a click on it picks the warning ring (Danger & tangle) — its box is the smaller one. Pick the glyphling from Recently on screen, or click a safe one. Ask Muzzy: OK, or should the glyphling win there?
+- A glyphling in danger: its warning ring and vine are part of the Glyphling (D99), so a click on either picks the Glyphling.
 - Outlines show only while select mode is on (not while you play with a pick) — so they never cover the game while tuning.
 - UI style colours (Color tab tokens) aren't in Select yet — Glyphtender's colours are tuning keys, so nothing needs them.
 - Review (low): 1 bug fixed (recent list order). Full check 35/35 after 2 fixes (10 tabs fit a desktop row; 1-pixel shot flake re-ran SAME).

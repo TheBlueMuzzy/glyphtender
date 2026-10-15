@@ -1,12 +1,12 @@
 // SELECT MODE — one small shared store: is select mode on, what's picked, how strong the outlines are, what's been
 // seen on screen, and the object → knobs file as edited. The Select tab, the outline layer (SelectLayer.tsx) and
 // the Dev Kit panel (DevKit.tsx, to show the pick's knobs) all read it.
-// The pick and the outline strength are remembered per game in this browser (localStorage "devkit-select:<game>"),
-// so they survive a refresh. Select mode itself always starts off.
+// Picking is for a change you mean to make now: the pick is forgotten when the Dev Kit closes and never stored
+// (Muzzy, 2026-10-14). Only the outline strength (how the tool looks) is remembered in this browser
+// (localStorage "devkit-select:<game>"). Select mode always starts off.
 import { useSyncExternalStore } from 'react'
 import { getDevKitGame } from '../devkitGame'
-import { CAN_SAVE, saveContentFile } from '../saveContent'
-import { SELECT_FILE, selectFile } from './selectFiles'
+import { selectFile } from './selectFiles'
 import { readSelectObjects, type SelectFile, type SelectObject } from './selectMap'
 
 export type SelectState = {
@@ -17,8 +17,7 @@ export type SelectState = {
   outline: number // 0.2–1: how solid the pink outlines are
   seen: Record<string, number> // object id → when it was last on screen (Date.now())
   onScreen: string[] // ids showing right now
-  file: SelectFile // content/devkit/select.json as edited (+ Add a knob)
-  savedFile: SelectFile // as saved
+  file: SelectFile // content/devkit/select.json
   objects: SelectObject[] // readSelectObjects(file)
 }
 
@@ -27,21 +26,18 @@ const DEFAULT_OUTLINE = 0.9
 
 const storageKey = () => `devkit-select:${getDevKitGame()?.name ?? document.title}`
 
-function remembered(): { picked: string | null; outline: number } {
+function rememberedOutline(): number {
   try {
-    const raw = JSON.parse(localStorage.getItem(storageKey()) ?? '{}') as { picked?: unknown; outline?: unknown }
-    return {
-      picked: typeof raw.picked === 'string' ? raw.picked : null,
-      outline: typeof raw.outline === 'number' ? Math.min(1, Math.max(OUTLINE_MIN, raw.outline)) : DEFAULT_OUTLINE,
-    }
+    const raw = JSON.parse(localStorage.getItem(storageKey()) ?? '{}') as { outline?: unknown }
+    return typeof raw.outline === 'number' ? Math.min(1, Math.max(OUTLINE_MIN, raw.outline)) : DEFAULT_OUTLINE
   } catch {
-    return { picked: null, outline: DEFAULT_OUTLINE }
+    return DEFAULT_OUTLINE
   }
 }
 
-function remember(s: SelectState) {
+function rememberOutline(outline: number) {
   try {
-    localStorage.setItem(storageKey(), JSON.stringify({ picked: s.picked, outline: s.outline }))
+    localStorage.setItem(storageKey(), JSON.stringify({ outline }))
   } catch {
     // private window / storage blocked: it just won't be remembered
   }
@@ -52,19 +48,16 @@ const listeners = new Set<() => void>()
 
 /** Start the store with a file (normally the game's own, on first use; tests pass their own). */
 export function initSelect(file: SelectFile) {
-  const { picked, outline } = remembered()
-  const objects = readSelectObjects(file)
   state = {
     on: false,
-    picked: picked && objects.some((o) => o.id === picked) ? picked : null,
+    picked: null,
     pickedEl: null,
     hover: null,
-    outline,
+    outline: rememberedOutline(),
     seen: {},
     onScreen: [],
     file,
-    savedFile: file,
-    objects,
+    objects: readSelectObjects(file),
   }
 }
 
@@ -78,7 +71,7 @@ export function setSelect(change: Partial<SelectState>) {
   const next = { ...before, ...change }
   if (change.file) next.objects = readSelectObjects(change.file)
   state = next
-  if (next.picked !== before.picked || next.outline !== before.outline) remember(next)
+  if (next.outline !== before.outline) rememberOutline(next.outline)
   for (const listener of listeners) listener()
 }
 
@@ -99,18 +92,3 @@ export function useSelect(): SelectState {
 
 /** The picked object, if it's still in the file. */
 export const pickedObject = (s: SelectState) => s.objects.find((o) => o.id === s.picked) ?? null
-
-export type SaveStatus = { kind: 'ok' | 'error' | 'info'; text: string }
-
-/** Write the edited object list (dev), or say how to keep it (live build). Shared with DevKit's ✕ on a knob row. */
-export async function saveSelectFile(file: SelectFile): Promise<SaveStatus> {
-  setSelect({ file })
-  if (!CAN_SAVE) return { kind: 'info', text: 'Live build: this lasts until you refresh — Copy for Claude to keep it.' }
-  try {
-    await saveContentFile(SELECT_FILE, file)
-    setSelect({ savedFile: file })
-    return { kind: 'ok', text: `Saved ${SELECT_FILE}.` }
-  } catch (e) {
-    return { kind: 'error', text: `Couldn't save: ${(e as Error).message}` }
-  }
-}

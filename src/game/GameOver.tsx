@@ -192,7 +192,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
         </div>
         <div ref={pageBox} className="game-end-page" onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => (swipe.current = null)}>
           <ScrollArea key={page} label={w.tabs[page]}>
-            <div role="tabpanel" aria-label={w.tabs[page]} className="game-end-tabpanel" data-page={page}>
+            <div role="tabpanel" aria-label={w.tabs[page]} className="game-end-tabpanel" data-knobs="resultsPage" data-page={page}>
               {page === 'results' && (
                 <EndResults title={game.winners.length > 1 ? w.sharedWin : winnerTitle(game)} game={game} ranked={end.ranked} cards={end.cards} highlights={<EndHighlights awards={end.awards} index={awardAt} onIndex={setAwardAt} name={name} big={wide && !short}
                   autoSeconds={frozen ? 0 : tuning.carouselSeconds /* ?freeze (dev): held still for screenshots */} pauseSeconds={tuning.carouselPauseSeconds} />} colours={colours} tuning={tuning} wide={wide} compact={short}

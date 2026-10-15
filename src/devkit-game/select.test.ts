@@ -4,7 +4,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { catalog, selectFile } from '../devkit/select/selectFiles'
-import { checkSelectMap, readSelectObjects, tagsOf } from '../devkit/select/selectMap'
+import { checkSelectMap, readSelectObjects, tagsOf, unlistedSettings } from '../devkit/select/selectMap'
 
 // Every data-knobs="…" (JSX) and 'data-knobs': '…' (attrs objects) written in src/
 function tagsInSource(dir: string): Set<string> {
@@ -34,6 +34,9 @@ describe('Dev Kit Select: content/devkit/select.json', () => {
     const { known } = catalog()
     expect(known.tuning.length * known.text.length * known.sounds.length * known.style.length).toBeGreaterThan(0) // the game's files were found
     expect(checkSelectMap(file, catalog().known)).toEqual([])
+  })
+  it('every tuning setting is on the thing it affects (a click shows everything — Muzzy, 2026-10-14)', () => {
+    expect(unlistedSettings(file, catalog().known.tuning)).toEqual([])
   })
   it('every object can be found on screen (a data-knobs tag in src, or a find selector)', () => {
     expect(objects.filter((o) => !o.find && !tags.has(o.id)).map((o) => o.id)).toEqual([])

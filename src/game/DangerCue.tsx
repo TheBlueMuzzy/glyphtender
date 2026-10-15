@@ -20,13 +20,13 @@ export function DangerCue({ danger, x, y, hex, owner, colours, glyphling }: Prop
   if (danger === 'warning') {
     const dash = colours.warningDash
     return (
-      <polygon data-danger="warning" data-danger-of={glyphling} data-knobs="tangle" points={hexCorners(x, y, hex * 1.02)} fill="none" stroke={owner}
+      <polygon data-danger="warning" data-danger-of={glyphling} data-knobs="glyphling" points={hexCorners(x, y, hex * 1.02)} fill="none" stroke={owner}
         strokeWidth={colours.warningWidth} strokeDasharray={`${dash} ${dash * 0.7}`} strokeLinecap="round" pointerEvents="none" />
     )
   }
   const r = hex * 0.9
   return (
-    <g data-danger="tangled" data-danger-of={glyphling} data-knobs="tangle" pointerEvents="none">
+    <g data-danger="tangled" data-danger-of={glyphling} data-knobs="glyphling" pointerEvents="none">
       <path d={vinePath(x, y, r)} fill="none" stroke={colours.vine} strokeWidth={colours.vineWidth} strokeLinejoin="round" />
       {[40, 160, 280].map((degrees) => {
         const a = (degrees * Math.PI) / 180

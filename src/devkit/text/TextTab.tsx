@@ -196,19 +196,8 @@ export function TextTab({ file, data, label = 'Text', query = '' }: Props) {
           defaultOpen
           changed={rows.some(({ f }) => values[f.key] !== saved[f.key])}
         >
-          {rows.map(({ id, f }) => (
-            <div key={f.key} className="sel-knob">
-              <TextRow field={{ ...f, label: f.key }} value={values[f.key]} savedValue={saved[f.key]} terms={[]} onChange={(w) => change(f.key, w)} />
-              <button
-                type="button"
-                className="sel-remove"
-                onClick={() => picking.remove('text', id)}
-                aria-label={`Take ${id} off ${picking.pick.label}`}
-                title={`Take "${id}" off ${picking.pick.label} (the words themselves stay)`}
-              >
-                ✕
-              </button>
-            </div>
+          {rows.map(({ f }) => (
+            <TextRow key={f.key} field={{ ...f, label: f.key }} value={values[f.key]} savedValue={saved[f.key]} terms={[]} onChange={(w) => change(f.key, w)} />
           ))}
         </Section>
         {footer}

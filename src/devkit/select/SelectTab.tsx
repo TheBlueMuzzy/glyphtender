@@ -1,24 +1,22 @@
 // SELECT TAB (framework F55/F56) — click a thing in the game, get every knob for it in one place.
 //   Select mode on → hover the game (thin pink outline + name) → click/tap = pick it (SelectLayer.tsx draws, catches).
-//   Outline: how solid the outlines are (remembered in this browser, with the pick).
+//   Outline: how solid the outlines are (remembered in this browser). The pick is forgotten when the Dev Kit closes.
 //   Recently on screen: everything seen while the Dev Kit was open, newest first, then the rest greyed — tap one to
 //   pick it without catching it on screen (score pops, a flying seed, a tip that's gone).
 //   The pick: its name, how many are showing, Copy for Claude, ✕. Under this tab the Dev Kit then shows the pick's
 //   knobs with the real Tuning / Color / Text / Sound rows (DevKit.tsx + select/pickContext.ts) — each with its own Save.
-//   + Add a knob: search every setting, text line, sound and UI style value → it joins the pick (content/devkit/select.json, saved at
-//   once in dev). ✕ on a knob row takes it off. Problems in the file (a name that doesn't exist) show in red.
+//   What each thing shows comes from content/devkit/select.json, which Claude keeps complete (the game's test fails if a
+//   setting is on no object) — nothing to manage here (Muzzy, 2026-10-14). Problems in the file show in red.
 import { useEffect, useState } from 'react'
 import { copyText } from '../saveContent'
-import { matchesAll, searchTerms } from '../search/searchLogic'
 import { valueAt } from '../tuning/tuningLogic'
 import { tuningFiles } from '../tuning/tuningFiles'
-import { catalog, SELECT_FILE, type Addable } from './selectFiles'
-import { checkSelectMap, countKnobs, withKnob, type KnobKind, type SelectObject } from './selectMap'
-import { getSelect, OUTLINE_MIN, pickedObject, saveSelectFile, setSelect, useSelect, type SaveStatus as Status } from './selectStore'
+import { catalog, SELECT_FILE } from './selectFiles'
+import { checkSelectMap, countKnobs, type SelectObject } from './selectMap'
+import { OUTLINE_MIN, pickedObject, setSelect, useSelect } from './selectStore'
 import './select.css'
 
-const NEW_SECTION = '__new__'
-const MAX_RESULTS = 40
+type Status = { kind: 'ok' | 'error'; text: string }
 
 function ago(ms: number): string {
   const s = Math.round(ms / 1000)
@@ -34,7 +32,6 @@ export function SelectTab() {
   const problems = checkSelectMap(s.file, known)
   const [status, setStatus] = useState<Status | null>(null)
   const [recentOpen, setRecentOpen] = useState(!s.picked)
-  const [adding, setAdding] = useState(false)
   // The "x s ago" times tick while this tab is showing
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -44,7 +41,6 @@ export function SelectTab() {
 
   const pick = (id: string | null) => {
     setSelect({ picked: id, pickedEl: null })
-    setAdding(false)
     setStatus(null)
   }
 
@@ -63,9 +59,6 @@ export function SelectTab() {
       ...(obj.text.length ? [`Text (content/text/en.json): ${obj.text.join(', ')}`] : []),
       ...(obj.sounds.length ? [`Sounds (content/audio.json): ${obj.sounds.join(', ')}`] : []),
       ...(obj.style.length ? [`UI style, shared (content/ui/style.json): ${obj.style.join(', ')}`] : []),
-      ...(JSON.stringify(s.file) !== JSON.stringify(s.savedFile)
-        ? [`Not saved yet — please put this object into ${SELECT_FILE}:`, JSON.stringify({ [obj.id]: (s.file.objects as Record<string, unknown>)[obj.id] })]
-        : []),
     ]
     const ok = await copyText(lines.join('\n'))
     setStatus(ok ? { kind: 'ok', text: 'Copied — paste it into your chat with Claude.' } : { kind: 'error', text: 'The browser blocked copying.' })
@@ -154,73 +147,16 @@ export function SelectTab() {
           </div>
           {picked.help && <p className="tt-help">{picked.help}</p>}
           <div className="sel-actions">
-            <button type="button" className="devkit-btn" aria-expanded={adding} onClick={() => setAdding((a) => !a)}>
-              + Add a knob
-            </button>
             <button type="button" className="devkit-btn" onClick={() => void copyForClaude(picked)}>
               Copy for Claude
             </button>
           </div>
-          {adding && <AddKnob obj={picked} onDone={(st) => setStatus(st)} />}
           {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}
-          {countKnobs(picked, known) === 0 && <p className="tt-help">No knobs on {picked.label} yet — + Add a knob.</p>}
+          {countKnobs(picked, known) === 0 && <p className="tt-help">No knobs on {picked.label} yet — tell Claude what it should show.</p>}
         </div>
       ) : (
         <p className="tt-help sel-nothing">Nothing picked yet — turn on select mode and click something in the game, or pick one from the list.</p>
       )}
-    </div>
-  )
-}
-
-function AddKnob({ obj, onDone }: { obj: SelectObject; onDone: (status: Status) => void }) {
-  const { addable } = catalog()
-  const [query, setQuery] = useState('')
-  const sections = obj.knobs.map((k) => k.title)
-  const [section, setSection] = useState(sections[0] ?? NEW_SECTION)
-  const [newSection, setNewSection] = useState('')
-  const has = (a: Addable) =>
-    a.kind === 'tuning' ? obj.knobs.some((k) => k.ids.includes(a.id)) : obj[a.kind].includes(a.id)
-  const terms = searchTerms(query)
-  const results = terms.length === 0 ? [] : addable.filter((a) => !has(a) && matchesAll(terms, [a.id, a.label, a.where])).slice(0, MAX_RESULTS)
-
-  async function add(a: Addable) {
-    const title = section === NEW_SECTION ? newSection.trim() || 'More' : section
-    const file = withKnob(getSelect().file, obj.id, a.kind as KnobKind, a.id, title)
-    onDone(await saveSelectFile(file))
-  }
-
-  return (
-    <div className="sel-add">
-      <input
-        type="search"
-        className="sel-add-search"
-        placeholder="Search settings, text lines, sounds, UI style…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        aria-label="Search for a knob to add"
-        autoFocus
-      />
-      <label className="sel-add-section">
-        <span>Settings go in</span>
-        <select value={section} onChange={(e) => setSection(e.target.value)}>
-          {sections.map((t) => <option key={t} value={t}>{t}</option>)}
-          <option value={NEW_SECTION}>New section…</option>
-        </select>
-        {section === NEW_SECTION && (
-          <input type="text" value={newSection} placeholder="Section name" onChange={(e) => setNewSection(e.target.value)} aria-label="New section name" />
-        )}
-      </label>
-      {terms.length > 0 && results.length === 0 && <p className="tt-help">Nothing matches “{query}”.</p>}
-      <ul className="sel-list">
-        {results.map((a) => (
-          <li key={`${a.kind}:${a.id}`}>
-            <button type="button" className="sel-item" onClick={() => void add(a)}>
-              <span className="sel-item-name">+ {a.label}</span>
-              <span className="sel-item-when">{a.where}{a.label !== a.id ? ` · ${a.id}` : ''}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
