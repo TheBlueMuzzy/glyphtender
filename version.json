@@ -1,7 +1,7 @@
 {
   "name": "Glyphtender",
-  "version": "0.10.0",
-  "build": 1,
+  "version": "0.11.0",
+  "build": 0,
   "history": [
     {
       "version": "0.0.0",
@@ -87,6 +87,11 @@
       "version": "0.10.0",
       "date": "2026-10-14",
       "summary": "The first game teaches itself — a guided game against Sprout (the first two turns step by step, then tips as things happen, gentle nudges when you're stuck), a ? button that explains anything you tap, 'plant' instead of 'cast', and tidier menus (one size, ‹ back, no scroll bars, Settings in two tabs, Start at the top of New Game)"
+    },
+    {
+      "version": "0.11.0",
+      "date": "2026-10-15",
+      "summary": "v0.15 Click a thing, tweak it ✅ — Dev Kit Select Mode: click a glyphling, seed, ring, board, award… or a menu button, switch, tab → every setting that affects it in one place (29 things; a test keeps every setting on some thing); the panel tucks to a pink bar while selecting; Dev Kit 0.16.1. Nothing changes in how the game plays."
     }
   ]
 }
