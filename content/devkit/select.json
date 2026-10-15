@@ -8,32 +8,36 @@
         "Look": ["garden.pieceScale", "garden.yellow", "garden.blue", "garden.purple", "garden.pink", "garden.ghostOpacity"],
         "Drag": ["drag.styles.move", "drag.styles.draft", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift", "drag.targets.move", "drag.targets.draft", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance"],
         "Move": ["anim.moveBase", "anim.movePerHex", "anim.moveSettle"],
-        "Turn pulse & \"no\" shake": ["anim.turnPulseTime", "feel.events.turnPulse", "anim.noShakeTime", "feel.events.noShake"],
+        "Turn pulse & \"no\" shake": ["anim.turnPulseTime", "feel.events.turnPulse", "anim.noShakeTime", "feel.events.noShake", "anim.pulseTime", "feel.tiers"],
         "Danger ring": ["garden.warningWidth", "garden.warningDash"],
         "Tangle vine": ["garden.vine", "garden.vineWidth", "garden.tangledDim", "anim.tangleBlinkTime"],
-        "Rules": ["rules.tanglesToEnd", "rules.tangleBonus"]
+        "Rules": ["rules.tanglesToEnd", "rules.tangleBonus"],
+        "Sprout (the tutorial rival)": ["tutorial.selfTangleBy", "tutorial.sproutSlowdown"],
+        "Throw": ["anim.hopHeight", "anim.hopTime"]
       },
-      "text": ["tutorial.explore.yourGlyphling", "tutorial.explore.yourGlyphlingDanger", "tutorial.explore.yourGlyphlingTangled", "tutorial.explore.theirGlyphling", "tutorial.explore.theirGlyphlingDanger", "tutorial.explore.theirGlyphlingTangled", "tutorial.tips.yourDanger", "tutorial.tips.theirDanger", "tutorial.tips.tangleYours", "tutorial.tips.tangleTheirs"],
-      "sounds": ["draft.place", "glyph.lift", "glyph.step", "no", "danger.warn", "tangle"]
+      "text": ["tutorial.explore.yourGlyphling", "tutorial.explore.yourGlyphlingDanger", "tutorial.explore.yourGlyphlingTangled", "tutorial.explore.theirGlyphling", "tutorial.explore.theirGlyphlingDanger", "tutorial.explore.theirGlyphlingTangled", "tutorial.tips.yourDanger", "tutorial.tips.theirDanger", "tutorial.tips.tangleYours", "tutorial.tips.tangleTheirs", "tutorial.explore.part.ghost", "tutorial.explore.part.draft"],
+      "sounds": ["draft.place", "glyph.lift", "glyph.step", "no", "danger.warn", "tangle", "turn.yours"]
     },
     "seed": {
       "label": "Seed",
       "help": "A letter seed — in the tray, flying, or planted on the board.",
       "knobs": {
-        "Look": ["anim.seedSize", "garden.seedShine"],
+        "Look": ["anim.seedSize", "garden.seedShine", "garden.pieceScale", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
         "Tray": ["layout.trayTileMin", "layout.trayGap"],
-        "Drag": ["drag.styles.seed", "drag.targets.seed", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance"],
+        "Drag": ["drag.styles.seed", "drag.targets.seed", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift", "drag.trayLeave"],
         "Throw": ["anim.flightBase", "anim.flightPerHex", "anim.arcHeight", "anim.hopHeight", "anim.hopTime"],
-        "Grow": ["anim.growTime", "anim.growFrom"]
+        "Grow": ["anim.growTime", "anim.growFrom"],
+        "\"No\" shake & planned blink": ["anim.noShakeTime", "feel.events.noShake", "anim.pulseTime", "feel.tiers"],
+        "Rules": ["rules.ownershipBonus"]
       },
       "text": ["tutorial.explore.traySeed", "tutorial.explore.traySeedRefresh", "tutorial.explore.yourSeed", "tutorial.explore.theirSeed"],
-      "sounds": ["seed.pick", "seed.drop", "seed.aim", "cast.throw", "seed.land", "sprout.grow"]
+      "sounds": ["seed.pick", "seed.drop", "seed.aim", "cast.throw", "seed.land", "sprout.grow", "no"]
     },
     "plannedSeed": {
       "label": "Planned seed",
       "help": "A seed you've aimed but not planted yet (the see-through one).",
       "knobs": {
-        "Look": ["garden.plannedSeedLook", "garden.plannedSeedOpacity", "garden.plannedMist", "garden.plannedMistStrength"],
+        "Look": ["garden.plannedSeedLook", "garden.plannedSeedOpacity", "garden.plannedMist", "garden.plannedMistStrength", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
         "Moon": ["garden.plannedMoonLight", "garden.plannedMoonShadow", "garden.plannedMoonBrightness"],
         "Stencil": ["garden.plannedStencilLetter", "garden.plannedStencilTile", "garden.plannedStencilCut", "garden.plannedStencilSoftness"],
         "Pulse": ["anim.pulseTime"]
@@ -47,7 +51,9 @@
         "Look": ["garden.background", "garden.hexFill", "garden.hexLine", "garden.hexLineWidth"],
         "Highlights": ["garden.glowStrength", "garden.castFill", "garden.castShade", "garden.dropStrength"],
         "Turn trails": ["garden.trailWidth", "garden.trailStrength", "anim.trailLead", "anim.trailHold"],
-        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare", "layout.promptGap"]
+        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare"],
+        "Player colours": ["garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Drop targets": ["drag.targets.move", "drag.targets.draft", "drag.targets.seed", "drag.ghostGlow"]
       },
       "text": ["tutorial.explore.emptyHex", "tutorial.explore.moveOption", "tutorial.explore.plantOption", "tutorial.explore.draftOption"]
     },
@@ -56,7 +62,7 @@
       "help": "A word's outline — grown, or the preview while you plan one.",
       "knobs": {
         "Look": ["garden.wordBorder", "garden.wordBorderWidth", "garden.grownGlowStrength"],
-        "Timing": ["anim.wordGlowTime"],
+        "Timing": ["anim.wordGlowTime", "anim.spotlightHold", "anim.spotlightFade"],
         "Sound rules": ["feel.sounds"],
         "Rules": ["rules.minWordLength", "rules.ownershipBonus", "rules.twoLetterWordsAtStart", "rules.britishWordsAtStart", "rules.vulgarWordsAtStart"]
       },
@@ -66,7 +72,7 @@
       "label": "Spotlight label",
       "help": "The word + points label that shows over a new word (\"QUA +4\").",
       "knobs": {
-        "Look": ["garden.spotlightLabel", "garden.spotlightLabelSize", "garden.spotlightLabelMinPx"],
+        "Look": ["garden.spotlightLabel", "garden.spotlightLabelSize", "garden.spotlightLabelMinPx", "garden.wordBorder", "garden.grownGlowStrength"],
         "Timing": ["anim.spotlightHold", "anim.spotlightFade"]
       },
       "text": ["game.spotlightLabel"]
@@ -76,8 +82,9 @@
       "help": "The +2 / +1 that pops off each seed and flies into the total.",
       "knobs": {
         "Look": ["garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
-        "Timing": ["anim.scorePopDelay", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime"],
-        "Feel": ["feel.events.seedPop", "feel.tiers"]
+        "Timing": ["anim.scorePopDelay", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime", "anim.arcHeight"],
+        "Feel": ["feel.events.seedPop", "feel.tiers"],
+        "Rules": ["rules.ownershipBonus"]
       },
       "text": ["game.scorePop"],
       "sounds": ["score.pop"]
@@ -86,21 +93,23 @@
       "label": "Score total",
       "help": "The running total over the glyphling's head that counts up as the pops land.",
       "knobs": {
-        "Look": ["garden.scoreTotalSize", "garden.scorePop"],
-        "Timing": ["anim.scoreTotalHold", "anim.scoreTotalFade", "anim.scoreTotalGrow", "anim.scoreTotalMaxGrow"],
+        "Look": ["garden.scoreTotalSize", "garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
+        "Timing": ["anim.scoreTotalHold", "anim.scoreTotalFade", "anim.scoreTotalGrow", "anim.scoreTotalMaxGrow", "anim.scorePopTime"],
         "Feel": ["feel.events.totalPop", "feel.tiers"]
       },
-      "sounds": ["score.arrive"]
+      "sounds": ["score.arrive"],
+      "text": ["game.scorePop"]
     },
     "tray": {
       "label": "Seed tray",
       "help": "Your hand of seeds along the bottom (or side).",
       "find": "svg.game-tray",
       "knobs": {
-        "Size": ["layout.trayTileMin", "layout.trayGap", "layout.stackedAspect", "layout.bottomRoom"],
+        "Size": ["layout.trayTileMin", "layout.trayGap", "layout.stackedAspect", "layout.bottomRoom", "layout.sidePanelShare", "layout.sideShortHeight", "layout.sideShortMaxShare"],
         "Reorder": ["drag.styles.reorder", "drag.targets.reorder", "drag.makeRoom", "drag.roomTime", "drag.trayLeave"],
-        "Refresh": ["anim.refreshShrinkTime", "anim.refreshGrowTime", "anim.refreshStagger", "anim.refreshPause", "feel.events.refreshGrow"],
-        "Rules": ["rules.handSize"]
+        "Refresh": ["anim.refreshShrinkTime", "anim.refreshGrowTime", "anim.refreshStagger", "anim.refreshPause", "feel.events.refreshGrow", "feel.tiers"],
+        "Rules": ["rules.handSize"],
+        "Empty slots & glow": ["garden.hexFill", "garden.hexLine", "garden.hexLineWidth", "garden.dropStrength", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"]
       },
       "sounds": ["refresh.out", "refresh.in", "tray.shuffle"]
     },
@@ -108,12 +117,18 @@
       "label": "Turn indicator",
       "help": "Whose turn it is (the avatar + name at the top).",
       "knobs": {
-        "Turn pulse": ["anim.turnPulseTime", "feel.events.turnPulse"],
-        "Side panel": ["layout.sidePanelShare", "layout.sideShortHeight", "layout.sideShortMaxShare"],
+        "Player colours": ["garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
         "Rules": ["rules.randomTurnOrder"]
       },
-      "text": ["game.turnOf", "tutorial.explore.bar", "tutorial.explore.barDetail"],
-      "sounds": ["turn.yours"]
+      "text": ["tutorial.explore.part.turnBar", "game.aiSeat", "online.seats"]
+    },
+    "prompt": {
+      "label": "Prompt line",
+      "help": "The line that says whose turn it is and what to do.",
+      "knobs": {
+        "Space": ["layout.promptGap"]
+      },
+      "text": ["game.turnOf", "game.prompts", "tutorial.explore.bar", "tutorial.explore.barDetail"]
     },
     "tip": {
       "label": "Sprout's tip",
@@ -123,10 +138,9 @@
         "Timing": ["tutorial.tipSeconds", "tutorial.tipDelay", "tutorial.tipsPerTurn", "tutorial.maxPauses", "tutorial.railsCalloutDelay"],
         "Nudges": ["tutorial.idleGlow", "tutorial.idleText", "tutorial.idleRepeat", "tutorial.laterIdleText", "tutorial.onlineIdleText", "tutorial.wrongRepeat"],
         "Look": ["tutorial.calloutRoom", "tutorial.railsDim"],
-        "Sprout": ["tutorial.selfTangleBy", "tutorial.sproutSlowdown"],
         "Explore": ["tutorial.exploreRemind", "tutorial.exploreDim"]
       },
-      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails"]
+      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails", "tutorial.explore.remind"]
     },
     "ribbon": {
       "label": "Award ribbon",
@@ -150,7 +164,7 @@
       "label": "Story chart",
       "help": "The end screen's Story page: everyone's Magic over the game, with moment markers and the turn list.",
       "knobs": {
-        "Chart": ["endscreen.maxMarkers", "endscreen.chartDrawSeconds", "endscreen.chartLineWidth", "endscreen.chartHeight"],
+        "Chart": ["endscreen.maxMarkers", "endscreen.chartDrawSeconds", "endscreen.chartLineWidth", "endscreen.chartHeight", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
         "Bot band": ["endscreen.botBandWidth", "endscreen.botBandDarken", "endscreen.botBandOpacity"],
         "Turn list": ["endscreen.storyListFontScale", "endscreen.storyListMaxWordChars", "endscreen.storyListBackdrop", "endscreen.storyListMaxWidth", "endscreen.storyListMaxHeight", "endscreen.storyListSmallest"]
       },
@@ -160,7 +174,7 @@
       "label": "Results page",
       "help": "A page of the end screen (results, story, scorecard) — how big it may grow.",
       "knobs": {
-        "Size": ["endscreen.pageFill", "endscreen.maxZoom"]
+        "Size": ["endscreen.pageFill", "endscreen.maxZoom", "layout.bottomRoom"]
       },
       "text": ["game.gameOver.tabs", "game.gameOver.card"]
     },
@@ -170,7 +184,9 @@
       "knobs": {
         "Timing": ["anim.revealTangles", "anim.tangleBlinkTime", "anim.revealBonus", "anim.revealCount", "anim.revealWinner", "anim.revealPopTime"],
         "Music": ["anim.revealMusicCalm", "anim.revealMusicPeak", "anim.revealMusicSettle"],
-        "Look": ["garden.revealPop", "garden.revealPopSize", "layout.revealBigZoom", "layout.revealMinZoom"]
+        "Look": ["garden.revealPop", "garden.revealPopSize", "layout.revealBigZoom", "layout.revealMinZoom"],
+        "Points & pops": ["feel.events.seedPop", "feel.events.totalPop", "feel.tiers", "anim.scorePopTime", "anim.scoreFlyTime", "anim.arcHeight", "anim.tangleBlinkTime"],
+        "Rules": ["rules.tangleBonus"]
       },
       "text": ["game.reveal"],
       "sounds": ["reveal.tangles", "reveal.count", "reveal.bonus", "reveal.winner"]

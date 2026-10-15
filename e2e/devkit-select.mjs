@@ -261,7 +261,7 @@ try {
       check('phone: a pick brings the whole panel back', (await page.locator('aside.devkit').boundingBox()).height > 400)
     }
     check(`its knobs in its own sections: ${view.sections.join(' · ')}`, ['Look', 'Drag', 'Move', 'Text', 'Sounds'].every((t) => view.sections.some((s) => s.includes(t))))
-    check(`${view.knobs} knob rows + ${view.sounds} sounds, from Tuning / Text / Sound (${view.panels.join(', ')})`, view.knobs >= 20 && view.sounds === 6 && view.panels.join() === 'Select,Tuning,Text,Sound')
+    check(`${view.knobs} knob rows + ${view.sounds} sounds, from Tuning / Text / Sound (${view.panels.join(', ')})`, view.knobs >= 20 && view.sounds === 7 && view.panels.join() === 'Select,Tuning,Text,Sound')
     await page.locator('.devkit-body.is-picked-view').first().scrollIntoViewIfNeeded()
     await shot('4-picked-knobs')
 
