@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test closed — Muzzy has Android only, 2026-10-12: friends will report) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.15 Click a thing, tweak it ✅ released 2026-10-15 (v0.11.0: Dev Kit Select Mode) · v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test closed — Muzzy has Android only, 2026-10-12: friends will report) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -289,7 +289,7 @@ flowchart LR
   F78 --> F80
 ```
 
-## v0.15 — Click a thing, tweak it (Dev Kit Select Mode)  ← current  · defined 2026-10-14
+## v0.15 — Click a thing, tweak it (Dev Kit Select Mode)  ✅ released 2026-10-15 (v0.11.0)  · defined 2026-10-14
 Goal: Muzzy clicks anything in the game with the Dev Kit open and gets every knob for it (tuning, words, sounds) in one place, changes them live and saves. Framework-first (framework v0.8 F55–F56, design `framework/.planning/design/select-mode.md`).
 - ✅ F86 🔧 Select Mode on Glyphtender (approved by Muzzy 2026-10-15): Dev Kit 0.16 · content/devkit/select.json — 29 objects, every tuning setting on the thing it affects (rules included; D99) · data-knobs tags · a test that the file and the tags agree · e2e:devkit-select — should · framework F55, F56
   why: one click on what he sees → every knob for it → tuning by eye without hunting through tabs

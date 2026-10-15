@@ -1,3 +1,4 @@
+- 2026-10-10 — Released v0.6.0 "the garden sings": the game has sound and music that rests, a reveal ceremony, Audio settings; Dev Kit Sound tab + Moments. Full check 25/25, reviews clean.
 - 2026-10-09 — Sprint 19 (overnight, auto): the game has sound — every moment from glyphling steps to the Grand Glyphtender fanfare, a night garden ambience, working Audio settings; on the framework Audio module. Awaiting Muzzy's ears.
 - 2026-10-08 — Released v0.5.2: 2-letter words start off even on devices that remembered "on" (old saves get the new default once). Full check 22/22.
 - 2026-10-08 — Released v0.5.1: online, nobody waits (idle bar → bot → tap to take back), Pause says if 2-letter words are on, lobby AI rows = New Game's, no grabbing another player's draft glyphling. Review found 1 bug (idler dropped at back-to-lobby) → fixed. Full check 22/22.
