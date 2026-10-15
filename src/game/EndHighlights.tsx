@@ -46,7 +46,7 @@ export function EndHighlights({ awards, index, onIndex, name, autoSeconds, pause
 export function AwardRow({ award, name, big = false }: { award: Award; name: (seat: number) => string; big?: boolean }) {
   const { title, reason } = awardText(award, name)
   return (
-    <Row gap="s" className="kit-nowrap game-end-award" data-award={award.id} data-holder={award.holder}>
+    <Row gap="s" className="kit-nowrap game-end-award" data-knobs="award" data-award={award.id} data-holder={award.holder}>
       <span className="game-end-award-art">
         {award.seats.slice(0, 2).map((seat, i) => (
           <img key={seat} className="game-end-art" data-size={i === 0 ? (big ? 'm' : 's') : 'xs'} src={glyphlingArt(seat)} alt={name(seat)} />

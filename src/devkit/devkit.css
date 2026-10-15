@@ -40,12 +40,12 @@
 }
 .devkit-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .devkit-title { font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #9a9bab; }
-.devkit-tabs { min-width: 0; } /* a Carousel: as many tabs as fit, ◀ ▶ + dots for the rest */
+.devkit-tabs { min-width: 0; --dk-carousel-gap: 2px; } /* a Carousel: as many tabs as fit, ◀ ▶ + dots for the rest */
 .devkit-tab {
   background: none;
   border: 1px solid transparent;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 4px 6px; /* 10 tabs (Select, 0.14.0) still fit one row on a desktop */
   cursor: pointer;
 }
 .devkit-tab[aria-selected='true'] { background: #2c2e3a; border-color: #4a4c5c; }

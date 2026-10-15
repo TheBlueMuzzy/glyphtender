@@ -40,6 +40,7 @@
     "e2e:trails": "node e2e/trail-shots.mjs",
     "fixtures:end": "node scripts/end-fixtures.mjs",
     "e2e:devkit-search": "node e2e/devkit-search.mjs",
+    "e2e:devkit-select": "node e2e/devkit-select.mjs",
     "e2e:devkit-ai": "node e2e/devkit-ai.mjs",
     "e2e:devkit-sound": "node e2e/devkit-sound.mjs",
     "e2e:words-tab": "node e2e/words-tab.mjs",

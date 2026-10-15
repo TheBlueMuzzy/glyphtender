@@ -70,9 +70,10 @@ function sectionTop(id) {
 /** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
 async function pickTab(page, name) {
   const inView = () => page.evaluate((name) => {
-    const view = document.querySelector('.devkit-tabs .dk-carousel-view')?.getBoundingClientRect()
-    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)?.getBoundingClientRect()
-    return !view || !tab || (tab.left >= view.left - 1 && tab.right <= view.right + 1)
+    // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
+    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)
+    const box = tab?.getBoundingClientRect()
+    return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
   }, name)
   for (let i = 0; i < 6 && !(await inView()); i++) {
     await page.getByRole('button', { name: 'Next tools' }).click()
@@ -203,7 +204,7 @@ try {
     await colorBox.fill('background')
     await page.waitForTimeout(150)
     const colours = await page.evaluate(results)
-    if (!/^\d+ colours? found$/.test(colours.count)) fail(`Color "background": the status says "${colours.count}"`)
+    if (!/^\d+ style values? found$/.test(colours.count)) fail(`Color "background": the status says "${colours.count}"`)
     if (colours.panels.join() !== 'Color') fail(`Color "background": results not only from Color (${colours.panels.join(', ')})`)
     console.log(`  ok   Color: "background" → ${colours.count}`)
     await colorBox.fill('')

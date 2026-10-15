@@ -1,6 +1,8 @@
 # Glyphtender — Bugs
-Open: 4 (P0 0 · P1 0 · P2 2 · P3 2)
+Open: 5 (P0 0 · P1 0 · P2 2 · P3 3)
 ## Open
+### B028 · P3 · open · found 2026-10-15 by check:full (sprint 29, dev/select-mode, 5d54f10) · e2e:screenshots (test, not the game as far as known)
+Steps: `npm run check:full` · Expected: game-play / game-planned @1066×1192 match · Actual: the tray's 8 tile slots were empty (no letter pictures drawn yet) — 2 of 216 differ; alone right after: those 2 match, 1 other shot differs by 1 pixel (end4-story-round6). Also flaked 2026-10-14 (passed on rerun). Suspect: the shot is taken before the tile images finish loading under load, and a zero-pixel tolerance. Fix idea: wait for the tray's images to decode before each shot; allow a few stray pixels.
 ### B025 · P3 · watching · found 2026-10-09 by check:full (sprint 19, dev/audio) · e2e:game desktop (test, not the game as far as known)
 Steps: `npm run check:full` (3 checks at a time) · Expected: game-shots desktop 12-pause / 14-flipped show the game in play · Actual: 2 of 4 loaded runs found the game already in the Magic reveal (Skip shown, tray 0 px) after the indicators-off cast — the danger garden ended the game. Alone: passes; the last full run: 23/23 PASS; the same 3 checks on main passed once. No Math.random use on the branch (audio has its own dice). Suspect: playUntilDanger(3 + tries) + timing under load picks a garden where the cast tangles the last glyphling. Next time it fails: save the store state at 13-indicators-off.
 ### B024 · P2 · verified 2026-10-08 by Muzzy (the 🤖 shows when a friend leaves, after F52 · v0.5.1) · found 2026-10-08 by Muzzy (live v0.5.0, online with a friend) · online, a player leaves mid-game

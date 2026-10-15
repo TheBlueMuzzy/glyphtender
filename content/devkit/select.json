@@ -1,0 +1,272 @@
+{
+  "_help": "Dev Kit Select tab: what you can click in the game, and the knobs each thing shows. knobs = tuning settings by section (\"<file>.<key>\"; a group brings all of it) · text = content/text/en.json keys (a branch brings all of it) · sounds = content/audio.json names · style = UI kit style values (content/ui/style.json, the Color tab) — shared by every part of that kind. Every tuning setting is on the thing it affects (rules too) — src/devkit-game/select.test.ts fails if one is missing; a thing's parts (a glyphling's danger ring) carry its tag. The game marks each thing with data-knobs=\"<id>\"; find = a CSS selector for kit parts the game can't mark.",
+  "objects": {
+    "glyphling": {
+      "label": "Glyphling",
+      "help": "A player's piece — on the board, or waiting in the tray during the draft — with its danger ring and tangle vine. Its settings change all of them.",
+      "knobs": {
+        "Look": ["garden.pieceScale", "garden.yellow", "garden.blue", "garden.purple", "garden.pink", "garden.ghostOpacity"],
+        "Drag": ["drag.styles.move", "drag.styles.draft", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift", "drag.targets.move", "drag.targets.draft", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance"],
+        "Move": ["anim.moveBase", "anim.movePerHex", "anim.moveSettle"],
+        "Turn pulse & \"no\" shake": ["anim.turnPulseTime", "feel.events.turnPulse", "anim.noShakeTime", "feel.events.noShake", "anim.pulseTime", "feel.tiers"],
+        "Danger ring": ["garden.warningWidth", "garden.warningDash"],
+        "Tangle vine": ["garden.vine", "garden.vineWidth", "garden.tangledDim", "anim.tangleBlinkTime"],
+        "Rules": ["rules.tanglesToEnd", "rules.tangleBonus"],
+        "Sprout (the tutorial rival)": ["tutorial.selfTangleBy", "tutorial.sproutSlowdown"],
+        "Throw": ["anim.hopHeight", "anim.hopTime"]
+      },
+      "text": ["tutorial.explore.yourGlyphling", "tutorial.explore.yourGlyphlingDanger", "tutorial.explore.yourGlyphlingTangled", "tutorial.explore.theirGlyphling", "tutorial.explore.theirGlyphlingDanger", "tutorial.explore.theirGlyphlingTangled", "tutorial.tips.yourDanger", "tutorial.tips.theirDanger", "tutorial.tips.tangleYours", "tutorial.tips.tangleTheirs", "tutorial.explore.part.ghost", "tutorial.explore.part.draft"],
+      "sounds": ["draft.place", "glyph.lift", "glyph.step", "no", "danger.warn", "tangle", "turn.yours"]
+    },
+    "seed": {
+      "label": "Seed",
+      "help": "A letter seed — in the tray, flying, or planted on the board.",
+      "knobs": {
+        "Look": ["anim.seedSize", "garden.seedShine", "garden.pieceScale", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Tray": ["layout.trayTileMin", "layout.trayGap"],
+        "Drag": ["drag.styles.seed", "drag.targets.seed", "drag.ghostOpacity", "drag.ghostGlow", "drag.fadeTime", "drag.snap", "drag.snapRadius", "drag.tetherBend", "drag.arrowSize", "layout.dragStartDistance", "drag.liftScale", "drag.liftShadow", "drag.liftTime", "drag.landTime", "drag.flyTime", "layout.dragLift", "drag.trayLeave"],
+        "Throw": ["anim.flightBase", "anim.flightPerHex", "anim.arcHeight", "anim.hopHeight", "anim.hopTime"],
+        "Grow": ["anim.growTime", "anim.growFrom"],
+        "\"No\" shake & planned blink": ["anim.noShakeTime", "feel.events.noShake", "anim.pulseTime", "feel.tiers"],
+        "Rules": ["rules.ownershipBonus"]
+      },
+      "text": ["tutorial.explore.traySeed", "tutorial.explore.traySeedRefresh", "tutorial.explore.yourSeed", "tutorial.explore.theirSeed"],
+      "sounds": ["seed.pick", "seed.drop", "seed.aim", "cast.throw", "seed.land", "sprout.grow", "no"]
+    },
+    "plannedSeed": {
+      "label": "Planned seed",
+      "help": "A seed you've aimed but not planted yet (the see-through one).",
+      "knobs": {
+        "Look": ["garden.plannedSeedLook", "garden.plannedSeedOpacity", "garden.plannedMist", "garden.plannedMistStrength", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Moon": ["garden.plannedMoonLight", "garden.plannedMoonShadow", "garden.plannedMoonBrightness"],
+        "Stencil": ["garden.plannedStencilLetter", "garden.plannedStencilTile", "garden.plannedStencilCut", "garden.plannedStencilSoftness"],
+        "Pulse": ["anim.pulseTime"]
+      },
+      "text": ["tutorial.explore.plannedSeed"]
+    },
+    "board": {
+      "label": "Board",
+      "help": "The garden: the hexes, their highlights and the turn trails.",
+      "knobs": {
+        "Look": ["garden.background", "garden.hexFill", "garden.hexLine", "garden.hexLineWidth"],
+        "Highlights": ["garden.glowStrength", "garden.castFill", "garden.castShade", "garden.dropStrength"],
+        "Turn trails": ["garden.trailWidth", "garden.trailStrength", "anim.trailLead", "anim.trailHold"],
+        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare"],
+        "Player colours": ["garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Drop targets": ["drag.targets.move", "drag.targets.draft", "drag.targets.seed", "drag.ghostGlow"]
+      },
+      "text": ["tutorial.explore.emptyHex", "tutorial.explore.moveOption", "tutorial.explore.plantOption", "tutorial.explore.draftOption"]
+    },
+    "word": {
+      "label": "Word",
+      "help": "A word's outline — grown, or the preview while you plan one.",
+      "knobs": {
+        "Look": ["garden.wordBorder", "garden.wordBorderWidth", "garden.grownGlowStrength"],
+        "Timing": ["anim.wordGlowTime", "anim.spotlightHold", "anim.spotlightFade"],
+        "Sound rules": ["feel.sounds"],
+        "Rules": ["rules.minWordLength", "rules.ownershipBonus", "rules.twoLetterWordsAtStart", "rules.britishWordsAtStart", "rules.vulgarWordsAtStart"]
+      },
+      "sounds": ["word.chord", "cast.flourish"]
+    },
+    "spotlight": {
+      "label": "Spotlight label",
+      "help": "The word + points label that shows over a new word (\"QUA +4\").",
+      "knobs": {
+        "Look": ["garden.spotlightLabel", "garden.spotlightLabelSize", "garden.spotlightLabelMinPx", "garden.wordBorder", "garden.grownGlowStrength"],
+        "Timing": ["anim.spotlightHold", "anim.spotlightFade"]
+      },
+      "text": ["game.spotlightLabel"]
+    },
+    "scorePop": {
+      "label": "Score pop",
+      "help": "The +2 / +1 that pops off each seed and flies into the total.",
+      "knobs": {
+        "Look": ["garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
+        "Timing": ["anim.scorePopDelay", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime", "anim.arcHeight"],
+        "Feel": ["feel.events.seedPop", "feel.tiers"],
+        "Rules": ["rules.ownershipBonus"]
+      },
+      "text": ["game.scorePop"],
+      "sounds": ["score.pop"]
+    },
+    "scoreTotal": {
+      "label": "Score total",
+      "help": "The running total over the glyphling's head that counts up as the pops land.",
+      "knobs": {
+        "Look": ["garden.scoreTotalSize", "garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
+        "Timing": ["anim.scoreTotalHold", "anim.scoreTotalFade", "anim.scoreTotalGrow", "anim.scoreTotalMaxGrow", "anim.scorePopTime"],
+        "Feel": ["feel.events.totalPop", "feel.tiers"]
+      },
+      "sounds": ["score.arrive"],
+      "text": ["game.scorePop"]
+    },
+    "tray": {
+      "label": "Seed tray",
+      "help": "Your hand of seeds along the bottom (or side).",
+      "find": "svg.game-tray",
+      "knobs": {
+        "Size": ["layout.trayTileMin", "layout.trayGap", "layout.stackedAspect", "layout.bottomRoom", "layout.sidePanelShare", "layout.sideShortHeight", "layout.sideShortMaxShare"],
+        "Reorder": ["drag.styles.reorder", "drag.targets.reorder", "drag.makeRoom", "drag.roomTime", "drag.trayLeave"],
+        "Refresh": ["anim.refreshShrinkTime", "anim.refreshGrowTime", "anim.refreshStagger", "anim.refreshPause", "feel.events.refreshGrow", "feel.tiers"],
+        "Rules": ["rules.handSize"],
+        "Empty slots & glow": ["garden.hexFill", "garden.hexLine", "garden.hexLineWidth", "garden.dropStrength", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"]
+      },
+      "sounds": ["refresh.out", "refresh.in", "tray.shuffle"]
+    },
+    "turnBar": {
+      "label": "Turn indicator",
+      "help": "Whose turn it is (the avatar + name at the top).",
+      "knobs": {
+        "Player colours": ["garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Rules": ["rules.randomTurnOrder"]
+      },
+      "text": ["tutorial.explore.part.turnBar", "game.aiSeat", "online.seats"]
+    },
+    "prompt": {
+      "label": "Prompt line",
+      "help": "The line that says whose turn it is and what to do.",
+      "knobs": {
+        "Space": ["layout.promptGap"]
+      },
+      "text": ["game.turnOf", "game.prompts", "tutorial.explore.bar", "tutorial.explore.barDetail"]
+    },
+    "tip": {
+      "label": "Sprout's tip",
+      "help": "A tutorial callout or tip bubble.",
+      "find": ".kit-callout",
+      "knobs": {
+        "Timing": ["tutorial.tipSeconds", "tutorial.tipDelay", "tutorial.tipsPerTurn", "tutorial.maxPauses", "tutorial.railsCalloutDelay"],
+        "Nudges": ["tutorial.idleGlow", "tutorial.idleText", "tutorial.idleRepeat", "tutorial.laterIdleText", "tutorial.onlineIdleText", "tutorial.wrongRepeat"],
+        "Look": ["tutorial.calloutRoom", "tutorial.railsDim"],
+        "Explore": ["tutorial.exploreRemind", "tutorial.exploreDim"]
+      },
+      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails", "tutorial.explore.remind"]
+    },
+    "ribbon": {
+      "label": "Award ribbon",
+      "help": "The place ribbon on the end screen.",
+      "knobs": {
+        "Look": ["endscreen.ribbon1", "endscreen.ribbon2", "endscreen.ribbon3", "endscreen.ribbon4", "endscreen.ribbonSize"]
+      }
+    },
+    "award": {
+      "label": "Award",
+      "help": "One award in the end screen's highlights: who earned it and why.",
+      "knobs": {
+        "Which comes first": ["endscreen.awardOrder"],
+        "When it is earned": ["endscreen.lockdownMinDrop", "endscreen.lockdownMaxAfter", "endscreen.pincerMinFrom", "endscreen.pincerMinShare", "endscreen.weedMaxMagic", "endscreen.weedMinBlocked", "endscreen.weedMinCut", "endscreen.walledMinMagic", "endscreen.walledMaxSize", "endscreen.hedgeMinOver", "endscreen.powerPlayMin", "endscreen.powerPlayMinLetters", "endscreen.longWordMinSmall", "endscreen.longWordMinLarge", "endscreen.hijackMinFrom", "endscreen.bridgeMinLength", "endscreen.superBridgeMinLength", "endscreen.closeCallMinAfter", "endscreen.tricksterMinBehind", "endscreen.calledItMinLead"],
+        "Carousel": ["endscreen.carouselSeconds", "endscreen.carouselPauseSeconds"]
+      },
+      "text": ["game.gameOver.awards", "game.gameOver.highlights"],
+      "sounds": ["end.award"]
+    },
+    "storyChart": {
+      "label": "Story chart",
+      "help": "The end screen's Story page: everyone's Magic over the game, with moment markers and the turn list.",
+      "knobs": {
+        "Chart": ["endscreen.maxMarkers", "endscreen.chartDrawSeconds", "endscreen.chartLineWidth", "endscreen.chartHeight", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Bot band": ["endscreen.botBandWidth", "endscreen.botBandDarken", "endscreen.botBandOpacity"],
+        "Turn list": ["endscreen.storyListFontScale", "endscreen.storyListMaxWordChars", "endscreen.storyListBackdrop", "endscreen.storyListMaxWidth", "endscreen.storyListMaxHeight", "endscreen.storyListSmallest"]
+      },
+      "text": ["game.gameOver.chart"]
+    },
+    "resultsPage": {
+      "label": "Results page",
+      "help": "A page of the end screen (results, story, scorecard) — how big it may grow.",
+      "knobs": {
+        "Size": ["endscreen.pageFill", "endscreen.maxZoom", "layout.bottomRoom"]
+      },
+      "text": ["game.gameOver.tabs", "game.gameOver.card"]
+    },
+    "reveal": {
+      "label": "End reveal",
+      "help": "The end-of-game ceremony: tangles, bonuses, the count, the winner.",
+      "knobs": {
+        "Timing": ["anim.revealTangles", "anim.tangleBlinkTime", "anim.revealBonus", "anim.revealCount", "anim.revealWinner", "anim.revealPopTime"],
+        "Music": ["anim.revealMusicCalm", "anim.revealMusicPeak", "anim.revealMusicSettle"],
+        "Look": ["garden.revealPop", "garden.revealPopSize", "layout.revealBigZoom", "layout.revealMinZoom"],
+        "Points & pops": ["feel.events.seedPop", "feel.events.totalPop", "feel.tiers", "anim.scorePopTime", "anim.scoreFlyTime", "anim.arcHeight", "anim.tangleBlinkTime"],
+        "Rules": ["rules.tangleBonus"]
+      },
+      "text": ["game.reveal"],
+      "sounds": ["reveal.tangles", "reveal.count", "reveal.bonus", "reveal.winner"]
+    },
+    "menuButton": {
+      "label": "Button",
+      "help": "Any UI kit button — menus, Pause, the HUD. Shared: changing it changes every button (main buttons use Main buttons; the quieter ones use Cards).",
+      "find": ".kit-button",
+      "style": ["primary", "on-primary", "surface", "on-surface", "danger", "on-danger", "border", "ink", "radius-control", "corner-shape", "border-width", "depth-0", "glow", "press-scale", "press-shift", "motion-fast", "ease", "text-case", "font-body"],
+      "sounds": ["ui.tap", "ui.back"]
+    },
+    "menuToggle": {
+      "label": "Toggle switch",
+      "help": "An on / off switch (Settings). Shared by every switch.",
+      "find": ".kit-toggle",
+      "style": ["primary", "muted", "surface", "ink", "border-width", "radius-control", "corner-shape", "depth-1", "glow", "motion-fast", "ease"],
+      "sounds": ["ui.toggle.on", "ui.toggle.off"]
+    },
+    "menuSlider": {
+      "label": "Slider",
+      "help": "A slider (Settings → volume). Shared by every slider.",
+      "find": ".kit-slider",
+      "style": ["primary", "surface", "border", "border-width", "radius-control", "depth-1"]
+    },
+    "menuPicker": {
+      "label": "◀ Picker ▶",
+      "help": "A Selector or Stepper: ◀ value ▶ (New Game, Settings). Shared by every picker; its ◀ ▶ are Buttons.",
+      "find": ".kit-picker",
+      "style": ["surface", "on-surface", "border", "border-width", "radius-control", "corner-shape", "font-body"],
+      "sounds": ["ui.tap"]
+    },
+    "menuTab": {
+      "label": "Tab",
+      "help": "One tab in a tab row (Settings). Shared by every tab.",
+      "find": ".kit-tab",
+      "style": ["primary", "on-primary", "surface", "on-surface", "muted", "border", "border-width", "radius-control", "corner-shape", "text-case"],
+      "sounds": ["ui.tap"]
+    },
+    "menuRow": {
+      "label": "List row",
+      "help": "A row in a list (Settings, Credits). Shared by every row.",
+      "find": ".kit-listrow",
+      "style": ["on-surface", "muted", "border", "border-width"],
+      "sounds": ["ui.tap"]
+    },
+    "menuBadge": {
+      "label": "Badge",
+      "help": "A small label chip. Shared by every badge.",
+      "find": ".kit-badge",
+      "style": ["primary", "on-primary", "surface", "on-surface", "danger", "on-danger", "border", "ink", "border-width", "radius-control", "corner-shape", "text-case"]
+    },
+    "menuTitle": {
+      "label": "Menu title",
+      "help": "The big words at the top of a menu. Shared by every title.",
+      "find": ".kit-text[data-kind=\"title\"], .kit-text[data-kind=\"display\"]",
+      "style": ["on-surface", "font-display", "font-scale", "text-size", "text-case"]
+    },
+    "menuCard": {
+      "label": "Menu card",
+      "help": "The card a menu sits on (Main menu, Pause, Settings, New Game, Credits, lobby…). Shared by every menu.",
+      "find": ".kit-modal, .kit-menu",
+      "style": ["surface", "on-surface", "border", "border-width", "radius-panel", "corner-shape", "depth-2", "panel-texture", "density", "enter", "motion-normal", "ease", "kit-menu-w", "kit-menu-max-h", "kit-menu-max-h-wide", "kit-ask-w", "kit-scroll-fade"]
+    },
+    "menuPanel": {
+      "label": "Card or panel",
+      "help": "A card or panel inside a menu or on the game. Shared by every card.",
+      "find": ".kit-card, .kit-panel:not(.kit-modal):not(.kit-menu):not(.kit-toast)",
+      "style": ["surface", "on-surface", "border", "border-width", "radius-panel", "corner-shape", "depth-1", "panel-texture", "font-display"]
+    },
+    "menuToast": {
+      "label": "Toast",
+      "help": "A short message that pops in and fades (\"Word sent\"). Shared by every toast.",
+      "find": ".kit-toast",
+      "style": ["surface", "on-surface", "danger", "border", "border-width", "radius-panel", "depth-2", "motion-normal", "ease"]
+    },
+    "menuScreen": {
+      "label": "Menu background",
+      "help": "Behind a menu: the page colour and the body text. Click an empty spot around a menu.",
+      "find": ".kit-screen",
+      "style": ["bg", "on-bg", "muted", "focus", "font-body", "text-size", "density"]
+    }
+  }
+}

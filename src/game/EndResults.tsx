@@ -150,7 +150,7 @@ const ribbonColour = (tuning: EndTuning, place: number) =>
  *  corner (drawn 40 × 48; `size` = its width as a share of the picture's). */
 function Ribbon({ place, colour, size }: { place: number; colour: string; size: number }) {
   return (
-    <g className="game-end-ribbon" transform={`translate(-2 -6) scale(${(size * 100) / 40})`} data-place={place}>
+    <g className="game-end-ribbon" transform={`translate(-2 -6) scale(${(size * 100) / 40})`} data-place={place} data-knobs="ribbon">
       <path d="M12 26 L6 46 L13 42 L17 47 L20 28 Z M28 26 L34 46 L27 42 L23 47 L20 28 Z" fill={colour} stroke="var(--surface)" strokeWidth={1.5} strokeLinejoin="round" />
       <path d="M12 26 L6 46 L13 42 L17 47 L20 28 Z M28 26 L34 46 L27 42 L23 47 L20 28 Z" fill="black" opacity={0.18} />
       <circle cx={20} cy={18} r={16} fill={colour} stroke="var(--surface)" strokeWidth={2} />

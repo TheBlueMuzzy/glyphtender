@@ -10,8 +10,12 @@
 // Under the tabs: a search box (search/SearchBar.tsx) that searches ONLY the open tab ("Search Tuning…"): the tab gets
 // the text as its `query` prop and filters its own rows, highlighted. Picking another tab clears it. In a tab with
 // sections, tapping a section title in the results clears the search and takes you there. Esc clears it, then closes.
+// Select (only when the game has content/devkit/select.json, select/): click a thing in the game → under the Select tab
+// the Tuning, Text and Sound panels show just that thing's knobs (the same panels, so every edit is the one edit).
+// While selecting on a desktop, the panel slides off to a thin pink bar on the right when the mouse leaves it (so the
+// whole game shows), and slides back when the mouse comes back over the bar — picked something or not.
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
-import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from 'react'
 import { gameTabs } from '../devkit-game/tabs'
 import { CaptureTab } from './capture/CaptureTab'
 import { Carousel } from './carousel/Carousel'
@@ -20,6 +24,12 @@ import { CAN_SAVE } from './saveContent'
 import { SearchBar } from './search/SearchBar'
 import { DevKitSearch } from './search/searchContext'
 import { goToSection } from './search/sectionState'
+import { DevKitPick, type PanelPick } from './select/pickContext'
+import { NARROW_PX, SelectLayer } from './select/SelectLayer'
+import { selectFile } from './select/selectFiles'
+import { pickOf } from './select/selectMap'
+import { pickedObject, setSelect, useSelect } from './select/selectStore'
+import { SelectTab } from './select/SelectTab'
 import { SnapshotsTab } from './snapshots/SnapshotsTab'
 import { TuningTab } from './tuning/TuningTab'
 import { tuningFiles } from './tuning/tuningFiles'
@@ -47,6 +57,8 @@ function ScreensPanel({ query }: { query?: string }) {
 const previewOpen = () => document.querySelector('dialog.devkit-preview[open]') !== null
 
 const KIT_TABS: DevKitTab[] = [
+  // Only when the game has content/devkit/select.json (its object → knobs list)
+  ...(selectFile ? [{ id: 'select', label: 'Select', Panel: SelectTab, searchable: false }] : []),
   { id: 'color', label: 'Color', Panel: ColorTab },
   // Only when the game has content/tuning/*.json files
   ...(tuningFiles.length > 0 ? [{ id: 'tuning', label: 'Tuning', Panel: TuningTab }] : []),
@@ -56,6 +68,10 @@ const KIT_TABS: DevKitTab[] = [
   // Screen previews: DEV ONLY — never in a release build, even while inReleaseBuilds is true (previews/PreviewsTab.tsx)
   ...(ScreensTab ? [{ id: 'screens', label: 'Screens', Panel: ScreensPanel }] : []),
 ]
+
+// The panels that show a pick's knobs under the Select tab, in this order (a game's Text and Sound tabs use these ids;
+// Color shows the UI kit style values — a button's corners, a toggle's colours)
+const PICK_TABS = ['tuning', 'color', 'text', 'sound']
 
 const CORNER_SIZE_PX = 64 // the invisible top-right square you triple-tap on a phone
 const TRIPLE_TAP_MS = 700 // all three taps must land within this time
@@ -174,9 +190,52 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     goToSection(sectionId)
   }
 
+  // Select tab with something picked: the Tuning / Color / Text / Sound panels show under it, filtered to the pick
+  const select = useSelect()
+  const picked = tabId === 'select' ? pickedObject(select) : null
+  const panelPick: PanelPick | null = picked && { pick: pickOf(picked) }
+  // Select mode on a desktop: mouse off the panel → it tucks away to a bar; mouse back over it → it slides back in
+  const [tucked, setTucked] = useState(false)
+  const tuckable = select.on && open
+  const [wasTuckable, setWasTuckable] = useState(tuckable)
+  if (tuckable !== wasTuckable) {
+    setWasTuckable(tuckable)
+    if (!tuckable) setTucked(false) // select mode off or the panel closed: next time it starts slid in
+  }
+  const tuckIfSelecting = (e: ReactPointerEvent) => {
+    // The browser's own relatedTarget (React's says "window" for anything in the game's separate React root): no
+    // element = the mouse left the window (off the right edge), not onto the game — stay put
+    if (select.on && e.pointerType === 'mouse' && e.nativeEvent.relatedTarget instanceof Element && window.innerWidth > NARROW_PX) setTucked(true)
+  }
+  const classes = ['devkit', select.on && 'is-selecting', tucked && 'is-tucked'].filter(Boolean).join(' ')
+
+  const showsPick = (t: DevKitTab) => panelPick !== null && PICK_TABS.includes(t.id)
+  // React keeps each panel (and its unsaved edits) when they're only put in another order
+  const shownTabs = panelPick
+    ? [...tabs.filter((t) => t.id === 'select'), ...PICK_TABS.flatMap((id) => tabs.filter((t) => t.id === id)), ...tabs.filter((t) => t.id !== 'select' && !PICK_TABS.includes(t.id))]
+    : tabs
+
   // The panel stays mounted while hidden, so unsaved edits survive closing and reopening it.
   return (
-    <aside ref={panel} {...{ popover: 'manual' }} className="devkit" data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit">
+    <>
+    {selectFile && <SelectLayer panelOpen={open} />}
+    <aside ref={panel} {...{ popover: 'manual' }} className={classes} data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit"
+      onPointerLeave={tuckIfSelecting}
+      onPointerEnter={() => setTucked(false)}
+    >
+      {/* Tucked away (desktop, select mode): the bar that's left showing; hover it to bring the panel back (select.css) */}
+      <div className="devkit-tuck-bar" aria-hidden="true">
+        <span>Dev Kit</span>
+      </div>
+      {/* Select mode on a narrow screen (a phone): the panel shrinks to this bar so the game can be tapped (select.css) */}
+      {select.on && (
+        <div className="devkit-selecting-bar">
+          <span>Tap something in the game to pick it</span>
+          <button type="button" className="devkit-btn" onClick={() => setSelect({ on: false, hover: null })}>
+            Done
+          </button>
+        </div>
+      )}
       {/* Two rows: a small title + ✕, then the tool tabs across the panel's FULL width (more tabs per page) */}
       <header className="devkit-top">
         <div className="devkit-title-row">
@@ -207,13 +266,22 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
       {/* One scrolling area for every tab (each remembers its own scroll position) */}
       <div ref={scroller} className="devkit-scroll">
         <DevKitSearch.Provider value={{ goTo }}>
-          {tabs.map((t) => (
-            <section key={t.id} className="devkit-body" hidden={t.id !== tabId} role="tabpanel" aria-label={t.label}>
-              <t.Panel query={t.id === tabId ? query : ''} />
+          {shownTabs.map((t) => (
+            <section
+              key={t.id}
+              className={showsPick(t) ? 'devkit-body is-picked-view' : 'devkit-body'}
+              hidden={t.id !== tabId && !showsPick(t)}
+              role="tabpanel"
+              aria-label={t.label}
+            >
+              <DevKitPick.Provider value={showsPick(t) ? panelPick : null}>
+                <t.Panel query={t.id === tabId ? query : ''} />
+              </DevKitPick.Provider>
             </section>
           ))}
         </DevKitSearch.Provider>
       </div>
     </aside>
+    </>
   )
 }

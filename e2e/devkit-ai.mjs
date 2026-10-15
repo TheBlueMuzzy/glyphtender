@@ -89,9 +89,9 @@ try {
       // (The game's own tabs come last — AI, Sound, Words: on a narrow panel try the carousel pages from the last one back.)
       const dots = panel.locator('.devkit-tabs .dk-carousel-dot')
       const inView = () => tab.evaluate((t) => {
-        const view = t.closest('.dk-carousel-view')?.getBoundingClientRect()
+        // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
         const box = t.getBoundingClientRect()
-        return !view || (box.left >= view.left - 1 && box.right <= view.right + 1)
+        return t.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
       })
       for (let i = (await dots.count()) - 1; i >= 0 && !(await inView()); i--) {
         await dots.nth(i).click()

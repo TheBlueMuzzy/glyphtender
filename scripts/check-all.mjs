@@ -56,6 +56,7 @@ const ALONE = [
   ['devkit-ai', 'e2e/devkit-ai.mjs', 'e2e-shots/devkit-ai 5415'],
   ['devkit-sound', 'e2e/devkit-sound.mjs', 'e2e-shots/devkit-sound 5418'], // (Sound tab: adds a test MP3 + saves audio.json, then puts both back; the 8 moments)
   ['words-tab', 'e2e/words-tab.mjs', 'e2e-shots/words-tab 5432'], // (Words tab: a stand-in word server on 1986; saves both word files, then puts them back)
+  ['devkit-select', 'e2e/devkit-select.mjs', 'e2e-shots/devkit-select 5448'], // (F86 Select tab: pick a glyphling by click / tap, its knobs, + Add a knob saves select.json then puts it back)
 ]
 
 const args = process.argv.slice(2)
