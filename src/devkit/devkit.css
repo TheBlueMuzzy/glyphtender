@@ -7,7 +7,7 @@
   right: 0;
   bottom: 0;
   z-index: 2147483000; /* above everything in the game */
-  width: min(540px, 50vw); /* every tool tab fits in one row on a desktop: 9 tabs ≈ 520px (Text tab, 0.13.0) */
+  width: min(540px, 50vw); /* ~10 tool tabs fit one row; more wrap onto a second row on a desktop (0.20.2, below) */
   min-width: 300px;
   display: flex;
   flex-direction: column;
@@ -104,6 +104,14 @@
 /* Phone: the panel is narrow (300 px) — tighter tabs, so 4 fit on a carousel page */
 @media (max-width: 520px) {
   .devkit-tab { padding: 4px 6px; }
+}
+
+/* Desktop (0.20.2): EVERY tool tab in view — the row wraps onto a second line instead of paging. The kit's own tabs grew
+   (Fonts 0.17.0) and a game with 4 tabs of its own (Glyphtender: 11) no longer fit one 540 px row, so 2 were hidden
+   behind ▶. Wrapped, the carousel measures everything as fitting (carouselPages.ts) and shows no arrows or dots.
+   A phone, or a short window (little height to spare), keeps the carousel. */
+@media (min-width: 761px) and (min-height: 500px) {
+  .devkit-tabs .dk-carousel-track { flex-wrap: wrap; width: auto; row-gap: 2px; }
 }
 
 /* Pause tool (0.18.0, pause/): ⏸ / ◐ left of the title, the PAUSED badge after it, and a badge that stays when the

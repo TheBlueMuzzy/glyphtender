@@ -101,7 +101,7 @@ async function openGame(size) {
   return { context, page, errors }
 }
 
-/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
+/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ◀ back to the first page, then ▶ to its page, like a person would). */
 async function pickTab(page, name) {
   const inView = () => page.evaluate((name) => {
     // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
@@ -109,6 +109,12 @@ async function pickTab(page, name) {
     const box = tab?.getBoundingClientRect()
     return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
   }, name)
+  // (the tab may be on an EARLIER page than the one showing — e.g. Screens after Sound once the Dev Kit gained Fonts)
+  const back = page.getByRole('button', { name: 'Previous tools' })
+  for (let i = 0; i < 6 && !(await inView()) && (await back.isVisible()) && (await back.isEnabled()); i++) {
+    await back.click()
+    await page.waitForTimeout(250)
+  }
   for (let i = 0; i < 6 && !(await inView()); i++) {
     await page.getByRole('button', { name: 'Next tools' }).click()
     await page.waitForTimeout(250)

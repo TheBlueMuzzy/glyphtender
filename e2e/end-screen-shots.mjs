@@ -156,7 +156,11 @@ try {
       }
 
       await page.goto(`http://127.0.0.1:${PORT}/`)
-      await page.waitForFunction(() => window.__glyphtender?.store, null, { timeout: 15000 })
+      // (F63: twice in 4 runs the dev hook never appeared — say what the page said, so the next one can be traced)
+      await page.waitForFunction(() => window.__glyphtender?.store, null, { timeout: 15000 }).catch(async (e) => {
+        const seen = await page.evaluate(() => ({ ready: document.readyState, root: document.getElementById('root')?.childElementCount, devkit: !!window.__devkit })).catch(() => null)
+        throw new Error(`${tag}: the game never booted (no window.__glyphtender in 15 s) — page ${JSON.stringify(seen)}; console errors: ${errors.join(' | ') || 'none'}`, { cause: e })
+      })
       await page.evaluate((g) => window.__glyphtender.store.getState().loadState(g), game)
 
       // ---- The Magic reveal, playing: calm and centred — chips in one tidy group, Skip a normal-size button ----
