@@ -7,7 +7,7 @@
 // Writes e2e-shots/checks.html: every check, pass/fail, how long, and its full log — the page Claude links for Muzzy
 // (dev server: /e2e-shots/checks.html), next to golden.html and report.html. Exit code 0 = everything passed.
 import { spawn } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { availableParallelism } from 'node:os'
 
 // [name, command] — fast checks don't use ports, so they all run at once
@@ -75,6 +75,25 @@ if (unknown.length) {
   process.exit(1)
 }
 mkdirSync('e2e-shots/logs', { recursive: true })
+
+// One e2e run at a time (framework F79, from the BMUZ template): the Dev Kit scripts save + restore content files,
+// which reloads every running dev server mid-test (sprint 23: a false "navigation destroyed"). A second full/area run
+// is refused while the first is going.
+const LOCK = 'e2e-shots/.check-lock'
+if (tier === 'full') {
+  const held = existsSync(LOCK) && readFileSync(LOCK, 'utf8')
+  const [pid, ...when] = held ? held.split(' ') : []
+  if (held && isRunning(Number(pid))) {
+    console.log(`Another check run is still going (process ${pid}, started ${when.join(' ')}). Wait for it — two at once break each other. (If it died, delete ${LOCK}.)`)
+    process.exit(1)
+  }
+  writeFileSync(LOCK, `${process.pid} ${new Date().toLocaleTimeString()}`)
+  process.on('exit', () => { try { rmSync(LOCK) } catch { /* already gone */ } })
+  process.on('SIGINT', () => process.exit(130)) // Ctrl+C still frees the lock
+}
+function isRunning(pid) {
+  try { process.kill(pid, 0); return true } catch (error) { return error.code === 'EPERM' }
+}
 
 /** Runs one check; resolves with { name, ok, seconds, log }. */
 function run(name, command) {
