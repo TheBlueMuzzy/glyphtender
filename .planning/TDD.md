@@ -252,7 +252,7 @@ D88 · 2026-10-10 · A seed's aim line starts at the glyphling that just moved (
   straight — "an arc conveys verticality, your pieces don't jump over anything" (drag.json tetherBend 0).
 D87 · 2026-10-10 · Dragging a moved glyphling (or its start-of-turn ghost) starts over from the turn's start (F63)
   Proposed by: Muzzy   Chose: the plan is taken back at once (no glide), its home = the start hex (faint mark + aim
-  line there); taps unchanged. The ghost press is found by its hex (option circles sit over it). Fixes B026.
+  line there); taps unchanged. The ghost press is found by its hex (option circles sit over it). Fixes B031.
 D86 · 2026-10-10 · Tray reorder feedback shows only what moveInRack will really do (F64)
   Proposed by: Claude   Options: the kit's insertionIndex (the gap on the pointer's side of the nearest place) / the
   gap the drop rule makes
