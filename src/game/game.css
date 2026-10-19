@@ -83,6 +83,7 @@
      the prompt can show, piled in one spot — sets its height, the real words sit in its middle */
   .game-prompt { inline-size: 100%; min-inline-size: 0; display: grid; }
   .game-prompt > * { grid-area: 1 / 1; min-inline-size: 0; }
+  .game-prompt[data-stepped-aside] { visibility: hidden; } /* the rails callout is up: its room stays (B013) */
   .game-prompt > :not(.game-prompt-sizer) { align-self: center; }
   .game-prompt-sizer { visibility: hidden; }
   /* A prompt row: the glyphling of whoever the words are for, right beside the words, the two centred together. The

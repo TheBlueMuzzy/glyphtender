@@ -51,7 +51,7 @@ export function PromptLine({ big, fixed, hangRoom = 0 }: { big: boolean; fixed: 
   const calloutUp = useTutorial((s) => s.calloutUp)
   const avatar = <Avatar name={playerName(who)} src={glyphlingArt(who)} color={colours[colourOf(who)]} />
   return (
-    <div className="game-prompt" data-knobs="prompt" data-hang={hang || undefined} style={calloutUp ? { visibility: 'hidden' } : undefined}>
+    <div className="game-prompt" data-knobs="prompt" data-hang={hang || undefined} data-stepped-aside={calloutUp || undefined}>
       {/* the frame's size: the glyphling's room + the tallest main line over the tallest small line (same word sizes
           as HudText's), so the words wrap exactly as the real ones do */}
       {fixed && (
