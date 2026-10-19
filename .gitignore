@@ -63,3 +63,6 @@ e2e/_*.mjs
 
 # each computer's own Dev Kit settings (Dev Kit 0.17+)
 devkit.local.json
+
+# Project planner page (drawn by build-ppp, never committed)
+.planning/ppp.html
