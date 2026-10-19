@@ -27,6 +27,6 @@
     "Tutorial"
   ],
   "knownGaps": [
-    { "check": "◐ half pause stops the rules, not the looks", "why": "Glyphtender's turns move on when animations finish, so half pause can't hold them yet", "roadmap": "TBD" }
+    { "check": "◐ half pause stops the rules, not the looks", "why": "Glyphtender's turns move on when animations finish, so half pause can't hold them yet", "roadmap": "F89" }
   ]
 }
