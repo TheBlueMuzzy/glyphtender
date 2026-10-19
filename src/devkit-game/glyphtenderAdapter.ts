@@ -171,4 +171,12 @@ export const glyphtenderAdapter: DevKitGame = {
   }),
 
   describe: describeGlyphtender,
+
+  // F63 (Dev Kit 0.19+): npm run check:framework's way into live play — an all-AI 2-player game, so play moves on its own
+  conformance: {
+    startPlay: async () => {
+      useGameStore.getState().startGame({ players: 2, seed: 7, bots: [0, 1] })
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+    },
+  },
 }
