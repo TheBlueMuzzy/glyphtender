@@ -1,5 +1,5 @@
 {
-  "_help": "Dev Kit (the ` panel) in RELEASE builds. true = friends testing the live link can open it (prototype/alpha/beta). /deliver sets this to false at the 1.0 full release — then the live game has no Dev Kit at all. Local dev always has it. sectionOrder = the order of the Tuning tab's sections (titles from each content/tuning file's _sections; any not listed follow).",
+  "_help": "Dev Kit (the ` panel) in RELEASE builds. true = friends testing the live link can open it (prototype/alpha/beta). /deliver sets this to false at the 1.0 full release — then the live game has no Dev Kit at all. Local dev always has it. sectionOrder = the order of the Tuning tab's sections (titles from each content/tuning file's _sections; any not listed follow). knownGaps = npm run check:framework promises the game doesn't keep yet, each planned on the roadmap (Dev Kit README: Known gaps).",
   "inReleaseBuilds": true,
   "sectionOrder": [
     "Board look",
@@ -25,5 +25,8 @@
     "Dragging",
     "Rules",
     "Tutorial"
+  ],
+  "knownGaps": [
+    { "check": "◐ half pause stops the rules, not the looks", "why": "Glyphtender's turns move on when animations finish, so half pause can't hold them yet", "roadmap": "TBD" }
   ]
 }
