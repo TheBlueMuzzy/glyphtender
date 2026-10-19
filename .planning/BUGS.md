@@ -1,6 +1,10 @@
 # Glyphtender — Bugs
-Open: 5 (P0 0 · P1 0 · P2 2 · P3 3)
+Open: 7 (P0 0 · P1 0 · P2 2 · P3 5)
 ## Open
+### B030 · P3 · open · found 2026-10-19 by framework F63 (dev/framework-checks) · e2e: devkit-search, devkit-select, previews, words-tab (test, not the game)
+Steps: on a phone size, these scripts open a Dev Kit tab by pressing ▶ only · Expected: they find the tab wherever it is · Actual: they pass today, but devkit-sound broke exactly this way when the Dev Kit's Fonts tab moved Screens to an earlier page (fixed in 8b9122b: ◀ back to the first page, then forward). Fix idea: one shared "open Dev Kit tab" helper for every e2e script (better still, one the Dev Kit ships).
+### B029 · P3 · open · found 2026-10-19 by check:full (framework F63, dev/framework-checks) · e2e:end (test, not the game as far as known)
+Steps: `npm run check:full` · Expected: end-screen-shots boots the game each time · Actual: sometimes the game doesn't boot within the 15 s wait. Failed 2 of 4 runs (once on the first page, once 7.5 min in) and passed alone. 160 test loads didn't reproduce it. Suspects: a busy PC (a 5-day-old dev server on port 5180 was using ~2.7 CPU cores; other test runs in parallel). The script now prints the page state and console errors when it times out (8b9122b), so the next failure shows its cause.
 ### B028 · P3 · open · found 2026-10-15 by check:full (sprint 29, dev/select-mode, 5d54f10) · e2e:screenshots (test, not the game as far as known)
 Steps: `npm run check:full` · Expected: game-play / game-planned @1066×1192 match · Actual: the tray's 8 tile slots were empty (no letter pictures drawn yet) — 2 of 216 differ; alone right after: those 2 match, 1 other shot differs by 1 pixel (end4-story-round6). Also flaked 2026-10-14 (passed on rerun). Suspect: the shot is taken before the tile images finish loading under load, and a zero-pixel tolerance. Fix idea: wait for the tray's images to decode before each shot; allow a few stray pixels.
 ### B025 · P3 · watching · found 2026-10-09 by check:full (sprint 19, dev/audio) · e2e:game desktop (test, not the game as far as known)
