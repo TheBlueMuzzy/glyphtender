@@ -63,7 +63,7 @@ export function Screen({ children, label, dialog, scroll, grow, backdrop, backdr
     const onEnd = (e: AnimationEvent) => { if (e.target === el) endSlide() } // (the screen's own slide, not a panel's entrance)
     el.addEventListener('animationend', onEnd)
     return () => el.removeEventListener('animationend', onEnd)
-  }, [slide]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [slide])
   return (
     <section className="kit-screen" ref={self} aria-label={label} data-dialog={dialog || undefined} data-scroll={scroll || undefined}
       data-grow={!scroll && grow ? grow : undefined} role={dialog ? 'dialog' : undefined} aria-modal={dialog || undefined}

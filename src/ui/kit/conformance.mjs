@@ -113,8 +113,114 @@ async function checkCredits(t) {
   else t.pass('every 🟡 credit is shown', `${yellow.length} on the Credits screen`)
 }
 
+// ---- Settings rows (0.20.0) ----
+// Every row that's switched on in content/ui/settings.json must DO something: a Settings screen full of switches that
+// change nothing is worse than a short one (Glyphtender once shipped 12 dead rows). A row counts as read when the game's
+// own code (not the framework's copies, not tests) names its id in a read:
+//   values.tips · values?.tips · settings['tips'] · id === 'resetTips' · case 'credits': · info={{ version: … }}
+//   · const { aiSpeed } = values · hide={['fullscreenTip']}
+// Not counted: comments, the JSON files themselves (settings.json, en.json labels), and words objects imported from a
+// .json file (text.tutorial.tips is a sentence, not the Tips setting).
+// Rows the kit or the audio module handle are skipped: headings · text size + reduce motion (the kit applies them) ·
+// link rows (the kit opens them — but a placeholder example.com address fails) · info rows with their own text (except
+// version, whose text must come from the game: info={{ version }}) · the Audio rows once the game passes the values to
+// the audio module (applyAudioSettings / useAudioSettings / readAudioSettings).
+export const SETTINGS_FILE = 'content/ui/settings.json'
+export const SETTINGS_CHECK = 'every Settings row that\'s switched on is read by the game'
+export const KIT_ROWS = ['textSize', 'reduceMotion']
+export const AUDIO_ROWS = ['masterVolume', 'musicVolume', 'ambienceVolume', 'sfxVolume', 'uiVolume', 'sound', 'muteInBackground', 'mono']
+const AUDIO_WIRING = /\b(applyAudioSettings|useAudioSettings|readAudioSettings)\s*\(/
+const VALUE_TYPES = ['slider', 'toggle', 'selector', 'stepper']
+
+/** The rows a player can see: switched on ("on" isn't false) and not headings — [{ id, type, label, tab, url, default }]. */
+export function liveRows(schema) {
+  const tabs = Array.isArray(schema?.tabs) ? schema.tabs : []
+  return tabs.flatMap((tab) => (Array.isArray(tab.rows) ? tab.rows : [])
+    .filter((row) => row && typeof row.id === 'string' && row.on !== false && row.type !== 'heading')
+    .map((row) => ({ ...row, tab: tab.label ?? tab.id })))
+}
+
+/** Code without its comments (a // inside 'https://…' stays). */
+export function stripComments(text) {
+  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1')
+}
+
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Does this one file read the row id? (see the list above) */
+export function fileReadsRow(text, id) {
+  const code = stripComments(text)
+  const name = escapeRe(id)
+  if (new RegExp(`(['"\`])${name}\\1`).test(code)) return true // 'tips' — compared, a key, a case, a hide list
+  if (new RegExp(`[{,]\\s*${name}\\s*[:,}=]`).test(code)) return true // { version: … } · const { aiSpeed } = values
+  // values.tips / values?.tips — but not text.tutorial.tips when `text` came from a .json file
+  const fromJson = new Set([...code.matchAll(/import\s+([A-Za-z_$][\w$]*)\s+from\s+['"][^'"]+\.json['"]/g)].map((m) => m[1]))
+  for (const m of code.matchAll(new RegExp(`(?<!\\.)\\??\\.${name}(?![\\w$])`, 'g'))) {
+    const before = code.slice(0, m.index)
+    const root = before.match(/([A-Za-z_$][\w$]*)(?:\??\.[A-Za-z_$][\w$]*)*\??$/)?.[1] // the start of the chain: text in text.tutorial
+    if (!root || !fromJson.has(root)) return true
+  }
+  return false
+}
+
+/** Does this file give an info row its text? <Settings info={{ version: … }} /> (or an info: { … } object passed on).
+ *  Stricter than fileReadsRow: ids like "version" show up all over a game's code for other reasons. */
+export function fileFeedsInfo(text, id) {
+  return new RegExp(`\\binfo\\s*[=:]\\s*\\{\\{?[^}]*?(?<![\\w$.])${escapeRe(id)}(?![\\w$])`).test(stripComments(text))
+}
+
+/** Which rows nothing reads → { dead: [rows], placeholder: [rows], read, kit } (code = [{ path, text }]). */
+export function settingsProblems(schema, code) {
+  const audioWired = code.some((f) => AUDIO_WIRING.test(stripComments(f.text)))
+  const dead = []
+  const placeholder = []
+  let read = 0
+  let kit = 0
+  for (const row of liveRows(schema)) {
+    if (row.type === 'link') {
+      if (!/^(https?:|mailto:)/i.test(row.url ?? '') || /\bexample\.(com|org|net)\b/i.test(row.url ?? '')) placeholder.push(row)
+      else kit++
+      continue
+    }
+    const handled = KIT_ROWS.includes(row.id)
+      || (row.type === 'info' && row.id !== 'version' && String(row.default ?? '').trim() !== '')
+      || (audioWired && AUDIO_ROWS.includes(row.id))
+    if (handled) { kit++; continue }
+    const reads = row.type === 'info' ? fileFeedsInfo : fileReadsRow // an info row's text only comes in through info={{ … }}
+    if (code.some((f) => reads(f.text, row.id))) read++
+    else dead.push(row)
+  }
+  return { dead, placeholder, read, kit }
+}
+
+/** Where to wire a dead row, by its type — plain words for the failure. */
+function wireHint(row) {
+  if (VALUE_TYPES.includes(row.type)) return `read values.${row.id} in the Settings onChange (and loadSettings(…) at start-up)`
+  if (row.type === 'button' || row.type === 'destructive') return `handle it in the Settings onAction: if (id === '${row.id}') …`
+  if (row.type === 'info') return `give its text: <Settings info={{ ${row.id}: … }} />`
+  return 'read its id where it should act'
+}
+
+export function checkSettingsForTest(t) { return checkSettings(t) }
+function checkSettings(t) {
+  const schema = t.json(SETTINGS_FILE)
+  if (!schema) return t.pass(SETTINGS_CHECK, `no ${SETTINGS_FILE}`)
+  const { dead, placeholder, read, kit } = settingsProblems(schema, t.gameCode())
+  const where = (row) => `${row.tab} → ${row.label ?? row.id} ("${row.id}", a ${row.type})`
+  const problems = [
+    ...dead.map((row) => `${where(row)}: nothing in the game reads it — ${wireHint(row)}`),
+    ...placeholder.map((row) => `${where(row)}: opens ${row.url ? `a placeholder address (${row.url})` : 'no address'} — give it the real url`),
+  ]
+  if (problems.length) {
+    return t.fail(SETTINGS_CHECK, problems,
+      `Each row above shows in Settings but changes nothing. Wire it where the line says (the game's own code, not src/ui/kit), or switch it off with "on": false in ${SETTINGS_FILE} until it does something.`)
+  }
+  return t.pass(SETTINGS_CHECK, `${read + kit} rows on: ${read} read by the game, ${kit} handled by the kit / audio module`)
+}
+
 export async function check(t) {
   await checkCredits(t)
+  checkSettings(t)
 
   // ---- code: the kit's rule checker ----
   {

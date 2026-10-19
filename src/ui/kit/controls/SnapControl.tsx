@@ -62,14 +62,14 @@ export function SnapControl({ label, value, onChange, kind = 'slide', stops = 3,
   const at = clamp(Math.round(value), 0, count - 1)
   const [drag, setDrag] = useState<number | null>(null) // live position while a finger holds it
   // a dial's resting angle, unwrapped (so it always turns the short way round), and the stop it's for
-  const rest = useRef(turn ? angles[at] : 0)
-  const restFor = useRef(at)
-  if (turn && restFor.current !== at) { restFor.current = at; rest.current = nearestTurn(angles[at], rest.current) }
+  // (state, adjusted while drawing when the stop changes — React's way; refs may not be read while drawing)
+  const [rest, setRest] = useState(() => ({ angle: turn ? angles[at] : 0, at }))
+  if (turn && rest.at !== at) setRest({ angle: nearestTurn(angles[at], rest.angle), at })
   const self = useRef<HTMLDivElement>(null)
   const press = useRef<{ id: number; x: number; y: number; moved: boolean; from: number; last: number } | null>(null)
 
   const posOf = (i: number) => i / (count - 1)
-  const resting = turn ? rest.current : posOf(at)
+  const resting = turn ? rest.angle : posOf(at)
   const shown = drag ?? resting
   const remPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
   const box = () => self.current!.getBoundingClientRect()
@@ -124,8 +124,9 @@ export function SnapControl({ label, value, onChange, kind = 'slide', stops = 3,
     setDrag(null)
     if (turn) {
       const j = nearestAngle(end, angles)
-      rest.current = nearestTurn(angles[j], end) // settle from where the finger left it, the short way
-      restFor.current = j // (a game that refuses the move: `value` stays, and the dial turns back to it)
+      // settle from where the finger left it, the short way
+      // (a game that refuses the move: `value` stays, and the dial turns back to it)
+      setRest({ angle: nearestTurn(angles[j], end), at: j })
       go(j)
     } else go(nearestStop(end, count))
   }

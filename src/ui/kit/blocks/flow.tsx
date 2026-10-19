@@ -30,7 +30,7 @@ export function Countdown({ from = 3, seconds = 1, onDone, words }: CountdownPro
   const w = { ...countdownWords, ...words }
   const [left, setLeft] = useState(from)
   const done = useRef(onDone)
-  done.current = onDone // always call the latest onDone, without restarting the clock
+  useEffect(() => { done.current = onDone }) // always call the latest onDone, without restarting the clock
   useEffect(() => {
     const timer = setTimeout(() => (left > 0 ? setLeft(left - 1) : done.current?.()), seconds * 1000)
     return () => clearTimeout(timer)
