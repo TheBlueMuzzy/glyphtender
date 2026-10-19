@@ -8,6 +8,7 @@
 // (dev server: /e2e-shots/checks.html), next to golden.html and report.html. Exit code 0 = everything passed.
 import { spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { availableParallelism } from 'node:os'
 
 // [name, command] — fast checks don't use ports, so they all run at once
 const FAST = [
@@ -107,8 +108,11 @@ async function pool(checks, jobs) {
 }
 
 const started = Date.now()
-console.log(`Fast checks (${FAST.length}, together):`)
-const results = await pool(FAST, FAST.length)
+// All at once on a big PC; on a small machine (GitHub's has 4 cores) half as many as it has cores — five at once there
+// starved the unit tests' whole-AI-game tests past their 5 s limit (F70, 2026-10-19). 32 threads → all 5; 4 cores → 2.
+const FAST_JOBS = Math.max(1, Math.min(FAST.length, Math.floor(availableParallelism() / 2)))
+console.log(`Fast checks (${FAST.length}, ${FAST_JOBS >= FAST.length ? 'together' : `${FAST_JOBS} at a time`}):`)
+const results = await pool(FAST, FAST_JOBS)
 if (tier === 'full') {
   if (results.every((r) => r.ok)) {
     console.log(`\nFull checks (${e2e.length} at ${JOBS} at a time, then ${alone.length} alone):`)
