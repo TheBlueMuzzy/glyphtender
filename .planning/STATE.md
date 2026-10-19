@@ -1,4 +1,5 @@
 ## ▶ RESUME HERE
+2026-10-19 — **Branch `dev/framework-checks` (framework F63, approved): all 6 framework pieces at their newest** (UI kit 0.19.0, Dev Kit 0.20.2, audio 0.3.1, table 0.8.0, ai 0.2.1, rooms 0.7.0); check:full green, check:framework 23 kept + 1 known gap (half pause → F89). Muzzy played it on his phone: plays the same. Not released yet → the next Glyphtender `/deliver` (a patch) ships it. New P3s: B029, B030.
 2026-10-15 — **Released v0.11.0 = v0.15 Click a thing, tweak it ✅** (Dev Kit Select Mode: Select tab → select mode → click a glyphling, seed, ring, board… or a menu button, switch, tab → every setting that affects it in one place; 29 objects in content/devkit/select.json, a test keeps every setting on some object — D99). Framework v0.10.0 (Dev Kit 0.16.1) merged too.
 Next: `/sprint` for the next batch, or `/roadmap` to see what's left (F85 = F80's tutorial to-dos; Later/Ideas).
 Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn yet.
