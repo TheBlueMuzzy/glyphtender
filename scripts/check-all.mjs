@@ -1,5 +1,5 @@
 // CHECK EVERYTHING, SIDE BY SIDE — the BMUZ check tiers in one command (BMUZ "Checks", 2026-10-04).
-//   npm run check:fast            the quick ones, together (~1 min): unit tests, type check + build, lint, golden games
+//   npm run check:fast            the quick ones, together (~1 min): unit tests, type check + build, lint, golden games, UI kit rules
 //   npm run check:full            fast first; if green, every e2e script + the before/after screenshots, a few at a time
 //   npm run check:full -- game online   only these e2e scripts (an "area" check: the scripts for what you touched)
 // Each e2e script gets its OWN port (and the online ones their own wrangler port + storage), so they can run side by
@@ -15,6 +15,7 @@ const FAST = [
   ['build', 'npm run -s build'],
   ['lint', 'npm run -s lint'],
   ['golden games', 'npm run -s check:golden'],
+  ['UI kit rules', 'npm run -s check:ui'], // the UI kit's rule: it was missing here, so an inline style shipped in v0.11.0 (F63)
 ]
 // e2e: [name, script, args] — every one on its own ports (see each script's header for what it checks).
 // Measured 2026-10-04, 3 at a time: end 462 s · online 334 · online4 274 · screenshots 213 · pass4 114 · game 95 · pass 95 ·
