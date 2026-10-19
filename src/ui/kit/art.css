@@ -1,0 +1,179 @@
+/* ART SKINS (0.11.0) — a game's own pictures in place of the style's look: art buttons (Button art),
+   a backdrop behind a screen (Screen backdrop) and a frame picture around a panel (Panel frame).
+   The pictures are the look, so the style paints nothing over them; words beside them still use the style.
+   Pictures always keep their own shape (no stretching): sized by ONE side, the other follows. */
+
+/* ───────────── kit-base: layout only ───────────── */
+@layer kit-base {
+  /* Art button: picture, then words (or words under it); the whole thing is the target, ≥ target-min */
+  .kit-button[data-art] { justify-content: flex-start; padding: var(--gap-xs) var(--gap-s); gap: var(--gap-m); text-align: start; }
+  .kit-button[data-art="below"] { flex-direction: column; justify-content: center; gap: var(--gap-xs); text-align: center; }
+  .kit-art-face { display: grid; flex: none; inline-size: var(--kit-art-size, 4rem); max-inline-size: 100%; }
+  .kit-button[data-art-size="s"] { --kit-art-size: 3rem; }
+  .kit-button[data-art-size="l"] { --kit-art-size: 5.5rem; }
+  /* both pictures in one cell, bottom-aligned: a shorter "pushed in" picture sinks into the same base */
+  .kit-art-face > img { grid-area: 1 / 1; display: block; inline-size: 100%; block-size: auto; align-self: end; pointer-events: none; user-select: none; }
+  .kit-art-down { visibility: hidden; }
+  .kit-button[data-art]:is(:active, [data-pressed]):not(:disabled) .kit-art-down { visibility: visible; }
+  .kit-button[data-art]:is(:active, [data-pressed]):not(:disabled) .kit-art-up:has(+ .kit-art-down) { visibility: hidden; }
+  /* short windows (a phone on its side): pictures at 75%, so a row of them and their words still fit */
+  @media (max-height: 30rem) { .kit-art-face { inline-size: calc(var(--kit-art-size, 4rem) * 0.75); } }
+  .kit-art-label { display: inline-flex; align-items: center; gap: var(--gap-s); min-inline-size: 0; }
+  /* label hidden: read out, never shown */
+  .kit-button[data-art="hidden"] { padding: var(--gap-xs); }
+  .kit-button[data-art="hidden"] .kit-art-label { inline-size: 0.0625rem; block-size: 0.0625rem; margin: -0.0625rem; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* Frame picture: the border is the picture's nine-way cut; contents sit inside the cut lines */
+  .kit-panel[data-frame] { padding: var(--gap-xs); }
+  /* Art buttons in a main menu: the column is as wide as its widest button and centred, pictures lined up */
+  .kit-main-menu-buttons:has(> .kit-button[data-art]) { align-self: center; max-inline-size: 100%; }
+
+  /* A title picture (MainMenu titleArt): as tall as it may be, as wide as its shape says, never wider than its box */
+  .kit-title-art { display: block; block-size: var(--kit-title-art-h, 7rem); inline-size: auto; max-inline-size: 100%;
+    object-fit: contain; align-self: center; user-select: none; pointer-events: none; }
+  @media (max-height: 30rem) { .kit-title-art { block-size: var(--kit-title-art-h-short, 4.5rem); } }
+}
+
+/* ───────────── kit-style: the pictures replace the paint ───────────── */
+@layer kit-style {
+  /* (data-variant in the selector: beats every variant's fill, outline, glow and shadow) */
+  .kit-button[data-art][data-variant] { background: none; border-color: transparent; box-shadow: none; filter: none; color: inherit;
+    font-family: var(--font-heading); }
+  /* big pictures get big words (heading size); s / m keep a normal button's text size */
+  .kit-button[data-art][data-art-size="l"] { font-size: var(--text-heading); }
+  /* the picture presses itself (down art); no extra sink or shrink — without down art, the style's press stays */
+  .kit-button[data-art]:has(.kit-art-down):active:not(:disabled) { transform: none; }
+  /* (:is(… .kit-layer > …): also beats the dim a screen gets over another — a backdrop covers what's under it anyway) */
+  :is(.kit-screen, .kit-layer > .kit-screen)[data-backdrop] { background: var(--kit-backdrop) center / cover no-repeat, var(--bg); }
+  :is(.kit-screen, .kit-layer > .kit-screen)[data-backdrop="contain"] { background: var(--kit-backdrop) center / contain no-repeat, var(--bg); }
+  .kit-panel[data-frame][data-depth] { background: none; border-style: solid; border-color: transparent; border-width: var(--kit-art-frame-width);
+    border-radius: 0; box-shadow: none; filter: none; color: var(--kit-art-frame-ink, var(--on-surface));
+    border-image: var(--kit-art-frame) var(--kit-art-frame-slice) fill / var(--kit-art-frame-width) stretch; }
+  @media (max-height: 30rem) {
+    .kit-panel[data-frame][data-depth] { border-width: var(--kit-art-frame-width-short); border-image-width: var(--kit-art-frame-width-short); }
+  }
+}
+
+/* ───────────── Art stage, pull handle, small title (0.12.0) ───────────── */
+@layer kit-base {
+  .kit-title-art[data-size="s"] { block-size: var(--kit-title-art-h-s, 3.5rem); }
+  @media (max-height: 30rem) { .kit-title-art[data-size="s"] { block-size: var(--kit-title-art-h-s-short, 2.75rem); } }
+
+  /* ArtStage: fills its box (in a Screen's centre: the whole centre), the scene fitted inside it, centred, never stretched.
+     view = the part of the scene that shows; the scene is moved and sized so that part fills the view box exactly.
+     (Margins in % are shares of the box's WIDTH, top ones too — so every number below is "picture units / width".) */
+  .kit-screen > [data-slot="center"]:has(> .kit-art-stage) { place-self: stretch; }
+  .kit-art-stage { inline-size: 100%; block-size: 100%; min-block-size: 0; container-type: size; display: grid; place-items: center; }
+  .kit-art-stage[data-align="start"] { place-items: start center; }
+  .kit-art-stage[data-align="end"] { place-items: end center; }
+  /* bleed: the scene shows past the view, clipped only by the screen (the window's edges) */
+  .kit-screen:has(.kit-art-stage[data-bleed]) { overflow: clip; }
+  .kit-art-stage[data-bleed] .kit-art-view { overflow: visible; }
+  .kit-art-view { display: flow-root; overflow: clip; aspect-ratio: var(--kit-view-ratio); min-block-size: 0; /* (exactly its shape, never as tall as the scene in it) */
+    inline-size: min(100cqw, calc(100cqh * var(--kit-view-ratio))); }
+  .kit-art-scene { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); min-block-size: 0; aspect-ratio: var(--kit-scene-ratio);
+    inline-size: calc(var(--kit-scene-w) / var(--kit-view-w) * 100%);
+    margin-inline-start: calc(var(--kit-view-x) / var(--kit-view-w) * -100%);
+    margin-block-start: calc(var(--kit-view-y) / var(--kit-view-w) * -100%);
+    container-type: inline-size; }
+  @media (max-height: 30rem) {
+    .kit-art-view { aspect-ratio: var(--kit-view-short-ratio); inline-size: min(100cqw, calc(100cqh * var(--kit-view-short-ratio))); }
+    .kit-art-scene { inline-size: calc(var(--kit-scene-w) / var(--kit-view-short-w) * 100%);
+      margin-inline-start: calc(var(--kit-view-short-x) / var(--kit-view-short-w) * -100%);
+      margin-block-start: calc(var(--kit-view-short-y) / var(--kit-view-short-w) * -100%); }
+  }
+  /* each layer at its own spot, all in the scene's one grid cell (later ones on top) */
+  /* (z-index: every layer its own stacking level in order — a moved / dimmed one, e.g. a pulled lever, never jumps above later ones) */
+  .kit-art-layer { grid-area: 1 / 1; align-self: start; justify-self: start; display: grid; min-inline-size: 0; z-index: 0;
+    inline-size: calc(var(--kit-at-w) / var(--kit-scene-w) * 100%);
+    margin-inline-start: calc(var(--kit-at-x) / var(--kit-scene-w) * 100%);
+    margin-block-start: calc(var(--kit-at-y) / var(--kit-scene-w) * 100%); }
+  /* (0.13.0: its one cell is exactly its box — a control's 44px minimum (a small picture button) spills out centred
+     instead of growing the layer and moving the art) */
+  .kit-art-layer[data-sized] { aspect-ratio: var(--kit-at-ratio); min-block-size: 0; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+  .kit-art-layer > *, .kit-art-layer-off > * { grid-area: 1 / 1; min-inline-size: 0; min-block-size: 0; }
+  .kit-art-layer-off { display: contents; } /* an off layer's contents: inert, while the layer itself still reads out as unavailable */
+  .kit-art-layer-picture { display: block; inline-size: 100%; block-size: auto; pointer-events: none; user-select: none; }
+  .kit-art-layer[data-sized] > .kit-art-layer-picture { block-size: 100%; object-fit: contain; }
+  /* words on the art: sized in the picture's units (so they grow with it), never below 0.625rem; one line */
+  .kit-art-layer[data-text] { font-size: max(0.625rem, calc(var(--kit-art-text) * 100cqw / var(--kit-scene-w)));
+    line-height: 1.1; place-items: center; text-align: center; white-space: nowrap; }
+  .kit-art-layer[data-text][data-align="start"] { justify-items: start; text-align: start; }
+  .kit-art-layer[data-text][data-align="end"] { justify-items: end; text-align: end; }
+  /* the scene lets taps through (its box runs past the view — a bleeding scene would cover the slots round it);
+     only the controls on it catch them */
+  .kit-art-scene, .kit-art-layer { pointer-events: none; }
+  .kit-art-layer:not([data-off]) :is(button, a, input, select, textarea, [tabindex]) { pointer-events: auto; }
+
+  /* PullHandle: the look fills the handle's box; the grip (the button) is the end share you grab (--kit-pull-grip);
+     the whole handle moves along its direction by --kit-pull × travel of its own length */
+  .kit-pull { display: grid; inline-size: 100%; block-size: 100%; pointer-events: none; user-select: none; -webkit-user-select: none; }
+  .kit-pull > * { grid-area: 1 / 1; min-inline-size: 0; min-block-size: 0; }
+  .kit-pull-look { display: grid; }
+  .kit-pull-look > img { display: block; inline-size: 100%; block-size: 100%; object-fit: contain; pointer-events: none; }
+  .kit-pull-grip { pointer-events: auto; padding: 0; border: 0; touch-action: none; cursor: grab;
+    min-inline-size: var(--target-min); min-block-size: var(--target-min);
+    inline-size: 100%; block-size: calc(var(--kit-pull-grip, 1) * 100%); align-self: end; }
+  .kit-pull[data-direction="up"] > .kit-pull-grip { align-self: start; }
+  .kit-pull:is([data-direction="left"], [data-direction="right"]) > .kit-pull-grip { block-size: 100%; inline-size: calc(var(--kit-pull-grip, 1) * 100%); align-self: stretch; justify-self: end; }
+  .kit-pull[data-direction="left"] > .kit-pull-grip { justify-self: start; }
+  .kit-pull[data-dragging] > .kit-pull-grip { cursor: grabbing; }
+  .kit-pull[data-direction="down"] { transform: translateY(calc(var(--kit-pull, 0) * var(--kit-pull-travel, 0.5) * 100%)); }
+  .kit-pull[data-direction="up"] { transform: translateY(calc(var(--kit-pull, 0) * var(--kit-pull-travel, 0.5) * -100%)); }
+  .kit-pull[data-direction="right"] { transform: translateX(calc(var(--kit-pull, 0) * var(--kit-pull-travel, 0.5) * 100%)); }
+  .kit-pull[data-direction="left"] { transform: translateX(calc(var(--kit-pull, 0) * var(--kit-pull-travel, 0.5) * -100%)); }
+}
+@layer kit-style {
+  .kit-art-layer[data-text] { font-family: var(--font-body); font-weight: 600; text-transform: var(--text-case); color: var(--on-game); }
+  .kit-art-layer[data-tone="primary"] { color: var(--primary); }
+  .kit-art-layer[data-tone="accent"] { color: var(--accent); }
+  .kit-art-layer[data-tone="muted"] { color: var(--muted); }
+  /* off (does nothing yet) and dim (the rest of the machine while something else is in use): darkened, greyer */
+  .kit-art-layer { transition: filter var(--motion-normal) var(--ease); }
+  .kit-art-layer:is([data-off], [data-dim]) { filter: brightness(0.5) saturate(0.55); }
+  .kit-pull { transition: transform var(--kit-pull-glide, var(--motion-normal)) var(--ease); } /* a finishing glide: only the distance left */
+  .kit-pull[data-dragging] { transition: none; }
+  .kit-pull-grip { background: none; }
+  .kit-pull-grip:focus-visible { outline-offset: -0.25rem; }
+}
+
+/* ───────────── Snap control, lamps, shake, a picture button that fills its spot (0.13.0) ───────────── */
+@layer kit-base {
+  /* SnapControl: the knob (the game's picture) and the hit area stacked in one cell. The knob moves by --kit-snap:
+     slide = 0 → 1 along the track (it's --kit-snap-knob of the track long), turn = degrees round its centre */
+  /* (its one cell is exactly its box: the hit area's 44px minimum must never grow it — the knob would stretch) */
+  .kit-snap { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); inline-size: 100%; block-size: 100%; min-inline-size: 0; min-block-size: 0;
+    user-select: none; -webkit-user-select: none; pointer-events: none; }
+  .kit-snap > * { grid-area: 1 / 1; min-inline-size: 0; min-block-size: 0; }
+  .kit-snap-knob { display: grid; pointer-events: none; }
+  .kit-snap-knob > :is(img, svg) { display: block; inline-size: 100%; block-size: 100%; object-fit: contain; pointer-events: none; }
+  .kit-snap[data-axis="x"] > .kit-snap-knob { inline-size: calc(var(--kit-snap-knob) * 100%); justify-self: start;
+    transform: translateX(calc(var(--kit-snap) * (1 / var(--kit-snap-knob) - 1) * 100%)); }
+  .kit-snap[data-axis="y"] > .kit-snap-knob { block-size: calc(var(--kit-snap-knob) * 100%); align-self: start;
+    transform: translateY(calc(var(--kit-snap) * (1 / var(--kit-snap-knob) - 1) * 100%)); }
+  .kit-snap[data-kind="turn"] > .kit-snap-knob { transform: rotate(calc(var(--kit-snap) * 1deg)); }
+  /* the hit area: the whole control, never under target-min either way, centred on it (a thin track grows both ways) */
+  .kit-snap > .kit-snap-hit { pointer-events: auto; touch-action: none; cursor: grab; place-self: center; inline-size: 100%; block-size: 100%;
+    min-inline-size: var(--target-min); min-block-size: var(--target-min); }
+  .kit-snap[data-dragging] > .kit-snap-hit { cursor: grabbing; }
+  .kit-snap[data-disabled] > .kit-snap-hit { cursor: default; }
+
+  /* A picture button that fills its spot in an art scene (Button art size "fill"): the picture is the button's width */
+  .kit-button[data-art-size="fill"] { inline-size: 100%; block-size: 100%; padding: 0; place-self: center; justify-content: center;
+    min-inline-size: var(--target-min); min-block-size: var(--target-min); }
+  .kit-button[data-art-size="fill"] .kit-art-face { inline-size: 100%; }
+}
+@layer kit-style {
+  .kit-snap-knob { transition: transform var(--motion-fast) var(--ease); }
+  .kit-snap[data-dragging] > .kit-snap-knob { transition: none; }
+  .kit-snap-hit:focus-visible { outline: 0.1875rem solid var(--accent); outline-offset: 0.125rem; }
+  /* ArtLayer blink: a lamp asking for attention (fast) or waiting (slow) — on / off in steps, no fade */
+  .kit-art-layer[data-blink="fast"] { animation: kit-lamp 0.45s steps(1, end) infinite; }
+  .kit-art-layer[data-blink="slow"] { animation: kit-lamp 1.1s steps(1, end) infinite; }
+  /* ArtLayer shake: one small "no" wobble each time the count changes (two names, so a repeat restarts it) */
+  .kit-art-layer[data-shake="a"] { animation: kit-shake-a var(--motion-normal) var(--ease); }
+  .kit-art-layer[data-shake="b"] { animation: kit-shake-b var(--motion-normal) var(--ease); }
+}
+@keyframes kit-lamp { 50% { opacity: 0; } }
+@keyframes kit-shake-a { 20% { transform: translateX(-0.9cqw); } 40% { transform: translateX(0.9cqw); } 60% { transform: translateX(-0.6cqw); } 80% { transform: translateX(0.4cqw); } }
+@keyframes kit-shake-b { 20% { transform: translateX(-0.9cqw); } 40% { transform: translateX(0.9cqw); } 60% { transform: translateX(-0.6cqw); } 80% { transform: translateX(0.4cqw); } }

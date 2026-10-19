@@ -1,8 +1,8 @@
 // FLOW — the screens between the playing: Loading, Countdown, RoundIntro, Results,
 // Victory, GameOver, PostGame. They show what the game tells them; the game decides what's next.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Panel, Row, Screen, Stack } from '../layout'
-import { Avatar, Badge, Button, ListRow, ProgressBar, ScrollArea, Text } from '../controls'
+import { Panel, Row, Screen, Stack, type PanelFrame } from '../layout'
+import { Avatar, Badge, Button, ListRow, ProgressBar, ScrollArea, Text, type ButtonArt } from '../controls'
 import { Spinner } from './dialogs'
 import { ordinal, TurnBanner } from './hud'
 import { reduceMotion } from './motion'
@@ -112,33 +112,57 @@ export function Results({ players, meId, lowestWins, title, message, onContinue,
 }
 
 // VICTORY and GAME OVER — the big "you won / you lost", a few stats, and what to do next.
+// The game's own art (0.11.0): frame = its frame picture around the report (Panel frame), backdrop = a picture behind
+// the screen (Screen backdrop), art = its button pictures per button (Button art), e.g. art={{ retry: { up, down } }}.
+// Phone on its side / short window (0.11.0): title, message and stats on the left, the buttons on the right.
+// onSwipeUp (0.12.0): a swipe up anywhere on the report does it too (Goops: "swipe up to end the day" = back to the
+// console); words.swipe = the quiet line at the bottom that says so (plain words, not a button).
+// Victory onQuit (0.12.0): a second, quieter way out beside Continue (words.quit, art.quit) — like GameOver's.
 type Stat = { label: string; value: ReactNode }
-function EndScreen({ title, message, stats = [], children }: { title: string; message?: string; stats?: Stat[]; children: ReactNode }) {
+type EndArt = { frame?: PanelFrame; backdrop?: string; onSwipeUp?: () => void }
+type EndScreenProps = EndArt & { title: string; message?: string; stats?: Stat[]; swipeHint?: string; children: ReactNode }
+function EndScreen({ title, message, stats = [], children, frame, backdrop, onSwipeUp, swipeHint }: EndScreenProps) {
   return (
-    <Screen label={title}>
-      <Panel depth={2} gap="m" className="kit-modal kit-centred">
-        <span className="kit-end-title"><Text kind="display">{title}</Text></span>
-        {message && <Text>{message}</Text>}
-        {stats.length > 0 && <Stack gap="xs">{stats.map((s) => <ListRow key={s.label} label={s.label}><Text kind="label">{s.value}</Text></ListRow>)}</Stack>}
-        <Stack gap="s">{children}</Stack>
+    <Screen label={title} backdrop={backdrop} swipe={onSwipeUp ? { up: onSwipeUp } : undefined}>
+      <Panel depth={2} gap="m" className="kit-modal kit-centred kit-end" frame={frame}>
+        <Stack gap="m" className="kit-end-info">
+          <span className="kit-end-title"><Text kind="display">{title}</Text></span>
+          {message && <Text>{message}</Text>}
+          {stats.length > 0 && <Stack gap="xs">{stats.map((s) => <ListRow key={s.label} label={s.label}><Text kind="label">{s.value}</Text></ListRow>)}</Stack>}
+        </Stack>
+        <Stack gap="s" className="kit-end-actions">
+          {children}
+          {onSwipeUp && swipeHint && <span className="kit-end-swipe"><Text kind="caption">{swipeHint}</Text></span>}
+        </Stack>
       </Panel>
     </Screen>
   )
 }
-export const victoryWords = { title: 'Victory!', continue: 'Continue' }
-type VictoryProps = { message?: string; stats?: Stat[]; onContinue: () => void; words?: Partial<typeof victoryWords> }
-export function Victory({ message, stats, onContinue, words }: VictoryProps) {
-  const w = { ...victoryWords, ...words }
-  return <EndScreen title={w.title} message={message} stats={stats}><Button onClick={onContinue}>{w.continue}</Button></EndScreen>
+export const victoryWords = { title: 'Victory!', continue: 'Continue', quit: 'Quit', swipe: '⇧ Swipe up to go back' }
+type VictoryProps = EndArt & {
+  message?: string; stats?: Stat[]; onContinue: () => void; onQuit?: () => void; words?: Partial<typeof victoryWords>
+  art?: { continue?: ButtonArt; quit?: ButtonArt }
 }
-export const gameOverWords = { title: 'Game over', retry: 'Try again', quit: 'Quit' }
-type GameOverProps = { message?: string; stats?: Stat[]; onRetry?: () => void; onQuit?: () => void; words?: Partial<typeof gameOverWords> }
-export function GameOver({ message, stats, onRetry, onQuit, words }: GameOverProps) {
+export function Victory({ message, stats, onContinue, onQuit, words, art, ...look }: VictoryProps) {
+  const w = { ...victoryWords, ...words }
+  return (
+    <EndScreen title={w.title} message={message} stats={stats} swipeHint={w.swipe} {...look}>
+      <Button onClick={onContinue} art={art?.continue}>{w.continue}</Button>
+      {onQuit && <Button variant="secondary" onClick={onQuit} art={art?.quit}>{w.quit}</Button>}
+    </EndScreen>
+  )
+}
+export const gameOverWords = { title: 'Game over', retry: 'Try again', quit: 'Quit', swipe: '⇧ Swipe up to go back' }
+type GameOverProps = EndArt & {
+  message?: string; stats?: Stat[]; onRetry?: () => void; onQuit?: () => void; words?: Partial<typeof gameOverWords>
+  art?: { retry?: ButtonArt; quit?: ButtonArt }
+}
+export function GameOver({ message, stats, onRetry, onQuit, words, art, ...look }: GameOverProps) {
   const w = { ...gameOverWords, ...words }
   return (
-    <EndScreen title={w.title} message={message} stats={stats}>
-      {onRetry && <Button onClick={onRetry}>{w.retry}</Button>}
-      {onQuit && <Button variant="secondary" onClick={onQuit}>{w.quit}</Button>}
+    <EndScreen title={w.title} message={message} stats={stats} swipeHint={w.swipe} {...look}>
+      {onRetry && <Button onClick={onRetry} art={art?.retry}>{w.retry}</Button>}
+      {onQuit && <Button variant="secondary" onClick={onQuit} art={art?.quit}>{w.quit}</Button>}
     </EndScreen>
   )
 }

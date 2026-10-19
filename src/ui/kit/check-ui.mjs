@@ -6,7 +6,7 @@
 //   1. raw colours (#hex, rgb(), hsl())       → use a colour name: var(--primary)
 //   2. px sizes                                → use gap names / rem
 //   3. font names                              → use var(--font-body) / var(--font-display)
-//   4. position:absolute/fixed outside Screen (and the stack's overlay) → use Screen slots, Stack, Row, Grid
+//   4. position:absolute/fixed outside Screen (and the stack's overlay, the HUD's dock — 0.17.0) → use Screen slots, Stack, Row, Grid
 //   5. inline style= (except setting --css-variables)
 //   6. var(--something) that isn't a style name from kit/style/tokens.ts (or a --kit-… helper)
 // --css <folders>: every .css file in them (outside the kit's own folder) is also checked for rules that
@@ -54,7 +54,7 @@ function checkCss(text) {
       const report = (message) => problems.push({ line: at, message, snippet: `${prop}: ${value}` })
       valueProblems(value).forEach(report)
       if (/^font(-family)?$/.test(prop) && !/^(var\(|inherit)/.test(value)) report('font name — use var(--font-body) or var(--font-display)')
-      if (prop === 'position' && /absolute|fixed/.test(value) && !/\.kit-(screen|overlay)\b/.test(selector)) report('position:absolute/fixed — only Screen slots (and the stack overlay) may do this')
+      if (prop === 'position' && /absolute|fixed/.test(value) && !/\.kit-(screen|overlay|layer|hud-dock)\b/.test(selector)) report('position:absolute/fixed — only Screen slots (and the stack\'s overlay / layers) may do this')
     }
   }
   return problems

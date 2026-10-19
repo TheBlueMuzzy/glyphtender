@@ -103,7 +103,7 @@ export function ScreenStack({ screens, children, overlay }: ScreenStackProps) {
 
   return (
     <>
-      <div className="kit-layer" ref={(el) => { layers.current[0] = el }}>{children}</div>
+      <div className="kit-layer" data-framed={overlay || undefined} ref={(el) => { layers.current[0] = el }}>{children}</div>
       {overlay
         ? <div className="kit-overlay" data-open={depth > 0 || undefined}
             onClick={(e) => { if (e.target === e.currentTarget) store.pop() }}>{open}</div>

@@ -26,8 +26,8 @@ export const lineColourTokens = {
 } as const
 
 export const otherTokens = {
-  'font-display': 'Font for titles (font names live only in presets)',
-  'font-body': 'Font for everything else',
+  'font-display': "The style's title font (font names live only in presets). Titles and headings use it unless font-title / font-heading say otherwise",
+  'font-body': 'Font for everything else (body text, buttons, lists)',
   'font-numbers': 'Font for game numbers: scores, timers, places. Usually var(--font-display); Pixel uses its body font (clearer digits)',
   'text-size': 'Body text size, 1 = 18px (never smaller than 1)',
   'font-scale': 'How much bigger each heading level is, e.g. 1.25',
@@ -55,6 +55,14 @@ export const optionalTokens = {
   'panel-texture': 'none',
 } as const
 
+// The three text roles (0.16.0) — like a web page: a title font, a heading font and a body font (font-body, above).
+// Presets leave these out; a game's tweaks may set them (the Dev Kit's Fonts tab does). Left out, both follow the
+// style's font-display, so a game without them looks exactly as before.
+export const fontRoleTokens = {
+  'font-title': 'var(--font-display)', // big titles: Text kind display + title ("GOOPS", a screen's name)
+  'font-heading': 'var(--font-display)', // headings: Text kind heading, card titles, room-code boxes, art buttons' words
+} as const
+
 // Menu sizes (0.10.0): a style or a game's tweaks MAY set these; left out, the kit's CSS uses the default shown.
 // They're not written onto the page unless set, so the desktop default (menu-max-h-wide) can differ from the phone one.
 export const menuSizeTokens = {
@@ -80,7 +88,7 @@ export const derivedTokens = {
 } as const
 
 type RequiredName = keyof typeof colourTokens | keyof typeof lineColourTokens | keyof typeof otherTokens
-export type TokenName = RequiredName | keyof typeof optionalTokens | keyof typeof menuSizeTokens
+export type TokenName = RequiredName | keyof typeof optionalTokens | keyof typeof fontRoleTokens | keyof typeof menuSizeTokens
 export type StylePreset = Record<RequiredName, string | number> & Partial<Record<TokenName, string | number>>
 export type StyleTweaks = Partial<Record<TokenName, string | number>>
 
@@ -89,5 +97,5 @@ export const requiredTokenNames = [...Object.keys(colourTokens), ...Object.keys(
 
 // Every CSS variable the kit may read (the rule checker uses this list).
 export const allVariableNames = [
-  ...requiredTokenNames, ...Object.keys(optionalTokens), ...Object.keys(menuSizeTokens), ...Object.keys(derivedTokens),
+  ...requiredTokenNames, ...Object.keys(optionalTokens), ...Object.keys(fontRoleTokens), ...Object.keys(menuSizeTokens), ...Object.keys(derivedTokens),
 ]

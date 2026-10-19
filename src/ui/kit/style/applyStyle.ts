@@ -2,7 +2,7 @@
 // style.json looks like: { "preset": "clean", "tweaks": { "accent": "#e07a5f" } }
 // Tweaks win over the preset. Call applyStyle again any time to restyle live.
 import { presets } from '../styles'
-import { allVariableNames, optionalTokens, type StylePreset, type StyleTweaks } from './tokens'
+import { allVariableNames, fontRoleTokens, optionalTokens, type StylePreset, type StyleTweaks } from './tokens'
 
 export type StyleFile = { preset: string; tweaks?: StyleTweaks }
 
@@ -20,7 +20,7 @@ export function resolveStyle(file: StyleFile): Record<string, string> {
   const preset = presets[file.preset] ?? presets.clean
   if (!presets[file.preset]) console.warn(`[ui-kit] unknown preset "${file.preset}", using clean`)
 
-  const s: StylePreset = { ...optionalTokens, ...preset, ...file.tweaks }
+  const s: StylePreset = { ...optionalTokens, ...fontRoleTokens, ...preset, ...file.tweaks }
   for (const name of Object.keys(file.tweaks ?? {})) {
     if (!allVariableNames.includes(name)) console.warn(`[ui-kit] unknown tweak "${name}" ignored`)
   }

@@ -3,7 +3,7 @@
 // A button only appears when you pass its function (no onQuit → no Quit button).
 import { useState, type ReactNode } from 'react'
 import { Grid, Panel, Row, Screen, Stack } from '../layout'
-import { Button, Card, Badge, ScrollArea, Text } from '../controls'
+import { Button, Card, Badge, ScrollArea, Text, type ButtonArt } from '../controls'
 import { screens } from '../screens'
 import { Pips } from './hud'
 import { MenuHeader } from './MenuHeader'
@@ -17,15 +17,19 @@ import { fill } from './words'
 export const mainMenuWords = { continue: 'Continue', play: 'Play', settings: 'Settings', howToPlay: 'How to play', credits: 'Credits', quit: 'Quit' }
 // locked: true = greyed like a disabled button, but a tap still calls onClick, so the game can say why
 // (e.g. a Callout: "Finish your first game to unlock this"). Screen readers hear it as unavailable.
-export type MainMenuItem = { label: string; onClick: () => void; primary?: boolean; locked?: boolean }
+// art (0.11.0): the game's own button pictures for this item (Button art: { up, down?, label?, size? }).
+export type MainMenuItem = { label: string; onClick: () => void; primary?: boolean; locked?: boolean; art?: ButtonArt }
+// titleArt (0.11.0): the game's logo picture in place of the title words (the words are still its name for screen readers).
+// backdrop (0.11.0): a picture behind the whole menu (Screen backdrop; keeps its shape, crops what spills over).
 type MainMenuProps = {
   title: string; subtitle?: string; version?: string; children?: ReactNode // children: extra buttons
+  titleArt?: string; backdrop?: string
   items?: MainMenuItem[]
   onContinue?: () => void; onPlay?: () => void; onSettings?: () => void
   onHowToPlay?: () => void; onCredits?: () => void; onQuit?: () => void
   words?: Partial<typeof mainMenuWords>
 }
-export function MainMenu({ title, subtitle, version, children, items, words, ...on }: MainMenuProps) {
+export function MainMenu({ title, subtitle, version, children, items, words, titleArt, backdrop, ...on }: MainMenuProps) {
   const w = { ...mainMenuWords, ...words }
   const named = [
     [w.continue, on.onContinue], [w.play, on.onPlay], [w.settings, on.onSettings],
@@ -35,15 +39,15 @@ export function MainMenu({ title, subtitle, version, children, items, words, ...
   const anyMarked = buttons.some((item) => item.primary)
   const isPrimary = (item: MainMenuItem, i: number) => (anyMarked ? item.primary : i === 0)
   return (
-    <Screen label={title} bottom={version && <Text kind="caption">{version}</Text>}>
+    <Screen label={title} bottom={version && <Text kind="caption">{version}</Text>} backdrop={backdrop}>
       <Stack gap="xl" className="kit-menu kit-main-menu kit-centred">
         <Stack gap="xs">
-          <Text kind="display">{title}</Text>
+          {titleArt ? <img className="kit-title-art" src={titleArt} alt={title} draggable={false} /> : <Text kind="display">{title}</Text>}
           {subtitle && <Text kind="caption">{subtitle}</Text>}
         </Stack>
         <Stack gap="s" className="kit-main-menu-buttons">
           {buttons.map((item, i) => (
-            <Button key={`${i}-${item.label}`} variant={isPrimary(item, i) ? 'primary' : 'secondary'} onClick={item.onClick}
+            <Button key={`${i}-${item.label}`} variant={isPrimary(item, i) ? 'primary' : 'secondary'} onClick={item.onClick} art={item.art}
               sound={item.locked ? false : undefined} aria-disabled={item.locked || undefined} data-locked={item.locked || undefined}>{item.label}</Button>
           ))}
           {children && <div className="kit-main-menu-extra">{children}</div>}

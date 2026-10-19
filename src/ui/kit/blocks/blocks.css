@@ -73,9 +73,17 @@
   /* HUD: its slots let taps through to the game; only buttons and inputs catch them */
   .kit-screen > [data-slot]:has(> .kit-hud-slot) { pointer-events: none; }
   .kit-hud-slot { display: contents; }
+  /* a corner's pieces stay on one line (a score + pause pair wrapped onto 2 rows on a 390px phone — Goops 2026-10-17).
+     No room for a wide score beside the other corner? Put it in the status row (`status`) instead — a corner that wraps
+     grows taller than the HUD's room and covers the game (tried in 0.15.0, taken out in 0.15.2). */
+  .kit-screen > :is([data-slot="top-right"], [data-slot="bottom-right"]) > .kit-hud-slot > .kit-row { flex-wrap: nowrap; justify-content: flex-end; }
   .kit-hud-slot :is(button, input, [tabindex="0"]) { pointer-events: auto; }
   .kit-hud-chip { display: inline-flex; flex-wrap: nowrap; padding: var(--gap-xs) var(--gap-s); }
   .kit-hud-chip .kit-text { white-space: nowrap; overflow-wrap: normal; } /* short HUD words never break letter by letter */
+  /* a bar in a HUD corner gives way when the other corner grows (a 5-digit score pushed the Score chip over the bars on
+     a 390px phone — Goops 2026-10-17): it shrinks to 2rem instead of holding its 6rem minimum. Bars with a width keep it. */
+  .kit-hud-chip:not([data-width]) { max-inline-size: 100%; min-inline-size: 0; }
+  .kit-hud-chip:not([data-width]) > .kit-progress { min-inline-size: 2rem; flex: 1 1 6rem; }
   /* A chip that starts with an avatar (or a player chip's icon): breathing room on EVERY side — nothing ever touches a
      card's edge (Muzzy, 2026-10-03: "there should always be breathing room around the edge of cards/containers so that
      nothing touches the edges"); the text side a little more. The tightest size (xs, rows close together) keeps less. */
@@ -87,10 +95,18 @@
   .kit-hud-text .kit-text { overflow-wrap: normal; }
   .kit-screen:has(> [data-slot] > .kit-hud-slot) > :is([data-slot="top"], [data-slot="bottom"]) { justify-self: center; }
   /* Phones: the corners share the first row and the top-centre piece gets its own row below,
-     so three things never squeeze into one narrow line. Same at the bottom. */
+     so three things never squeeze into one narrow line. Same at the bottom. A HUD on a narrow game box
+     (--kit-frame-w, 0.11.2) gets the same layout from its own width, whatever the window's width. */
   @media (max-width: 40rem) {
     .kit-screen:has(> [data-slot] > .kit-hud-slot) {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) auto; /* the right corner (score + pause) sizes to its pieces; the left gives way */
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+      grid-template-areas: "top-left top-right" "top top" "center center" "bottom-left bottom-right" "bottom bottom";
+    }
+  }
+  @container (max-width: 40rem) {
+    .kit-screen:has(> [data-slot] > .kit-hud-slot) {
+      grid-template-columns: minmax(0, 1fr) auto;
       grid-template-rows: auto auto minmax(0, 1fr) auto auto;
       grid-template-areas: "top-left top-right" "top top" "center center" "bottom-left bottom-right" "bottom bottom";
     }
@@ -101,6 +117,59 @@
   .kit-hud-chip[data-width="s"] { --kit-bar-w: 4rem; }
   .kit-hud-chip[data-width="m"] { --kit-bar-w: 8rem; }
   .kit-hud-chip[data-width="l"] { --kit-bar-w: 14rem; }
+  /* Bar 0.17.0. A share of its row (width={0.24}): that much of the row, never narrower than its label above */
+  :is(.kit-hud-chip, .kit-bar)[data-width="share"] { flex: none; inline-size: calc(var(--kit-bar-share) * 100%); min-inline-size: max-content; max-inline-size: 100%; }
+  .kit-hud-chip[data-width="share"] > .kit-progress { flex: 1 1 auto; inline-size: auto; }
+  /* plain (no plate): the same row of icon · label · bar, on whatever it sits on */
+  .kit-bar { display: flex; align-items: center; gap: var(--gap-s); min-inline-size: 0; }
+  .kit-bar > :is(.kit-progress, .kit-bar-inside) { flex: 1 1 6rem; min-inline-size: 2rem; }
+  /* label above: the bar's name, big and centred, then the bar across the whole width */
+  :is(.kit-bar, .kit-hud-chip)[data-label-at="above"] { flex-direction: column; align-items: stretch; gap: var(--gap-xs); }
+  :is(.kit-bar, .kit-hud-chip)[data-label-at="above"] > :is(.kit-progress, .kit-bar-inside) { flex: none; inline-size: auto; }
+  .kit-bar-label-above { text-align: center; white-space: nowrap; font-weight: 600; line-height: 1.2; }
+  /* label inside: the bar and its name in one grid cell, the name centred on top */
+  .kit-bar-inside { display: grid; min-inline-size: 0; }
+  .kit-bar-inside > * { grid-area: 1 / 1; }
+  .kit-bar-inside > .kit-progress { min-inline-size: 0; }
+  .kit-bar-label-inside { place-self: center; z-index: 1; /* over the fill (its glow filter paints it on a layer of its own) */
+    white-space: nowrap; font-size: 0.8em; font-weight: 700; letter-spacing: 0.08em; line-height: 1; pointer-events: none; }
+  /* thickness: s = the usual 0.75rem · m · l */
+  :is(.kit-bar, .kit-hud-chip)[data-thickness="m"] .kit-progress { block-size: 1rem; }
+  :is(.kit-bar, .kit-hud-chip)[data-thickness="l"] .kit-progress { block-size: 1.5rem; }
+
+  /* HUD oneRow (0.17.0): on a phone the status stays between the corners (one top row) instead of taking a row of
+     its own; it gets the room left between them (HudText fit shrinks to it). Wider HUDs already work this way. */
+  .kit-screen:has(> [data-slot="top"] > .kit-hud-slot[data-one-row]) { column-gap: var(--gap-s); }
+  .kit-screen:has(> [data-slot="top"] > .kit-hud-slot[data-one-row]) > [data-slot="top"] { justify-self: stretch; align-self: center; }
+  @media (max-width: 40rem) {
+    .kit-screen:has(> [data-slot="top"] > .kit-hud-slot[data-one-row]) {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      grid-template-areas: "top-left top top-right" "center center center" "bottom-left . bottom-right" "bottom bottom bottom";
+    }
+  }
+  @container (max-width: 40rem) {
+    .kit-screen:has(> [data-slot="top"] > .kit-hud-slot[data-one-row]) {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      grid-template-areas: "top-left top top-right" "center center center" "bottom-left . bottom-right" "bottom bottom bottom";
+    }
+  }
+  /* HudText fit: fills its box and stays one line; too wide → the size that fits, never under body text */
+  .kit-hud-text[data-fit] { inline-size: 100%; min-inline-size: 0; }
+  .kit-hud-text[data-fit] .kit-text { white-space: nowrap; }
+  .kit-hud-text[data-fitted] .kit-text { font-size: max(var(--text-body), var(--kit-fit-size)); line-height: var(--kit-fit-line, normal); }
+
+  /* HUD dock (0.17.0): a panel on the HUD column's bottom edge, edge to edge, --kit-hud-dock-size tall (more only if
+     its contents need it). The HUD's own bottom slots sit above it. It shows meters, so taps go through it to the game.
+     (Positioned against the HUD's layer — the ScreenStack's — like the Screen itself.) */
+  .kit-hud-dock { position: absolute; display: grid; pointer-events: none; }
+  .kit-layer[data-framed] > .kit-hud-dock { pointer-events: none; }
+  .kit-hud-dock[data-side="bottom"] { inset-inline: 0; inset-block-end: 0; min-block-size: var(--kit-hud-dock-size, 6rem); }
+  /* right: a column in the bottom-right corner, as tall as its contents (a phone on its side) */
+  .kit-hud-dock[data-side="right"] { inset-inline-end: var(--gap-m); inset-block-end: var(--gap-m); inline-size: var(--kit-hud-dock-size, 12rem); }
+  .kit-hud-dock > .kit-panel { padding: var(--gap-s) var(--gap-m); justify-content: center; min-block-size: 0; }
+  .kit-screen:has(+ .kit-hud-dock[data-side="bottom"]) { padding-block-end: calc(var(--kit-hud-dock-size, 6rem) + var(--gap-m)); }
   .kit-banner { align-items: center; text-align: center; }
   /* +N float-up: stacked on top of its number (same grid cell), so no positioning needed */
   .kit-float-anchor { display: inline-grid; }
@@ -164,6 +233,11 @@
     .kit-main-menu-buttons > .kit-button[data-variant="primary"], .kit-main-menu-extra > * { grid-column: 1 / -1; }
   }
   .kit-end-title { display: inline-block; }
+  .kit-end-swipe { display: block; text-align: center; padding-block-start: var(--gap-xs); } /* "⇧ Swipe up…": words, not a button */
+  /* Victory / Game over on a short, wide screen (a phone on its side): the report on the left, its buttons on the right (0.11.0) */
+  @media (max-height: 30rem) and (min-width: 40rem) {
+    .kit-end { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; column-gap: var(--gap-l); }
+  }
   .kit-dot { inline-size: 0.75rem; block-size: 0.75rem; border-radius: 50%; }
 
   /* Player chip: a HUD plate for one player, placed by the game (never catches taps) */
@@ -200,6 +274,11 @@
     max-inline-size: calc(var(--kit-frame-w, 100vw) - var(--kit-toasts-start, 0%) - var(--kit-toasts-end, 0%) - 2 * var(--gap-m)); }
   .kit-toasts[data-place="center"] { inset-block: 0; margin: auto; }
   .kit-toasts[data-place="bottom"] { inset-block: auto 0; margin: 0 auto calc(var(--kit-letterbox-h) + max(var(--gap-m), env(safe-area-inset-bottom))); }
+  /* place="at": the stack's bottom edge on the game's point (--kit-toasts-at, px from the top of the game picture; the
+     middle of the picture until the game sets it). It glides there when the point moves; reduce motion = it just moves. */
+  .kit-toasts[data-place="at"] { inset-block: 0 auto; margin: 0 auto;
+    translate: 0 calc(var(--kit-letterbox-h) + var(--kit-toasts-at, calc(var(--kit-frame-h, 100dvh) / 2)) - 100%);
+    transition: translate var(--motion-normal) var(--ease); }
   .kit-toasts:popover-open { display: flex; }
   .kit-toast { padding: var(--gap-s) var(--gap-m); }
   .kit-toast[data-dismissible] { flex-direction: row; align-items: center; padding-block: var(--gap-xs); padding-inline-end: var(--gap-xs); cursor: pointer; }
@@ -232,6 +311,7 @@
 /* ───────────── kit-style: paint ───────────── */
 @layer kit-style {
   .kit-toast[data-variant="danger"] { border-color: var(--danger); }
+  .kit-toast[data-plain][data-variant="danger"] { color: var(--danger); } /* plain words: danger is their colour, no edge */
   /* The idle bar drains from full to empty over the time left (linear: it IS the clock) */
   .kit-idle-bar .kit-progress-fill { inline-size: 100%; transition: none; animation: kit-idle-drain var(--kit-idle-ms, 30s) linear forwards; }
   .kit-spinner-big { color: var(--primary); }
@@ -271,6 +351,21 @@
   .kit-dot[data-status="good"] { background: var(--primary); }
   .kit-dot[data-status="weak"] { box-shadow: inset 0 0 0 0.1875rem var(--danger); } /* a hollow red dot: half there */
   .kit-dot[data-status="lost"] { background: var(--danger); }
+  /* Bar 0.17.0: a name inside the bar reads over the fill and the empty part alike (the HUD text halo) */
+  .kit-bar-label-above, .kit-bar-label-inside { text-transform: var(--text-case); }
+  .kit-bar-label-inside { color: var(--on-game);
+    text-shadow: 0 0.0625rem 0.125rem var(--game-shade), 0 0 0.375rem var(--game-shade), 0 0 0.75rem var(--game-shade); }
+  /* Bar alert: a ring in the bar's colour with a glow breathing out of it — the teaching callout's pulse (same
+     intention, same motion) — and for 'flash' the fill blinks too. Reduce motion: the ring stays lit, the fill on. */
+  :is(.kit-bar, .kit-hud-chip)[data-alert] .kit-progress { --kit-pulse: var(--primary); outline: 0.125rem solid var(--kit-pulse); outline-offset: 0.125rem;
+    animation: kit-callout-pulse calc(var(--motion-normal) * 5) ease-in-out infinite; }
+  :is(.kit-bar, .kit-hud-chip)[data-alert] .kit-progress[data-variant="accent"] { --kit-pulse: var(--accent); }
+  :is(.kit-bar, .kit-hud-chip)[data-alert] .kit-progress[data-variant="danger"] { --kit-pulse: var(--danger); }
+  :is(.kit-bar, .kit-hud-chip)[data-alert="flash"] .kit-progress-fill { animation: kit-blink calc(var(--motion-normal) * 3) linear infinite; }
+  @media (prefers-reduced-motion: reduce) { :is(.kit-bar, .kit-hud-chip)[data-alert] :is(.kit-progress, .kit-progress-fill) { animation: none !important; } }
+  :root[data-reduce-motion] :is(.kit-bar, .kit-hud-chip)[data-alert] :is(.kit-progress, .kit-progress-fill) { animation: none !important; }
+  /* HudText numbers: a readout in the style's number font */
+  .kit-hud-text[data-numbers] .kit-text { font-family: var(--font-numbers); }
 }
 
 /* The idle warning's bar: full → empty */
@@ -338,8 +433,38 @@
   /* Reduce motion (device or the kit's switch): no entrance, no breathing — the ring just stays lit */
   @media (prefers-reduced-motion: reduce) { :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { animation: none !important; } }
   :root[data-reduce-motion] :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { animation: none !important; }
+  /* Bar showLabel: the bar's name beside it, small and quiet (0.11.1) */
+  .kit-bar-label { font-size: 0.8em; color: var(--muted); white-space: nowrap; letter-spacing: 0.04em; }
 }
+/* (--kit-pulse: the glow's colour — the accent for a callout, the bar's own colour for a Bar alert, 0.17.0) */
 @keyframes kit-callout-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
-  60% { box-shadow: 0 0 0 0.75rem color-mix(in srgb, var(--accent) 0%, transparent); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--kit-pulse, var(--accent)) 60%, transparent); }
+  60% { box-shadow: 0 0 0 0.75rem color-mix(in srgb, var(--kit-pulse, var(--accent)) 0%, transparent); }
+}
+
+/* ───────────── Level meter (meter.tsx, 0.12.0): "RANK 2 · 10,347 / 12,500 XP" over a bar ─────────────
+   Sized in em, so it follows the text size around it (inside an ArtLayer `text`: it grows with the art). */
+@layer kit-base {
+  .kit-level-meter { display: flex; flex-direction: column; justify-content: space-between; gap: 0.3em;
+    inline-size: 100%; min-inline-size: 0; white-space: nowrap; text-align: start; }
+  .kit-level-meter[data-art] { block-size: 100%; gap: 0; }
+  .kit-level-meter-words { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75em; min-inline-size: 0; }
+  .kit-level-meter-level { transform-origin: 50% 70%; }
+  .kit-level-meter-level { display: inline-block; font-size: 1.6em; line-height: 0.9; }
+  .kit-level-meter-value { font-size: 0.85em; flex-shrink: 0; }
+  .kit-level-meter-bar { display: grid; block-size: 0.6em; border-radius: 1em; overflow: hidden; }
+  /* with the game's art: the bar picture keeps its shape (never stretched); the track is the art's own */
+  .kit-level-meter[data-art] .kit-level-meter-bar { block-size: auto; aspect-ratio: var(--kit-meter-art-ratio); border-radius: 0; }
+  .kit-level-meter-fill { inline-size: 100%; block-size: 100%;
+    clip-path: inset(0 calc((1 - var(--kit-meter-share, 0)) * 100%) 0 0); }
+}
+@layer kit-style {
+  .kit-level-meter-label { font-weight: 600; text-transform: var(--text-case); color: var(--primary); }
+  .kit-level-meter-level { font-family: var(--font-numbers); font-weight: 800; }
+  .kit-level-meter-level[data-pop] { animation: kit-attention calc(var(--motion-normal) * 1.5) var(--ease); }
+  .kit-level-meter-value { font-family: var(--font-numbers); color: var(--muted); }
+  .kit-level-meter-bar { background: var(--border); }
+  .kit-level-meter-fill { background: var(--primary); }
+  .kit-level-meter[data-art] .kit-level-meter-bar { background: none; }
+  .kit-level-meter[data-art] .kit-level-meter-fill { background: var(--kit-meter-art) left / 100% 100% no-repeat; }
 }

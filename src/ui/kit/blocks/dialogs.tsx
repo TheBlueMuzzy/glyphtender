@@ -81,6 +81,9 @@ export const kitScreens = { confirm: () => (pendingConfirm ? <Confirm {...pendin
 // dismissible: tapping the toast (or its ✕ Close button) hides it early.
 // <ToastStack place="bottom" />: where they show — 'top' (default), 'center' or 'bottom' of the screen
 // (of the game picture, in a letterboxed game that sets --kit-frame-w / --kit-frame-h).
+// place="at" (0.14.0): at a point the GAME picks, e.g. just above the action where the player is looking. The game sets
+// --kit-toasts-at (CSS px from the top of the game picture, e.g. '412px'); the stack's BOTTOM edge sits there (newest
+// at the bottom, nearest the point; older ones pushed up) and it glides when the point moves (never jumps).
 export type Toast = { id: number; text: string; variant: 'neutral' | 'danger'; dismissible: boolean }
 export const MAX_TOASTS = 3 // older ones make room for new ones
 let toastList: readonly Toast[] = []
@@ -102,8 +105,10 @@ export function toast(text: string, { variant = 'neutral', seconds = 3, dismissi
 }
 
 export const toastWords = { label: 'Messages', close: 'Close' }
-export type ToastPlace = 'top' | 'center' | 'bottom'
-export function ToastStack({ label, place = 'top', words }: { label?: string; place?: ToastPlace; words?: Partial<typeof toastWords> }) {
+export type ToastPlace = 'top' | 'center' | 'bottom' | 'at'
+// variant="plain" (0.15.0): messages as glowing words on the game (HudText's look), no plate — a message isn't a button,
+// so it must not look like one (Muzzy's rule; Goops 2026-10-18). A dismissible toast keeps its plate: it IS tappable.
+export function ToastStack({ label, place = 'top', variant = 'panel', words }: { label?: string; place?: ToastPlace; variant?: 'panel' | 'plain'; words?: Partial<typeof toastWords> }) {
   const w = { ...toastWords, ...words }
   const list = useSyncExternalStore(toasts.subscribe, () => toasts.current, () => toasts.current)
   const box = useRef<HTMLDivElement>(null)
@@ -122,6 +127,11 @@ export function ToastStack({ label, place = 'top', words }: { label?: string; pl
           <span>{t.text}</span>
           <Button variant="ghost" icon sound="back" aria-label={w.close}>✕</Button>
         </Panel>
+      ) : variant === 'plain' ? (
+        // the same markup as HudText (hud.tsx imports this file, so it's written out here rather than imported)
+        <div key={t.id} className="kit-toast kit-hud-text" data-plain data-variant={t.variant}>
+          <Stack gap="xs"><Text kind="heading">{t.text}</Text></Stack>
+        </div>
       ) : (
         <Panel key={t.id} depth={2} gap="xs" className="kit-toast" data-variant={t.variant}>{t.text}</Panel>
       ))}

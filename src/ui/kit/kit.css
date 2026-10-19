@@ -99,6 +99,13 @@
      so overlay screens sit on the game picture, not in the black bars. The dim still covers the whole window.
      Unset = 100%: screens fill the window as before. */
   .kit-overlay .kit-screen { inline-size: var(--kit-frame-w, 100%); block-size: var(--kit-frame-h, 100%); margin: auto; }
+  /* …and the always-there layer under them (a HUD) sits on the game picture too, or on its own narrower column:
+     --kit-hud-w (0.11.2 — Goops: on a wide window the HUD's corners went to the window edges, far from the
+     phone-shaped tank; menus keep the whole game picture). The HUD then lays itself out by its own width. */
+  .kit-layer[data-framed] { display: block; position: fixed; pointer-events: none; container-type: size;
+    inset-inline: max(0rem, calc((100vw - var(--kit-hud-w, var(--kit-frame-w, 100vw))) / 2));
+    inset-block: max(0rem, calc((100dvh - var(--kit-frame-h, 100dvh)) / 2)); }
+  .kit-layer[data-framed] > :not(.kit-screen) { pointer-events: auto; } /* screens pass taps through their own empty space */
 
   .kit-panel, .kit-stack { display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 0; }
   .kit-panel { padding: var(--gap-l); }
@@ -245,8 +252,9 @@
   [data-depth="1"] { box-shadow: var(--depth-1); }
   [data-depth="2"] { box-shadow: var(--depth-2); }
 
-  .kit-text[data-kind="display"], .kit-text[data-kind="title"], .kit-text[data-kind="heading"],
-  .kit-card-title, .kit-roomcode-box { font-family: var(--font-display); }
+  /* the three text roles (0.16.0): titles → font-title, headings → font-heading, the rest → font-body (above) */
+  .kit-text[data-kind="display"], .kit-text[data-kind="title"] { font-family: var(--font-title); }
+  .kit-text[data-kind="heading"], .kit-card-title, .kit-roomcode-box { font-family: var(--font-heading); }
   .kit-text[data-kind="caption"], .kit-listrow-detail { color: var(--muted); }
   .kit-text:is([data-kind="display"], [data-kind="title"], [data-kind="heading"]),
   .kit-card-title, .kit-button, .kit-tab, .kit-badge { text-transform: var(--text-case); }
@@ -346,3 +354,36 @@
 @keyframes kit-attention { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
 @keyframes kit-blink { 0%, 24%, 50%, 74% { opacity: 0; } 25%, 49%, 75%, 100% { opacity: 1; } }
 @keyframes kit-flicker { 0% { opacity: 0; } 10% { opacity: 0.8; } 20% { opacity: 0.1; } 35% { opacity: 1; } 45% { opacity: 0.3; } 60%, 100% { opacity: 1; } }
+
+/* ───────────── Screen column · swipe · slide (0.12.0) ───────────── */
+@layer kit-base {
+  /* <Screen column>: a phone-shaped game on a wide window — the slots sit in a centred column a phone's width
+     (9:16 of the window's height, at least 22.5rem; or --kit-column-w), while the backdrop covers the whole window */
+  .kit-screen[data-column] {
+    padding-inline-start: max(var(--gap-m), env(safe-area-inset-left), calc((100% - var(--kit-column-w, max(22.5rem, 100dvh * 9 / 16))) / 2 + var(--gap-m)));
+    padding-inline-end: max(var(--gap-m), env(safe-area-inset-right), calc((100% - var(--kit-column-w, max(22.5rem, 100dvh * 9 / 16))) / 2 + var(--gap-m)));
+  }
+  /* Short windows (a phone on its side): the whole width; the bottom-centre slot (a title) moves left of the centre,
+     so the centre keeps the window's height */
+  @media (max-height: 30rem) {
+    .kit-screen[data-column] {
+      padding-inline-start: max(var(--gap-m), env(safe-area-inset-left)); padding-inline-end: max(var(--gap-m), env(safe-area-inset-right));
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+      grid-template-areas: "top-left center top-right" "bottom center ." "bottom-left center bottom-right";
+    }
+    .kit-screen[data-column] > [data-slot="bottom"] { place-self: center; }
+  }
+  /* <Screen swipe>: the whole screen catches the swipe, not just its slots */
+  .kit-screen[data-swipe] { pointer-events: auto; }
+  .kit-screen[data-slide-edge="bottom"] { --kit-slide-off: translateY(100%); }
+  .kit-screen[data-slide-edge="top"] { --kit-slide-off: translateY(-100%); }
+  .kit-screen[data-slide-edge="left"] { --kit-slide-off: translateX(-100%); }
+  .kit-screen[data-slide-edge="right"] { --kit-slide-off: translateX(100%); }
+}
+@layer kit-style {
+  /* <Screen slide>: in from its edge / out to it, at the style's normal pace (out stays out until the game removes it) */
+  .kit-screen[data-slide="in"] { animation: kit-slide-in var(--motion-normal) var(--ease) both; }
+  .kit-screen[data-slide="out"] { animation: kit-slide-out var(--motion-normal) var(--ease) both; }
+}
+@keyframes kit-slide-in { from { transform: var(--kit-slide-off); } }
+@keyframes kit-slide-out { to { transform: var(--kit-slide-off); } }
