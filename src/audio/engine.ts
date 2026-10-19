@@ -14,6 +14,9 @@
 // - Tab hidden / phone call / lock screen → suspended. Sounds asked for meanwhile are DROPPED (logged), never queued,
 //   so twenty sounds don't burst out on return. Loops asked for meanwhile start once audio can play again.
 // - Back to visible → resume; if the browser refuses without a tap, the next tap resumes (the tap listeners stay on).
+// - The Dev Kit's ⏸ Full pause (0.3.0): its 'devkit:pause' window event suspends the audio like a hidden tab (sounds
+//   asked for meanwhile are dropped); resume plays on. ◐ Half pause leaves sound alone (it's looks, not rules). The
+//   audio module never imports the Dev Kit — it only hears the event, so a game with the Dev Kit off is unchanged.
 import { BUSES, dbToGain, readAudioConfig, sliderToGain, type AudioConfig, type BusName, type Tier } from './config.ts'
 import { audioUrl, createLoader, type FetchFile, type Loader } from './loader.ts'
 import { createLog, type AudioLog, type LogEntry } from './log.ts'
@@ -151,6 +154,8 @@ const SLIDER_RAMP_SEC = 0.05
 /** How often streams + music are looked after (loop points, ends, rests) while any are playing */
 const TICK_MS = 50
 const GESTURES = ['pointerup', 'touchend', 'keydown'] as const
+/** The Dev Kit's pause event (devkit/kit/gameClock.ts PAUSE_EVENT): detail = { mode: 'full' | 'half' | null } */
+export const DEVKIT_PAUSE_EVENT = 'devkit:pause'
 
 /** Moves an AudioParam to a value over `seconds` (a ramp, so it never clicks). */
 function rampTo(param: AudioParam, value: number, at: number, seconds: number) {
@@ -176,6 +181,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   let unlockedOnce = false
   let disposed = false
   let hidden = doc?.visibilityState === 'hidden'
+  let devPaused = false // the Dev Kit's full pause
   let muted = false
   let muteInBackground = true
   let mono = false
@@ -211,6 +217,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   // ---------- state ----------
   function state(): EngineState {
     if (!ctx || !unlockedOnce) return 'locked'
+    if (devPaused) return 'suspended'
     if (ctx.state !== 'running') return 'suspended' // includes iOS's 'interrupted'
     if (nav?.audioSession?.state === 'interrupted') return 'suspended'
     if (hidden && muteInBackground) return 'suspended'
@@ -354,7 +361,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   }
   // The tap listeners stay on: a tap after a phone call or a stuck 'interrupted' state resumes audio too
   const onGesture = () => {
-    if (state() !== 'running' && !(hidden && muteInBackground)) unlock()
+    if (state() !== 'running' && !(hidden && muteInBackground) && !devPaused) unlock()
     // A phone may refuse to start an <audio> element outside a tap: this tap starts any that were refused
     for (const voice of voices.values()) voice.stream?.retry()
     music.retryBlocked()
@@ -365,6 +372,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
   function onVisibility() {
     hidden = doc?.visibilityState === 'hidden'
     if (!ctx || !unlockedOnce) return
+    if (devPaused) return // the Dev Kit's full pause holds it, whatever the tab does — its resume plays on
     if (hidden && muteInBackground) {
       ctx.suspend().catch(() => {})
     } else if (ctx.state !== 'running') {
@@ -374,6 +382,21 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
     }
   }
   doc?.addEventListener('visibilitychange', onVisibility)
+
+  // ---------- the Dev Kit's full pause ----------
+  function onDevPause(e: Event) {
+    const paused = (e as CustomEvent<{ mode?: string | null }>).detail?.mode === 'full'
+    if (paused === devPaused) return
+    devPaused = paused
+    if (!ctx || !unlockedOnce) return
+    if (devPaused) {
+      syncStreams() // streams and music stop with it
+      ctx.suspend().then(onStateChange, () => {})
+    } else if (!(hidden && muteInBackground)) {
+      ctx.resume().then(onStateChange, () => {})
+    }
+  }
+  win?.addEventListener(DEVKIT_PAUSE_EVENT, onDevPause)
 
   // ---------- playing ----------
   function pruneEnded(now: number) {
@@ -744,6 +767,7 @@ export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Aud
       disposed = true
       for (const type of GESTURES) win?.removeEventListener(type, onGesture, { capture: true })
       doc?.removeEventListener('visibilitychange', onVisibility)
+      win?.removeEventListener(DEVKIT_PAUSE_EVENT, onDevPause)
       nav?.audioSession?.removeEventListener?.('statechange', onStateChange)
       if (ticker !== null) clearInterval(ticker)
       ticker = null
