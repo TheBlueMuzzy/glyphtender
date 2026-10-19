@@ -116,11 +116,11 @@ async function checkCredits(t) {
 // ---- Settings rows (0.20.0) ----
 // Every row that's switched on in content/ui/settings.json must DO something: a Settings screen full of switches that
 // change nothing is worse than a short one (Glyphtender once shipped 12 dead rows). A row counts as read when the game's
-// own code (not the framework's copies, not tests) names its id in a read:
-//   values.tips · values?.tips · settings['tips'] · id === 'resetTips' · case 'credits': · info={{ version: … }}
-//   · const { aiSpeed } = values · hide={['fullscreenTip']}
-// Not counted: comments, the JSON files themselves (settings.json, en.json labels), and words objects imported from a
-// .json file (text.tutorial.tips is a sentence, not the Tips setting).
+// own code (not the framework's copies, not tests) names its id in a read (full list at fileReadsRow):
+//   values.tips · values?.tips · settings['tips'] · const { aiSpeed } = values · id === 'resetTips' · case 'credits':
+//   · info={{ version: … }} · useSetting('tips')
+// Not counted: comments, the JSON files themselves (settings.json, en.json labels), and the id as a plain word anywhere
+// else (text.tutorial.tips, assets.sound, { theme: 'dark' } — 0.20.1: common-word ids used to pass while dead).
 // Rows the kit or the audio module handle are skipped: headings · text size + reduce motion (the kit applies them) ·
 // link rows (the kit opens them — but a placeholder example.com address fails) · info rows with their own text (except
 // version, whose text must come from the game: info={{ version }}) · the Audio rows once the game passes the values to
@@ -140,27 +140,144 @@ export function liveRows(schema) {
     .map((row) => ({ ...row, tab: tab.label ?? tab.id })))
 }
 
-/** Code without its comments (a // inside 'https://…' stays). */
+// A slash starts a regex (not a division) after one of these, or after a word like return / typeof.
+const REGEX_AFTER = new Set([...'(,=:[!&|?{};+-*%<>~^'])
+const REGEX_AFTER_WORDS = /(?:^|[^\w$])(return|typeof|case|do|else|in|of|void|yield|await|delete|new|throw)$/
+
+/** Code without its comments. Strings ('…', "…", `…` with ${…} inside) and regexes are stepped over, so the // in
+ *  'https://…' and the /* in import.meta.glob('./sfx/*.mp3') stay code. A '…' or "…" string ends at the line's end
+ *  even if it isn't closed (an apostrophe in JSX text like <p>Don't</p> can't swallow the rest of the file). */
 export function stripComments(text) {
-  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1')
+  let out = ''
+  let i = 0
+  const braces = [] // one counter per open ${ … } inside a template string
+  let prev = '' // the last character of code that wasn't a space (for "is this slash a regex?")
+  const n = text.length
+  const skipString = (quote) => { // from the opening quote; returns the index after the string
+    let j = i + 1
+    while (j < n && text[j] !== quote && text[j] !== '\n') j += text[j] === '\\' ? 2 : 1
+    return text[j] === quote ? j + 1 : j
+  }
+  const skipTemplate = (from) => { // from just after ` or }; stops after the closing ` or after a ${
+    let j = from
+    while (j < n) {
+      if (text[j] === '\\') { j += 2; continue }
+      if (text[j] === '`') return { end: j + 1, opened: false }
+      if (text[j] === '$' && text[j + 1] === '{') return { end: j + 2, opened: true }
+      j++
+    }
+    return { end: n, opened: false }
+  }
+  const skipRegex = () => { // from the opening slash; returns the index after the flags, or -1 if it isn't one
+    let j = i + 1
+    let inClass = false
+    while (j < n && text[j] !== '\n') {
+      const c = text[j]
+      if (c === '\\') { j += 2; continue }
+      if (c === '[') inClass = true
+      else if (c === ']') inClass = false
+      else if (c === '/' && !inClass) { j++; while (j < n && /[a-z]/i.test(text[j])) j++; return j }
+      j++
+    }
+    return -1
+  }
+  while (i < n) {
+    const c = text[i]
+    const next = text[i + 1]
+    if (c === '/' && next === '/') { // line comment: drop to the end of the line
+      while (i < n && text[i] !== '\n') i++
+      continue
+    }
+    if (c === '/' && next === '*') { // block comment: drop it, keep its line breaks
+      const end = text.indexOf('*/', i + 2)
+      const stop = end === -1 ? n : end + 2
+      out += text.slice(i, stop).replace(/[^\n]/g, '')
+      i = stop
+      continue
+    }
+    if (c === "'" || c === '"') { const end = skipString(c); out += text.slice(i, end); i = end; prev = c; continue }
+    if (c === '`') { const { end, opened } = skipTemplate(i + 1); out += text.slice(i, end); i = end; prev = '`'; if (opened) braces.push(1); continue }
+    if (c === '/' && (prev === '' || REGEX_AFTER.has(prev) || REGEX_AFTER_WORDS.test(out.slice(-40).trimEnd()))) {
+      const end = skipRegex()
+      if (end !== -1) { out += text.slice(i, end); i = end; prev = '/'; continue }
+    }
+    if (braces.length && c === '{') braces[braces.length - 1]++
+    if (braces.length && c === '}' && --braces[braces.length - 1] === 0) { // back inside the template string
+      braces.pop()
+      const { end, opened } = skipTemplate(i + 1)
+      out += text.slice(i, end); i = end; prev = '`'
+      if (opened) braces.push(1)
+      continue
+    }
+    out += c
+    if (!/\s/.test(c)) prev = c
+    i++
+  }
+  return out
 }
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-/** Does this one file read the row id? (see the list above) */
+// The game's settings values live in an object whose name says so: values, settings, gameSettings, prefs, savedPrefs…
+const SETTINGS_NAME = /setting|values|prefs/i
+
+/** The names along the chain that ends just before `at`: for useGameSettings.getState().aiSpeed → [getState, useGameSettings].
+ *  Call brackets and index brackets are stepped over (loadSettings(schema).tips → [loadSettings]). */
+function chainNames(code, at) {
+  const names = []
+  let j = at
+  for (;;) {
+    while (j > 0 && /\s/.test(code[j - 1])) j--
+    if (code[j - 1] === ')' || code[j - 1] === ']') { // step back over ( … ) or [ … ]
+      const close = code[j - 1]
+      const open = close === ')' ? '(' : '['
+      let depth = 0
+      while (j > 0) {
+        j--
+        if (code[j] === close) depth++
+        else if (code[j] === open && --depth === 0) break
+      }
+      continue
+    }
+    const word = code.slice(0, j).match(/[A-Za-z_$][\w$]*$/)
+    if (!word) return names
+    names.push(word[0])
+    j -= word[0].length
+    while (j > 0 && /\s/.test(code[j - 1])) j--
+    if (code[j - 1] === '.') { j--; if (code[j - 1] === '?') j--; continue }
+    return names
+  }
+}
+
+/** Does this one file read the row id? Only the ways games really read a setting count — a common word like "sound" or
+ *  "theme" elsewhere in the code (assets.sound, { theme: 'dark' }) doesn't:
+ *    values.tips · values?.tips · settings['tips'] · loadSettings(schema).tips   (a member of a settings-named object)
+ *    const { tips } = values · ({ tips }: SettingsValues) =>                       (destructured from one)
+ *    id === 'resetTips' · 'resetTips' === id · changed !== 'fullscreen' · case 'credits':   (an action row's id)
+ *    info={{ version }} · info={{ version: … }}                                    (an info row's text)
+ *    useSetting('tips') · getSetting('tips')                                       (a settings call named by the id) */
 export function fileReadsRow(text, id) {
   const code = stripComments(text)
   const name = escapeRe(id)
-  if (new RegExp(`(['"\`])${name}\\1`).test(code)) return true // 'tips' — compared, a key, a case, a hide list
-  if (new RegExp(`[{,]\\s*${name}\\s*[:,}=]`).test(code)) return true // { version: … } · const { aiSpeed } = values
-  // values.tips / values?.tips — but not text.tutorial.tips when `text` came from a .json file
-  const fromJson = new Set([...code.matchAll(/import\s+([A-Za-z_$][\w$]*)\s+from\s+['"][^'"]+\.json['"]/g)].map((m) => m[1]))
-  for (const m of code.matchAll(new RegExp(`(?<!\\.)\\??\\.${name}(?![\\w$])`, 'g'))) {
-    const before = code.slice(0, m.index)
-    const root = before.match(/([A-Za-z_$][\w$]*)(?:\??\.[A-Za-z_$][\w$]*)*\??$/)?.[1] // the start of the chain: text in text.tutorial
-    if (!root || !fromJson.has(root)) return true
+  const q = `(['"\`])${name}\\1` // the id in quotes (group 1 is the quote)
+  // a member of a settings-named object: values.tips · values?.tips · values['tips'] · loadSettings(s).tips
+  for (const m of code.matchAll(new RegExp(`\\??\\.\\s*${name}(?![\\w$])|\\??\\.?\\[\\s*${q}\\s*\\]`, 'g'))) {
+    if (code[m.index - 1] === '.' && m[0][0] === '.') continue // ...tips is a spread, not a member
+    if (chainNames(code, m.index).some((w) => SETTINGS_NAME.test(w))) return true
   }
-  return false
+  // destructured: const { tips, aiSpeed: speed = 'Normal' } = values  ·  ({ tips }: SettingsValues) =>
+  for (const m of code.matchAll(/\{([^{}]*)\}\s*(=|:)\s*([A-Za-z_$][\w$.?]*)/g)) {
+    const keys = m[1].split(',').map((part) => part.trim().split(/[\s:=]/)[0])
+    if (keys.includes(id) && SETTINGS_NAME.test(m[3])) return true
+  }
+  // an action row's id compared: id === 'resetTips' · 'resetTips' === id · changed !== 'fullscreen' · case 'credits':
+  const who = '(?:\\b(?:id|key|changed|action)|[\\w$]Id|\\.id)'
+  if (new RegExp(`${who}\\s*[!=]==?\\s*${q}`).test(code)) return true
+  if (new RegExp(`${q}\\s*[!=]==?\\s*${who}(?![\\w$])`).test(code)) return true
+  if (new RegExp(`\\bcase\\s+${q}\\s*:`).test(code)) return true
+  if (fileFeedsInfo(code, id)) return true
+  // a settings call named by the id: useSetting('tips') · getSetting('tips') · readPref('tips')
+  return new RegExp(`[\\w$]*(?:setting|pref)[\\w$]*\\s*\\(\\s*${q}`, 'i').test(code)
 }
 
 /** Does this file give an info row its text? <Settings info={{ version: … }} /> (or an info: { … } object passed on).
