@@ -10,6 +10,11 @@ import { startFullscreen } from './ui/fullscreen'
 import { freezeScreen, frozen } from './game/freeze'
 import { startSound } from './game/sound'
 import { startWordOutbox } from './ui/online/wordOutbox'
+import { setPaceClock } from './ai/kit/pace'
+import { rulesClock } from './devkit/gameClock'
+
+// Bots wait on the rules clock, so a pause (Dev Kit ◐ / ⏸) holds a bot mid-think (AI 0.2.0)
+setPaceClock(rulesClock)
 
 // Dev only: ?freeze holds the screen still for the before / after screenshots (src/game/freeze.ts)
 if (frozen) freezeScreen()
