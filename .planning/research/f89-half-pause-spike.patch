@@ -1,0 +1,132 @@
+commit 608d5722e2e652acacf21de407008661ac92b893
+Author: TheBlueMuzzy <Joebrogno@gmail.com>
+Date:   Mon Oct 19 01:43:00 2026 -0400
+
+    spike: half-pause experiment (store timers + throw on rulesClock, adapter conformance.startPlay) — still red: draft carry lands on looks time
+
+diff --git a/src/devkit-game/glyphtenderAdapter.ts b/src/devkit-game/glyphtenderAdapter.ts
+index 2aaa67f..060cee9 100644
+--- a/src/devkit-game/glyphtenderAdapter.ts
++++ b/src/devkit-game/glyphtenderAdapter.ts
+@@ -171,4 +171,12 @@ export const glyphtenderAdapter: DevKitGame = {
+   }),
+ 
+   describe: describeGlyphtender,
++
++  // SPIKE F63 (Dev Kit 0.19+): check:framework's way into live play — an all-AI 2-player game, so play moves on its own
++  conformance: {
++    startPlay: async () => {
++      useGameStore.getState().startGame({ players: 2, seed: 7, bots: [0, 1] })
++      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
++    },
++  },
+ }
+diff --git a/src/game/useThrow.ts b/src/game/useThrow.ts
+index f0afff7..a1e8ebe 100644
+--- a/src/game/useThrow.ts
++++ b/src/game/useThrow.ts
+@@ -10,6 +10,7 @@ import { playSound } from '../audio'
+ import { reduceMotion } from '../ui/kit'
+ import { throwHandle } from './trailShape'
+ import type { AnimTuning } from './useTuning'
++import { rulesClock } from '../devkit/gameClock'
+ 
+ export const HEX = 1 // hexes are drawn at size 1; the SVG viewBox scales them to fit
+ 
+@@ -41,11 +42,12 @@ export function useThrow({ svgRef, seedRef, flight, onLanded, landed, timing }:
+     const distance = Math.hypot(b.x - a.x, b.y - a.y)
+     const ms = 1000 * (timing.flightBase + (timing.flightPerHex * distance) / Math.sqrt(3))
+     const handle = throwHandle(a, b, timing.arcHeight) // bezier handle above the middle (the trail's arc is the same curve)
+-    const start = performance.now()
+-    playSound('cast.throw', { at: start + timing.hopTime * 1000 }) // the whoosh at the top of the hop
++    // SPIKE F63: the flight's landing changes the game, so it runs on rules time (a half pause holds it mid-air)
++    const start = rulesClock.now()
++    playSound('cast.throw', { at: performance.now() + timing.hopTime * 1000 }) // the whoosh at the top of the hop
+     let frame = 0
+-    const step = (now: number) => {
+-      const t = Math.min(1, (now - start) / ms)
++    const step = () => {
++      const t = Math.min(1, (rulesClock.now() - start) / ms)
+       const e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2 // ease in-out
+       const x = (1 - e) ** 2 * a.x + 2 * (1 - e) * e * handle.x + e * e * b.x
+       const y = (1 - e) ** 2 * a.y + 2 * (1 - e) * e * handle.y + e * e * b.y
+diff --git a/src/store/gameStore.ts b/src/store/gameStore.ts
+index ebde484..6152fc0 100644
+--- a/src/store/gameStore.ts
++++ b/src/store/gameStore.ts
+@@ -42,6 +42,7 @@ import { refreshTimes, type RefreshFx } from './refreshFx'
+ import { moveInRack, placesOf, rackOf, refillRack, shuffleRack, swapInRack } from '../table/rack'
+ import { landingSeconds } from './wordMarks'
+ import type { Trail } from './trail'
++import { rulesClock } from '../devkit/gameClock'
+ 
+ /** Short messages for taps that can't do anything (their words live in content/text/en.json → game.notes). */
+ export type Note = 'moveFirst' | 'notYours' | 'tangled' | 'wordsLoading' | 'wordsFailed' | 'problem'
+@@ -251,30 +252,31 @@ export const useGameStore = create<GameStore>()((set, get) => {
+   }
+ 
+   // The score sequence's own timer: one at a time; leaving or jumping the game stops it
+-  let scoreTimer: ReturnType<typeof setTimeout> | null = null
++  // SPIKE F63: game-logic timers on the rules clock (rulesClock.after returns "cancel") — a half pause holds them
++  let scoreTimer: (() => void) | null = null
+   const stopScoring = () => {
+-    if (scoreTimer) clearTimeout(scoreTimer)
++    scoreTimer?.()
+     scoreTimer = null
+   }
+ 
+   // The refresh playing out (refreshFx.ts): one timer at a time; leaving or jumping the game stops it
+-  let refreshTimer: ReturnType<typeof setTimeout> | null = null
++  let refreshTimer: (() => void) | null = null
+   const after = (ms: number, then: () => void) => {
+-    refreshTimer = setTimeout(() => {
++    refreshTimer = rulesClock.after(ms, () => {
+       refreshTimer = null
+       then()
+-    }, ms)
++    })
+   }
+   const stopRefreshFx = () => {
+-    if (refreshTimer) clearTimeout(refreshTimer)
++    refreshTimer?.()
+     refreshTimer = null
+     stopBotTurn() // (every place that stops the refresh — a new game, leaving, a jump — stops a bot's glide too)
+   }
+ 
+   // A bot's turn playing out (botPlays with show): the wait between its glide and its throw
+-  let botTimer: ReturnType<typeof setTimeout> | null = null
++  let botTimer: (() => void) | null = null
+   const stopBotTurn = () => {
+-    if (botTimer) clearTimeout(botTimer)
++    botTimer?.()
+     botTimer = null
+   }
+   // Stage "in": the new seeds grow into their slots, then `done` (pass-and-play: play passes on)
+@@ -559,7 +561,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
+       set({ scoring: landed!.count })
+       // (+ a beat: the board's animations start a frame or two after this, and the fade's last frame must be painted
+       // before anything of the next turn shows)
+-      scoreTimer = setTimeout(() => get().endScoring(), landingSeconds(game, turn, true, anim.current) * 1000 + SCORE_BEAT_MS)
++      scoreTimer = rulesClock.after(landingSeconds(game, turn, true, anim.current) * 1000 + SCORE_BEAT_MS, () => get().endScoring())
+     },
+     endScoring: () => {
+       stopScoring()
+@@ -631,15 +633,15 @@ export const useGameStore = create<GameStore>()((set, get) => {
+         botTimer = null
+         if (get().game === game) set({ cast, flying: true }) // (unless the game moved on or was left meanwhile)
+       }
+-      botTimer = setTimeout(() => {
++      botTimer = rulesClock.after(reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000, () => {
+         botTimer = null
+         if (get().game !== game) return // (the game moved on or was left meanwhile)
+         if (!cast) return get().finishCast()
+         if (aimMs <= 0) return throwNow()
+         playSound('seed.aim') // (the AI aims like a person, and it sounds like one)
+         set({ cast })
+-        botTimer = setTimeout(throwNow, aimMs)
+-      }, reduceMotion() ? 0 : glideSeconds(from, action.to, anim.current) * 1000)
++        botTimer = rulesClock.after(aimMs, throwNow)
++      })
+     },
+ 
+     landBotDraft: () => {
