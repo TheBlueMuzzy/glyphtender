@@ -30,6 +30,46 @@ export function thinkDelay(pace: Pace, kind: string, speed: string, rng: number)
 /** How much longer to wait after thinking took `spentMs` of the `delayMs` moment (never below 0). */
 export const waitLeft = (delayMs: number, spentMs: number) => Math.max(0, delayMs - spentMs)
 
+// ─── The clock a bot waits on (0.2.0) ───
+// A bot's think-moment changes the game when it ends (the bot moves), so it belongs on the game's RULES clock: the
+// Dev Kit's ◐ Half pause (and the game's own pause menu) then stops a bot mid-think, and it moves on when play does.
+// The game hands the clock over once, at start-up — the AI module never imports the Dev Kit:
+//   import { rulesClock } from './devkit/gameClock'
+//   setPaceClock(rulesClock)
+// and its bot waits with botWait / paceNow instead of setTimeout / performance.now:
+//   const started = paceNow()
+//   … think …
+//   cancel = botWait(waitLeft(delay.ms, paceNow() - started), () => act(move))
+// Until a game calls setPaceClock it's the plain browser clock (tests, Node, the online server).
+
+/** What a bot waits on: the game's rules clock (gameClock.ts rulesClock fits as it is). */
+export interface PaceClock {
+  /** Time in ms (rules time: stands still while the game is paused). */
+  now(): number
+  /** Run fn after `ms` of this clock's time. Returns "cancel". */
+  after(ms: number, fn: () => void): () => void
+}
+
+const plainClock: PaceClock = {
+  now: () => (typeof performance !== 'undefined' ? performance.now() : Date.now()),
+  after: (ms, fn) => {
+    const id = setTimeout(fn, ms)
+    return () => clearTimeout(id)
+  },
+}
+let paceClock: PaceClock = plainClock
+
+/** Bots wait on this clock from now on (the game's rulesClock). null = back to the plain clock. */
+export function setPaceClock(clock: PaceClock | null): void {
+  paceClock = clock ?? plainClock
+}
+
+/** Now, on the bots' clock (ms). */
+export const paceNow = (): number => paceClock.now()
+
+/** Wait `ms` on the bots' clock, then run fn. Returns "cancel". */
+export const botWait = (ms: number, fn: () => void): (() => void) => paceClock.after(ms, fn)
+
 // ─── Thinking in the background ───
 
 interface Ask<Request> { id: number; request: Request }
