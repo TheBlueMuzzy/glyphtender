@@ -4,7 +4,8 @@
 import { latestTuning } from '../tuning/liveTuning'
 import { liveName } from './momentLogic'
 
-const found = import.meta.glob<unknown>('../../../content/**/*.json', { import: 'default' })
+// ?devkit-file: the plain file (the game's own content/tuning imports are live objects — Vite plugin, liveFile)
+const found = import.meta.glob<unknown>('../../../content/**/*.json', { import: 'default', query: '?devkit-file' })
 
 /** One content file as JSON (a copy). file = "content/audio.json". Throws a plain reason if it isn't there. */
 export async function loadContentFile(file: string): Promise<{ disk: object; now: object }> {

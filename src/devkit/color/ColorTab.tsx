@@ -2,22 +2,24 @@
 // (corners, outlines, shadows, press feel, timings, menu sizes — styleValues.ts) with a slider or a box each.
 //   They come from content/ui/style.json: the preset's values, with "tweaks" on top.
 // ↺ on a row = back to the preset. A dot next to a name = changed, not saved yet.
+// The values live in styleStore.ts, shared with the Fonts tab (a font picked there shows here, and the other way round).
 // The Dev Kit's search box filters the rows (the `query` prop); the colour-blind preview hides while searching.
 // Under the Select tab (a DevKitPick, select/pickContext.ts): only the picked object's style values, in one section,
 //   same rows, same Save. They're shared: a button's corners are every button's.
 // A game's own colours (e.g. a 3D table) go in a game tab: src/devkit-game/ (ColourRow is free to use there).
-import { useContext, useEffect, useState, type ReactNode } from 'react'
+import { useContext, useState, type ReactNode } from 'react'
 import { Highlight, SearchCount, Section } from '../search/Section'
 import { DevKitSearch } from '../search/searchContext'
 import { countFound, searchTerms } from '../search/searchLogic'
-import { CAN_SAVE, copyText, saveContentFile } from '../saveContent'
+import { CAN_SAVE, copyText } from '../saveContent'
 import { DevKitPick } from '../select/pickContext'
 import { ColourBlindPreview } from './ColourBlindPreview'
 import { ColourRow } from './ColourRow'
 import { StyleRow } from './StyleRow'
-import { UI_COLOUR_SECTION, UI_SHAPE_SECTION, copyForClaudeText, isUiShape, searchUiColours, listChanges, sameColour, tweaksToSave, uiChanged, uiColoursFrom, uiLabel } from './colorLogic'
-import { shapeDefault, shapesToClear, uiShapesFrom } from './styleValues'
-import { styleFile, uiKit } from './uiKit'
+import { UI_COLOUR_SECTION, UI_SHAPE_SECTION, UI_STYLE_TOKENS, copyForClaudeText, isUiShape, searchUiColours, listChanges, sameColour, uiChanged, uiLabel } from './colorLogic'
+import { shapeDefault } from './styleValues'
+import { useStyle } from './styleStore'
+import { styleFile, styleStore, uiKit } from './uiKit'
 import './color.css'
 
 export function ColorTab({ query = '' }: { query?: string }) {
@@ -48,18 +50,13 @@ export function ColorTab({ query = '' }: { query?: string }) {
 function UiColoursEditor({ query }: { query: string }) {
   const { goTo } = useContext(DevKitSearch)
   const picking = useContext(DevKitPick)
-  // Only shown when both exist (see ColorTab)
-  const kit = uiKit!
-  const file = styleFile!
-  const presetName = file.preset
-  const preset = kit.presets[presetName] ?? kit.presets.clean
+  // Only shown when the game has the UI kit (see ColorTab). The values are shared with the Fonts tab (styleStore.ts)
+  const store = styleStore!
+  const { live: colours, saved, loaded } = useStyle(store)
+  const preset = store.preset
+  const presetName = store.presetName
   const presetTitle = presetName.charAt(0).toUpperCase() + presetName.slice(1) // "Cartoon"
-  const fromFile = () => ({ ...uiColoursFrom(preset, file.tweaks), ...uiShapesFrom(preset, file.tweaks) })
-
-  const [colours, setColours] = useState(fromFile) // what the game shows right now (colours + shape & feel)
-  const [saved, setSaved] = useState(fromFile) // what's in the file
-  const [savedTweaks, setSavedTweaks] = useState(file.tweaks ?? {}) // style.json "tweaks" as saved
-  const [loaded] = useState(fromFile) // as the page loaded — Copy for Claude lists changes since then
+  const setColours = (values: Record<string, string>) => store.set(values)
   const [status, setStatus] = useState<{ kind: 'ok' | 'error' | 'info'; text: string } | null>(null)
   const [copyFallback, setCopyFallback] = useState<string | null>(null) // shown if the clipboard is blocked
 
@@ -68,14 +65,6 @@ function UiColoursEditor({ query }: { query: string }) {
   const found = terms.length > 0
     ? searchUiColours(query)
     : [{ ...UI_COLOUR_SECTION, titleHit: false }, { ...UI_SHAPE_SECTION, titleHit: false }]
-
-  // Live preview: the UI restyles through the kit's style engine
-  useEffect(() => {
-    const tweaks = tweaksToSave(preset, colours, savedTweaks)
-    kit.applyStyle({ preset: presetName, tweaks })
-    // applyStyle only sets values: a menu size put back to the kit's default is taken off the page again
-    for (const token of shapesToClear(preset, tweaks)) document.documentElement.style.removeProperty(`--${token}`)
-  }, [kit, preset, presetName, colours, savedTweaks])
 
   const row = (token: string, display: ReactNode) => {
     const reset = isUiShape(token) ? shapeDefault(preset, token) : String(preset[token])
@@ -86,19 +75,16 @@ function UiColoursEditor({ query }: { query: string }) {
       changed: !sameColour(colours[token], saved[token]),
       resetTo: reset,
       resetHint: `Back to the ${presetTitle} preset`,
-      onChange: (v: string) => setColours((c) => ({ ...c, [token]: v })),
+      onChange: (v: string) => setColours({ [token]: v }),
     }
     return isUiShape(token) ? <StyleRow key={token} token={token} {...props} /> : <ColourRow key={token} {...props} />
   }
 
-  // Save: style.json gets only the colours that differ from the preset
+  // Save: style.json gets only the values that differ from the preset (every value this tab shows — fonts too)
   async function save() {
     setStatus({ kind: 'info', text: 'Saving…' })
     try {
-      const tweaks = tweaksToSave(preset, colours, savedTweaks)
-      await saveContentFile('content/ui/style.json', { ...file, tweaks })
-      setSavedTweaks(tweaks)
-      setSaved(colours)
+      await store.save(UI_STYLE_TOKENS)
       setStatus({ kind: 'ok', text: 'Saved content/ui/style.json — refresh and it stays.' })
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save: ${(e as Error).message}` })
@@ -165,7 +151,7 @@ function UiColoursEditor({ query }: { query: string }) {
         <button className={CAN_SAVE ? 'devkit-btn' : 'devkit-btn devkit-btn-main'} onClick={copyForClaude}>
           Copy for Claude
         </button>
-        <button className="devkit-btn" disabled={!dirty} onClick={() => setColours(saved)} title="Put every UI style value back to what's saved">
+        <button className="devkit-btn" disabled={!dirty} onClick={() => store.undo()} title="Put every UI style value back to what's saved">
           {CAN_SAVE ? 'Undo unsaved' : 'Undo changes'}
         </button>
         {status && <p className={`devkit-status is-${status.kind}`} role="status">{status.text}</p>}

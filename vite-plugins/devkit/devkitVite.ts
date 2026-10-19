@@ -14,13 +14,17 @@
 //      in the file is kept even if the tool didn't send it. A save that changes nothing doesn't touch the file.
 //      The game is not hot-reloaded for a saved file (it already shows the tool's live values) — unless the body
 //      says "reload": true (the Text tab: the game reads its words at load time, so Vite's reload shows them).
+//   4. The Fonts tab's font library, dev server only (fontLibrary.ts): GET /__devkit/font-library (list),
+//      GET /__devkit/font-library/file?path= (one font, for a preview), POST /__devkit/font-library/add (copy one into the game).
+//   5. Live tuning by default (0.18.0): content/tuning/*.json imports come back live (liveTuningName / liveJsonModule).
 //   3. The Sound tab's two endpoints, dev server only (audioSave.ts): POST /__devkit/save-audio (a dropped-in sound →
 //      MP3 in public/audio/<folder>/, nowhere else) and POST /__devkit/add-credit (appends to content/credits.json).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, extname, join, resolve, sep } from 'node:path'
 import type { Plugin } from 'vite'
 import { ADD_CREDIT_URL, MAX_UPLOAD_BYTES, SAVE_AUDIO_URL, readAudioTarget, readCreditEntry, saveAudioFile } from './audioSave'
+import { FONT_LIBRARY_URL, FONT_TYPES, addLibraryFont, libraryFile, libraryFolder, listLibrary } from './fontLibrary'
 import { formatJson } from './formatJson'
 
 // How files are written (one-line short objects and lists, like hand-written files): formatJson.ts
@@ -65,6 +69,28 @@ export function keepHelp(existing: unknown, incoming: Record<string, unknown>): 
 
 // Same file, same key — whatever slashes or drive-letter case the path came with (Windows)
 const fileKey = (file: string) => resolve(file).toLowerCase()
+
+/** Where the game's copy of liveTuning.ts is (install-devkit puts kit/ in src/devkit/). */
+export const LIVE_TUNING_MODULE = 'src/devkit/tuning/liveTuning.ts'
+
+/** "<root>/content/tuning/tank.json" → "tank" (the name live edits travel under); anything else → null.
+ *  Only files directly in content/tuning/, with no query (?raw, ?devkit-file keep the plain file). */
+export function liveTuningName(id: string, root: string): string | null {
+  if (id.includes('?') || id.startsWith('\0')) return null
+  const slashes = (p: string) => p.replace(/\\/g, '/')
+  const base = `${slashes(root).replace(/\/$/, '')}/content/tuning/`
+  const path = slashes(id)
+  if (!path.toLowerCase().startsWith(base.toLowerCase())) return null // (Windows: the drive letter's case varies)
+  const rest = path.slice(base.length)
+  return /^[^/]+\.json$/.test(rest) ? rest.slice(0, -'.json'.length) : null
+}
+
+/** The module a live tuning file becomes: the file's data, handed back through liveFile. */
+export function liveJsonModule(name: string, jsonText: string, liveTuningPath: string): string {
+  JSON.parse(jsonText) // a broken file fails here, with the file named by Vite
+  const from = JSON.stringify(liveTuningPath.replace(/\\/g, '/'))
+  return `import { liveFile } from ${from}\nexport default liveFile(${JSON.stringify(name)}, JSON.parse(${JSON.stringify(jsonText)}))\n`
+}
 
 /** Both jobs in one plugin — see the top of this file. */
 export function devkit(): Plugin {
@@ -159,6 +185,52 @@ export function devkit(): Plugin {
         })
       })
 
+      // 4. The Fonts tab's font library (fontLibrary.ts). Reads: only from this page (a browser marks a request from
+      //    another site "cross-site" — refused; it couldn't read the answer anyway). Adding: same rules as Save.
+      const otherSite = (req: IncomingMessage) => {
+        const site = req.headers['sec-fetch-site']
+        return site !== undefined && site !== 'same-origin' && site !== 'none'
+      }
+      server.middlewares.use(FONT_LIBRARY_URL, (req, res) => {
+        const reply = replier(res)
+        const url = new URL(req.url ?? '/', 'http://x')
+        const folder = libraryFolder(root)
+        if (url.pathname === '/add') {
+          const no = refused(req, 'application/json')
+          if (no) return reply(no[0], { error: no[1] })
+          const chunks: Buffer[] = []
+          req.on('data', (chunk: Buffer) => chunks.push(chunk))
+          req.on('end', () => {
+            try {
+              const { path } = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+              // Its files land in public/ and content/ — the game already shows the font, so no reload for them
+              for (const name of ['content/ui/fonts.json', 'content/credits.json']) justWrote.set(fileKey(resolve(root, name)), Date.now())
+              const added = addLibraryFont(root, folder, path)
+              for (const file of added.wrote) justWrote.set(fileKey(resolve(root, file)), Date.now())
+              server.config.logger.info(`[devkit] fonts: ${added.already ? 'already had' : 'added'} ${added.font.file}`, { timestamp: true })
+              reply(200, { ok: true, ...added })
+            } catch (e) {
+              reply(400, { error: (e as Error).message })
+            }
+          })
+          return
+        }
+        if (req.method !== 'GET') return reply(405, { error: 'GET only' })
+        if (otherSite(req)) return reply(403, { error: 'Only from the game page' })
+        if (url.pathname === '/file') {
+          const file = libraryFile(folder, url.searchParams.get('path'))
+          if (typeof file !== 'string') return reply(400, { error: `Not allowed: ${file.refused}` })
+          res.statusCode = 200
+          res.setHeader('Content-Type', FONT_TYPES[extname(file).toLowerCase()])
+          res.setHeader('Cache-Control', 'no-store')
+          res.end(readFileSync(file))
+          return
+        }
+        if (url.pathname !== '/' && url.pathname !== '') return reply(404, { error: 'No such font library request' })
+        const { fonts, more } = listLibrary(folder)
+        reply(200, { folder, found: existsSync(folder), fonts, more })
+      })
+
       server.middlewares.use(SAVE_URL, (req, res) => {
         const reply = replier(res)
         const no = refused(req, 'application/json')
@@ -198,6 +270,23 @@ export function devkit(): Plugin {
           }
         })
       })
+    },
+    // 5. LIVE BY DEFAULT (0.18.0): `import tank from '…/content/tuning/tank.json'` hands the game liveFile('tank', …) — an
+    //    object that reads the Dev Kit's latest edit on every property access (src/devkit/tuning/liveTuning.ts), so a
+    //    game's tuning follows the sliders with no wrapping. In every build and in vitest (with nothing sending edits it
+    //    is just the file). Imports with a query (?raw, the Dev Kit's own ?devkit-file) are left alone. Runs after
+    //    Vite's own JSON step ('post'), replacing its output.
+    transform: {
+      order: 'post',
+      handler(_code, id) {
+        const name = liveTuningName(id, root)
+        const live = join(root, ...LIVE_TUNING_MODULE.split('/'))
+        if (!name || !existsSync(live)) return null
+        const file = id.replace(/[?#].*$/, '')
+        this.addWatchFile(file)
+        // (imported as /src/…: Vite reads a leading / as the game's folder, in dev, builds and vitest alike)
+        return { code: liveJsonModule(name, readFileSync(file, 'utf8'), `/${LIVE_TUNING_MODULE}`), map: null }
+      },
     },
     handleHotUpdate({ file }) {
       const wroteAt = justWrote.get(fileKey(file))

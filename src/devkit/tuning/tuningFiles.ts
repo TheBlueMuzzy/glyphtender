@@ -4,7 +4,9 @@ import { tuningName, type TuningData } from './tuningLogic'
 
 export type TuningFile = { name: string; data: TuningData } // name = "physics" for content/tuning/physics.json
 
-const found = import.meta.glob<TuningData>('../../../content/tuning/*.json', { eager: true, import: 'default' })
+// ?devkit-file: the plain file as saved — the game's own imports of these files are made live by the Dev Kit's Vite
+// plugin (liveFile), and the tab must compare edits against what's on disk, not against its own edits
+const found = import.meta.glob<TuningData>('../../../content/tuning/*.json', { eager: true, import: 'default', query: '?devkit-file' })
 
 export const tuningFiles: TuningFile[] = Object.entries(found)
   .map(([path, data]) => ({ name: tuningName(path), data }))

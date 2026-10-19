@@ -33,7 +33,10 @@ export const UI_SHAPES: StyleValue[] = [
   { token: 'text-size', name: 'Text size (1 = 18px)', slider: { '': [1, 1.6, 0.05] } },
   { token: 'font-scale', name: 'Heading size step', slider: { '': [1, 1.6, 0.01] } },
   { token: 'density', name: 'Spacing (1 = normal)', slider: { '': [0.6, 1.6, 0.05] } },
-  { token: 'font-display', name: 'Title font' },
+  // Fonts — the Fonts tab (fonts/FontsTab.tsx) picks these side by side; here they're plain text boxes
+  { token: 'font-display', name: "Style's title font (titles & headings follow it)" },
+  { token: 'font-title', name: 'Title font', fallback: 'var(--font-display)' },
+  { token: 'font-heading', name: 'Heading font', fallback: 'var(--font-display)' },
   { token: 'font-body', name: 'Body font' },
   { token: 'font-numbers', name: 'Number font' },
   { token: 'panel-texture', name: 'Panel texture', fallback: 'none' },

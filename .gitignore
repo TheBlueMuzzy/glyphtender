@@ -60,3 +60,6 @@ party/submitted.gen.txt
 
 # one-off check scripts (cleanup.sh deletes them)
 e2e/_*.mjs
+
+# each computer's own Dev Kit settings (Dev Kit 0.17+)
+devkit.local.json

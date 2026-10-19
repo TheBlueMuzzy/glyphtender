@@ -105,3 +105,67 @@
 @media (max-width: 520px) {
   .devkit-tab { padding: 4px 6px; }
 }
+
+/* Pause tool (0.18.0, pause/): ⏸ / ◐ left of the title, the PAUSED badge after it, and a badge that stays when the
+   panel is closed (tap = resume) */
+.devkit-title-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.devkit-pause-btns { display: flex; gap: 2px; }
+.devkit-pause-btn {
+  background: none;
+  border: 1px solid #3a3c4a;
+  color: inherit;
+  font-size: 15px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.devkit-pause-btn:hover { background: #2c2e3a; }
+.devkit-pause-btn[aria-pressed='true'] { background: #ffd98a; color: #1b1c24; border-color: #ffd98a; }
+.devkit-pause-btn[aria-disabled='true'] { opacity: 0.4; cursor: not-allowed; }
+.devkit-pause-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ffd98a;
+  color: #1b1c24;
+  white-space: nowrap;
+}
+.devkit-pause-tag[data-mode='half'] { background: #8ad4ff; }
+/* Where it sits: content/devkit.json "pauseBadgeSpot" (pause/badgeSpot.ts) — middle of the left edge by default, clear of the
+   HUD rows games put at the top and bottom, and of the phone's notch / home bar (safe-area insets) */
+.devkit-pause-badge {
+  --devkit-badge-gap: 8px;
+  position: fixed;
+  inset: 50% auto auto calc(var(--devkit-badge-gap) + env(safe-area-inset-left, 0px));
+  translate: 0 -50%;
+  margin: 0;
+  z-index: 2147483647;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  background: #ffd98a;
+  color: #1b1c24;
+  font: 700 12px/1.4 system-ui, sans-serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.devkit-pause-badge[data-mode='half'] { background: #8ad4ff; }
+.devkit-pause-badge[data-spot] {
+  --devkit-badge-top: calc(var(--devkit-badge-gap) + env(safe-area-inset-top, 0px));
+  --devkit-badge-bottom: calc(var(--devkit-badge-gap) + env(safe-area-inset-bottom, 0px));
+  --devkit-badge-left: calc(var(--devkit-badge-gap) + env(safe-area-inset-left, 0px));
+  --devkit-badge-right: calc(var(--devkit-badge-gap) + env(safe-area-inset-right, 0px));
+}
+.devkit-pause-badge[data-spot='bottom'] { inset: auto auto var(--devkit-badge-bottom) 50%; translate: -50% 0; }
+.devkit-pause-badge[data-spot='bottom-left'] { inset: auto auto var(--devkit-badge-bottom) var(--devkit-badge-left); translate: none; }
+.devkit-pause-badge[data-spot='bottom-right'] { inset: auto var(--devkit-badge-right) var(--devkit-badge-bottom) auto; translate: none; }
+.devkit-pause-badge[data-spot='top'] { inset: var(--devkit-badge-top) auto auto 50%; translate: -50% 0; }
+.devkit-pause-badge[data-spot='top-left'] { inset: var(--devkit-badge-top) auto auto var(--devkit-badge-left); translate: none; }
+.devkit-pause-badge[data-spot='top-right'] { inset: var(--devkit-badge-top) var(--devkit-badge-right) auto auto; translate: none; }
+.devkit-pause-badge[data-spot='left'] { inset: 50% auto auto var(--devkit-badge-left); translate: 0 -50%; }
+.devkit-pause-badge[data-spot='right'] { inset: 50% var(--devkit-badge-right) auto auto; translate: 0 -50%; }
