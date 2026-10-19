@@ -1,0 +1,91 @@
+# CHECKS — GitHub re-runs the game's checks on every push (BMUZ "Checks", F70, 2026-10-19).
+#
+# What it does, in plain words:
+#   Every time a branch is pushed (or a pull request opens), GitHub borrows a fresh Linux computer, installs the game
+#   exactly as package-lock.json says, and runs the same checks Claude runs on the PC:
+#     1. npm run check:fast       unit tests, type check + build, lint, golden games, UI kit rules (~1 min on the PC)
+#     2. npm run check:framework  the Game Framework's own checks in a real (headless) browser — only if the game has it
+#   Green tick on GitHub = everything passed. Red cross = something broke — open the run, the failing step says what.
+#   /deliver looks at the latest run and won't merge a branch while it is red (or still running).
+#
+# Where it lives: copy this file to the game's .github/workflows/checks.yml (new-game setup does this).
+# It never deploys anything — the live site has its own workflow (deploy.yml). This one only looks.
+#
+# Good to know: GitHub's computer is about 2.5x slower than the PC, so a check that takes 1 min here takes ~2.5 min there.
+# If a check only fails on GitHub, look for the real reason (a missing setting, a PC-only path, a race the slower
+# computer exposes) — don't just make timeouts longer.
+
+name: Checks
+
+on:
+  push:            # every branch
+  pull_request:
+  workflow_dispatch: # a "Run workflow" button on the Actions tab
+
+permissions:
+  contents: read
+
+# One run per branch at a time: a newer push cancels the older run (its result would be out of date anyway).
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: check:fast + check:framework
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install (exactly what package-lock.json says)
+        run: npm ci
+
+      - name: check:fast
+        run: npm run check:fast
+
+      # Does this game have the framework checks? (older games may not yet)
+      - name: Look for check:framework
+        id: framework
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.['check:framework'] ? 0 : 1)"; then
+            echo "has=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "has=no" >> "$GITHUB_OUTPUT"
+            echo "No check:framework script in package.json - skipping the browser checks."
+          fi
+
+      # The framework checks drive Playwright's own Chromium (headless, software graphics). Games install either
+      # "playwright" or the smaller "playwright-core" — use whichever this game has. --with-deps adds the Linux libraries.
+      - name: Install Playwright's Chromium
+        if: steps.framework.outputs.has == 'yes'
+        run: |
+          if [ -e node_modules/.bin/playwright ]; then
+            npx playwright install --with-deps chromium
+          else
+            npx playwright-core install --with-deps chromium
+          fi
+
+      - name: check:framework
+        if: steps.framework.outputs.has == 'yes'
+        run: npm run check:framework
+
+      # When something fails, keep the reports so they can be opened from the run page (Summary → Artifacts).
+      - name: Keep the reports (only when something failed)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-reports
+          path: |
+            e2e-shots/checks.html
+            e2e-shots/logs/
+            e2e-shots/framework.json
+          if-no-files-found: ignore
+          retention-days: 14
