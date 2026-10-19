@@ -17,6 +17,7 @@ const FAST = [
   ['lint', 'npm run -s lint'],
   ['golden games', 'npm run -s check:golden'],
   ['UI kit rules', 'npm run -s check:ui'], // the UI kit's rule: it was missing here, so an inline style shipped in v0.11.0 (F63)
+  ['framework (code)', 'node src/devkit/check-framework.mjs --static'], // every framework piece's code promises, e.g. no dead Settings row (template line; framework F76)
 ]
 // e2e: [name, script, args] — every one on its own ports (see each script's header for what it checks).
 // Measured 2026-10-04, 3 at a time: end 462 s · online 334 · online4 274 · screenshots 213 · pass4 114 · game 95 · pass 95 ·
