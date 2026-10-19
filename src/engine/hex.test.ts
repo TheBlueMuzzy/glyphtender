@@ -47,7 +47,4 @@ describe('neighbours and lines', () => {
     expect(down).toHaveLength(small.columns[5] - 1)
     expect(sameHex(down[0], find(small, 'C6-2'))).toBe(true)
   })
-  it('F70 deliberate break — GitHub must show red (reverted right after)', () => {
-    expect(DIRECTIONS).toHaveLength(7)
-  })
 })
