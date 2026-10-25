@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "build": 0,
   "history": [
     {
@@ -92,6 +92,11 @@
       "version": "0.11.0",
       "date": "2026-10-15",
       "summary": "v0.15 Click a thing, tweak it ✅ — Dev Kit Select Mode: click a glyphling, seed, ring, board, award… or a menu button, switch, tab → every setting that affects it in one place (29 things; a test keeps every setting on some thing); the panel tucks to a pink bar while selecting; Dev Kit 0.16.1. Nothing changes in how the game plays."
+    },
+    {
+      "version": "0.11.1",
+      "date": "2026-10-25",
+      "summary": "Installed as an app (Add to Home screen), Glyphtender now opens full screen — no clock/battery strip"
     }
   ]
 }

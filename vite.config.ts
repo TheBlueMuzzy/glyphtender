@@ -35,7 +35,7 @@ export default defineConfig({
         description: 'A cozy hex-garden word game — the best speller doesn’t always win',
         theme_color: '#141a2e',
         background_color: '#141a2e',
-        display: 'standalone',
+        display: 'fullscreen',
         start_url: './',
         scope: './',
         icons: [

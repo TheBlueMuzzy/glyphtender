@@ -1,7 +1,7 @@
 {
   "name": "glyphtender",
   "private": true,
-  "version": "0.11.0",
+  "version": "0.11.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,7 @@
     "e2e:sketch": "node e2e/sketch-shots.mjs",
     "e2e:menu": "node e2e/menu-shots.mjs",
     "e2e:game": "node e2e/game-shots.mjs",
+    "smoke": "node e2e/pass-and-play-shots.mjs",
     "e2e:pass": "node e2e/pass-and-play-shots.mjs",
     "e2e:pass4": "node e2e/pass-and-play-shots.mjs e2e-shots 5195 4",
     "sim": "node scripts/sim.mjs",
