@@ -160,6 +160,16 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D100 · 2026-10-30 · Portrait only: a "Turn your phone upright" screen, built in the game, queued for the kit (X01)
+  Proposed by: Muzzy ("glyphtender should be a vertical game only, not horizontal"; build it here, queue it for the kit)
+  Found: the UI kit has no turn-your-phone screen (its "orientation" only tells check:framework which sizes to skip) —
+  Goops has none either, so the sprint plan's "as Goops does" was wrong.
+  Chose: src/ui/TurnPhone.tsx — kit Screen + EmptyState in a full-window .turn-phone layer (index.css, z 1000, var(--bg)),
+  shown while matchMedia "(orientation: landscape) and (max-height: layout.turnPhoneHeight px) and (pointer: coarse)".
+  The touch test is what keeps desktop windows (even 768×343) playing; the height (500) keeps sideways tablets playing.
+  The game is NOT paused behind it (bots and online clocks carry on) — the words promise nothing more. Extras (Claude's
+  call): PWA manifest orientation portrait; full screen asks screen.orientation.lock('portrait') (Android only).
+  e2e/turn-phone.mjs guards it; extract.mjs X01 hands it to the framework (bug fixes only until the swap).
 D99 · 2026-10-14 · Dev Kit Select: a click shows EVERYTHING that affects the thing — nothing to manage, nothing remembered
   Proposed by: Muzzy ("I want confidence that if I click something, it will show a list of associated attributes";
   "selecting the glyphling would show the attributes associated with all the components that deal with the glyphling,

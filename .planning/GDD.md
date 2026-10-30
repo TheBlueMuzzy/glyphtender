@@ -7,7 +7,7 @@
 - **Theme:** You're competing to become the next **Grand Glyphtender**. Command your glyphlings to plant **runeblossom seeds** in the **Glyphwood Gardens**. Seeds grow into topiary shaped like letters; when letters form words they create **Magic**. Create the most Magic to prove you can keep magic alive in the Glyphwood!
 - **Catchphrase:** ***The best speller doesn't always win.***
 - **One line:** A cozy hex-garden game — move a glyphling, cast a seed, grow words into Magic; but where your garden grows matters as much as what it spells.
-- **Platform:** web — phone (portrait **and** landscape) + desktop, one responsive layout. Installable (PWA).   **Audience:** general (not made for kids) · board-gamers and word-game players, 2–4 around one device or online.
+- **Platform:** web — phone held **upright only** (portrait; Muzzy 2026-10-30: "glyphtender should be a vertical game only") + desktop windows, one responsive layout. Installable (PWA).   **Audience:** general (not made for kids) · board-gamers and word-game players, 2–4 around one device or online.
 - **References:** Game of the Amazons (turn + ending skeleton) · Hive (hex board on a phone, pieces hemmed in) · Santorini (move-then-build turn, legal-move highlights) · Scrabble GO / Wordfeud (rack + board on a phone, live score on the commit button) · board-game apps for handoff, shape-based layout, undo-until-commit, staged endings. `research/discovery.md`.
 
 ## 2. Experience targets  (MDA)
@@ -115,6 +115,7 @@ Players add words from Pause → **Submit a word** (3+ letters; 2-letter words a
 - **Function first; look is secondary for now.** Muzzy (2026-09-30).
 - **Night-time garden** — dark, so Magic sparkles *pop* when they come (sparkles: later).
 - **UI:** Game UI kit, **Cozy** style, tuned to night colours in `content/ui/style.json` (Cozy's preset is light paper).
+- **Upright only (F97 — Portrait only, Muzzy 2026-10-30):** a phone held on its side shows "Turn your phone upright" over the game (bots and online clocks carry on behind it); installed, it opens upright; full screen asks Android to hold it upright. Desktop windows of any shape still play. The height that counts as "on its side" is `content/tuning/layout.json` turnPhoneHeight (500).
 - **Art:** the original's runeblossom letters (A–Z × 4 colours) and glyphling portraits, used as-is as stand-ins. **Muzzy will redraw them** (he also has board art for later).
 - **Signature moment (later):** seed arcs to the hex → buried → glyphling splashes magic water → letter topiary grows.
 - **Sound (beta): the garden sings** (Muzzy 2026-10-09). A night garden at a once-in-a-generation contest to become the Grand Glyphtender — cozy, magical, a little ceremonial. Night ambience + a quiet bed that rests; your play is the melody (score pops climb one key, long words ring a chord, two-birds casts flourish); the Magic reveal is the ceremony, ending in a gentle fanfare for the new Grand Glyphtender. Wood, glass, bells, kalimba, harp, soft earth, water — never arcade. Beta = every moment sounded from free libraries, systems right ("don't let perfect be the enemy of good"); final audio in 1.0. Sound list + mix: [design/audio.md](design/audio.md). Engine: the framework Audio module.
@@ -124,7 +125,7 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 
 **Must — alpha (pass-and-play + online)**
 - Rules engine (rules above, the original's bugs fixed) + dictionary
-- Responsive layout: phone portrait, phone landscape, desktop; board always fits
+- Responsive layout: phone portrait, phone landscape, desktop; board always fits (landscape phones dropped 2026-10-30 — F97 — Portrait only)
 - Snake draft; move → cast turn with legal highlights; commit style from F01
 - Seed tray: tap + drag, reorder, shuffle, refresh mode
 - Live Magic preview on the Cast button; words outlined as they grow
