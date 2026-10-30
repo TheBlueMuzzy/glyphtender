@@ -1,5 +1,6 @@
 {
   "preset": "cozy",
+  "orientation": "portrait",
   "tweaks": {
     "bg": "#10162a",
     "on-bg": "#f3e9d7",

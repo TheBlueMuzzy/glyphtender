@@ -1,1 +1,4 @@
 html, body, #root { height: 100%; margin: 0; }
+
+/* "Turn your phone" (src/ui/TurnPhone.tsx, F97): covers the whole window, above the menus, tips and toasts */
+.turn-phone { position: fixed; inset: 0; z-index: 1000; background: var(--bg); color: var(--on-bg); }

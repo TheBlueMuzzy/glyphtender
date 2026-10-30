@@ -267,6 +267,15 @@
       "help": "Behind a menu: the page colour and the body text. Click an empty spot around a menu.",
       "find": ".kit-screen",
       "style": ["bg", "on-bg", "muted", "focus", "font-body", "text-size", "density"]
+    },
+    "turnPhone": {
+      "label": "Turn your phone",
+      "help": "What a phone held on its side shows over the game (F97 — Portrait only): Glyphtender is played upright. Desktop windows never show it.",
+      "knobs": {
+        "When": ["layout.turnPhoneHeight"]
+      },
+      "text": ["turnPhone"],
+      "style": ["bg", "on-bg", "muted", "font-heading", "font-body"]
     }
   }
 }
