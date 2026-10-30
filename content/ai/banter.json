@@ -1,0 +1,21 @@
+{
+  "_help": {
+    "_file": "When the AI players talk (banter). The game names its moments from its own events (its plug's moments(event, seat)); each personality's lines live in content/text/en.json \"banter\": { \"<personality>\": { \"<moment>\": \"…\", \"<moment>_2\": \"…\" } } and show in the emote bubble by its seat (mute a bot = it says nothing). The Dev Kit's AI tab edits the lines.",
+    "chance": "Per moment: how likely a fully chatty (100) personality is to say something, 0–1. It's multiplied by the personality's chattiness ÷ 100. A moment that isn't listed here is never spoken at. The keys ARE the game's moments.",
+    "cooldownTurns": "Moves at the table a bot stays quiet after it speaks.",
+    "alwaysAllowed": "Moments that ignore the cooldown (the end of the game).",
+    "presets": "Preset emotes (content/emotes.json phrases) a bot presses at a moment it has no lines of its own for.",
+    "delay": "Seconds between the moment and the line (picked between min and max). On the game's rules clock: a pause stops it.",
+    "tableGap": "Seconds after any bot speaks before another may: a second bot answers a beat later (or lets it go if that would come too late after its moment), so two bubbles never talk over each other. Keep it longer than a bubble shows (content/emotes.json bubble.showMs, 2.5 s) and bots never have two bubbles up at once (two at once side by side can stack awkwardly). 0 = off.",
+    "levels": "The player's \"Bot chatter\" setting (Settings → Off · Some · Lots). Off = the bots say nothing at all. Some and Lots: chanceTimes multiplies every moment's chance above (never past 1); cooldownTurns, when given, shortens the one above (never makes it longer). Some = ×1 = this file's own numbers.",
+    "answerPeople": "Moments a PERSON's move always gets an answer to (like Sparky in MTG Arena): when a person causes one of these, the chattiest bot with a line for it always says one — no chance roll, no cooldown (still not when it's muted, the game is paused, or chatter is Off). Only one bot answers. The game's moment map must say who caused it: { \"moment\": \"rivalBigMove\", \"by\": seat }."
+  },
+  "chance": { "gameStart": 0.3, "bigMove": 0.5, "rivalBigMove": 0.3, "hitRival": 0.6, "gotHit": 0.5, "closeCall": 0.4, "won": 0.9, "lost": 0.6 },
+  "cooldownTurns": 2,
+  "alwaysAllowed": ["won", "lost"],
+  "presets": { "won": ["goodGame"], "lost": ["wellPlayed"], "rivalBigMove": ["wow"] },
+  "delay": { "min": 0.6, "max": 1.6 },
+  "tableGap": 3,
+  "levels": { "some": { "chanceTimes": 1 }, "lots": { "chanceTimes": 2, "cooldownTurns": 1 } },
+  "answerPeople": ["rivalBigMove"]
+}

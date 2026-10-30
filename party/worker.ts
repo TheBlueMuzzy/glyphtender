@@ -10,6 +10,7 @@ import { Server, getServerByName, routePartykitRequest } from 'partyserver'
 import type { Connection } from 'partyserver'
 import GlyphtenderServer, { loadWords } from './server'
 import { LiveConnections } from '../src/rooms/server/liveConnections'
+import { healthResponse } from '../src/rooms/server/health'
 import { PLAYER, seedIfEmpty, type SubmittedWord, type WordRows, type WordStatus } from './submittedWords'
 import { handleWords } from './wordsRoutes'
 // The words kept out of the official list (F68), bundled as text (scripts/server-words.mjs copies it here before each build)
@@ -117,6 +118,9 @@ export class Words extends Server {
 
 export default {
   async fetch(request: Request, env: Record<string, unknown>): Promise<Response> {
+    // /health first: live-check asks it whether the server is up (rooms kit)
+    const health = healthResponse(request)
+    if (health) return health
     const path = new URL(request.url).pathname
     // The submitted words: always the ONE list (never a room address — /parties/words/… is shut)
     if (path.startsWith('/words/')) {

@@ -14,6 +14,9 @@
 //   7. Choose — keep the moves within skill.spread of the best, at most skill.topN, pick one weighted by score.
 //   8. Explain— a Decision with a plain-English note (Dev Kit, bug reports — never players).
 // It only ever sees the view it's given. All its randomness comes from the rng it's given (same game → same moves).
+import { freshLine, linesFor, maybeSay, momentsFor, momentsWithCause, quietMemory, settingsAtLevel, type BanterLines, type BanterMemory, type BanterSettings, type ChatterLevel, type MomentMap } from './banter'
+import { BANTER_SAVE, type BanterSaveLike } from './save'
+import { botWait, paceNow, type PaceClock } from './pace'
 import { nextRandom, randomBetween, shuffle, weightedPick } from './random'
 import type { Context, Decision, GamePlug, Mode, Personality, Range, Skill } from './types'
 
@@ -262,6 +265,179 @@ export function asBot<View, Action>(brain: Brain<View, Action>, onDecision?: (d:
     const { action, rng: next, decision } = brain.decide(view, seat, rng)
     onDecision?.(decision, seat)
     return { action, rng: next }
+  }
+}
+
+// ─── Banter: bots talk through the emote module (F22) ───
+// The game hands it its moment map (plug.moments), who the bots are, the banter settings, its lines (read live) and a
+// say(seat, id). After every change it calls hear(events): each bot seat turns the events into its moments, rolls
+// chance × chattiness (banter.ts maybeSay: cooldown, no repeats), and — a short moment later on the RULES clock, so the
+// Dev Kit's full and half pause (and the game's own pause) stop it — says one line through say(), i.e. the emote
+// module's emotes.say(seatId, id): the same bucket, the same bubble, the same mute. A line is an emote id
+// (banter.<personality>.<moment>…), never words: each device looks its words up in its own text file.
+//   Local:   say: (seat, id) => emotes.say(seatIdOf(seat), id).ok
+//   Online:  bots speak from the SERVER — say: (seat, id) => room.emote(seatIdOf(seat), id). Never a client-side
+//            say() online (it would go out as the player's own seat; the emotes module refuses it).
+// At most one line waits per seat (a newer one replaces it); `tableGap` keeps a second bot from talking over the first.
+
+/** One bot seat: its seat number and its personality (only id + chattiness are read — the lines are keyed by id). */
+export interface BanterSeat {
+  seat: number
+  personality: Pick<Personality, 'id' | 'chattiness'>
+}
+
+export interface BotBanterOptions<Event> {
+  /** The game's moment map: plug.moments. */
+  moments: MomentMap<Event>
+  /** The bot seats right now (a function: a bot can take over a seat mid-game, and the Dev Kit edits chattiness live). */
+  bots: () => readonly BanterSeat[]
+  /** content/ai/banter.json, read with readBanterSettings (a function → read each time, for live edits). */
+  settings: BanterSettings | (() => BanterSettings)
+  /** content/text/en.json "banter" — a function, read at every moment (never copied), so a line edited in the Dev Kit
+   *  is used at the next moment without a reload. */
+  lines: () => BanterLines | undefined
+  /** Say it: the emote module's say (local) or the room's emote (online server). → true if it went out. */
+  say: (seat: number, id: string) => boolean
+  /** The game's seed (each seat gets its own randomness from it — botSeed). */
+  seed: number
+  /** The clock it waits on. Default: the bots' pace clock — the game's rules clock once it called setPaceClock. */
+  clock?: PaceClock
+  /** The player's "Bot chatter" (Settings → Off · Some · Lots) to start at — when there's no save. Default 'some'. */
+  chatter?: ChatterLevel
+  /** Where "Bot chatter" is kept: a saves-module save made with BANTER_SAVE (save.ts). With one, it starts at the
+   *  saved level and setChatter keeps the new one. */
+  save?: BanterSaveLike
+  /** Is this bot seat muted on this device (local: (seat) => emotes.isMuted(seatIdOf(seat)))? A muted bot's lines are
+   *  never said (and never hold up the table gap), and a person's good move is answered by an UNMUTED bot. Without
+   *  it, a muted bot's line goes out and the emote module drops it — and the answer may go to a muted bot. Online
+   *  (the server) leave it out: each device mutes for itself. */
+  muted?: (seat: number) => boolean
+}
+
+export interface BotBanter {
+  /** The player changed "Bot chatter" (applyBanterSetting calls it): live — Off drops any waiting line at once. */
+  setChatter(level: ChatterLevel): void
+  chatter(): ChatterLevel
+  /** One change happened at the table: these are its events (all of them — each seat only hears what it may see). */
+  hear(events: readonly unknown[]): void
+  /** Stop: every waiting line is dropped (the game ended and was left, the screen closed). */
+  stop(): void
+  /** Lines waiting to be said right now (seat → emote id) — for tests and the Dev Kit. */
+  waiting(): Record<number, string>
+}
+
+const paceClockNow = (): PaceClock => ({ now: paceNow, after: botWait })
+
+export function botBanter<Event>(options: BotBanterOptions<Event>): BotBanter {
+  const clock = options.clock ?? paceClockNow()
+  let level: ChatterLevel = options.save ? BANTER_SAVE.clean(options.save.load()).chatter : options.chatter ?? 'some'
+  // The file's numbers at the player's level (null = Off: nothing is said)
+  const settingsNow = () => settingsAtLevel(typeof options.settings === 'function' ? options.settings() : options.settings, level)
+  const memories = new Map<number, BanterMemory>()
+  const rngs = new Map<number, number>()
+  // (answer = a reply to a person's good move: it always waits out the table gap, and a bot's ordinary line never
+  // replaces it)
+  const waiting = new Map<number, { id: string; cancel: () => void; answer: boolean }>()
+  let turn = 0
+  let lastSpokeAt: number | null = null
+  const rngOf = (seat: number) => rngs.get(seat) ?? botSeed(options.seed ^ 0xba7, seat)
+  let tieRng = botSeed(options.seed ^ 0xa45, 0) // (which of two equally chatty bots answers a person)
+  const isMuted = (seat: number) => options.muted?.(seat) === true
+
+  // Someone spoke less than tableGap ago: wait for the gap once (a second bot answers a beat later, like people do) —
+  // unless that would make the line later than delay.max + tableGap after its moment (then it's stale: let it go).
+  // An answer to a person always waits: it must come.
+  const speak = (seat: number, id: string, memory: BanterMemory, heardAt: number, answer: boolean) => {
+    waiting.delete(seat)
+    if (!options.bots().some((bot) => bot.seat === seat)) return // (a person took the seat back while the line waited)
+    const settings = settingsNow()
+    if (!settings) return // (chatter went Off while it waited)
+    if (isMuted(seat)) return // (muted while it waited: nothing said, the table gap untouched)
+    const gapMs = (settings.tableGap ?? 0) * 1000
+    const left = lastSpokeAt === null ? 0 : gapMs - (clock.now() - lastSpokeAt)
+    if (gapMs > 0 && left > 0) {
+      const staleAfter = (settings.delay?.max ?? 0) * 1000 + gapMs
+      if (answer || clock.now() + left - heardAt <= staleAfter) waiting.set(seat, { id, answer, cancel: clock.after(left, () => speak(seat, id, memory, heardAt, answer)) })
+      return
+    }
+    if (!options.say(seat, id)) return // (false = refused; without a muted check a muted bot's line "goes out" and the emote module drops it)
+    memories.set(seat, memory)
+    lastSpokeAt = clock.now()
+  }
+
+  const schedule = (seat: number, id: string, memory: BanterMemory, settings: BanterSettings, answer: boolean) => {
+    const delay = settings.delay ?? { min: 0, max: 0 }
+    const wait = randomBetween(rngOf(seat), Math.round(delay.min * 1000), Math.round(delay.max * 1000))
+    rngs.set(seat, wait.rng)
+    waiting.get(seat)?.cancel()
+    const heardAt = clock.now()
+    waiting.set(seat, { id, answer, cancel: clock.after(wait.value, () => speak(seat, id, memory, heardAt, answer)) })
+  }
+
+  const dropWaiting = () => {
+    for (const w of waiting.values()) w.cancel()
+    waiting.clear()
+  }
+
+  return {
+    setChatter(next) {
+      if (next === level) return
+      level = next
+      if (level === 'off') dropWaiting()
+      options.save?.save({ chatter: level })
+    },
+    chatter: () => level,
+    hear(events) {
+      turn += 1
+      const settings = settingsNow()
+      if (!settings) return // Off: the bots say nothing at all
+      const lines = options.lines()
+      const bots = options.bots()
+      const botSeats = new Set(bots.map((bot) => bot.seat))
+      const linesOf = (bot: BanterSeat, moment: string) => {
+        const own = linesFor(lines, bot.personality.id, moment)
+        return own.length ? own : settings.presets?.[moment] ?? []
+      }
+
+      // 1. A PERSON's good move always gets an answer (answerPeople — Muzzy 2026-10-23, "like Sparky in MTG Arena"):
+      // exactly one bot, the chattiest unmuted one with a line for it (ties: the seed) — no chance roll, no cooldown.
+      // The other bots let this change go (one reply, not a chorus — the table gap would queue them anyway).
+      const answerable = settings.answerPeople ?? []
+      const askers = bots.flatMap((bot) => {
+        // (a missing chattiness counts as 0 — silent — like check:framework; never NaN in the "chattiest" pick below)
+        if (!(Number.isFinite(bot.personality.chattiness) && bot.personality.chattiness > 0) || isMuted(bot.seat)) return []
+        const hit = momentsWithCause(options.moments, events as Event[], bot.seat)
+          .find((m) => answerable.includes(m.moment) && m.by !== undefined && !botSeats.has(m.by) && linesOf(bot, m.moment).length)
+        return hit ? [{ bot, moment: hit.moment }] : []
+      })
+      if (askers.length) {
+        const most = Math.max(...askers.map((a) => a.bot.personality.chattiness))
+        const tied = askers.filter((a) => a.bot.personality.chattiness === most)
+        const roll = nextRandom(tieRng)
+        tieRng = roll.rng
+        const { bot, moment } = tied[Math.floor(roll.value * tied.length)]
+        const r = freshLine(linesOf(bot, moment), turn, memories.get(bot.seat) ?? quietMemory(), rngOf(bot.seat))
+        rngs.set(bot.seat, r.rng)
+        if (r.line) schedule(bot.seat, r.line, r.memory, settings, true)
+        return
+      }
+
+      // 2. Everyone else's moments: chance × chattiness, the cooldown, no repeats.
+      for (const bot of bots) {
+        if (waiting.get(bot.seat)?.answer) continue // (its answer to a person comes first)
+        if (isMuted(bot.seat)) continue
+        const said = memories.get(bot.seat) ?? quietMemory()
+        for (const moment of momentsFor(options.moments, events as Event[], bot.seat)) {
+          const r = maybeSay(moment, turn, bot.personality.chattiness, linesOf(bot, moment), said, settings, rngOf(bot.seat))
+          rngs.set(bot.seat, r.rng)
+          if (!r.line) continue
+          schedule(bot.seat, r.line, r.memory, settings, false)
+          break // (one line per seat per change)
+        }
+      }
+    },
+    stop: dropWaiting,
+    waiting: () => Object.fromEntries([...waiting].map(([seat, w]) => [seat, w.id])),
   }
 }
 

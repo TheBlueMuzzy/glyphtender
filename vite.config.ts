@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { devkit } from './vite-plugins/devkit/devkitVite'
 import { words } from './vite-plugins/words/wordsVite'
+import { roomsPort } from './src/rooms/vitePlugin.mjs'
 
 // Fonts the game's UI style never uses (F66): the kit ships one font per style preset; the offline cache keeps only the
 // ones content/ui/style.json's preset (+ its tweaks) names. A Dev Kit preset switch still fetches the others on demand.
@@ -27,6 +28,7 @@ export default defineConfig({
     react(),
     devkit(), // Dev Kit: release switch (content/devkit.json) + Save button (dev server only)
     words({ key: wordsEnv.WORDS_ADMIN_KEY, server: wordsEnv.WORDS_SERVER }), // Dev Kit Words tab (dev server only)
+    roomsPort(), // the page finds the room server on wrangler.json's dev port (rooms kit)
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {

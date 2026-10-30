@@ -28,6 +28,9 @@ export interface RoomData {
   kicked: string[]
   /** How many seats were ever made (for unique seat ids). */
   seatsMade: number
+  /** false from the start of a match until a person (not a bot, not a timer) makes a move in it — a match nobody
+   *  played ends after keepUnplayedMatchHours (0.11.0). Missing (a match saved before 0.11.0) = played. */
+  personMoved?: boolean
 }
 
 export function newRoom(code: string): RoomData {
@@ -86,6 +89,8 @@ export interface JoinRequest {
   persistentId: string
   /** true = the player is making a new room with this code. */
   create: boolean
+  /** true = "Rejoin match": only their own seat will do (none → no_room). Never creates. (0.9.0) */
+  rejoin?: boolean
 }
 
 export type JoinResult =
@@ -108,6 +113,8 @@ export function joinRoom(room: RoomData, request: JoinRequest, settings: RoomSet
     chooseHost(room)
     return { ok: true, seat: own, cameBack: true }
   }
+  // A rejoin with no seat of theirs here: the match they were in is gone (the code may even be someone else's now)
+  if (request.rejoin) return { ok: false, reason: 'no_room' }
 
   const name = cleanName(request.name)
   if (!name) return { ok: false, reason: 'name_needed' }

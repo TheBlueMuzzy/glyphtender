@@ -87,7 +87,7 @@
       ],
       "homeMode": "Focus",
       "switches": [{ "reading": "myDanger", "atLeast": 6.5, "to": "Flight" }],
-      "chattiness": 50,
+      "chattiness": 0,
       "extras": { "nerve": 14, "extraWordBonus": 3 }
     },
     {
@@ -116,7 +116,7 @@
       ],
       "homeMode": "Flight",
       "switches": [],
-      "chattiness": 30,
+      "chattiness": 0,
       "extras": { "nerve": 18, "extraWordBonus": 3 }
     },
     {
@@ -145,7 +145,7 @@
       ],
       "homeMode": "Fight",
       "switches": [{ "reading": "garden", "atLeast": 5, "to": "Focus" }],
-      "chattiness": 70,
+      "chattiness": 0,
       "extras": { "nerve": 6, "extraWordBonus": 3 }
     },
     {
@@ -170,7 +170,7 @@
       ],
       "homeMode": "Focus",
       "switches": [],
-      "chattiness": 40,
+      "chattiness": 0,
       "extras": { "nerve": 60, "extraWordBonus": 3 }
     }
   ]

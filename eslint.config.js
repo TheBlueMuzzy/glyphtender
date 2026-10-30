@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'src/ui/kit', 'src/audio', 'sketches', '.claude', 'src/devkit', 'vite-plugins/devkit']), // src/ui/kit + src/audio = framework copies (linted there); sketches = throwaway prototypes; .claude = helpers' worktrees
+  globalIgnores(['dist', 'src/ui/kit', 'src/audio', 'sketches', '.claude', 'src/devkit', 'vite-plugins/devkit', 'src/table', 'src/ai/kit', 'src/rooms']), // src/ui/kit + src/audio = framework copies (linted there); sketches = throwaway prototypes; .claude = helpers' worktrees
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

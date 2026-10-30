@@ -11,9 +11,15 @@
 // Pass roomCode = null when not online. Changing the code connects to the new room.
 // Unmounting (or React StrictMode's practice unmount in dev) just drops the connection — it does
 // NOT give up the seat, and the next mount takes the seat straight back. Only leave() gives it up.
+//
+// Rejoin (0.9.0): the room's code is remembered on this device (lastRoom.ts) from the moment the room arrives, and
+// forgotten on leave / kick / game over / a closed or missing room. After the tab was closed, the menu offers
+// "Rejoin match" (matchToRejoin()) → useRoom(code, { name, create: false, rejoin: true }). A room that's gone by then
+// → `matchEnded` ("That match has ended") instead of a join error; back in → `cameBack` ({ botTurns }).
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type PartySocket from 'partysocket'
 import { getPersistentId } from './identity'
+import { forgetLastRoom, rememberLastRoom } from './lastRoom'
 import { parseServerMessage } from './protocol'
 import type { ClientMessage, CloseReason, ErrorCode, RoomState, Seat } from './protocol'
 import { openRoomSocket, sendToRoom } from './roomClient'
@@ -25,6 +31,9 @@ export interface RoomIdentity {
   name: string
   /** true = making a new room with this code · false = joining a friend's room (refused if nobody's there). */
   create: boolean
+  /** true = "Rejoin match" (a match this device was in — lastRoom.ts): only our own seat will do, it never creates a
+   *  room (even with create: true), and a room that's gone → matchEnded instead of a join error. */
+  rejoin?: boolean
   /** Leave out — it comes from identity.ts. (Tests and e2e can pass their own.) */
   persistentId?: string
 }
@@ -32,6 +41,9 @@ export interface RoomIdentity {
 export interface UseRoomOptions<Event> {
   /** Called for every `event` the server sends, in order (views can arrive in one batch; events never get lost). */
   onEvent?: (event: Event) => void
+  /** Called for every emote the room relays — `{ seat, id }` (Rooms 0.12.0). Hand it to the emotes module:
+   *  onEmote: (message) => emotes.receive(message) — it drops the senders this player muted. */
+  onEmote?: (emote: { seat: string; id: string }) => void
   /** Leave out — it comes from partyHost() in roomClient.ts. */
   host?: string
 }
@@ -46,8 +58,18 @@ export interface OnlineRoom<View, Action, Options> {
   error: { code: ErrorCode; message: string } | null
   /** Why the room shut you out (status is 'closed'). */
   closedReason: CloseReason | null
+  /** The match you were rejoining is gone (cleared while everyone was away), or the room closed: show "That match has
+   *  ended" (the UI kit's rejoinWords.ended), not a join error. Nothing new was made. */
+  matchEnded: boolean
+  /** You came back into a game after being away: how many of your turns a bot played meanwhile (0 = none) — "You're
+   *  back — a bot played 3 turns for you" (the UI kit's welcomeBackLine). null = nothing to say. Clear it once shown. */
+  cameBack: { botTurns: number } | null
+  clearCameBack: () => void
   /** Send a game move. false = not sent (not connected right now). */
   send: (action: Action) => boolean
+  /** Say a preset phrase to the table (its id only — the server checks it, counts it and relays it to every seat,
+   *  yours too). false = not sent. Use it as the emotes module's `send`: (seat, id) => online.sendEmote(id). */
+  sendEmote: (id: string) => boolean
   setReady: (ready: boolean) => void
   /** Host: start a game (from the lobby, or a rematch after a game). */
   start: (options: Options) => void
@@ -86,10 +108,11 @@ interface Connection<View> {
   error: { code: ErrorCode; message: string } | null
   closedReason: CloseReason | null
   idleWarning: { endsAt: number } | null
+  cameBack: { botTurns: number } | null
 }
 
 function blank<View>(code: string | null): Connection<View> {
-  return { code, status: code ? 'connecting' : 'idle', room: null, you: null, view: null, error: null, closedReason: null, idleWarning: null }
+  return { code, status: code ? 'connecting' : 'idle', room: null, you: null, view: null, error: null, closedReason: null, idleWarning: null, cameBack: null }
 }
 
 export function useRoom<View = unknown, Action = unknown, Options = unknown, Event = unknown>(
@@ -101,9 +124,13 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
   const socketRef = useRef<PartySocket | null>(null)
   const identityRef = useRef(identity)
   const onEventRef = useRef(options.onEvent)
+  const onEmoteRef = useRef(options.onEmote)
+  const roomCodeRef = useRef(roomCode)
   useEffect(() => {
     identityRef.current = identity
     onEventRef.current = options.onEvent
+    onEmoteRef.current = options.onEmote
+    roomCodeRef.current = roomCode
   })
 
   const host = options.host
@@ -124,12 +151,10 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
       // Every open — the first AND every reconnect — says who we are; a known player gets their seat back.
       const me = identityRef.current
       update({ status: joined ? 'reconnecting' : 'connecting' })
-      sendToRoom(socket, {
-        type: 'join',
-        name: me.name,
-        persistentId: me.persistentId ?? getPersistentId(),
-        create: me.create && !joined,
-      })
+      const persistentId = me.persistentId ?? getPersistentId()
+      // A rejoin never creates, and once we're in, a reconnect is just a reconnect
+      if (me.rejoin && !joined) sendToRoom(socket, { type: 'join', name: me.name, persistentId, create: false, rejoin: true })
+      else sendToRoom(socket, { type: 'join', name: me.name, persistentId, create: me.create && !me.rejoin && !joined })
     }
 
     socket.onclose = () => {
@@ -144,13 +169,23 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
       switch (message.type) {
         case 'room':
           joined = true
+          // Remembered on this device so a closed tab can come back (Rejoin match); a finished game is forgotten
+          if (message.room.phase === 'over') forgetLastRoom(code)
+          else rememberLastRoom(code, message.room.phase)
           update({ status: 'open', room: message.room, you: message.you })
+          break
+        case 'back':
+          update({ cameBack: { botTurns: message.botTurns } })
           break
         case 'view':
           update({ view: message.view as View })
           break
         case 'event':
           onEventRef.current?.(message.event as Event)
+          break
+        case 'emote':
+          // (ids only; the emotes module checks the id again and drops muted senders)
+          if (typeof message.seat === 'string' && typeof message.id === 'string') onEmoteRef.current?.({ seat: message.seat, id: message.id })
           break
         case 'error':
           update({ error: { code: message.code, message: message.message } })
@@ -159,6 +194,9 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
           // The server shut us out: stop, and don't let PartySocket reconnect
           closedOnPurpose = true
           socket.close()
+          // Nothing to come back to (left, kicked, the room closed or is gone…) — except "another tab has your seat":
+          // that tab is still in the match, and keeps it remembered
+          if (message.reason !== 'connected_elsewhere') forgetLastRoom(code)
           update({ status: 'closed', closedReason: message.reason, idleWarning: null })
           break
         case 'idle_warning':
@@ -181,6 +219,12 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
   // What this render shows: what we saved for this code, or a blank start if it's a new code
   const current = saved.code === roomCode ? saved : blank<View>(roomCode)
   const mySeat = current.room?.seats.find((seat) => seat.id === current.you) ?? null
+  // The match is over for us without anyone choosing it: the room closed, or the one we came back for is gone.
+  // (A plain join to a wrong code is still a join error — 'no_room' says "no room with that code" there.)
+  // (A rejoin that finds we were kicked while away: the match is over for us too — not a join error. Review F95.)
+  const matchEnded = current.status === 'closed'
+    && (current.closedReason === 'room_closed'
+      || (identity.rejoin === true && (current.closedReason === 'no_room' || current.closedReason === 'kicked')))
 
   // Only send while we're really in the room (a message queued during a reconnect would arrive before our join)
   const sendMessage = useCallback((message: ClientMessage): boolean => {
@@ -206,6 +250,7 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
   }, [sendMessage])
 
   const leave = useCallback(() => {
+    if (roomCodeRef.current) forgetLastRoom(roomCodeRef.current) // left on purpose: no Rejoin offer
     const socket = socketRef.current
     if (!socket) return
     sendMessage({ type: 'leave' })
@@ -224,7 +269,11 @@ export function useRoom<View = unknown, Action = unknown, Options = unknown, Eve
     view: current.view,
     error: current.error,
     closedReason: current.closedReason,
+    matchEnded,
+    cameBack: current.cameBack,
+    clearCameBack: useCallback(() => setSaved((before) => ({ ...before, cameBack: null })), []),
     send: useCallback((action: Action) => sendMessage({ type: 'action', action }), [sendMessage]),
+    sendEmote: useCallback((id: string) => sendMessage({ type: 'emote', id }), [sendMessage]),
     setReady: useCallback((ready: boolean) => void sendMessage({ type: 'ready', ready }), [sendMessage]),
     start: useCallback((startOptions: Options) => void sendMessage({ type: 'start', options: startOptions }), [sendMessage]),
     kick: useCallback((seatId: string) => void sendMessage({ type: 'kick', seatId }), [sendMessage]),

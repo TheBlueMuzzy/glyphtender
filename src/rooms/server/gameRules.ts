@@ -6,6 +6,8 @@
 // The game state lives on the server. After every change each connected player is sent
 // viewFor(state, theirSeat) — so hidden things (hands, bags, scores) stay hidden in the data,
 // not just on screen.
+// Since 0.10.0 a match being played is also saved on the server (savedRoom.ts), so it survives a restart and waits
+// keepMatchDays for its players — the game only has to start its own timers again (onRestore).
 import type { Seat } from '../protocol'
 import type { PlayedBy } from './seats'
 export type { PlayedBy } from './seats'
@@ -63,6 +65,10 @@ export interface RoomTools<State, Event> {
   playedBy(seatId: string): PlayedBy | null
   /** A line in the server log (npm run party:dev shows it), marked with the room code. */
   log(message: string): void
+  /** A seat says a preset phrase or a bot's banter line (banter.<who>.<moment>) to every seat — through the same
+   *  gate as a player's emote (the server's count; dropped when over it). → true if it went out. Needs the game's
+   *  content/emotes.json passed to RoomServer. (Rooms 0.12.0, for F22 Banter.) */
+  emote(seatId: string, id: string): boolean
 }
 
 /**
@@ -96,4 +102,18 @@ export interface GameRules<State, Options, Action, View, Event = never> {
   botProfile?(profile: string): { profile: string; name: string }
   /** Optional: a seat changed mid-game (see SeatChange) → the new state. E.g. start a bot's turn. */
   onSeatChange?(state: State, seat: Seat, change: SeatChange, room: RoomTools<State, Event>): State
+  /**
+   * Optional (0.10.0): the match was loaded back from the server's storage (the server restarted, or the room woke up
+   * after everyone had gone) → the state, with the game's own timers started again. A timer is a piece of code, so it
+   * can't be saved — only when it ends: `timersEndAt` = each game timer that was running (name → end time, ms since
+   * 1970). Start each again for what's left, e.g.
+   *   room.timers.start('turn', Math.max(0, timersEndAt.turn - Date.now()), () => room.timedOut(seatId))
+   * (already past → 0: it fires at once). A game with no timers of its own doesn't need this. The room starts its own
+   * timers itself, and every player's connection is gone at this point (they come back with a rejoin).
+   *
+   * The saved state is plain JSON: numbers, text, true/false, null, lists and plain objects. A Map, Set, Date, class
+   * or `undefined` inside State can't be saved — the room logs where it is and keeps that match in memory only.
+   * Check it in the game's tests with jsonProblem(state) (src/rooms/server/savedRoom.ts) → null when it can be saved.
+   */
+  onRestore?(state: State, room: RoomTools<State, Event>, timersEndAt: Record<string, number>): State
 }
