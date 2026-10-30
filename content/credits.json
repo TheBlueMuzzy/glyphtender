@@ -516,5 +516,27 @@
     "light": "🟢",
     "url": "https://freesound.org/people/Anthousai/sounds/398734/",
     "credit": ""
+  },
+  {
+    "paths": [
+      "src/ui/kit/fonts/cinzel.woff2"
+    ],
+    "source": "Google Fonts (via Fontsource, self-hosted)",
+    "author": "Natanael Gama",
+    "licence": "SIL OFL 1.1",
+    "light": "🟡",
+    "url": "https://fonts.google.com/specimen/Cinzel",
+    "credit": "Cinzel by Natanael Gama, SIL Open Font License 1.1"
+  },
+  {
+    "paths": [
+      "src/ui/kit/fonts/alegreya.woff2"
+    ],
+    "source": "Google Fonts (via Fontsource, self-hosted)",
+    "author": "Juan Pablo del Peral (Huerta Tipográfica)",
+    "licence": "SIL OFL 1.1",
+    "light": "🟡",
+    "url": "https://fonts.google.com/specimen/Alegreya",
+    "credit": "Alegreya by Juan Pablo del Peral (Huerta Tipográfica), SIL Open Font License 1.1"
   }
 ]

@@ -2,7 +2,7 @@
 // Every block takes its words, data and callbacks as props; none of them holds game rules.
 import './blocks.css'
 
-export { fill, noOrphan } from './words'
+export { fill, isPseudo, noOrphan, pseudo, PSEUDO_GROWTH } from './words'
 export { reduceMotion, motionTime, useCountUp } from './motion'
 export * from './MenuHeader'
 export * from './dialogs'
@@ -14,6 +14,9 @@ export * from './online'
 export * from './pinned'
 export * from './teach'
 export * from './callout'
+export * from './emotes'
+export * from './talkingBubble'
 export * from './tips'
+export * from './whatsNew'
 export * from './nudge'
 export * from './meter'

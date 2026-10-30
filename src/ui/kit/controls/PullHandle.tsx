@@ -11,6 +11,7 @@
 import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import { controlSound } from './controlSound'
 import { motionTime } from '../blocks/motion'
+import { shown } from '../shown'
 
 type PullHandleProps = {
   label: string
@@ -96,7 +97,7 @@ export function PullHandle({ label, onPull, direction = 'down', travel = 0.5, th
       data-dragging={drag !== null || undefined} data-pulled={pulled || finishing || undefined}
       style={{ '--kit-pull': share, '--kit-pull-travel': travel, '--kit-pull-grip': grip,
         ...(glideMs !== null && { '--kit-pull-glide': `${glideMs}ms` }) } as CSSProperties}>
-      {children && <div className="kit-pull-look" aria-hidden="true">{children}</div>}
+      {shown(children) && <div className="kit-pull-look" aria-hidden="true">{children}</div>}
       <button type="button" className="kit-pull-grip" aria-label={label} disabled={disabled}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
         onClick={onClick} onKeyDown={onKeyDown} />

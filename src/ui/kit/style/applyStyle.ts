@@ -2,11 +2,13 @@
 // style.json looks like: { "preset": "clean", "tweaks": { "accent": "#e07a5f" } }
 // Tweaks win over the preset. Call applyStyle again any time to restyle live.
 import { presets } from '../styles'
-import { allVariableNames, fontRoleTokens, optionalTokens, type StylePreset, type StyleTweaks } from './tokens'
+import { pseudoFromAddress } from '../pseudoPage'
+import { allVariableNames, fontRoleTokens, hudTokens, optionalTokens, type StylePreset, type StyleTweaks } from './tokens'
 
 export type StyleFile = { preset: string; tweaks?: StyleTweaks }
 
 const BODY_TEXT_REM = 1.125 // 18px — the accessibility floor for all text
+const REM_PX = 16 // a rem at normal text size (the browser's own; Text size 200% makes it 32)
 // Spacing and tap targets are in px on purpose: when a player zooms text to 200%,
 // the words grow but the gaps and 44px targets don't eat the extra room.
 const SPACING_STEP_PX = 4 // the spacing scale is built from this
@@ -20,7 +22,7 @@ export function resolveStyle(file: StyleFile): Record<string, string> {
   const preset = presets[file.preset] ?? presets.clean
   if (!presets[file.preset]) console.warn(`[ui-kit] unknown preset "${file.preset}", using clean`)
 
-  const s: StylePreset = { ...optionalTokens, ...fontRoleTokens, ...preset, ...file.tweaks }
+  const s: StylePreset = { ...optionalTokens, ...fontRoleTokens, ...hudTokens, ...preset, ...file.tweaks }
   for (const name of Object.keys(file.tweaks ?? {})) {
     if (!allVariableNames.includes(name)) console.warn(`[ui-kit] unknown tweak "${name}" ignored`)
   }
@@ -40,6 +42,15 @@ export function resolveStyle(file: StyleFile): Record<string, string> {
   vars['text-heading'] = rem(body * scale)
   vars['text-title'] = rem(body * scale ** 2)
   vars['text-display'] = rem(body * scale ** 3)
+  // HUD words (0.35.2, F145): the same sizes, but they stop growing at hud-text-max × their normal size (Text size
+  // grows the page's rem; REM_PX is a rem at normal text size). Below the cap — every normal text size — they're equal.
+  const hudMax = Math.max(1, Number(s['hud-text-max']) || hudTokens['hud-text-max'])
+  const hudCap = (size: number) => `min(${rem(size)}, ${Math.round(size * REM_PX * hudMax * 100) / 100}px)`
+  vars['hud-rem'] = hudCap(1)
+  vars['hud-text-body'] = hudCap(body)
+  vars['hud-text-heading'] = hudCap(body * scale)
+  vars['hud-text-title'] = hudCap(body * scale ** 2)
+  vars['hud-text-display'] = hudCap(body * scale ** 3)
   for (const [name, steps] of Object.entries(GAP_STEPS)) vars[name] = `${Math.round(SPACING_STEP_PX * steps * density)}px`
   vars['target-min'] = `${TARGET_MIN_PX}px`
   return vars
@@ -47,4 +58,5 @@ export function resolveStyle(file: StyleFile): Record<string, string> {
 
 export function applyStyle(file: StyleFile, target: HTMLElement = document.documentElement) {
   for (const [name, value] of Object.entries(resolveStyle(file))) target.style.setProperty(`--${name}`, value)
+  pseudoFromAddress() // dev only: ?pseudo → the page in the long fake language (F91 — every kit game calls applyStyle at start-up)
 }

@@ -1,4 +1,4 @@
-// DIALOGS & FEEDBACK — Modal, Confirm, Toasts, Tooltip, RewardPopup, EmptyState, Spinner.
+// DIALOGS & FEEDBACK — Modal, Confirm, WhatsNew, Toasts, Tooltip, RewardPopup, EmptyState, Spinner.
 // Modal, Confirm and RewardPopup are screens: open them through the screen stack, so Esc,
 // phone Back and "only the top screen takes taps" all work. Toasts and tooltips use the
 // browser's own popover, so they float above everything without any positioning code.
@@ -9,6 +9,10 @@ import { Grid, Panel, Row, Screen, Stack } from '../layout'
 import { Button, Card, Text } from '../controls'
 import { screens } from '../screens'
 import { MenuHeader } from './MenuHeader'
+import { shown } from '../shown'
+import { fill } from './words'
+import { MAX_WHATS_NEW_LINES, readLastSeen, shortVersion, whatsNewDecision, whatsNewProblems, writeLastSeen,
+  type WhatsNewVersions } from './whatsNew'
 
 // MODAL — a dialog box on top of whatever is open. actions = its buttons (bottom right).
 // className: added to the box (kit-modal), for a block's own layout (Pause: kit-pause; Confirm: kit-ask, narrower).
@@ -16,14 +20,19 @@ import { MenuHeader } from './MenuHeader'
 // middle and then only grows downward (Screen grow="down"). Put a ScrollArea in it for anything long.
 // onBack: a ‹ in the header (0.10.1) — for a modal that is a sub-menu (the game's Submit a word), instead of a Back
 // button in `actions`; backLabel = how a screen reader says it.
-type ModalProps = { title: string; children?: ReactNode; actions?: ReactNode; className?: string; onBack?: () => void; backLabel?: string }
-export function Modal({ title, children, actions, className, onBack, backLabel }: ModalProps) {
+// headerAction (0.27.0): one control on the RIGHT of the header row (MenuHeader's `action`), e.g. a compact Respec on
+// an Upgrades dialog — `actions` stays the bottom buttons.
+type ModalProps = {
+  title: string; children?: ReactNode; actions?: ReactNode; headerAction?: ReactNode; className?: string
+  onBack?: () => void; backLabel?: string
+}
+export function Modal({ title, children, actions, headerAction, className, onBack, backLabel }: ModalProps) {
   return (
     <Screen dialog label={title} grow="down">
       <Panel depth={2} gap="m" className={className ? `kit-modal ${className}` : 'kit-modal'}>
-        <MenuHeader title={title} onBack={onBack} backLabel={backLabel} />
+        <MenuHeader title={title} onBack={onBack} backLabel={backLabel} action={headerAction} />
         {children}
-        {actions && <Row gap="s" justify="end">{actions}</Row>}
+        {shown(actions) && <Row gap="s" justify="end">{actions}</Row>}
       </Panel>
     </Screen>
   )
@@ -68,13 +77,58 @@ export function Confirm({ title, message, danger, onConfirm, onCancel, words }: 
 }
 
 // askConfirm({ title, onConfirm }) opens a Confirm from anywhere (Settings and Pause use it).
-// It needs the kit's own screens in your stack, once:  <ScreenStack screens={{ ...kitScreens, … }}>
+// ScreenStack always has the kit's own screens (0.25.0), so nothing to add; `...kitScreens` in a game's list still works.
 let pendingConfirm: ConfirmProps | null = null
 export function askConfirm(props: ConfirmProps) {
   pendingConfirm = props
   screens.push('confirm')
 }
-export const kitScreens = { confirm: () => (pendingConfirm ? <Confirm {...pendingConfirm} /> : null) }
+export const kitScreens = {
+  confirm: () => (pendingConfirm ? <Confirm {...pendingConfirm} /> : null),
+  'whats-new': () => (pendingWhatsNew ? <WhatsNew {...pendingWhatsNew} /> : null),
+}
+
+// WHAT'S NEW (0.35.0) — "here's what changed", once, on the first launch after an update (design §4c; the rule and the
+// last-seen record: whatsNew.ts). Never by itself: the game calls showWhatsNew when it's safe — its main menu showing:
+//   import whatsNew from '../content/text/whats-new.json'      { "notesUrl"?: "https://…", "versions": { "0.4.0": [3–5 lines] } }
+//   useEffect(() => { showWhatsNew({ version: appVersion, ...whatsNew, words: text.whatsNew }) }, [])
+// It opens as a kit screen (Esc, Back, tapping the dim close it) and is remembered as seen when it opens, so any way
+// of closing counts. A first install, the same version, a build-only bump or a version with no entry show nothing.
+// notesUrl: a "Full notes" button (the devlog / changelog page; http(s) only, opens a new tab).
+export const whatsNewWords = { title: 'What’s new in v{version}', notes: 'Full notes', close: 'Got it' }
+export type WhatsNewProps = {
+  version: string; lines: readonly string[]; notesUrl?: string; onClose?: () => void; words?: Partial<typeof whatsNewWords>
+}
+const webAddress = (url?: string) => (url && /^https?:\/\//i.test(url) ? url : undefined)
+export function WhatsNew({ version, lines, notesUrl, onClose, words }: WhatsNewProps) {
+  const w = { ...whatsNewWords, ...words }
+  const notes = webAddress(notesUrl)
+  return (
+    <Modal title={fill(w.title, { version: shortVersion(version) })} actions={<>
+      {notes && <Button variant="secondary" onClick={() => window.open(notes, '_blank', 'noopener')}>{w.notes}</Button>}
+      <Button sound="back" onClick={() => { screens.pop(); onClose?.() }}>{w.close}</Button>
+    </>}>
+      <Stack gap="s">
+        {lines.slice(0, MAX_WHATS_NEW_LINES).map((line, i) => <Text key={i}>{line}</Text>)}
+      </Stack>
+    </Modal>
+  )
+}
+
+let pendingWhatsNew: WhatsNewProps | null = null
+export type ShowWhatsNewOptions = {
+  version: string; versions?: WhatsNewVersions; notesUrl?: string; words?: Partial<typeof whatsNewWords>; storageKey?: string
+}
+/** Show the What's new panel if this launch should (returns true when it opened). Call it from the main menu. */
+export function showWhatsNew({ version, versions = {}, notesUrl, words, storageKey }: ShowWhatsNewOptions): boolean {
+  if (import.meta.env?.DEV) for (const p of whatsNewProblems(versions)) console.warn(`[ui-kit] whats-new.json: ${p}`)
+  const { entry, remember } = whatsNewDecision(version, readLastSeen(storageKey), versions)
+  if (remember) writeLastSeen(remember, storageKey)
+  if (!entry) return false
+  pendingWhatsNew = { version: entry.version, lines: entry.lines, notesUrl, words }
+  screens.push('whats-new')
+  return true
+}
 
 // TOASTS — short messages that fade away ("Saved", "Sam joined"). Call toast('Saved') from
 // anywhere; put <ToastStack /> once near the top of your app (outside the ScreenStack).
@@ -171,7 +225,7 @@ type EmptyProps = { title: string; message?: string; icon?: ReactNode; actionLab
 export function EmptyState({ title, message, icon, actionLabel, onAction }: EmptyProps) {
   return (
     <Stack gap="s" className="kit-empty">
-      {icon && <Text kind="display">{icon}</Text>}
+      {shown(icon) && <Text kind="display">{icon}</Text>}
       <Text kind="heading">{title}</Text>
       {message && <Text kind="caption">{message}</Text>}
       {actionLabel && onAction && <Button variant="secondary" onClick={onAction}>{actionLabel}</Button>}

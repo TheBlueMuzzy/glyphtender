@@ -91,7 +91,10 @@
   /* (0.13.0: its one cell is exactly its box — a control's 44px minimum (a small picture button) spills out centred
      instead of growing the layer and moving the art) */
   .kit-art-layer[data-sized] { aspect-ratio: var(--kit-at-ratio); min-block-size: 0; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
-  .kit-art-layer > *, .kit-art-layer-off > * { grid-area: 1 / 1; min-inline-size: 0; min-block-size: 0; }
+  .kit-art-layer > *, .kit-art-layer-off > * { grid-area: 1 / 1; }
+  /* a control keeps its 44 px floor (kit.css .kit-target); only other pieces may shrink to the layer
+     (0.33.2, found by Goops: a Button in an ArtLayer was 29 px tall) */
+  .kit-art-layer > :not(.kit-target), .kit-art-layer-off > :not(.kit-target) { min-inline-size: 0; min-block-size: 0; }
   .kit-art-layer-off { display: contents; } /* an off layer's contents: inert, while the layer itself still reads out as unavailable */
   .kit-art-layer-picture { display: block; inline-size: 100%; block-size: auto; pointer-events: none; user-select: none; }
   .kit-art-layer[data-sized] > .kit-art-layer-picture { block-size: 100%; object-fit: contain; }

@@ -61,6 +61,26 @@
   .kit-screen > [data-slot="center"] > .kit-panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
   .kit-screen > [data-slot="center"] > .kit-panel::-webkit-scrollbar { display: none; }
   .kit-screen > [data-slot="center"] > .kit-panel > :not(.kit-scroll) { flex-shrink: 0; }
+  /* …and while it scrolls, its last row of buttons stays in sight at its bottom, with the card's room below it
+     (0.35.5, F149): the words scroll under it. Safari's text-wrap: pretty wraps more than Chromium's (it evens out the
+     whole paragraph), so the Lobby room on a Pixel phone on its side was 17 px too tall and "I'M READY" sat cut on the
+     card's bottom edge — and a game's longer words would do the same in any browser. The row is painted with the card's
+     colour (and the strip of room around it) only while the card can scroll: a scroll timeline only runs then. Older
+     browsers without scroll timelines keep the plain last-resort scroll. Not on a <Screen scroll> (the screen scrolls). */
+  @supports (animation-timeline: scroll()) {
+    /* (a row of buttons only: a row of words + a picker is content, not the card's way out) */
+    .kit-screen:not([data-scroll]) > [data-slot="center"] > .kit-panel > .kit-row:last-child:has(> .kit-button):not(:has(> :not(.kit-button))) {
+      position: sticky; inset-block-end: 0; z-index: 1;
+      animation: kit-card-foot linear both; animation-timeline: scroll(nearest block); }
+    /* (0.35.7, Muzzy 2026-10-26) A soft fade above it, like a ScrollArea's "more below" edge, so a line cut where it
+       scrolls under the row reads as "scroll". It thins out as the card scrolls and is gone at the end (nothing's left
+       under the row). Same scroll timeline: only while the card can scroll. */
+    .kit-screen:not([data-scroll]) > [data-slot="center"] > .kit-panel > .kit-row:last-child:has(> .kit-button):not(:has(> :not(.kit-button)))::before {
+      content: ""; position: absolute; inset-inline: 0; inset-block-end: calc(100% + var(--gap-s));
+      block-size: var(--kit-scroll-fade, 2rem); pointer-events: none; opacity: 0;
+      background: linear-gradient(to bottom, transparent, var(--surface));
+      animation: kit-card-foot-fade linear both; animation-timeline: scroll(nearest block); }
+  }
   /* <Screen grow="down"> (0.10.0, every kit menu): the card OPENS in the middle, then its top stays put and it only grows
      or shrinks DOWNWARD, so a control just tapped stays under the finger (Muzzy 2026-10-10: "it should start in the
      center and only expand downwards"). layout.tsx measures where the middle is when it opens (and again only on a
@@ -92,6 +112,9 @@
   /* An open screen with another one on top is hidden (ScreenStack sets data-covered): only the top screen shows.
      visibility (not display: none) keeps its scroll position; !important so no game rule can make it peek through */
   .kit-layer[data-covered], .kit-layer[data-covered] * { visibility: hidden !important; }
+  /* The main menu's version line hides while a screen is open over the menu (0.24.0): Settings shows its own, and the
+     dimmed menu's line peeked out just under the Settings card — the same number twice, one half-hidden */
+  .kit-layer[inert] .kit-menu-version { visibility: hidden; }
   /* <ScreenStack overlay>: open screens cover the whole window above a game that isn't built from Screens */
   .kit-overlay { position: fixed; inset: 0; z-index: var(--kit-overlay-z, 100); pointer-events: none; }
   .kit-overlay[data-open] { pointer-events: auto; }
@@ -115,6 +138,7 @@
   .kit-row[data-justify="end"] { justify-content: flex-end; }
   .kit-row[data-justify="between"] { justify-content: space-between; }
   .kit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--kit-tile)), 1fr)); }
+  .kit-grid[data-fill] { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--kit-tile)), 1fr)); } /* Grid fill (0.33.3) */
   .kit-grid[data-min="s"] { --kit-tile: 8rem; }
   .kit-grid[data-min="m"] { --kit-tile: 12rem; }
   .kit-grid[data-min="l"] { --kit-tile: 18rem; }
@@ -127,17 +151,42 @@
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) button:disabled { cursor: not-allowed; }
 
-  /* text-wrap: pretty — wrapped lines never end with one word alone on the last line (no orphans) */
-  .kit-text { margin: 0; overflow-wrap: anywhere; text-wrap: pretty; }
+  /* text-wrap: pretty — wrapped lines never end with one word alone on the last line (no orphans).
+     break-word (0.34.1, was anywhere): whole words wrap; a word only breaks when it's wider than its whole line — so a
+     row never squeezes a label into "Lock / down" at big text (anywhere let it shrink to one letter wide) */
+  .kit-text { margin: 0; overflow-wrap: break-word; text-wrap: pretty; }
   .kit-text[data-kind="display"] { font-size: var(--text-display); line-height: 1.1; font-weight: 800; }
   .kit-text[data-kind="title"] { font-size: var(--text-title); line-height: 1.15; font-weight: 700; }
   .kit-text[data-kind="heading"] { font-size: var(--text-heading); line-height: 1.2; font-weight: 700; }
+  /* Short screens (a phone on its side) at big text (0.35.1, F145): a title is at most a tenth of the screen's height
+     (--kit-short-title) and a display title a seventh (--kit-short-display) — never under body size. At 200% text a
+     56 px title on a 390 px-tall phone left the card's list a sliver. At 100% text both caps are above every style's
+     sizes, so nothing changes there. */
+  @media (max-height: 30rem) {
+    .kit-text[data-kind="title"] { font-size: max(var(--text-body), min(var(--text-title), var(--kit-short-title, 10dvh))); }
+    .kit-text[data-kind="display"] { font-size: max(var(--text-body), min(var(--text-display), var(--kit-short-display, 14dvh))); }
+  }
   .kit-text[data-kind="label"] { font-weight: 600; }
 
   .kit-button { display: inline-flex; align-items: center; justify-content: center; gap: var(--gap-s);
     padding: var(--gap-s) var(--gap-l); border-style: solid; font-weight: 600; text-align: center; user-select: none; }
   /* Icon-only: the glyph is title-sized so it fills the (at least 44px) button instead of floating small in it */
-  .kit-button[data-icon] { padding: 0; aspect-ratio: 1; font-size: var(--text-title); line-height: 1; }
+  /* 0.21.0: a little room each side, so a wide glyph at a big text size never touches the edge. 0.34.1: the glyph
+     stops growing at three quarters of the 44px button, so even a wide one (◀) and its side room stay 44px wide — at
+     200% text an icon stays tap-sized and the WORDS get the room (◀ ▶ had grown to 67px each and squeezed
+     "Accessibility" in Settings' tab picker into two pieces). Every style's title size is under that at 100%. */
+  /* 0.35.5 (F149): the cap held the glyph's SIZE, but the button still took the glyph's WIDTH — and the same ⚙ is a
+     0.85 em text symbol in one font and a 1.37 em colour emoji in another (WebKit, an iPhone): the button grew 44 → 55
+     (61 at 200%). Now the button is exactly its size (44 px, or size="…") whatever draws its symbol, and a symbol too
+     wide for it is drawn smaller: Button measures it (--kit-glyph-em = its width ÷ its font size, useGlyphFit) and the
+     size stops where symbol + side room fill the inside of the border. Text symbols fit already: no change for them. */
+  /* (F149 fix) The side room is at least 0.125rem (2 px) whatever the symbol's size: 0.15 em of a symbol drawn small
+     to fit was under the page check's 1.5 px — so the size also stops where symbol + 2 × 0.125rem fill the inside. */
+  .kit-button[data-icon] { --kit-icon-box: max(var(--target-min), var(--kit-button-size, 0rem));
+    padding: 0 max(0.15em, 0.125rem); inline-size: var(--kit-icon-box); block-size: var(--kit-icon-box); line-height: 1;
+    font-size: min(var(--text-title), var(--target-min) * 0.75, (var(--kit-icon-box) - 2 * var(--border-width)) / (var(--kit-glyph-em, 0) + 0.3),
+      (var(--kit-icon-box) - 2 * var(--border-width) - 0.25rem) / max(var(--kit-glyph-em, 0), 0.01)); }
+  .kit-button-glyph { flex: none; }
   /* size="…px": as tall as the game asks (e.g. a board hex), and at least that wide — never below target-min */
   .kit-button[data-sized] { min-block-size: max(var(--target-min), var(--kit-button-size)); min-inline-size: max(var(--target-min), var(--kit-button-size)); }
   /* compact: a gap-m each side of the label instead of gap-l (a row of big buttons on one line on a narrow phone) */
@@ -162,13 +211,23 @@
 
   .kit-picker { display: inline-flex; align-items: center; gap: var(--gap-xs); max-inline-size: 100%; }
   .kit-picker > .kit-button { flex: none; }
-  .kit-picker-value { flex: 1 1 5rem; min-inline-size: 0; text-align: center; font-weight: 600; overflow-wrap: anywhere; }
+  .kit-picker-value { flex: 1 1 5rem; min-inline-size: 0; text-align: center; font-weight: 600; overflow-wrap: break-word; padding-block: max(var(--gap-xs), 0.15em); }
+  /* (0.15em at the least, 0.37.1 — F161: at 200% text the ring of an Å sat 1 px under the picker's top border) */
+  /* 0.34.1: whole words; and a little room above and below, so at 200% text (when the words are taller than the 44px
+     arrows) they don't touch the picker's border — at 100% the arrows are taller anyway, so nothing moves */
   .kit-stepper .kit-picker-value { flex-basis: 2.5rem; }
   /* Sized by its values (Selector): its own width is the longest option's — every option piled in one spot, only the
      current one seen (ArrowPicker sizes) */
   .kit-picker-sized { display: grid; flex: 0 1 auto; min-inline-size: 0; }
   .kit-picker-sized > * { grid-area: 1 / 1; min-inline-size: 0; }
-  .kit-picker-sizer { visibility: hidden; text-align: center; font-weight: 600; overflow-wrap: anywhere; } /* (sized like the value) */
+  .kit-picker-sizer { visibility: hidden; text-align: center; font-weight: 600; overflow-wrap: break-word; } /* (sized like the value) */
+  /* A value word too wide for the room between the arrows (0.35.4, F147 — fitPicker, ArrowPicker.tsx): measured with
+     words that never break; then the value takes the whole first line and ◀ ▶ sit under it at the two ends */
+  .kit-picker[data-fit="measure"] :is(.kit-picker-value, .kit-picker-sizer) { overflow-wrap: normal; }
+  .kit-picker[data-fit="stack"] { display: inline-grid; grid-template-columns: auto 1fr auto; grid-template-areas: "value value value" "prev . next"; row-gap: 0; }
+  .kit-picker[data-fit="stack"] > .kit-button:first-child { grid-area: prev; }
+  .kit-picker[data-fit="stack"] > .kit-button:last-child { grid-area: next; }
+  .kit-picker[data-fit="stack"] > :not(.kit-button) { grid-area: value; padding-inline: var(--gap-s); }
 
   .kit-tabs { display: flex; flex-wrap: wrap; gap: var(--gap-xs); padding: var(--gap-xs); }
 
@@ -182,6 +241,10 @@
   .kit-carousel-track { display: grid; }
   .kit-carousel-item { grid-area: 1 / 1; min-inline-size: 0; display: flex; align-items: center; justify-content: center; visibility: hidden; }
   .kit-carousel-item[data-current] { visibility: visible; }
+  /* A slide is never wider than the window (0.38.0, F162: "[Lockdown]" and its line at 200% text in a longer language
+     ran past both sides and were cut off): its words wrap, and a word wider than the window breaks, as a .kit-text's does */
+  .kit-carousel-item > * { min-inline-size: 0; max-inline-size: 100%; }
+  .kit-carousel-item .kit-text { min-inline-size: 0; }
   .kit-carousel-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap-xs); }
   .kit-carousel-dot { inline-size: 0.5rem; block-size: 0.5rem; }
   .kit-tab { flex: 1 0 auto; padding: var(--gap-s) var(--gap-l); border: 0; background: none; font-weight: 600; }
@@ -198,10 +261,27 @@
   button.kit-listrow { padding-inline: 0; } /* link rows line up with value rows */
 
   .kit-card { display: flex; flex-direction: column; gap: var(--gap-s); padding: var(--gap-l); text-align: start; border-style: solid; }
-  .kit-card-title { font-size: var(--text-heading); font-weight: 700; }
+  /* A badge on its own line in a card is never wider than the card (0.37.1, F161): a word longer than the card's width
+     breaks inside the badge instead of running out of it, cut off (ModeSelect's "Popular", translated, on a phone) */
+  /* (anywhere, not break-word: the badge is a flex box, and its words only shrink below one word with anywhere) */
+  .kit-card > .kit-badge { white-space: normal; overflow-wrap: anywhere; max-inline-size: 100%; }
+  /* (a word wider than the card breaks inside it, as a .kit-text's does — 0.38.0, F162: Mode select's titles in a ~40%
+     longer language ran out past their cards in Pixel's and Neon's wide capitals) */
+  .kit-card-title { font-size: var(--text-heading); font-weight: 700; overflow-wrap: break-word; }
+  /* Words only a screen reader hears (0.27.0: a locked Card's "Locked", at the end of its title) — a clipped line of
+     its own, 1 px tall and pulled back by 1 px, so it never moves a word of the title or grows the card */
+  .kit-sr-only { display: block; inline-size: 0.0625rem; block-size: 0.0625rem; margin-block-end: -0.0625rem;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  /* The page's one live region (0.32.0, emotes.tsx liveRegion), last on <body>: pulled UP by its 1 px, so it sits
+     inside the page's height instead of adding a 1 px page scroll below it */
+  .kit-live { margin-block: -0.0625rem 0; }
 
-  .kit-badge { display: inline-flex; align-items: center; white-space: nowrap; padding: 0 var(--gap-s); font-weight: 700; line-height: 1.6; border-style: solid; }
-  .kit-avatar { display: inline-grid; place-items: center; flex: none; inline-size: var(--target-min); block-size: var(--target-min); overflow: hidden; font-weight: 600; }
+  /* (0.1em above and below, 0.37.1 — F161: an accent over a capital or a mark under a letter — Ý, Ţ, Þ — touched the
+     badge's top or bottom edge; line-height alone left 1 px) */
+  .kit-badge { display: inline-flex; align-items: center; white-space: nowrap; padding: 0.1em var(--gap-s); font-weight: 700; line-height: 1.6; border-style: solid; }
+  /* (its initials never outgrow it: at 200% text "SM" was wider than the 44px circle — 0.35.1, like an icon button's glyph) */
+  .kit-avatar { display: inline-grid; place-items: center; flex: none; inline-size: var(--target-min); block-size: var(--target-min); overflow: hidden; font-weight: 600;
+    font-size: min(1em, var(--target-min) * 0.45); }
   .kit-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
 
   .kit-progress { display: block; min-inline-size: 6rem; block-size: 0.75rem; overflow: hidden; }
@@ -216,9 +296,24 @@
   /* No scroll bar (0.10.0, Muzzy: "remove all scroll bars"): drag, swipe, wheel and keys still scroll it, and its edges
      fade while there's more that way (kit-style below). It only keeps swipes to itself (overscroll contain) while it
      really can scroll (data-scrolls, set by ScrollArea.tsx): one that fits must never eat a swipe (B027). */
+  /* (0.35.1, F145) That room is at most half the card's side gap: at 200% text 0.5rem grew to the whole gap on a phone
+     on its side, so the scroll box ran to the card's very edge. Outlines and shadows don't grow with text. (The same
+     keeps a ScrollArea straight in a Screen inside the Screen's padding — Player chips' was cut off at its edge.) */
   .kit-scroll { flex: 1 1 auto; min-block-size: 0; overflow: auto; overscroll-behavior: auto;
-    scrollbar-width: none; padding: 0.5rem; margin: -0.5rem; }
+    scrollbar-width: none; --kit-scroll-room: min(0.5rem, var(--gap-m) / 2); padding: var(--kit-scroll-room); margin: calc(-1 * var(--kit-scroll-room)); }
   .kit-scroll::-webkit-scrollbar { display: none; }
+  /* …and never more than half the gap it sits in (0.38.0, F162: the parts page's Scroll area demo, in a gap-xs card —
+     the list's box reached over its label above it, "overlap" in every look and size) */
+  [data-gap="xs"] > .kit-scroll { --kit-scroll-room: min(0.5rem, var(--gap-m) / 2, var(--gap-xs) / 2); }
+  [data-gap="s"] > .kit-scroll { --kit-scroll-room: min(0.5rem, var(--gap-m) / 2, var(--gap-s) / 2); }
+  /* (0.35.1, F145) It gives up height only down to --kit-scroll-min (default 4rem: two rows or so, growing with the text
+     size) — or its whole contents, if shorter. Past that, the card itself scrolls as one (the last resort above): at
+     200% text on a phone the Room's player list was squeezed to a 16 px sliver under the big words, and the Seat picker's
+     list to 43 px. ScrollArea measures its contents (--kit-scroll-contents). Only straight in a card: one inside a
+     stack of its own (Victory's report) would spill out of that stack instead. And never under two of its own rows
+     (0.38.0, F162: --kit-scroll-rows, measured by ScrollArea — the Room's player rows are ~156 px at 200% text, and its
+     4rem list showed under one player). */
+  .kit-panel > .kit-scroll { min-block-size: min(max(var(--kit-scroll-min, 4rem), var(--kit-scroll-rows, 0rem)), var(--kit-scroll-contents, 0rem)); }
   .kit-scroll[data-scrolls] { overscroll-behavior: contain; }
   .kit-scroll[data-max="s"] { max-block-size: 10rem; }
   .kit-scroll[data-max="m"] { max-block-size: 18rem; }
@@ -242,7 +337,9 @@
 /* ───────────── kit-style: paint, from style variables only ───────────── */
 @layer kit-style {
   .kit-page { background: var(--bg); }
-  :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) { color: var(--on-bg); font-family: var(--font-body); }
+  /* lining-nums (0.34.0): full-height numbers in every font — Fantasy's Alegreya draws old-style ones by default, where
+     a 0 is a small o ("v0.1" read "vO.1"); fonts that already draw lining numbers don't change */
+  :where(.kit-page, .kit-screen, .kit-toasts, .kit-scope) { color: var(--on-bg); font-family: var(--font-body); font-variant-numeric: lining-nums; }
   .kit-overlay[data-open] { background: color-mix(in srgb, var(--bg) 70%, transparent); } /* dims the game under it */
   .kit-panel {
     background: var(--surface) var(--panel-texture); color: var(--on-surface);
@@ -273,10 +370,21 @@
     /* opened over another screen: the dim was already there (the screen under it hides at once), so no fade-in flash */
     .kit-layer[data-over] > .kit-screen { background-color: color-mix(in srgb, var(--bg) 70%, transparent); }
   }
+  /* Screen shade (0.35.10): a screen of only on-game words (RoundIntro) dims with the game's dark shade instead, in
+     every look — light words on the light veil read ~2:1. Overlay mode: the overlay carries the dim, so it darkens. */
+  .kit-screen[data-shade][data-dialog], .kit-layer:is([data-over], [data-dim]) > .kit-screen[data-shade],
+  .kit-overlay[data-open]:has(> .kit-layer:last-child > .kit-screen[data-shade]) {
+    background-color: color-mix(in srgb, var(--game-shade) 70%, transparent); }
+  @starting-style {
+    .kit-screen[data-shade][data-dialog], .kit-layer[data-dim] > .kit-screen[data-shade] { background-color: transparent; }
+    .kit-layer[data-over] > .kit-screen[data-shade] { background-color: color-mix(in srgb, var(--game-shade) 70%, transparent); }
+  }
 
   /* Pressing: things shrink and/or sink (the style decides how much and how fast).
      A sinking button drops onto its shadow, so the shadow goes. */
-  button.kit-target { transition: transform var(--motion-fast) var(--ease), background-color var(--motion-fast) var(--ease), box-shadow var(--motion-fast) var(--ease); }
+  /* (its words and border fade with its background, 0.37.3 — F160: only the background faded, so a button swapping style
+     — the starter's winning-line pulse — showed its new white mark on the old near-white fill for the whole fade) */
+  button.kit-target { transition: transform var(--motion-fast) var(--ease), background-color var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease), box-shadow var(--motion-fast) var(--ease); }
   button.kit-target:active:not(:disabled) { transform: translateY(var(--press-shift)) scale(var(--press-scale)); }
   .kit-button:active:not(:disabled) { box-shadow: none; }
 
@@ -295,7 +403,8 @@
   .kit-button[data-variant="primary"] { background: var(--primary); color: var(--on-primary); border-color: var(--ink); filter: var(--glow); }
   .kit-button[data-variant="secondary"] { background: var(--surface); color: var(--on-surface); }
   .kit-button[data-variant="ghost"] { background: transparent; border-color: transparent; box-shadow: none; }
-  .kit-button[data-variant="danger"] { background: var(--danger); color: var(--on-danger); border-color: var(--ink); }
+  /* glow-danger (0.27.0): lit like primary, in red — so a − / + pair (danger / primary) glows alike in Neon */
+  .kit-button[data-variant="danger"] { background: var(--danger); color: var(--on-danger); border-color: var(--ink); filter: var(--glow-danger); }
   .kit-spinner { border-color: currentColor; border-inline-end-color: transparent; }
 
   .kit-toggle-track { background: var(--muted); transition: background-color var(--motion-fast) var(--ease); }
@@ -330,14 +439,28 @@
       black calc(100% - min(var(--kit-scroll-fade, 2rem), var(--kit-more-end, 2rem))), var(--kit-fade-end)); }
 
   .kit-card { background: var(--surface) var(--panel-texture); color: var(--on-surface); }
+  /* success (0.27.0): the same inset ring as selected, in the success colour — an outline takes no room, so the card
+     stays exactly its size; the shadow is the style's depth-success (Neon glows green). Selected wins its ring. */
+  .kit-card[data-tone="success"] { border-color: var(--success); outline: 0.1875rem solid var(--success); outline-offset: -0.1875rem; box-shadow: var(--depth-success); }
   .kit-card[data-state="selected"] { border-color: var(--primary); outline: 0.1875rem solid var(--primary); outline-offset: -0.1875rem; }
+  /* locked (0.27.0): greyed but readable — quiet text (muted on surface is contrast-tested, 4.5:1), a dashed edge of the
+     same width, a flat shadow, pictures and lit bits in grey. Nothing changes its size. */
+  .kit-card[data-locked] { color: var(--muted); border-style: dashed; box-shadow: var(--depth-0); cursor: default; }
+  .kit-card[data-locked] :is(img, svg, .kit-badge, .kit-avatar, .kit-progress, .kit-pip) { filter: grayscale(1); }
 
   .kit-badge[data-variant="neutral"] { background: var(--surface); color: var(--on-surface); }
   .kit-badge[data-variant="primary"] { background: var(--primary); color: var(--on-primary); border-color: var(--ink); }
   .kit-badge[data-variant="danger"] { background: var(--danger); color: var(--on-danger); border-color: var(--ink); }
+  .kit-badge[data-variant="success"] { background: var(--success); color: var(--on-success); border-color: var(--ink); }
 
   /* Initials always in the body font at semibold, whatever they sit in: small, heavy display letters turn to blobs */
   .kit-avatar { background: var(--kit-avatar-color, var(--primary)); color: var(--on-primary); font-family: var(--font-body); text-transform: none; }
+  /* A player's own colour (0.21.0): initials in white on a dark colour, black on a light one — whichever reads
+     (on-primary was made for the style's primary, not for every player colour; the contrast check caught it) */
+  /* (older browsers — Safari before 18, Firefox before 128 — skip it and keep on-primary, instead of losing the colour) */
+  @supports (color: oklch(from red l c h)) {
+    .kit-avatar[data-color] { color: oklch(from var(--kit-avatar-color) clamp(0, (0.65 - l) * 1000, 1) 0 0); }
+  }
   .kit-avatar[data-state="active"] { outline: 0.1875rem solid var(--accent); outline-offset: 0.125rem; }
 
   .kit-progress { background: var(--border); }
@@ -353,6 +476,11 @@
 @keyframes kit-pop { from { opacity: 0; transform: scale(0.85); } }
 @keyframes kit-attention { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
 @keyframes kit-blink { 0%, 24%, 50%, 74% { opacity: 0; } 25%, 49%, 75%, 100% { opacity: 1; } }
+/* A scrolling card's last row of buttons (above): the card's colour behind it, a gap-s strip above and the card's
+   bottom room below, so words scrolling under it never show round it (only while the card can scroll) */
+@keyframes kit-card-foot { from, to { background-color: var(--surface);
+  box-shadow: 0 var(--gap-l) var(--surface), 0 calc(-1 * var(--gap-s)) var(--surface); } }
+@keyframes kit-card-foot-fade { from { opacity: 1; } to { opacity: 0; } }
 @keyframes kit-flicker { 0% { opacity: 0; } 10% { opacity: 0.8; } 20% { opacity: 0.1; } 35% { opacity: 1; } 45% { opacity: 0.3; } 60%, 100% { opacity: 1; } }
 
 /* ───────────── Screen column · swipe · slide (0.12.0) ───────────── */

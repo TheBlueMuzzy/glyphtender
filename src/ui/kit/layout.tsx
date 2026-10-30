@@ -2,6 +2,7 @@
 // They only arrange things. Spacing is always a gap name (xs, s, m, l, xl) — never a size.
 import { useEffect, useLayoutEffect, useRef, type CSSProperties, type HTMLAttributes, type ReactNode, type RefObject } from 'react'
 import { reduceMotion } from './blocks/motion'
+import { shown } from './shown'
 
 export type Gap = 'xs' | 's' | 'm' | 'l' | 'xl'
 type BoxProps = HTMLAttributes<HTMLDivElement> & { gap?: Gap }
@@ -14,6 +15,9 @@ type ScreenProps = {
   children?: ReactNode // goes in the centre
   label?: string // what a screen reader calls this screen
   dialog?: boolean // dims what's underneath; for a small question on top of another screen
+  // shade (0.35.10): the dim behind this screen is the game's dark shade (--game-shade), not the light veil, in every
+  // look — for a screen of only on-game words over the game (RoundIntro), so light words never sit on a light wash
+  shade?: boolean
   // The whole screen scrolls when its contents are taller than it — drag, wheel or keys, with no scroll bar showing.
   // The centre OPENS in the middle (taller than the window: at the top); after that its top stays put and it only
   // grows or shrinks DOWNWARD, so a control just tapped (+ / −, Person ▶ AI) stays under the finger (Muzzy 2026-10-10:
@@ -44,7 +48,7 @@ type ScreenProps = {
   slideEdge?: 'top' | 'bottom' | 'left' | 'right'
   onSlideEnd?: () => void
 }
-export function Screen({ children, label, dialog, scroll, grow, backdrop, backdropFit = 'cover', column, swipe, slide, slideEdge = 'bottom', onSlideEnd, ...slots }: ScreenProps) {
+export function Screen({ children, label, dialog, shade, scroll, grow, backdrop, backdropFit = 'cover', column, swipe, slide, slideEdge = 'bottom', onSlideEnd, ...slots }: ScreenProps) {
   const slotNames = { topLeft: 'top-left', top: 'top', topRight: 'top-right', bottomLeft: 'bottom-left', bottom: 'bottom', bottomRight: 'bottom-right' }
   const centre = useRef<HTMLDivElement>(null)
   const self = useRef<HTMLElement>(null)
@@ -65,16 +69,16 @@ export function Screen({ children, label, dialog, scroll, grow, backdrop, backdr
     return () => el.removeEventListener('animationend', onEnd)
   }, [slide])
   return (
-    <section className="kit-screen" ref={self} aria-label={label} data-dialog={dialog || undefined} data-scroll={scroll || undefined}
+    <section className="kit-screen" ref={self} aria-label={label} data-dialog={dialog || undefined} data-shade={shade || undefined} data-scroll={scroll || undefined}
       data-grow={!scroll && grow ? grow : undefined} role={dialog ? 'dialog' : undefined} aria-modal={dialog || undefined}
       data-backdrop={backdrop ? backdropFit : undefined} data-column={column || undefined} data-swipe={swipe ? '' : undefined}
       data-slide={slide} data-slide-edge={slide ? slideEdge : undefined}
       style={{ '--kit-backdrop': backdrop ? `url("${encodeURI(backdrop)}")` : undefined } as CSSProperties}>
       {Object.entries(slotNames).map(([prop, slot]) => {
         const content = slots[prop as keyof typeof slots]
-        return content ? <div key={slot} data-slot={slot}>{content}</div> : null
+        return shown(content) ? <div key={slot} data-slot={slot}>{content}</div> : null
       })}
-      {children && <div data-slot="center" ref={centre}>{children}</div>}
+      {shown(children) && <div data-slot="center" ref={centre}>{children}</div>}
     </section>
   )
 }
@@ -159,6 +163,11 @@ function keepCentredOnOpen(box: HTMLDivElement, keep: 'margin' | 'variable') {
   place(true)
   let open = true
   document.fonts?.ready.then(() => { if (open) place(true) }) // (already loaded: straight away, before any tap)
+  // …and its pictures, like the fonts (0.35.1): a title logo arriving after the first measure (the main menu's
+  // titleArt) left the menu sitting low
+  const pictures = Array.from(box.querySelectorAll('img')).filter((img) => !img.complete)
+  const onPicture = () => { if (open) place(true) }
+  for (const img of pictures) img.addEventListener('load', onPicture, { once: true })
   const onResize = () => place()
   const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize)
   if (observer) observer.observe(screen)
@@ -167,6 +176,7 @@ function keepCentredOnOpen(box: HTMLDivElement, keep: 'margin' | 'variable') {
     open = false
     observer?.disconnect()
     window.removeEventListener('resize', onResize)
+    for (const img of pictures) img.removeEventListener('load', onPicture)
   }
 }
 
@@ -188,14 +198,18 @@ export function Panel({ gap = 'm', depth = 1, frame, className = '', style, ...r
 // ink = which style colour the words inside take, to read on the frame's own window: 'on-surface' (default, like any
 // panel), 'on-bg' or 'on-game' (light words over a dark game in most styles).
 export type PanelFrame = { src: string; slice: [number, number, number, number]; scale?: number; ink?: 'on-surface' | 'on-bg' | 'on-game' }
+// The frame's thickness doesn't grow with the player's text size (0.35.1, F145), like the style's gaps: at 200% text
+// the wood ate twice the room and left the report a 126 px strip ("Ga / me / ove / r") — so its rem are counted at the
+// usual 16 px. Same size as before at 100%.
+const REM_PX = 16
 export function frameVariables({ src, slice, scale = 0.0625, ink = 'on-surface' }: PanelFrame): CSSProperties {
   return {
     '--kit-art-frame-ink': `var(--${ink})`,
     '--kit-art-frame': `url("${encodeURI(src)}")`,
     '--kit-art-frame-slice': slice.join(' '),
-    '--kit-art-frame-width': slice.map((n) => `${+(n * scale).toFixed(4)}rem`).join(' '),
+    '--kit-art-frame-width': slice.map((n) => `${+(n * scale * REM_PX).toFixed(3)}px`).join(' '),
     // short windows (a phone on its side): the frame drawn at 60%, so the report keeps the room
-    '--kit-art-frame-width-short': slice.map((n) => `${+(n * scale * 0.6).toFixed(4)}rem`).join(' '),
+    '--kit-art-frame-width-short': slice.map((n) => `${+(n * scale * 0.6 * REM_PX).toFixed(3)}px`).join(' '),
   } as CSSProperties
 }
 
@@ -211,6 +225,8 @@ export function Row({ gap = 'm', justify = 'start', className = '', ...rest }: B
 }
 
 // Equal tiles that fit as many per line as there's room for. min = smallest tile: s, m or l.
-export function Grid({ gap = 'm', min = 'm', className = '', ...rest }: BoxProps & { min?: 's' | 'm' | 'l' }) {
-  return <div className={`kit-grid ${className}`} data-gap={gap} data-min={min} {...rest} />
+// fill (0.33.3, F136): fewer tiles than fit on a row spread over it instead of leaving empty columns (Mode select's
+// 2 cards on a desktop panel); without it the tiles keep their size and line up with the rows below
+export function Grid({ gap = 'm', min = 'm', fill, className = '', ...rest }: BoxProps & { min?: 's' | 'm' | 'l'; fill?: boolean }) {
+  return <div className={`kit-grid ${className}`} data-gap={gap} data-min={min} data-fill={fill || undefined} {...rest} />
 }

@@ -9,3 +9,6 @@
 @font-face { font-family: 'VT323'; src: url('./vt323.woff2') format('woff2'); font-weight: 400; size-adjust: 125%; font-display: swap; }
 @font-face { font-family: 'Orbitron'; src: url('./orbitron.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: 'Exo 2'; src: url('./exo-2.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+/* Fantasy (0.34.0): carved capitals for titles, a book serif for reading */
+@font-face { font-family: 'Cinzel'; src: url('./cinzel.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: 'Alegreya'; src: url('./alegreya.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }

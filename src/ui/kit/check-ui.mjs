@@ -29,6 +29,28 @@ const stripComments = (text) =>
 
 const lineOf = (text, index) => text.slice(0, index).split('\n').length
 
+// Split CSS text on `mark` (";" between declarations, ":" after a property) — but never inside quotes or brackets:
+// a picture written into the CSS, url("data:image/svg+xml;utf8,<svg xmlns='http://…'>"), is ONE value (0.33.3, F135).
+function splitOutside(text, mark) {
+  const parts = []
+  let depth = 0, quote = '', start = 0
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (quote) { if (c === '\\') i++; else if (c === quote) quote = ''; continue }
+    if (c === '"' || c === "'") quote = c
+    else if (c === '(') depth++
+    else if (c === ')') depth = Math.max(0, depth - 1)
+    else if (c === mark && depth === 0) { parts.push(text.slice(start, i)); start = i + 1 }
+  }
+  parts.push(text.slice(start))
+  return parts
+}
+
+// A CSS value without what's inside url(…) and quotes: that's a picture or text, not a style value
+// (an SVG's fill='#fff' is the picture's own colour)
+// (the last branch leaves out quotes, so a broken url( full of "" can't make the pattern try every split — review)
+const cssStyleValue = (value) => value.replace(/url\((?:"[^"]*"|'[^']*'|[^)"'])*\)/g, 'url()').replace(/"[^"]*"|'[^']*'/g, '""')
+
 function valueProblems(value) {
   const found = []
   if (/#[0-9a-fA-F]{3,8}\b|\b(rgba?|hsla?)\(/.test(value)) found.push('raw colour — use a colour name like var(--primary)')
@@ -45,14 +67,14 @@ function checkCss(text) {
   for (const rule of text.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
     const selector = rule[1].trim()
     let offset = rule.index + rule[1].length + 1
-    for (const decl of rule[2].split(';')) {
-      const [property = '', ...rest] = decl.split(':')
+    for (const decl of splitOutside(rule[2], ';')) {
+      const [property = '', ...rest] = splitOutside(decl, ':')
       const prop = property.trim(), value = rest.join(':').trim()
       const at = lineOf(text, offset + decl.search(/\S|$/))
       offset += decl.length + 1
       if (!prop || prop.startsWith('--')) continue // CSS variable definitions are allowed
       const report = (message) => problems.push({ line: at, message, snippet: `${prop}: ${value}` })
-      valueProblems(value).forEach(report)
+      valueProblems(cssStyleValue(value)).forEach(report)
       if (/^font(-family)?$/.test(prop) && !/^(var\(|inherit)/.test(value)) report('font name — use var(--font-body) or var(--font-display)')
       if (prop === 'position' && /absolute|fixed/.test(value) && !/\.kit-(screen|overlay|layer|hud-dock)\b/.test(selector)) report('position:absolute/fixed — only Screen slots (and the stack\'s overlay / layers) may do this')
     }
@@ -95,7 +117,7 @@ export function findKitRestyles(path, text) {
   for (const rule of clean.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
     const kitClasses = [...new Set(rule[1].match(/\.kit-[\w-]+/g) ?? [])]
     if (!kitClasses.length) continue
-    const properties = rule[2].split(';').map((d) => d.split(':')[0].trim()).filter(Boolean)
+    const properties = splitOutside(rule[2], ';').map((d) => splitOutside(d, ':')[0].trim()).filter(Boolean)
     if (properties.every((p) => p.startsWith('--'))) continue // only sets CSS variables
     const selector = rule[1].trim()
     const line = lineOf(clean, rule.index + rule[1].search(/\S/))
