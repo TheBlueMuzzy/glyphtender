@@ -81,7 +81,8 @@ async function settle(page) {
     const s = window.__glyphtender?.store.getState()
     if (s && (s.flying || s.scoring !== null || s.refreshFx !== null)) return false
     if ([...document.images].some((img) => !img.complete)) return false
-    return document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity)
+    // (scroll-driven animations — UI kit 0.35.5+: a scrolling card's stuck buttons + their fade — never "finish": skip them)
+    return document.getAnimations().every((a) => a.timeline !== document.timeline || a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity)
   }, null, { timeout: 20000, polling: 50 })
   // SVG's own looping blinks (<animate> on a planned seed / a tangled hex) aren't page animations: hold them at their start
   await page.evaluate(() => document.querySelectorAll('svg').forEach((svg) => { svg.pauseAnimations(); svg.setCurrentTime(0) }))

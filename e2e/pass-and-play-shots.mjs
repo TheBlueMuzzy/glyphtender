@@ -43,10 +43,16 @@ function problems() {
     if (r.left < -0.5 || r.top < -0.5 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) out.push(`clipped: ${name}`)
     if (el.tagName === 'BUTTON' && (r.height < 43.5 || r.width < 43.5)) out.push(`small button: ${name} ${Math.round(r.width)}×${Math.round(r.height)}`)
     // a button whose words wrapped onto a second line (buttons can be tall now — a board hex — so count the lines)
+    // (only the words' own boxes: an icon Button's symbol sits in its own box, .kit-button-glyph — UI kit 0.35.5+)
     if (el.tagName === 'BUTTON' && el.textContent.trim()) {
-      const range = document.createRange()
-      range.selectNodeContents(el)
-      const lines = new Set([...range.getClientRects()].map((line) => Math.round(line.top)))
+      const lines = new Set()
+      const words = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+      for (let node = words.nextNode(); node; node = words.nextNode()) {
+        if (!node.textContent.trim() || node.parentElement?.closest('.kit-button-glyph')) continue
+        const range = document.createRange()
+        range.selectNodeContents(node)
+        for (const line of range.getClientRects()) lines.add(Math.round(line.top))
+      }
       if (lines.size > 1) out.push(`button words wrapped: ${name}`)
     }
   }

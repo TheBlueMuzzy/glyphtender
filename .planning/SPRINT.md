@@ -28,7 +28,7 @@ Checked: built dist/manifest.webmanifest has "orientation":"portrait"; fullscree
 
 ## F91 🎮 New kit look
 Done when: UI kit 0.38.0 installed with Glyphtender's two test-helper fixes, the game screen lays out so the board sits near the vertical middle of a phone (player cards above/below it), Muzzy approved the look from before/after screenshots, and the reference screenshots are re-recorded.
-- [ ] 🤖 1. UI kit 0.38.0 via install-module; fix e2e/shots.mjs's animation wait (ignore scroll-driven animations) and the pass e2e's "button words wrapped" count (only the words' own boxes) — e2e/shots.mjs
+- [x] 🤖 1. UI kit 0.38.0 via install-module; fix e2e/shots.mjs's animation wait (ignore scroll-driven animations) and the pass e2e's "button words wrapped" count (only the words' own boxes) — e2e/shots.mjs
 - [ ] 🤖 2. Board near the vertical middle on a phone (Muzzy: ergonomics) — the game screen's layout, player cards above/below — src/App.tsx
 - [ ] 🤖 3. Before/after screenshots at every portrait size (390x844, 360x780, ~1100 wide, 1440x900, 1920x1080) — look at each, describe them — e2e/shots.mjs
 - [ ] 🙋 4. Muzzy's call on the look (roomier player cards, the board's new spot) — e2e/shots.mjs
