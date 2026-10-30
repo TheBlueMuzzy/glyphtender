@@ -54,7 +54,7 @@ flowchart LR
 - **Drop target**: while dragging, the legal hex under the floating piece fills bright + a glow ring spills past it (the piece covers the hex); an illegal hex shows nothing (`turnPlan.dropKind`). Per drag type a target look (F64, drag.json `targets`): highlight (that glow) · ghost (a see-through copy on the hex — its own drag-layer image — over a fainter glow, ghostGlow) · tether (an aim line in the player's colour, home → pointer, + the glow). Magnetic snap: near a legal hex (the referee's, listed once per drag) the carried piece is pulled toward it, it glows, and a drop there lands on it. Tray reorder: none · insertion marker · make room — only over another seed, at the gap `moveInRack` really inserts into (D86).
 - **Turn pulse** (`turnPulse.pulsingGlyphlings`): the current local human's glyphlings that can move breathe (feel.json small tier, `turnPulseTime`) until a move is planned; never in the draft or a refresh, never the held or a tangled one; online only on your turn.
 - **"No" shake** (`nope.nopeFor`): another player's glyphling, a tangled one, any glyphling outside your move step, a planted seed, a tray seed tapped or dragged before moving (no reorder before the move — Muzzy, B008), anything of yours when it isn't your turn online → a quick sideways shake of that piece (feel.json small tier × its width, `noShakeTime`). Quiet: seed in the air, handoff, waiting for the server, game over, empty hexes.
-- **Layout**: action buttons are a board hex tall (hex width × √3/2, ≥ 44; kit Button `size`); the prompt sits just above the tray (heading size; title size when hexes ≥ 64 px); the board sits close to the tray (`boardPlace.boardShift`: tall = right on it; wide = 1/8 of the spare room on the tray's side). Settings → Gameplay → **Tray position** Standard / Flipped (tall: tray above; wide: tray left), followed live; the side column keeps the ruler's width either way.
+- **Layout**: action buttons are a board hex tall (hex width × √3/2, ≥ 44; kit Button `size`); the prompt sits just above the tray (heading size; title size when hexes ≥ 64 px) — on an upright phone with tray below, layout.boardVertical > 0 moves it under the top bar and places the board between it and the tray (D101); the board sits close to the tray (`boardPlace.boardShift`: tall = right on it; wide = 1/8 of the spare room on the tray's side). Settings → Gameplay → **Tray position** Standard / Flipped (tall: tray above; wide: tray left), followed live; the side column keeps the ruler's width either way.
 - Every one of these animates with Web Animations on SVG elements (no React state per frame) and reads timings/sizes from content/.
 
 **Tray** — seeds are **real size: tray seed = the board's on-screen hex width, never below `trayTileMin` (44 px)**; one row of 8 if that fits, else 2 rows of 4 rather than shrinking; only if 4 still don't fit do they shrink to fit (never below 44). Maths in `src/game/trayLayout.ts` (tested). Measured (Small board, e2e): phone tall hex 42 → seed 44 (2×4) · phone wide 41 → 44 (2×4) · desktop 96 → 96 (2×4). Tray order is the screen's own (store), kept across turns; reorder by dragging within the tray; Shuffle.
@@ -160,6 +160,13 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D101 · 2026-10-30 · Upright phone: the prompt goes under the top bar, the board to the middle (replaces D41 there)
+  Proposed by: Muzzy ("the board should be closer to the center so that the ergonomics aren't as bad"; picked ".5 is good")
+  Found: the board was already as low as its box allowed — the space under it is the prompt's fixed 3-line frame (B013),
+  so the only lever was moving the prompt above the board.
+  Chose: layout.boardVertical 0–1 (0 = D41 exactly; >0 = prompt in a top slot, board between prompt and tray; 0.5 =
+  board centre ≈50% of the height at 390×844 and 360×780). Only the stacked, not-flipped layout changes; desktop and
+  Flipped never do. Tutorial bubbles that pointed at the tray "in the prompt's place" were moved off the board (F91 4b).
 D100 · 2026-10-30 · Portrait only: lock where the browser allows it, nothing else
   Proposed by: Muzzy ("glyphtender should be a vertical game only"; then, seeing a "Turn your phone upright" screen:
   "do nothing for browsers. it'll be obvious to the user they need to turn back upright")
@@ -718,7 +725,7 @@ D42 · 2026-09-30 · End table: New game only (+ Menu); Play again removed
   Proposed by: Muzzy ("just New game — fewer, clearer options")   Chose: offline New game → the new-game screen (last choices remembered);
   online → the host's New game takes everyone to the lobby (rooms backToLobby, which also closes the end table on every screen);
   a guest's says "Waiting for the host…". Replaces D31's Play again rematch
-D41 · 2026-09-30 · The prompt moves to just above the tray; buttons are a board hex tall
+D41 · 2026-09-30 · The prompt moves to just above the tray; buttons are a board hex tall (upright phones: replaced by D101)
   Proposed by: Muzzy (feel notes)   Chose: PromptLine above the tray (heading size; title size when board hexes ≥ 64 px so it balances
   the big desktop tray); top bar = portrait + Menu. Button height = hex width × √3/2 (the hex's own height), ≥ 44 — through a new kit
   option (UI kit 0.2.5 Button `size`, framework-first: the game can't size kit parts itself). Desktop buttons 83 px, phones 44

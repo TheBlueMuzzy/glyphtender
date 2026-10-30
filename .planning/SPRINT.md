@@ -31,7 +31,9 @@ Done when: UI kit 0.38.0 installed with Glyphtender's two test-helper fixes, the
 - [x] 🤖 1. UI kit 0.38.0 via install-module; fix e2e/shots.mjs's animation wait (ignore scroll-driven animations) and the pass e2e's "button words wrapped" count (only the words' own boxes) — e2e/shots.mjs
 - [x] 🤖 2. Board near the vertical middle on a phone (Muzzy: ergonomics) — the game screen's layout, player cards above/below — src/App.tsx
 - [x] 🤖 3. Before/after screenshots at every portrait size (390x844, 360x780, ~1100 wide, 1440x900, 1920x1080) — look at each, describe them — e2e/shots.mjs
-- [ ] 🙋 4. Muzzy's call on the look (roomier player cards, the board's new spot) — e2e/shots.mjs
+- [x] 🙋 4. Muzzy's call on the look (roomier player cards, the board's new spot) — Muzzy 2026-10-30: ".5 is good" (boardVertical 0.5: turn words at the top, board in the middle — replaces D41) — e2e/shots.mjs
+- [ ] 🤖 4b. Tutorial bubbles that point at the tray don't cover the board's bottom row any more (Muzzy 2026-10-30: "yes" — in this feature) — src/tutorial/
+- [x] 🤖 4c. GDD §4 + TDD: the prompt now sits under the top bar on an upright phone (D101 replaces D41) — .planning/TDD.md
 - [ ] 🤖 5. Apply his choice; `npm run shots:record` once approved — e2e/shots.mjs
 Check: check:framework (every kit promise at every portrait size); screenshots looked at; Muzzy's OK.
 Checked:
