@@ -24,7 +24,8 @@ const SETTINGS_KEY = 'kit-settings:' // the kit's Settings slot for a page at "/
 const SIZES = [
   { name: 'phone', width: 390, height: 844, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
-]
+  { name: 'small', width: 360, height: 780, mobile: true, only: true }, // (only: runs with SIZE=small alone — F91's shots)
+].filter((s) => (!process.env.SIZE && !s.only) || s.name === process.env.SIZE)
 
 const server = await createServer({ server: { port: PORT, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
 await server.listen()
@@ -53,6 +54,21 @@ function calloutNow(targetSelector) {
     const t = target.getBoundingClientRect()
     const overlap = Math.min(box.right, t.right) - Math.max(box.left, t.left) > 1 && Math.min(box.bottom, t.bottom) - Math.max(box.top, t.top) > 1
     if (overlap) out.problems.push('callout covers its target')
+    // F91: the prompt on top (an upright phone) — a callout about the tray or the buttons covers no board hex
+    if (!target.closest('.game-garden') && !target.closest('.game-bar') && document.querySelector('.game[data-prompt="top"]')) {
+      const hexes = [...document.querySelectorAll('.game-garden > polygon[data-hex]')].filter((p) => {
+        const m = p.getScreenCTM()
+        const pts = [...p.points].map((q) => ({ x: m.a * q.x + m.c * q.y + m.e, y: m.b * q.x + m.d * q.y + m.f }))
+        const rect = [{ x: box.left, y: box.top }, { x: box.right, y: box.top }, { x: box.right, y: box.bottom }, { x: box.left, y: box.bottom }]
+        const axes = [{ x: 1, y: 0 }, { x: 0, y: 1 }, ...pts.map((q, i) => { const n = pts[(i + 1) % pts.length]; return { x: q.y - n.y, y: n.x - q.x } })]
+        return axes.every((a) => {
+          const span = (ps) => ps.map((q) => q.x * a.x + q.y * a.y)
+          const h = span(pts), r = span(rect), len = Math.hypot(a.x, a.y)
+          return Math.min(...h) < Math.max(...r) - 0.5 * len && Math.min(...r) < Math.max(...h) - 0.5 * len
+        })
+      }).length
+      if (hexes) out.problems.push(`callout about the tray / buttons covers ${hexes} board hexes (the prompt is on top)`)
+    }
   }
   return out
 }

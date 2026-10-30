@@ -36,6 +36,17 @@ export const promptOnTop = () => !!document.querySelector('.game[data-prompt="to
 /** offBoardSide for the page as it is. */
 export const offBoardPlacement = (): CalloutPlacement => offBoardSide(promptOnTop())
 
+/** What an IDLE nudge about the whole tray ("Drag a seed onto a pale hex.") points at: with the prompt on top, the
+ *  tray's first seed — below it there's room (over the second row and the buttons); below the whole tray there's none,
+ *  and above it is the board, whose pale hexes the player needs then (F91). Otherwise the tray itself, as before.
+ *  (Not the wrong-tap nudge "…first" after a tap on Plant: below the first seed it would pop up under the finger on
+ *  Plant, and the finger's release would close it — it stays at the whole tray.) */
+export function nudgeTarget(selector: string): string {
+  if (selector !== '.game-tray' || !promptOnTop()) return selector
+  const first = [...document.querySelectorAll('.game-tray [data-hand]')].find((el) => el.getBoundingClientRect().width > 0)
+  return first ? `[data-hand="${first.getAttribute('data-hand')}"]` : selector
+}
+
 export function calloutPlacement(selector: string, live: Hex | null = null): CalloutPlacement {
   const el = document.querySelector(selector)
   if (!el) return offBoardPlacement()
