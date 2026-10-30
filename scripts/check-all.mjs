@@ -6,6 +6,10 @@
 // side; `--jobs 3` sets how many run at once (default 3 — more makes the animation-timed scripts flaky on a busy PC).
 // Writes e2e-shots/checks.html: every check, pass/fail, how long, and its full log — the page Claude links for Muzzy
 // (dev server: /e2e-shots/checks.html), next to golden.html and report.html. Exit code 0 = everything passed.
+// PORT PRE-FLIGHT (F118): before anything starts, a full run checks every port it will use is free — a port another
+// server holds fails the run at once, naming who holds it and the line that frees it. The ports a run uses: every number
+// from 1024 up in an E2E/ALONE line's args, plus each script's `const …PORT = 5291` and `// ports: 5462 5463` lines.
+// Needs scripts/ports.mjs (a copy of ~/.claude/config/bmuz/templates/ports.mjs); only a full run loads it.
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { availableParallelism } from 'node:os'
@@ -94,6 +98,33 @@ if (tier === 'full') {
 }
 function isRunning(pid) {
   try { process.kill(pid, 0); return true } catch (error) { return error.code === 'EPERM' }
+}
+
+// Port pre-flight (F118, see the top): every port this run's e2e scripts (and the ALONE ones) use must be free before anything starts.
+if (tier === 'full') {
+  const users = new Map() // port → the e2e names that use it
+  for (const [name, script, a] of [...e2e, ...alone]) {
+    const text = existsSync(script) ? readFileSync(script, 'utf8') : ''
+    const declared = [...text.matchAll(/^\s*\/\/\s*ports:(.*)$/gim)].map((m) => m[1]).join(' ')
+    const constants = [...text.matchAll(/\b(?![A-Z0-9_]*DEFAULT)(?:[A-Z0-9]+_)*PORT(?:_[A-Z0-9]+)*\s*=\s*(\d+)\b/g)].map((m) => m[1]).join(' ')
+    for (const port of `${a} ${declared} ${constants}`.match(/\b\d+\b/g) ?? []) {
+      if (Number(port) < 1024 || Number(port) > 65535) continue
+      users.set(Number(port), [...new Set([...(users.get(Number(port)) ?? []), name])])
+    }
+  }
+  if (!existsSync(new URL('./ports.mjs', import.meta.url))) {
+    console.log('NOT STARTED — scripts/ports.mjs is missing (the port pre-flight needs it): copy ~/.claude/config/bmuz/templates/ports.mjs to scripts/ports.mjs')
+    process.exit(1)
+  }
+  const { heldPorts } = await import('./ports.mjs')
+  const held = heldPorts([...users.keys()])
+  for (const { port, cmd, folder } of held) {
+    console.log(`Port ${port} (${users.get(port).join(', ')}) is held by \`${cmd}\`${folder ? ` in ${folder}` : ''} — free it: node ~/.claude/config/bmuz/scripts/stop-servers.mjs ${port}`)
+  }
+  if (held.length) {
+    console.log(`\nNOT STARTED — ${held.length} port${held.length > 1 ? 's' : ''} already in use (the scripts would fail on ${held.length > 1 ? 'them' : 'it'} later as a vague timeout).`)
+    process.exit(1)
+  }
 }
 
 /** Runs one check; resolves with { name, ok, seconds, log }. */

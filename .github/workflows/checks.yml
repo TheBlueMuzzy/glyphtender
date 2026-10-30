@@ -64,14 +64,50 @@ jobs:
 
       # The framework checks drive Playwright's own Chromium (headless, software graphics). Games install either
       # "playwright" or the smaller "playwright-core" — use whichever this game has. --with-deps adds the Linux libraries.
+      # Kept between runs (framework v0.32.0, F158 — Keep test browsers on GitHub): the slow part is the Linux packages
+      # from Ubuntu's mirror (13 MB took 8 min 19 s; the framework's saves job timed out at 15 min twice in a day), so
+      # the browser AND those package files (.deb) are cached, keyed on the Playwright version; a stalled download gives
+      # up after 30 s and tries again. apt re-checks every kept file against Ubuntu's signed lists before installing it.
+      - name: Which Playwright
+        if: steps.framework.outputs.has == 'yes'
+        id: playwright
+        run: |
+          echo "version=$(node -p "require('playwright-core/package.json').version")" >> "$GITHUB_OUTPUT"
+          if [ -e node_modules/.bin/playwright ]; then echo "cli=playwright" >> "$GITHUB_OUTPUT"; else echo "cli=playwright-core" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Browsers kept from an earlier run
+        if: steps.framework.outputs.has == 'yes'
+        id: browsers
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/apt-cache
+          key: test-browsers-${{ runner.os }}-pw${{ steps.playwright.outputs.version }}-chromium
+
       - name: Install Playwright's Chromium
         if: steps.framework.outputs.has == 'yes'
+        timeout-minutes: 15
+        env:
+          CLI: ${{ steps.playwright.outputs.cli }}
         run: |
-          if [ -e node_modules/.bin/playwright ]; then
-            npx playwright install --with-deps chromium
-          else
-            npx playwright-core install --with-deps chromium
-          fi
+          printf '%s\n' 'APT::Keep-Downloaded-Packages "true";' 'Binary::apt::APT::Keep-Downloaded-Packages "true";' \
+            'Acquire::Retries "3";' 'Acquire::http::Timeout "30";' 'Acquire::https::Timeout "30";' \
+            | sudo tee /etc/apt/apt.conf.d/99-test-browsers > /dev/null
+          sudo rm -f /etc/apt/apt.conf.d/docker-clean
+          mkdir -p ~/apt-cache
+          if ls ~/apt-cache/*.deb > /dev/null 2>&1; then sudo cp ~/apt-cache/*.deb /var/cache/apt/archives/; fi
+          npx "$CLI" install --with-deps chromium
+          cp /var/cache/apt/archives/*.deb ~/apt-cache/ 2>/dev/null || true
+
+      - name: Keep the browsers for the next run
+        if: steps.framework.outputs.has == 'yes' && steps.browsers.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/apt-cache
+          key: ${{ steps.browsers.outputs.cache-primary-key }}
 
       - name: check:framework
         if: steps.framework.outputs.has == 'yes'

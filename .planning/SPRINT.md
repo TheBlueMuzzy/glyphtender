@@ -8,7 +8,7 @@ Done when: Dev Kit, table, ai, rooms and audio are at the framework's newest (de
 - [x] 🤖 1. Dev Kit first (install-module refuses ai on the old Dev Kit) — src/devkit/VERSION
 - [x] 🤖 2. table, ai, rooms with each printed hand step: ai chattiness → 0 for all 4 personalities (bots stay silent), the Dev Kit previews' fake OnlineRoom gets matchEnded/cameBack/clearCameBack/sendEmote, roomsPort() in vite.config, /health in party/worker.ts — src/devkit-game/PreviewApp.tsx
 - [x] 🤖 3. audio 0.5.0 + `npm run audio:check -- --fix` (the tuned mix kept via volumeDb) — content/audio.json
-- [ ] 🤖 4. The template's checks.yml (browser cache) + check-all's port pre-flight (scripts/ports.mjs) — scripts/check-all.mjs
+- [x] 🤖 4. The template's checks.yml (browser cache) + check-all's port pre-flight (scripts/ports.mjs) — scripts/check-all.mjs
 - [ ] 🤖 5. check:full green; e2e online, online4, online-ai pass — scripts/check-all.mjs
 - [ ] 🙋 6. Listen to seed.pick, seed.drop, no and reveal.bonus (variants of one sound now even with each other, up to 2.6 dB per variant) — content/audio.json
 Check: install-module's checks green per module; check:full; the three online e2e; Muzzy's listen.
@@ -46,5 +46,6 @@ Notes:
 - Open bugs: none P0/P1 (BUGS.md: P2 1 verified, P3 6 — all test flakes).
 - Install order (framework v0.34.0's install-module enforces it): devkit before ai.
 - F90 task 2 (Claude's calls): ai's banter steps 2–4 skipped (bots silent, chattiness 0 → check:framework skips both banter checks). ai's arena steps 1 + 5 → ROADMAP Ideas (optional, no player change). rooms steps 3–4 (keep a match through a server restart) = F96 — Matches survive a server restart, sprint 31; rooms' "Rejoin match" promise = F95 — Rejoin match → listed as a known gap in content/devkit.json until then. Table 0.8.0 → 0.8.2 changed only its VERSION in the game.
+- F90 task 4: checks.yml = the template (browser + apt cache); check-all's pre-flight covers E2E + ALONE. Proof attempt: a dummy server on 5243 was NOT caught, because netstat shows no row for it in Claude's shell (the shared Windows port lookup, not this copy) → added to the framework ROADMAP Ideas note. The pre-flight is in place for when that lookup is fixed.
 - Surprise: stop-servers.mjs said "nothing is listening" while party:dev still held 1997 → logged in the framework ROADMAP Ideas; `stop-servers.mjs wrangler` stops it by name.
 Retro:
