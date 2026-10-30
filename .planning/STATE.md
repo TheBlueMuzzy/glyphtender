@@ -44,6 +44,7 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 30 · Doing: 
 **Since Dev Kit 0.28 (F90 — Quiet module updates):** the Dev Kit arrives ~2 s after the page — an e2e that opens it waits for `aside.devkit` attached, never a fixed time. Adding a sound in the Sound tab keeps its original in `audio-originals/` (committed; `npm run audio:check -- --fix` uses it). Port lookups (stop-servers, check-all's pre-flight) can miss a server started from Claude's shell — stop wrangler by name: `node ~/.claude/config/bmuz/scripts/stop-servers.mjs wrangler`.
 
 ## Log
+- 2026-10-30 — F97 — Portrait only ✅: Glyphtender is an upright game — installed it opens upright, full screen on Android holds it upright; a sideways browser tab just looks sideways (Muzzy: "it'll be obvious").
 - 2026-10-30 — F90 — Quiet module updates ✅: every framework module current; plays and looks the same (216/216 screenshots), the bots stay silent, the sounds are evened out with the tuned mix kept (Muzzy listened: fine).
 - 2026-10-30 — Sprint 30 planned: Glyphtender on today's framework (F90 quiet module updates, F97 portrait only, F91 new kit look with the board nearer the middle, F92 version label + crash reports).
 - 2026-10-15 — Released v0.11.0 = v0.15 ✅ Dev Kit Select Mode (F86 game things, F88 menus — Muzzy approved): click anything with the Dev Kit open → every setting for it. Review fix → Dev Kit 0.16.1. Server unchanged (not redeployed).
@@ -53,4 +54,3 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 30 · Doing: 
 - 2026-10-13 — Overnight (auto): the tutorial built end to end — sprint 26 (plant wording, callouts + tips memory, tutorial shell + locks, Sprout) and sprint 27 (Text tab, rails, tips, nudges, Explore). Framework: ui-kit 0.9.0 + devkit 0.13.0 on branch dev/tutorial-kits. Full check 33/33.
 - 2026-10-12 — Released v0.9.3: B027 New Game scrolls on phones (UI kit 0.8.2 + a real touch-swipe check in e2e:new-game). Full check; fixed 2 e2e scripts gone stale in v0.9.2 (they tapped hidden settings rows). Server unchanged.
 - 2026-10-12 — Released v0.9.2: Settings shows only rows that work (12 kit placeholders off; ui-kit 0.8.1 installer now starts games that way). Fast + shots + previews checks; perf unchanged (slow phone 1.61 s to Play, 60 fps).
-- 2026-10-12 — Released v0.9.1: the live site's console is clean again (Words tab fetched /__words/list on the live build → 404). Server unchanged.
