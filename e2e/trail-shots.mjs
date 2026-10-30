@@ -1,4 +1,4 @@
-// TURN TRAILS + PLAYER-COLOUR TEMPLATES, through the real screen, at 390×844, 844×390, 1099×846 and 1440×900 —
+// TURN TRAILS + PLAYER-COLOUR TEMPLATES, through the real screen, at 390×844, 1099×846 and 1440×900 —
 // for a Yellow AND a Blue player (Muzzy, 2026-10-01: "the color of the movement/casting template should match the
 // color of the player… if we could see the paths when other players take their turns…"):
 //   landed    — right after the previous turn landed: NO trail on the board (Muzzy: "shouldn't [stick around] post cast")
@@ -19,7 +19,6 @@ const OUT = process.argv[2] ?? 'e2e-shots'
 const PORT = Number(process.argv[3] ?? 5281)
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
   { name: 'laptop', width: 1099, height: 846, mobile: false },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]

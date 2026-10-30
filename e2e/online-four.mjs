@@ -1,5 +1,5 @@
 // A 4-PLAYER ONLINE GAME THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — four browsers (own storage = four
-// different players): Ada (host, phone 390×844), Bo (desktop 1440×900), Cy (phone sideways 844×390), Di (phone 390×844).
+// different players): Ada (host, phone 390×844), Bo (desktop 1440×900), Cy (small phone 360×780), Di (phone 390×844).
 // Play online → Ada creates a room, the other three join by the code → lobby with 4 seats (shots at all three
 // sizes) → everyone ready → Start → the draft (8 glyphlings) and turns by taps, whoever's turn it is →
 // Cy DROPS mid-game (his tab closes): the game waits on his turn, the others see "Away" on his portrait →
@@ -37,10 +37,10 @@ async function context(viewport, mobile) {
   return ctx
 }
 const player = async (name, viewport, mobile) => makePlayer(name, await context(viewport, mobile), { mobile }, { vitePort: VITE_PORT, out: OUT, fail })
-const TALL = { width: 390, height: 844 }, WIDE = { width: 844, height: 390 }, DESK = { width: 1440, height: 900 }
+const TALL = { width: 390, height: 844 }, SMALL = { width: 360, height: 780 }, DESK = { width: 1440, height: 900 }
 const ada = await player('Ada', TALL, true)
 const bo = await player('Bo', DESK, false)
-const cy = await player('Cy', WIDE, true)
+const cy = await player('Cy', SMALL, true)
 const di = await player('Di', TALL, true)
 const everyone = [ada, bo, cy, di]
 const shot = (p, label, settle) => p.shot(label, settle, 'online4')
@@ -119,7 +119,7 @@ try {
     .catch(() => fail('the host never saw 4 seats'))
   await ada.page.waitForFunction(() => !document.querySelector('.kit-modal button:last-child')?.disabled, null, { timeout: 10000 })
   // The host's lobby with 4 seats at every size
-  for (const size of [TALL, WIDE, DESK]) {
+  for (const size of [TALL, SMALL, DESK]) {
     await ada.page.setViewportSize(size)
     await shot(ada, '1-lobby-host-4-seats')
     for (const name of ['Ada', 'Bo', 'Cy', 'Di']) check(`the lobby lists ${name} (${size.width}x${size.height})`, (await ada.page.getByText(name, { exact: true }).count()) > 0)

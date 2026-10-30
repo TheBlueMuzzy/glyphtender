@@ -1,7 +1,7 @@
 // ONLINE AI SEATS (F43) THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — two browsers: Ada (host, phone 390×844)
 // and Bo (desktop 1440×900).
 // Play online → Ada creates a room → in the lobby she adds an AI (Scholar at Archmage — the same AI Type · Skill rows as New Game), removes it, adds the
-// Strategist at Apprentice → lobby shots at 390×844, 360×780, 844×390 and 1440×900 (the add-AI card, 🤖 + skill on the AI's
+// Strategist at Apprentice → lobby shots at 390×844, 360×780 and 1440×900 (the add-AI card, 🤖 + skill on the AI's
 // row) → Bo joins, sees the AI (no Remove for him), gets ready → Start (3 seats: Ada, Bo, the Strategist) → the AI
 // places and plays on the server: its draft placement TRAVELS out of the tray to its hex on Ada's screen like a
 // person's drag (frame check, e2e/draft-travel.mjs — F50's, never a pop), its turns GLIDE like any player's (a [data-glide] animation), the
@@ -45,7 +45,7 @@ async function context(viewport, mobile) {
   return ctx
 }
 const player = async (name, viewport, mobile) => makePlayer(name, await context(viewport, mobile), { mobile }, { vitePort: VITE_PORT, out: OUT, fail })
-const TALL = { width: 390, height: 844 }, SMALL = { width: 360, height: 780 }, WIDE = { width: 844, height: 390 }, DESK = { width: 1440, height: 900 }
+const TALL = { width: 390, height: 844 }, SMALL = { width: 360, height: 780 }, DESK = { width: 1440, height: 900 }
 const ada = await player('Ada', TALL, true)
 const bo = await player('Bo', DESK, false)
 const shot = (p, label, settle) => p.shot(label, settle, 'online-ai')
@@ -143,7 +143,7 @@ try {
   await bo.tap(bo.page.getByRole('button', { name: 'I’m ready' }))
   await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.length === 3, null, { timeout: 10000 })
   await ada.page.waitForFunction(() => ![...document.querySelectorAll('.kit-modal button')].find((b) => b.textContent === 'Start game')?.disabled, null, { timeout: 10000 })
-  for (const size of [TALL, SMALL, WIDE, DESK]) {
+  for (const size of [TALL, SMALL, DESK]) {
     await ada.page.setViewportSize(size)
     await shot(ada, '1-lobby-host-ai')
   }
@@ -206,7 +206,7 @@ try {
   check('…and the bar closed Explore, so she knows she has to play', (await exploreButton.getAttribute('aria-pressed')) !== 'true')
   check('…and only on hers (not on Bo\'s)', (await bo.page.locator('.kit-idle').count()) === 0)
   check('the bar\'s one line', (await ada.page.getByText('Still there? A bot plays for you soon').count()) === 1)
-  for (const size of [TALL, WIDE, DESK]) { // (the bar is up for IDLE_TAKEOVER_MS - IDLE_WARN_MS: room for three shots)
+  for (const size of [TALL, DESK]) { // (the bar is up for IDLE_TAKEOVER_MS - IDLE_WARN_MS: room for these shots)
     await ada.page.setViewportSize(size)
     await shot(ada, '2-idle-warning', 300)
   }

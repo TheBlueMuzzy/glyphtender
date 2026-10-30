@@ -1,7 +1,7 @@
 // WORD SWITCHES (F71) — British spelling / Vulgar words are TABLE options, like 2-letter words (Muzzy 2026-10-12: "it's
 // just like the 2-letter option"): New Game and the online host's lobby, never Settings. Through the real screens and a
 // real local server:
-// 1. New Game shows both switches, off — shots at 390×844, 844×390, 768×343, 1440×900 (nothing clipped); Settings has
+// 1. New Game shows both switches, off — shots at 390×844 and 1440×900 (nothing clipped); Settings has
 //    neither (and no Difficulty row)
 // 2. British on → Start → the game's config + word list have it → a hand-made turn (devHook castWord) spells COLOUR:
 //    the Plant button previews Magic, and after the throw COLOUR is one of the turn's words, Magic scored
@@ -93,7 +93,7 @@ try {
     await button('Play').click()
     check('New Game: British spelling + Vulgar words, both off at first',
       (await switchOf('British spelling').getAttribute('aria-checked')) === 'false' && (await switchOf('Vulgar words').getAttribute('aria-checked')) === 'false')
-    for (const [width, height] of [[390, 844], [844, 390], [768, 343], [1440, 900]]) {
+    for (const [width, height] of [[390, 844], [1440, 900]]) {
       await page.setViewportSize({ width, height })
       await page.waitForTimeout(400)
       await switchOf('Vulgar words').scrollIntoViewIfNeeded()

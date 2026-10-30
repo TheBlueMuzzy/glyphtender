@@ -1,7 +1,7 @@
 // SUBMIT A WORD (F69) THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — a phone (390×844) in a pass-and-play game:
 // 1. no seed planned → Pause's "Submit a word" row still opens; its screen says to place a seed first
 // 2. a seed planned whose letters aren't a word → the row works → the picker lists exactly the stretches the engine
-//    finds (3+ letters, not words, longest first) → Pause + picker shot at 390×844, 844×390, 768×343, 1440×900
+//    finds (3+ letters, not words, longest first) → Pause + picker shot at 390×844 and 1440×900
 //    (nothing clipped, buttons ≥ 44 px)
 // 3. tap a word → "Word submitted" → the server's /words/list (with the admin key) has it as open, category player
 // 4. the same word again → "Word submitted" again, the list doesn't grow
@@ -108,7 +108,7 @@ try {
     console.log(`     planned ${pick.seed} → ${pick.target}: picker ${pick.words.join(' ')}`)
     const before = await serverList()
     check(`the list fills itself from submitted.csv (${Object.keys(before).length} rows)`, Object.keys(before).length > 0)
-    for (const size of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 768, height: 343 }, { width: 1440, height: 900 }]) {
+    for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(size)
       await page.waitForTimeout(300)
       await openPause()

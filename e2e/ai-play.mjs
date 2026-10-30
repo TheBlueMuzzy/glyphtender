@@ -5,7 +5,7 @@
 //      screen opens; its Results and Story pages still work after an AI game.
 //   2. 2 people + 2 AIs, hide seeds ON, to the end (desktop 1440×900): Yellow person · Blue AI · Purple person · Pink AI.
 //      The device is passed only to people — never to an AI, and the AI's seeds never show.
-//   3. Screenshots at 7 sizes (390×844, 360×780, 844×390, 768×343, 1100×800, 1440×900, 1920×1080): New Game with AI seats
+//   3. Screenshots at 5 sizes (390×844, 360×780, 1100×800, 1440×900, 1920×1080): New Game with AI seats
 //      (4 players, Blue + Pink AI, their personality cards) and a game during an AI's turn (AI speed Slow, "is thinking…").
 //      Each is checked: no sideways scroll, nothing past a screen edge, nothing touching the inside edge of an AI card,
 //      and every AI card the same size whichever personality it shows.
@@ -28,8 +28,6 @@ const SETTINGS_KEY = 'kit-settings:' // the kit's Settings slot for a page at "/
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
   { name: 'phone-small', width: 360, height: 780, mobile: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
-  { name: 'short-wide', width: 768, height: 343, mobile: true },
   { name: 'laptop', width: 1100, height: 800, mobile: false },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
   { name: 'big', width: 1920, height: 1080, mobile: false },

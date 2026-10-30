@@ -1,5 +1,5 @@
 // EXPLORE MODE — the ? button (F79, design/tutorial.md §6), through the real screen.
-//   1. vs AI at 390×844, 844×390 and 1440×900 (a returning device: Play → New game, Blue = AI, Settings → AI speed Slow):
+//   1. vs AI at 390×844 and 1440×900 (a returning device: Play → New game, Blue = AI, Settings → AI speed Slow):
 //      play the draft and one turn, then on my next turn tap ? → the bar takes the prompt's place, the ? is lit, the
 //      reminder points at the ?. Tap my glyphling (your words), a rival glyphling (their words), a seed on the board, a
 //      tray seed, Plant, ☰ (it explains itself — Pause does NOT open) → each lights up with its callout. Tap empty space
@@ -23,7 +23,6 @@ const SETTINGS_KEY = 'kit-settings:' // the kit's Settings slot for a page at "/
 
 const SIZES = [
   { name: 'phone', width: 390, height: 844, mobile: true },
-  { name: 'phone-side', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 

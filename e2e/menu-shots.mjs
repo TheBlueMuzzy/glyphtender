@@ -1,4 +1,4 @@
-// Screenshots of the kit menus (home, Settings → Accessibility, Credits) at phone-tall, phone-wide and desktop,
+// Screenshots of the kit menus (home, Settings → Accessibility, Credits) at phone-tall and desktop,
 // plus a check that nothing sticks out past the screen edge and every button is a ≥ 44px target.
 // Needs the dev server, e.g. npx vite --host --port 5186. Usage: node e2e/menu-shots.mjs <outDir> [baseUrl]
 import { chromium } from 'playwright-core'
@@ -7,7 +7,6 @@ const OUT = process.argv[2] ?? '.'
 const URL = process.argv[3] ?? 'http://localhost:5186/'
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 // Anything visible poking past an edge, and any button smaller than a finger

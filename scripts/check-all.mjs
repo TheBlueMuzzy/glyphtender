@@ -36,7 +36,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'],
   ['submit-word', 'e2e/submit-word.mjs', 'e2e-shots 5435 1989'], // (F69: Pause → Submit a word → the server's list; repeat, offline queue, < 3 letters) // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)
   ['word-switches', 'e2e/word-switches.mjs', 'e2e-shots 5437 1984'], // (F71: Settings → British Spelling / Vulgar Words — a game keeps its switches; COLOUR scores only with British on; online the host's rule the room)
-  ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 7 sizes)
+  ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 5 sizes)
   ['pass4', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5403 4'],
   ['game', 'e2e/game-shots.mjs', 'e2e-shots 5401'],
   ['pass', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5402 3'],
@@ -48,12 +48,12 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
   ['drag', 'e2e/drag-styles.mjs', 'e2e-shots 5432'], // (F63: carry styles A–D × draft / seed / reorder / move, phone + desktop)
-  ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — 3 sizes)
-  ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
+  ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — phone + desktop)
+  ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 4 sizes)
   ['tutorial-shell', 'e2e/tutorial-shell.mjs', 'e2e-shots/tutorial-shell 5440'], // (F74: new device → locks, overview, Leave tutorial unlocks; returning device; Replay)
   ['tutorial-rails', 'e2e/tutorial-rails.mjs', 'e2e-shots/tutorial-rails 5445'], // (F76: the tutorial game's draft + first 2 turns by drag / tap, phone + desktop — one callout, one live target, Sprout's script, then free play)
   ['tutorial-tips', 'e2e/tutorial-tips.mjs', 'e2e-shots/tutorial-tips 5446'], // (F77–F78: first-time tips once each + the pause hold, idle glow then words, wrong-action callouts, Tips off → none; phone + desktop)
-  ['explore', 'e2e/explore.mjs', 'e2e-shots/explore 5447'], // (F79: the ? button — vs AI at 3 sizes: taps explain, ☰ doesn't open, the AI waits; pass-and-play: the handoff ends it)
+  ['explore', 'e2e/explore.mjs', 'e2e-shots/explore 5447'], // (F79: the ? button — vs AI at phone + desktop: taps explain, ☰ doesn't open, the AI waits; pass-and-play: the handoff ends it)
   ['turn-phone', 'e2e/turn-phone.mjs', 'e2e-shots 5449'], // (F97: a phone on its side shows "Turn your phone upright"; upright, tablets and desktop windows don't)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
