@@ -305,7 +305,7 @@ flowchart LR
 
 ## v0.16 — On today's framework  ← current · planned 2026-10-30
 Goal (Muzzy 2026-10-30): every framework module current (framework v0.34.0), portrait only, the board nearer the middle of a phone — from the framework's catch-up rehearsal (framework .planning/research/2026-10-29-glyphtender-catchup.md).
-- 🔨 F90 🔧 Quiet module updates — Dev Kit, table, ai, rooms, audio to the newest with every printed hand step; bots stay silent (chattiness 0); the tuned mix kept — must · sprint 30
+- ✅ F90 🔧 Quiet module updates — Dev Kit, table, ai, rooms, audio to the newest with every printed hand step; bots stay silent (chattiness 0); the tuned mix kept — must · sprint 30
 - 🔨 F97 🎮 Portrait only — "orientation": "portrait", a sideways phone shows turn-your-phone, landscape sizes dropped from checks; GDD updated (Muzzy 2026-10-30) — must · sprint 30
 - 🔨 F91 🎮 New kit look — UI kit 0.20 → 0.38, the board near the vertical middle of a phone for comfort, Muzzy's OK on before/after shots — must · needs: F97 · sprint 30
 - 🔨 F92 🔧 Version label + crash reports — the version in the menu + Settings, crash reports wired and their server live, a privacy page — must · sprint 30

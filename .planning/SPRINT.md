@@ -10,9 +10,9 @@ Done when: Dev Kit, table, ai, rooms and audio are at the framework's newest (de
 - [x] 🤖 3. audio 0.5.0 + `npm run audio:check -- --fix` (the tuned mix kept via volumeDb) — content/audio.json
 - [x] 🤖 4. The template's checks.yml (browser cache) + check-all's port pre-flight (scripts/ports.mjs) — scripts/check-all.mjs
 - [x] 🤖 5. check:full green; e2e online, online4, online-ai pass — scripts/check-all.mjs
-- [ ] 🙋 6. Listen to seed.pick, seed.drop, no and reveal.bonus (variants of one sound now even with each other, up to 2.6 dB per variant) — content/audio.json
+- [x] 🙋 6. Listen to seed.pick, seed.drop, no and reveal.bonus (variants of one sound now even with each other, up to 2.6 dB per variant) — content/audio.json
 Check: install-module's checks green per module; check:full; the three online e2e; Muzzy's listen.
-Checked: install-module per module (devkit, table green; ai + rooms green after their wiring, Rejoin = known gap F95; audio green); check:full 32/34 then both fixed + re-run green (STATE Last full check); online, online4, online-ai PASS; /health answers {"ok":true} on party:dev. Muzzy's listen: waiting (task 6).
+Checked: install-module per module (devkit, table green; ai + rooms green after their wiring, Rejoin = known gap F95; audio green); check:full 32/34 then both fixed + re-run green (STATE Last full check); online, online4, online-ai PASS; /health answers {"ok":true} on party:dev. Muzzy's listen 2026-10-30: "the 4 sounds are fine" — approved.
 
 ## F97 🎮 Portrait only
 Done when: content/ui/style.json says "orientation": "portrait", a phone on its side shows the kit's "turn your phone" screen, check:framework and the e2e/screenshot sizes drop 844x390 and 768x343, and the GDD says portrait only.
