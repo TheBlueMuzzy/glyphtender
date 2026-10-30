@@ -33,10 +33,15 @@ const TUNING = ['content/tuning/anim.json', 'content/tuning/feel.json']
 const tuningBefore = TUNING.map((f) => readFileSync(f, 'utf8'))
 const filesBefore = new Set(readdirSync(UI_FOLDER))
 const newFiles = () => readdirSync(UI_FOLDER).filter((f) => !filesBefore.has(f))
-/** Put the repo back as it was: the two JSON files, and no test MP3. */
+// The Sound tab evens out an added file and keeps its original here (Dev Kit 0.22+, audio-originals/ — outside public/)
+const KEPT_FOLDER = 'audio-originals/ui'
+const keptBefore = new Set(existsSync(KEPT_FOLDER) ? readdirSync(KEPT_FOLDER) : [])
+const newKept = () => (existsSync(KEPT_FOLDER) ? readdirSync(KEPT_FOLDER).filter((f) => !keptBefore.has(f)) : [])
+/** Put the repo back as it was: the two JSON files, no test MP3, and no kept original of it. */
 function putBack() {
   for (const [file, text] of Object.entries(originals)) if (readFileSync(file, 'utf8') !== text) writeFileSync(file, text)
   for (const f of newFiles()) rmSync(`${UI_FOLDER}/${f}`)
+  for (const f of newKept()) rmSync(`${KEPT_FOLDER}/${f}`)
 }
 
 /** A tiny WAV: `silence` s of nothing, then `tone` s of a 660 Hz tone (16-bit mono, 22 050 Hz). */
