@@ -1,4 +1,5 @@
 ## ▶ RESUME HERE
+2026-10-30 — **F97 — Portrait only ✅ (Muzzy: "approved")**: style.json orientation portrait, installed app opens upright (manifest), full screen asks Android to hold portrait; plain browser tabs do nothing (Muzzy: "do nothing for browsers. it'll be obvious") — a "Turn your phone" screen was built and removed the same day. Every e2e is portrait + desktop sizes only (162 reference shots). **Next: /develop F91 — New kit look, task 1** (UI kit 0.38.0 via install-module) on dev/framework-checks.
 2026-10-30 — **F90 — Quiet module updates ✅ (Muzzy: "the 4 sounds are fine")**: Dev Kit 0.28.1, table 0.8.2, ai 0.8.3 (bots silent, chattiness 0), rooms 0.13.1 (/health, roomsPort; Rejoin = known gap → F95 — Rejoin match), audio 0.5.0 (56 sounds evened, tuned mix kept via volumeDb, originals in audio-originals/). check:full green after 2 test fixes; online e2e 3/3. **Next: /develop F97 — Portrait only, task 1** on dev/framework-checks.
 2026-10-30 — **Sprint 30 (v0.16 On today's framework) planned with Muzzy: F90 — Quiet module updates, F97 — Portrait only, F91 — New kit look, F92 — Version label + crash reports. Next: /develop F90 task 1 (Dev Kit first) on dev/framework-checks.** Muzzy's answers: portrait only (a new feature, F97); the board nearer the middle of a phone for comfort (F91). Bots stay silent. Source: framework .planning/research/2026-10-29-glyphtender-catchup.md + framework v0.34.0.
 2026-10-19 — **Branch `dev/framework-checks` (framework F63, approved): all 6 framework pieces at their newest** (UI kit 0.19.0, Dev Kit 0.20.2, audio 0.3.1, table 0.8.0, ai 0.2.1, rooms 0.7.0); check:full green, check:framework 23 kept + 1 known gap (half pause → F89). Muzzy played it on his phone: plays the same. Not released yet → the next Glyphtender `/deliver` (a patch) ships it. New P3s: B029, B030.
@@ -8,7 +9,7 @@ Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn 
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.16 On today's framework · Sprint: 30 · Doing: F97 — Portrait only (building) · Branch: dev/framework-checks · Version: 0.11.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.0, beta stage, online)
+Stage: develop · Milestone: v0.16 On today's framework · Sprint: 30 · Doing: F91 — New kit look · Branch: dev/framework-checks · Version: 0.11.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
