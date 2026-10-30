@@ -33,6 +33,8 @@ Done when: UI kit 0.38.0 installed with Glyphtender's two test-helper fixes, the
 - [x] 🤖 3. Before/after screenshots at every portrait size (390x844, 360x780, ~1100 wide, 1440x900, 1920x1080) — look at each, describe them — e2e/shots.mjs
 - [x] 🙋 4. Muzzy's call on the look (roomier player cards, the board's new spot) — Muzzy 2026-10-30: ".5 is good" (boardVertical 0.5: turn words at the top, board in the middle — replaces D41) — e2e/shots.mjs
 - [ ] 🤖 4b. Tutorial bubbles that point at the tray don't cover the board's bottom row any more (Muzzy 2026-10-30: "yes" — in this feature) — src/tutorial/
+  - done (eafedce, 3491922): one rule in tipsPlace.ts — with the prompt on top, a tray/button bubble goes BELOW its target (seed1, seed2, swap, idle nudge, seedFirst, explore tray seed: board hexes covered 9–18 → 0; plant1 / refresh / preview were already clear); desktop + boardVertical 0 unchanged; tipsPlace.test.ts + tutorial-rails (now also 360×780), tutorial-tips, explore guard it.
+  - Ask Muzzy: (1) the draft steps still cover 2 hexes at 390 (5 at 360) · (2) the noWord / handOver pauses (big, board dimmed) cover 23–40 hexes · (3) the plantNothing nudge covers 9–14.
 - [x] 🤖 4c. GDD §4 + TDD: the prompt now sits under the top bar on an upright phone (D101 replaces D41) — .planning/TDD.md
 - [ ] 🤖 5. Apply his choice; `npm run shots:record` once approved — e2e/shots.mjs
 Check: check:framework (every kit promise at every portrait size); screenshots looked at; Muzzy's OK.
