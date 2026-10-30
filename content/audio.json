@@ -308,7 +308,7 @@
         "ui/ui_seed_pick_03.mp3",
         "ui/ui_seed_pick_04.mp3"
       ],
-      "volumeDb": -8,
+      "volumeDb": -5.8,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
       "maxVoices": 2,
@@ -318,7 +318,7 @@
     "seed.drop": {
       "bus": "ui",
       "files": ["ui/ui_seed_drop_01.mp3", "ui/ui_seed_drop_02.mp3"],
-      "volumeDb": -8,
+      "volumeDb": -10.3,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
       "maxVoices": 2,
@@ -338,7 +338,7 @@
     "cast.throw": {
       "bus": "sfx",
       "files": ["sfx/sfx_cast_whoosh_01.mp3", "sfx/sfx_cast_whoosh_02.mp3", "sfx/sfx_cast_whoosh_03.mp3"],
-      "volumeDb": -6,
+      "volumeDb": -4.5,
       "randomPitch": 0.8,
       "randomVolumeDb": 1.5,
       "maxVoices": 2,
@@ -348,7 +348,7 @@
     "seed.land": {
       "bus": "sfx",
       "files": ["sfx/sfx_seed_land_01.mp3", "sfx/sfx_seed_land_02.mp3"],
-      "volumeDb": -3,
+      "volumeDb": 3,
       "randomPitch": 0.5,
       "randomVolumeDb": 1.5,
       "maxVoices": 2,
@@ -358,7 +358,7 @@
     "sprout.grow": {
       "bus": "sfx",
       "files": ["sfx/sfx_sprout_leaf_01.mp3", "sfx/sfx_sprout_leaf_02.mp3"],
-      "volumeDb": -8,
+      "volumeDb": -12.7,
       "delayMs": 80,
       "randomPitch": 0.5,
       "randomVolumeDb": 1,
@@ -397,7 +397,7 @@
     "cast.flourish": {
       "bus": "sfx",
       "files": ["sfx/sfx_cast_flourish_01.mp3"],
-      "volumeDb": -3,
+      "volumeDb": -3.5,
       "maxVoices": 1,
       "cooldownMs": 500,
       "priority": 5,
@@ -424,7 +424,7 @@
     "no": {
       "bus": "ui",
       "files": ["ui/ui_no_bonk_01.mp3", "ui/ui_no_bonk_02.mp3"],
-      "volumeDb": -6,
+      "volumeDb": -3.8,
       "randomPitch": 0.3,
       "randomVolumeDb": 1,
       "maxVoices": 2,
@@ -442,7 +442,7 @@
     "refresh.in": {
       "bus": "ui",
       "files": ["ui/ui_refresh_in_01.mp3"],
-      "volumeDb": -6,
+      "volumeDb": -1.8,
       "maxVoices": 1,
       "cooldownMs": 100,
       "priority": 2
@@ -450,7 +450,7 @@
     "tray.shuffle": {
       "bus": "ui",
       "files": ["ui/ui_tray_shuffle_01.mp3"],
-      "volumeDb": -6,
+      "volumeDb": -10.1,
       "randomPitch": 0.3,
       "maxVoices": 1,
       "cooldownMs": 150,
@@ -468,7 +468,7 @@
     "turn.yours": {
       "bus": "ui",
       "files": ["ui/ui_turn_yours_01.mp3"],
-      "volumeDb": -4,
+      "volumeDb": -8,
       "maxVoices": 1,
       "cooldownMs": 500,
       "priority": 4
@@ -476,7 +476,7 @@
     "handoff": {
       "bus": "ui",
       "files": ["ui/ui_handoff_01.mp3"],
-      "volumeDb": -4,
+      "volumeDb": 0.4,
       "maxVoices": 1,
       "cooldownMs": 300,
       "priority": 3
@@ -484,7 +484,7 @@
     "reveal.tangles": {
       "bus": "sfx",
       "files": ["sfx/sfx_reveal_tangles_01.mp3"],
-      "volumeDb": -4,
+      "volumeDb": -0.9,
       "maxVoices": 1,
       "cooldownMs": 300,
       "priority": 4
@@ -501,7 +501,7 @@
     "reveal.bonus": {
       "bus": "sfx",
       "files": ["sfx/sfx_reveal_bonus_01.mp3", "sfx/sfx_reveal_bonus_02.mp3"],
-      "volumeDb": -8,
+      "volumeDb": -9.6,
       "randomPitch": 0.3,
       "maxVoices": 3,
       "cooldownMs": 40,
@@ -582,7 +582,7 @@
     "amb.night": {
       "bus": "ambience",
       "files": ["amb/amb_night_garden_loop.mp3"],
-      "volumeDb": 0,
+      "volumeDb": -8,
       "loop": true,
       "loopEndMs": 45808,
       "fadeInMs": 1500,
@@ -622,8 +622,8 @@
       "garden": {
         "layers": {
           "harp": { "file": "mus/mus_garden_harp_01.mp3", "volumeDb": -2 },
-          "pad": { "file": "mus/mus_garden_pad_loop.mp3", "volumeDb": -8 },
-          "bells": { "file": "mus/mus_garden_bells_01.mp3", "volumeDb": -6, "fromIntensity": 0.4, "fullAtIntensity": 0.9 }
+          "pad": { "file": "mus/mus_garden_pad_loop.mp3", "volumeDb": -11.6 },
+          "bells": { "file": "mus/mus_garden_bells_01.mp3", "volumeDb": -10.1, "fromIntensity": 0.4, "fullAtIntensity": 0.9 }
         },
         "loop": false,
         "playsBeforeRest": 1,

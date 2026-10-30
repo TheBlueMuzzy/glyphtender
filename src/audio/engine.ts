@@ -168,7 +168,7 @@ function rampTo(param: AudioParam, value: number, at: number, seconds: number) {
 export function createAudio(rawConfig: unknown, options: AudioOptions = {}): Audio {
   let config = readAudioConfig(rawConfig)
   const clock = options.now ?? (() => performance.now())
-  const rng = options.rng ?? seededRandom(Date.now())
+  const rng = options.rng ?? seededRandom(Date.now()) // clock-ok: a seed for sound variation, not a time — tests pass rng
   const makeContext = options.context ?? (() => new AudioContext())
   const win: EventTarget | undefined = options.window ?? (typeof window !== 'undefined' ? window : undefined)
   const doc: DocumentLike | undefined = options.document ?? (typeof document !== 'undefined' ? document : undefined)

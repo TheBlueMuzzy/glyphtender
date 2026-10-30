@@ -60,7 +60,8 @@
     "ai:balance": "node scripts/ai-balance.mjs",
     "ai:server-timing": "node scripts/ai-server-timing.mjs",
     "e2e:word-switches": "node e2e/word-switches.mjs",
-    "check:framework": "node src/devkit/check-framework.mjs"
+    "check:framework": "node src/devkit/check-framework.mjs",
+    "audio:check": "node src/audio/audio-check.mjs"
   },
   "dependencies": {
     "partyserver": "^0.5.10",
