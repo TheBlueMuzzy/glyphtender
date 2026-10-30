@@ -14,8 +14,7 @@
     "edgeMargin": "Space kept round the top, sides and bottom of the game screen (on top of the phone's own safe area), so the portrait, Menu button, board and tray never touch the edge. Higher = more room. Try 12–24.",
     "revealBigZoom": "End-of-game reveal on a roomy screen (a desktop, a big board): how much bigger the players' Magic chips are drawn, so they match the big board. 1 = the normal size. Try 1.2–1.8.",
     "revealMinZoom": "End-of-game reveal beside the board in a SHORT window (e.g. 768×343, 4 players): the Magic chips may be drawn this much smaller so they and Skip fit under the words. 1 = never smaller. Lower = fits shorter windows, smaller words. Try 0.65–0.9.",
-    "edgeMarginShare": "On big screens the edge space grows: this share of the screen's shorter side (0.035 ≈ 32 pixels on a 900-tall desktop), used whenever it is more than the pixel setting above. Higher = more room on big screens. Try 0.02–0.05.",
-    "turnPhoneHeight": "Glyphtender is played upright: a touch screen held on its side and shorter than this (pixels) shows the \"Turn your phone\" screen. Phones on their side are 320–430 tall; small tablets on their side ~700–800. Desktop windows never show it. Higher = tablets on their side are asked to turn too. Try 450–900."
+    "edgeMarginShare": "On big screens the edge space grows: this share of the screen's shorter side (0.035 ≈ 32 pixels on a 900-tall desktop), used whenever it is more than the pixel setting above. Higher = more room on big screens. Try 0.02–0.05."
   },
   "_labels": {
     "stackedAspect": "Seed tray below or beside the board: the switch point (screen shape)",
@@ -29,7 +28,6 @@
     "revealMinZoom": "End reveal in a short window: smallest Magic chips size (×)",
     "edgeMarginShare": "Screen edges on big screens: space as a share of the screen",
     "bottomRoom": "Seed tray: room below it for the phone's gesture bar (pixels)",
-    "turnPhoneHeight": "Phone on its side: \"Turn your phone\" below this height (pixels)",
     "trayTileMin": "Seed tray: smallest seed size (pixels)",
     "trayGap": "Seed tray: gap between seeds (pixels)",
     "dragLift": "Drag: how far the piece floats above your finger (pixels)",
@@ -47,8 +45,7 @@
       "edgeMarginShare",
       "revealBigZoom",
       "revealMinZoom",
-      "bottomRoom",
-      "turnPhoneHeight"
+      "bottomRoom"
     ],
     "Seed tray": [
       "trayTileMin",
@@ -74,8 +71,7 @@
     "edgeMargin": [0, 48, 2],
     "revealBigZoom": [1, 2.5, 0.05],
     "revealMinZoom": [0.5, 1, 0.05],
-    "edgeMarginShare": [0, 0.08, 0.005],
-    "turnPhoneHeight": [300, 1000, 10]
+    "edgeMarginShare": [0, 0.08, 0.005]
   },
   "stackedAspect": 1.15,
   "trayTileMin": 44,
@@ -91,6 +87,5 @@
   "edgeMargin": 16,
   "edgeMarginShare": 0.035,
   "revealBigZoom": 1.4,
-  "revealMinZoom": 0.7,
-  "turnPhoneHeight": 500
+  "revealMinZoom": 0.7
 }

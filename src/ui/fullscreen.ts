@@ -38,7 +38,8 @@ export function enterFullscreen() {
 }
 
 // Glyphtender is portrait only (F97): once full screen, ask the phone to hold the screen upright. Android Chrome does;
-// iPhone and desktops can't (no lock) — the "Turn your phone" screen (TurnPhone.tsx) covers those.
+// iPhone, plain browser tabs and desktops can't lock — there a phone on its side just looks sideways, which tells the
+// player to turn it back (Muzzy 2026-10-30: "do nothing for browsers").
 type Lockable = ScreenOrientation & { lock?: (to: 'portrait') => Promise<void> }
 function holdUpright() {
   ;(screen.orientation as Lockable | undefined)?.lock?.('portrait').catch(() => { /* not allowed here: fine */ })

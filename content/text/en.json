@@ -265,11 +265,6 @@
       "tangleDetail": "Tangles +{n}"
     }
   },
-  "turnPhone": {
-    "icon": "📱",
-    "title": "Turn your phone upright",
-    "message": "Glyphtender is played with the phone held upright."
-  },
   "credits": {
     "people": [
       {

@@ -9,7 +9,6 @@ import { ScreenStack, ToastStack } from './ui/kit'
 import { LobbyScreen, MainMenuScreen } from './ui/menus'
 import { menuScreens } from './ui/menuScreens'
 import { OnlineSession } from './ui/online/OnlineSession'
-import { TurnPhone } from './ui/TurnPhone'
 import { useOnline } from './ui/online/session'
 import { newGameFromEnd } from './ui/newGame'
 import { getAudio, useMusic } from './audio'
@@ -31,8 +30,6 @@ export default function App() {
       {inGame && helpWanted() && <HelpLayer />}
       {online && <OnlineSession />}
       <ToastStack />
-      {/* a phone held on its side: "Turn your phone upright" over everything (Glyphtender is portrait only, F97) */}
-      <TurnPhone />
     </>
   )
 }

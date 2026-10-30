@@ -54,7 +54,6 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['tutorial-rails', 'e2e/tutorial-rails.mjs', 'e2e-shots/tutorial-rails 5445'], // (F76: the tutorial game's draft + first 2 turns by drag / tap, phone + desktop — one callout, one live target, Sprout's script, then free play)
   ['tutorial-tips', 'e2e/tutorial-tips.mjs', 'e2e-shots/tutorial-tips 5446'], // (F77–F78: first-time tips once each + the pause hold, idle glow then words, wrong-action callouts, Tips off → none; phone + desktop)
   ['explore', 'e2e/explore.mjs', 'e2e-shots/explore 5447'], // (F79: the ? button — vs AI at phone + desktop: taps explain, ☰ doesn't open, the AI waits; pass-and-play: the handoff ends it)
-  ['turn-phone', 'e2e/turn-phone.mjs', 'e2e-shots 5449'], // (F97: a phone on its side shows "Turn your phone upright"; upright, tablets and desktop windows don't)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 
