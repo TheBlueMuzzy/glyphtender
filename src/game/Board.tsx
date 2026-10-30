@@ -57,9 +57,11 @@ type Props = {
   onHexSize: (px: number) => void
   /** Which side of the board's box the tray is on — the board sits close to it (boardPlace.ts). */
   traySide?: TraySide
+  /** Tray below: where the board sits up/down in its box (0 top · 0.5 middle · 1 on the tray — boardPlace.ts). */
+  lean?: number
 }
 
-export function Board({ onHexSize, traySide = 'bottom' }: Props) {
+export function Board({ onHexSize, traySide = 'bottom', lean = 1 }: Props) {
   const game = useGameStore((s) => s.game)!
   const move = useGameStore((s) => s.move)
   const cast = useGameStore((s) => s.cast)
@@ -99,13 +101,13 @@ export function Board({ onHexSize, traySide = 'bottom' }: Props) {
       if (!(scale > 0)) return
       onHexSize(2 * HEX * scale)
       setPxPerHex(scale)
-      setShift(boardShift(traySide, r.width / scale - view.w, r.height / scale - view.h))
+      setShift(boardShift(traySide, r.width / scale - view.w, r.height / scale - view.h, lean))
     }
     measure()
     const watcher = new ResizeObserver(measure)
     watcher.observe(svg)
     return () => watcher.disconnect()
-  }, [view, onHexSize, traySide])
+  }, [view, onHexSize, traySide, lean])
 
   const flight = useMemo(
     () => (flying && move && cast ? { glyphling: move.glyphling, from: move.to, to: cast.target } : null),

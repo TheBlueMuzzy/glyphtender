@@ -141,29 +141,38 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const showingResults = useScreens().includes('gameOver') // (the end screen has its own end bar)
 
   const traySide = stacked ? (flipped ? 'top' : 'bottom') : flipped ? 'left' : 'right'
+  // F91 (layout.json boardVertical): tray below the board, a phone held upright — above 0, the prompt moves up under the
+  // turn bar, so the board can come down nearer the screen's middle (thumb reach); the setting then places the board
+  // between the prompt and the tray (a little = high, 0.5 = middle, 1 = right on the tray). 0 = the prompt just above
+  // the tray, as before. Tray above the board (Flipped) and tray beside it: unchanged.
+  const promptTop = stacked && !flipped && layout.boardVertical > 0
+  const prompt = <PromptLine big={hexPx >= BIG_HEX} fixed={stacked && !ended} hangRoom={hangRoom} />
   // Buttons as tall as a board hex (its flat-to-flat height), never below the finger-size floor
   const buttonPx = Math.max(layout.trayTileMin, Math.round(hexPx * HEX_HEIGHT))
 
   return (
     <>
-    <div ref={rootRef} className="game" data-layout={stacked ? 'stacked' : 'side'} data-flipped={flipped || undefined} data-phase={game.phase} data-ended={ended || undefined} {...input}>
+    <div ref={rootRef} className="game" data-layout={stacked ? 'stacked' : 'side'} data-flipped={flipped || undefined} data-prompt={promptTop ? 'top' : undefined} data-phase={game.phase} data-ended={ended || undefined} {...input}>
       <header className="game-bar">
         {/* beside the board: the portrait and ☰ line up with the tray's edges (a ruler as wide as the tray) */}
         {!stacked && <svg className="game-bar-ruler" width={fullTray.width} height={0} aria-hidden="true" />}
         <TurnBar />
       </header>
+      {/* F91: the prompt above the board (layout.json boardVertical above 0) */}
+      {promptTop && <div className="game-prompt-top">{prompt}</div>}
       <div className="game-board">
         <svg className="game-garden-back" aria-hidden="true"><rect width="100%" height="100%" fill={colours.background} /></svg>
-        <Board onHexSize={onHexSize} traySide={traySide} />
+        <Board onHexSize={onHexSize} traySide={traySide} lean={promptTop ? layout.boardVertical : 1} />
       </div>
       <section className="game-panel" aria-label="Seeds and actions">
-        <PromptLine big={hexPx >= BIG_HEX} fixed={stacked && !ended} hangRoom={hangRoom} />
+        {!promptTop && prompt}
         {over ? <RevealPanel compact={!stacked && hexPx < BIG_HEX} big={hexPx >= BIG_HEX} /> : <SeedTray layout={tray} boxWidth={stacked ? tray.width : column} />}
         {!ended && <ActionBar size={buttonPx} fixed={stacked} />}
       </section>
       {/* The game is over: the end bar along the bottom (EndBar.tsx — the same spot as the end screen's) */}
       {ended && !showingResults && <EndBar view="board" onMenu={leaveToMenu} onNewGame={onNewGame} />}
-      {/* Tray below/above the board: room between the board and the prompt (B012 — layout.json promptGap) */}
+      {/* Tray below/above the board: room between the board and the prompt (B012 — layout.json promptGap; F91: the prompt
+          may be above the board — the room is then between them there) */}
       {stacked && <svg className="game-prompt-gap" width={0} height={layout.promptGap} aria-hidden="true" />}
       {/* Room under the whole game, clear of the phone's home/back gesture zone (B014 — layout.json bottomRoom) */}
       <svg className="game-foot" width={0} height={layout.bottomRoom} aria-hidden="true" />
