@@ -4,7 +4,8 @@
 //   (Next · Got it · tap J and V · Refresh) → Sprout's scripted turn → turn 2 (move · plant the A · Plant +5) →
 //   Next · Next · Play → free play.
 // At every step: the ONE callout says the step's words; a wrong drop / tap is refused (the piece goes home, nothing
-// changes); the callout never covers its target or the live hex, and stays inside the screen. Sprout's scripted moves
+// changes); the callout never covers its target or the live hex, and stays inside the screen — and on an upright phone
+// (390×844, 360×780; the prompt on top) a callout about the tray or the buttons covers no board hex (F91). Sprout's scripted moves
 // land where content/tutorial/rails.json says; CAT makes +5; then free play — no callout, Sprout plays a real turn.
 // Screenshots of every step → e2e-shots/tutorial-rails/. Starts its OWN dev server (default port 5445).
 //   npm run e2e:tutorial-rails [outDir] [port]   (SIZE=phone|desktop: one size only · DEBUG=1: the page's console too)
@@ -18,9 +19,11 @@ import text from '../content/text/en.json' with { type: 'json' }
 const OUT = process.argv[2] ?? 'e2e-shots/tutorial-rails'
 const PORT = Number(process.argv[3] ?? 5445)
 const URL = `http://127.0.0.1:${PORT}/?tutorial=fresh`
-const SIZES = [{ name: 'phone', width: 390, height: 844, mobile: true }, { name: 'desktop', width: 1440, height: 900, mobile: false }]
+const SIZES = [{ name: 'phone', width: 390, height: 844, mobile: true }, { name: 'small', width: 360, height: 780, mobile: true },
+  { name: 'desktop', width: 1440, height: 900, mobile: false }]
 mkdirSync(OUT, { recursive: true })
 
+const NO_ROOM_YET = new Set(['draft1', 'draft2', 'noWord', 'handOver']) // (F91 4b — see "covers no board hex" below)
 let failures = 0
 const ok = (good, what) => { if (!good) { failures++; console.log(`  FAIL ${what}`) } else console.log(`ok   ${what}`) }
 
@@ -133,7 +136,21 @@ try {
         const edge = Math.min(b.l, b.t, innerWidth - b.r, innerHeight - b.b)
         const glowing = [...document.querySelectorAll('.game-garden [data-option] polygon[data-hex]')].map((p) => p.getAttribute('data-hex'))
         const railsTarget = document.querySelector('[data-rails-target]')?.getAttribute('data-rails-target') ?? null
-        return { glowing, railsTarget, count: bubbles.length, coversTarget: !!target && over(b, box(target)), coversLive: !!live && over(b, box(live)), edge: Math.round(edge) }
+        // F91: the board hexes the bubble covers (its box against each hex's real six corners — not the hex's square box)
+        const hexesUnder = [...document.querySelectorAll('.game-garden > polygon[data-hex]')].filter((p) => {
+          const m = p.getScreenCTM()
+          const pts = [...p.points].map((q) => ({ x: m.a * q.x + m.c * q.y + m.e, y: m.b * q.x + m.d * q.y + m.f }))
+          const rect = [{ x: b.l, y: b.t }, { x: b.r, y: b.t }, { x: b.r, y: b.b }, { x: b.l, y: b.b }]
+          const axes = [{ x: 1, y: 0 }, { x: 0, y: 1 }, ...pts.map((q, i) => { const n = pts[(i + 1) % pts.length]; return { x: q.y - n.y, y: n.x - q.x } })]
+          return axes.every((a) => { // (separating axes: they overlap only if no axis keeps them apart)
+            const span = (ps) => ps.map((q) => q.x * a.x + q.y * a.y)
+            const h = span(pts), r = span(rect), len = Math.hypot(a.x, a.y)
+            return Math.min(...h) < Math.max(...r) - 0.5 * len && Math.min(...r) < Math.max(...h) - 0.5 * len
+          })
+        }).length
+        const onBoard = !!target?.closest('.game-garden')
+        return { glowing, railsTarget, count: bubbles.length, coversTarget: !!target && over(b, box(target)), coversLive: !!live && over(b, box(live)), edge: Math.round(edge),
+          hexesUnder, onBoard, bubble: { t: Math.round(b.t), b: Math.round(b.b) } }
       }, liveHex ?? null)
       ok(geo.count === 1, `  one callout (${geo.count})`)
       if (liveHex) {
@@ -145,6 +162,13 @@ try {
       ok(!geo.coversTarget, '  it does not cover its target')
       if (liveHex) ok(!geo.coversLive, '  it does not cover the live hex')
       ok(geo.edge >= 8, `  it keeps clear of the screen's edge (${geo.edge} px)`)
+      // F91: an upright phone with the prompt on top — a bubble about the tray or the buttons covers no board hex
+      // (tipsPlace.ts offBoardSide: it goes below its target). Not yet the draft glyphling (the bottom row, nothing below
+      // it) or the two pauses at the whole tray (too tall for any room beside it) — waiting on Muzzy's call (F91 task 4b).
+      if (size.mobile && layout.boardVertical > 0 && !geo.onBoard) {
+        if (NO_ROOM_YET.has(id)) console.log(`note   ${id} still covers ${geo.hexesUnder} board hexes (bubble ${geo.bubble.t}–${geo.bubble.b}) — waiting on Muzzy's call`)
+        else ok(geo.hexesUnder === 0, `  it covers no board hex (${geo.hexesUnder}; bubble ${geo.bubble.t}–${geo.bubble.b})`)
+      }
       await page.screenshot({ path: `${OUT}/${size.name}-${String(++shotNo).padStart(2, '0')}-${id}.png` })
     }
     const pressButton = async (label) => {

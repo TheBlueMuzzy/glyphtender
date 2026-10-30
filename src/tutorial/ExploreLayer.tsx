@@ -24,6 +24,7 @@ import { viewerOf } from '../store/viewer'
 import { Callout, fill, useScreens, type CalloutPlacement } from '../ui/kit'
 import { useOnline } from '../ui/online/session'
 import { explain, exploreEnds, type Explained, type ExplorePart, type Tapped } from './explore'
+import { offBoardPlacement } from './tipsPlace'
 
 const words = text.tutorial.explore
 
@@ -265,7 +266,8 @@ const REMIND_ROOM = 96 // px: about a 1-line callout + its pointer and edge room
 
 /** Where a callout goes first: on the board, toward the nearer of the top bar and the tray (above a thing in the board's
  *  top half, below one in its bottom half — it covers as few rows as it can); the top bar's parts: below; the rest
- *  (the tray, the buttons, the prompt): above, in the prompt's place. */
+ *  (the tray, the buttons, the prompt): the tutorial's one rule for them (tipsPlace.ts offBoardSide — above, in the
+ *  prompt's place; below when the prompt sits on top, so it never covers the board). */
 function placementOf(target: Element): CalloutPlacement {
   const board = target.closest('.game-garden')
   if (board) {
@@ -273,5 +275,5 @@ function placementOf(target: Element): CalloutPlacement {
     return middle(target.getBoundingClientRect()) < middle(board.getBoundingClientRect()) ? 'top' : 'bottom'
   }
   if (target.closest('.game-bar')) return 'bottom'
-  return 'top'
+  return offBoardPlacement()
 }
