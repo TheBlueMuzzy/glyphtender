@@ -94,14 +94,23 @@ export function cssPixels(size: string, remPx = 16): number {
 
 /** Library fonts' names: their file name made readable ("press_start-dx.ttf" → "Press start dx") — matches the dev server's. */
 export function prettyFontName(file: string): string {
-  const base = file.split('/').pop() ?? file
+  const base = file.split(/[/:]/).pop() ?? file
   const words = base.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim()
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Font'
 }
 
+/** Is a library path one of the computer's installed fonts ("installed1:arial.ttf") rather than the designer's folder ("folder:…")? */
+export const isInstalledPath = (libraryPath: string) => /^installed\d+:/.test(libraryPath)
+
+/** The one-line warning an installed font comes with. */
+export function installedNote(platform?: string): string {
+  const system = platform === 'win32' ? 'Windows' : platform === 'darwin' ? 'a Mac' : 'the computer'
+  return `Most fonts that come with ${system} can't ship in a game — check its licence.`
+}
+
 /** Is this library font already in the game? (A game font whose file has the same name.) */
 export function gameFontFor(libraryPath: string, gameFonts: KitFont[]): KitFont | undefined {
-  const file = (libraryPath.split('/').pop() ?? '').toLowerCase()
+  const file = (libraryPath.split(/[/:]/).pop() ?? '').toLowerCase()
   return gameFonts.find((f) => (f.file.split('/').pop() ?? '').toLowerCase() === file)
 }
 

@@ -5,10 +5,54 @@
 //   Browser: the Dev Kit starts and the game is plugged in · every tuning file is live in the running game · ⏸ full
 //            pause (screen, both clocks and the game's state stand still) · ◐ half pause (the rules clock and the
 //            game's state stand still while the looks clock runs) · a snapshot restores exactly · the game's hotkeys
-//            skip text boxes
+//            skip text boxes · (a warning, 0.21.0) the closed-panel PAUSED pill keeps clear of the game's HUD on a phone
 // The browser checks reach the game through the registered adapter (window.__devkit, checkHandle.ts); the ones that
 // need live play use the adapter's conformance.startPlay (devkitGame.ts).
+import { badgeOverHud, judgeBadge, BADGE_SPOTS } from './pause/badgeClear.mjs'
+
 export const title = 'Dev Kit'
+
+// Phones held upright: the sizes where a HUD has the least room. (Not sideways: some games are portrait only — Goops —
+// and show just a "turn your phone" card there.) A game whose content/ui/style.json says "orientation": "landscape"
+// (F104 — the UI kit's setting, read here directly: a game can have the Dev Kit without the UI kit) is checked on its
+// side instead.
+export const BADGE_SIZES = [{ width: 390, height: 844 }, { width: 360, height: 780 }]
+export const BADGE_SIZES_SIDEWAYS = [{ width: 844, height: 390 }, { width: 768, height: 343 }]
+export const badgeSizes = (style) => (style?.orientation === 'landscape' ? BADGE_SIZES_SIDEWAYS : BADGE_SIZES)
+export const BADGE_CHECK = 'the PAUSED pill keeps clear of the game\'s HUD on a phone'
+
+/** With the game paused and the panel closed, at each phone size: does the pill cover the game's visible words or controls? */
+async function badgeCheck(t) {
+  // A game whose page throws here (no __devkit.pause, a closed browser) gets a skip with the reason — never an error
+  // that stops the checks after this one (the console check) from running
+  try { return await badgeCheckRun(t) } catch (error) {
+    return t.skip(BADGE_CHECK, `couldn't check the PAUSED pill (${error?.message ?? error})`)
+  }
+}
+
+async function badgeCheckRun(t) {
+  const runs = []
+  for (const { width, height } of badgeSizes(t.json('content/ui/style.json'))) {
+    const page = await t.page({ width, height, mobile: true })
+    try {
+      const reason = await t.startPlay(page)
+      if (reason) return t.skip(BADGE_CHECK, `live play didn't start at ${width}×${height} (${reason.replace(/^threw:/, 'startPlay threw: ')})`)
+      await page.evaluate(() => window.__devkit.pause('full'))
+      await page.waitForTimeout(300)
+      const seen = await page.evaluate(badgeOverHud, { spots: BADGE_SPOTS })
+      await page.evaluate(() => window.__devkit.pause(null))
+      if (seen.missing) return t.skip(BADGE_CHECK, `no PAUSED pill showed at ${width}×${height} (panel open?)`)
+      runs.push({ size: `${width}×${height}`, ...seen })
+    } finally {
+      await page.close()
+    }
+  }
+  const { ok, current, problems, clear } = judgeBadge(runs)
+  if (ok) return t.pass(BADGE_CHECK, `"${current}" is clear at ${runs.map((r) => r.size).join(' and ')}`)
+  return t.warn(BADGE_CHECK, problems, clear.length
+    ? `content/devkit.json "pauseBadgeSpot": pick one that is clear at every phone size — ${clear.map((s) => `"${s}"`).join(', ')}.`
+    : 'content/devkit.json "pauseBadgeSpot": no spot is clear at every phone size — pick the one that covers the least (each spot\'s list is above when you try it).')
+}
 
 const TIMERS = /\b(setTimeout|setInterval)\s*\(|\bperformance\.now\s*\(|\bDate\.now\s*\(/
 const MAX_LIST = 8
@@ -261,6 +305,7 @@ export async function check(t) {
       else if (outside.length) t.pass(playChecks[3], `outside a text box the game takes ${outside.join(' ')}; inside one, none`)
       else t.pass(playChecks[3], 'the game took none of the test keys anywhere (so this proves little)')
     }
+    await badgeCheck(t)
     if (page.errors.length) t.fail('no errors in the console', listSome(page.errors), 'Fix the errors above (they happened while the checks ran).')
   } finally {
     await page.close()

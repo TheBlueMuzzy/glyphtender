@@ -3,7 +3,7 @@
 import { filterSections, type Section } from '../search/searchLogic'
 import { isUiShape, shapeDefault, shapeOf, UI_SHAPES } from './styleValues'
 
-/** The 15 UI kit colours, in the order the panel lists them, with names Muzzy would use. */
+/** The 17 UI kit colours, in the order the panel lists them, with names Muzzy would use. */
 export const UI_COLOURS = [
   { token: 'bg', name: 'Page background' },
   { token: 'on-bg', name: 'Text on page' },
@@ -14,6 +14,8 @@ export const UI_COLOURS = [
   { token: 'accent', name: 'Highlight' },
   { token: 'danger', name: 'Danger' },
   { token: 'on-danger', name: 'Text on danger' },
+  { token: 'success', name: 'Success' },
+  { token: 'on-success', name: 'Text on success' },
   { token: 'muted', name: 'Quiet text' },
   { token: 'border', name: 'Outlines' },
   { token: 'focus', name: 'Keyboard focus' },

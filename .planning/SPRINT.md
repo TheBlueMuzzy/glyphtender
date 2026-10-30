@@ -5,7 +5,7 @@ What changes: every framework module current; portrait only (a phone on its side
 
 ## F90 🔧 Quiet module updates
 Done when: Dev Kit, table, ai, rooms and audio are at the framework's newest (devkit 0.28.1, table 0.8.2, ai 0.8.3, rooms 0.13.1, audio 0.5.0), every hand step install-module prints is done, the game plays the same, check:full green and the online e2e 3/3.
-- [ ] 🤖 1. Dev Kit first (install-module refuses ai on the old Dev Kit) — src/devkit/VERSION
+- [x] 🤖 1. Dev Kit first (install-module refuses ai on the old Dev Kit) — src/devkit/VERSION
 - [ ] 🤖 2. table, ai, rooms with each printed hand step: ai chattiness → 0 for all 4 personalities (bots stay silent), the Dev Kit previews' fake OnlineRoom gets matchEnded/cameBack/clearCameBack/sendEmote, roomsPort() in vite.config, /health in party/worker.ts — src/devkit-game/PreviewApp.tsx
 - [ ] 🤖 3. audio 0.5.0 + `npm run audio:check -- --fix` (the tuned mix kept via volumeDb) — content/audio.json
 - [ ] 🤖 4. The template's checks.yml (browser cache) + check-all's port pre-flight (scripts/ports.mjs) — scripts/check-all.mjs

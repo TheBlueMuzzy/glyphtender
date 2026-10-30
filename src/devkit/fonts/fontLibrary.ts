@@ -3,17 +3,20 @@
 import type { KitFont } from '../color/uiKit'
 import { CAN_SAVE } from '../saveContent'
 
-export type LibraryFont = { path: string; name: string; folder: string }
-export type LibraryList = { folder: string; found: boolean; fonts: LibraryFont[]; more: boolean }
+/** path = "<root key>:<file>" — sent back as is; file = the readable part; styles = how many files the family has (installed fonts) */
+export type LibraryFont = { path: string; name: string; folder: string; file?: string; styles?: number }
+/** The computer's installed fonts (Dev Kit 0.27.0): one row per family; skipped = files a browser can't load (.ttc, .fon) */
+export type InstalledList = { on: boolean; folders: string[]; fonts: LibraryFont[]; more: boolean; skipped: Record<string, number>; platform?: string }
+export type LibraryList = { folder: string; found: boolean; fonts: LibraryFont[]; more: boolean; installed?: InstalledList }
 
 const URL_BASE = '/__devkit/font-library'
 
-/** The fonts in the designer's font library folder. Throws with a plain reason. */
-export async function loadLibrary(): Promise<LibraryList> {
+/** The fonts in the designer's font folder + the computer's installed fonts. refresh = look at the installed folders again. Throws with a plain reason. */
+export async function loadLibrary(refresh = false): Promise<LibraryList> {
   if (!CAN_SAVE) throw new Error('the font library needs npm run dev')
   let res: Response
   try {
-    res = await fetch(URL_BASE)
+    res = await fetch(refresh ? `${URL_BASE}?refresh=1` : URL_BASE)
   } catch {
     throw new Error('the dev server is not reachable (is npm run dev still running?)')
   }

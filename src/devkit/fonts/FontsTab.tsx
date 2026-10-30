@@ -6,6 +6,8 @@
 //   Library (npm run dev only): every font in the designer's font folder (vite/fontLibrary.ts says which folder).
 //     Try = it joins the comparisons; Add to game = copied into public/fonts/, listed in fonts.json and credits.json.
 //     Save waits while a role uses a library font that isn't in the game yet (the game must ship what it shows).
+//   Installed on this PC (0.27.0, npm run dev only): the computer's own fonts, one row per family — Try / Add to game
+//     the same way; an installed font is always added 🔴 unknown (most fonts that come with Windows can't ship).
 //   Save writes the four values into content/ui/style.json "tweaks" (styleStore.ts — shared with the Color tab).
 // The sample lines: the game's fonts.json "samples": { "title": "…", "heading": "…", "body": "…", "numbers": "…" }.
 import { useContext, useEffect, useState, type CSSProperties, type ReactNode } from 'react'
@@ -20,7 +22,7 @@ import { gameFontsFile, styleStore, uiKit, type KitFont } from '../color/uiKit'
 import { addLibraryFont, libraryFontUrl, loadLibrary, previewFont, type LibraryFont, type LibraryList } from './fontLibrary'
 import {
   ALPHABET, ALPHABET_CAPS, DEFAULT_SAMPLES, FONT_ROLES, FONT_TOKENS, crispness, cssPixels, fontChoices, fontValue, fontWords, gameFontFor,
-  isFont, licenceChip, prettyFontName, rolesOnLibraryFonts, type FontChoice, type FontRole,
+  installedNote, isFont, isInstalledPath, licenceChip, prettyFontName, rolesOnLibraryFonts, type FontChoice, type FontRole,
 } from './fontsLogic'
 import './fonts.css'
 
@@ -66,6 +68,14 @@ function FontsEditor({ query }: { query: string }) {
     )
     return () => { gone = true }
   }, [])
+  const lookAgain = () => {
+    setBusy('refresh')
+    loadLibrary(true).then(
+      (list) => { setLibrary(list); setLibraryProblem(null); setBusy(null) },
+      (e: Error) => { setLibraryProblem(e.message); setBusy(null) },
+    )
+  }
+  const warning = installedNote(library?.installed?.platform)
 
   // Each role's size in the game right now, in px (the kit's text sizes; they follow text size + heading step)
   const page = getComputedStyle(document.documentElement)
@@ -82,7 +92,10 @@ function FontsEditor({ query }: { query: string }) {
     setBusy(font.path)
     try {
       await previewFont(name, libraryFontUrl(font.path))
-      setTrying((t) => [...t, { name, source: 'library', licence: 'unknown', licenceNote: 'Not in the game yet — Add to game, then check its licence', libraryPath: font.path }])
+      const licenceNote = isInstalledPath(font.path)
+        ? `Installed on this PC, not in the game yet — ${warning}`
+        : 'Not in the game yet — Add to game, then check its licence'
+      setTrying((t) => [...t, { name, source: 'library', licence: 'unknown', licenceNote, libraryPath: font.path }])
       setStatus({ kind: 'ok', text: `${name} is in the comparisons now — pick it in any role.` })
     } catch {
       setStatus({ kind: 'error', text: `Couldn't load ${font.path} — the file may be broken or not a font the browser reads.` })
@@ -108,7 +121,8 @@ function FontsEditor({ query }: { query: string }) {
         kind: 'ok',
         text: already
           ? `${font.name} was already in the game.`
-          : `Added ${font.name}: ${wrote.join(', ')}. Its licence says 🔴 unknown until someone reads it — fix "licence" in content/ui/fonts.json.`,
+          : `Added ${font.name}: ${wrote.join(', ')}. Its licence says 🔴 unknown until someone reads it — fix "licence" in content/ui/fonts.json.` +
+            (isInstalledPath(path) ? ` ${warning}` : ''),
       })
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't add it: ${(e as Error).message}` })
@@ -145,8 +159,44 @@ function FontsEditor({ query }: { query: string }) {
 
   const fontFound = (c: FontChoice) => matchesAll(terms, [c.name, c.source, c.note, c.licenceNote, licenceChip(c.licence).words])
   const shownChoices = choices.filter(fontFound)
-  const libraryFonts = (library?.fonts ?? []).filter((f) => matchesAll(terms, [f.name, f.path]))
-  const found = shownChoices.length + (library ? libraryFonts.length : 0)
+  const libraryFound = (f: LibraryFont) => matchesAll(terms, [f.name, f.file ?? f.path, f.folder])
+  const libraryFonts = (library?.fonts ?? []).filter(libraryFound)
+  const installed = library?.installed
+  const installedFonts = (installed?.on ? installed.fonts : []).filter(libraryFound)
+  const found = shownChoices.length + (library ? libraryFonts.length + installedFonts.length : 0)
+
+  /** The library rows (your folder or installed): name, where it is, Try / Add to game — at most LIBRARY_SHOWN, search narrows. */
+  const libraryRows = (fonts: LibraryFont[]) => (
+    <>
+      <ul className="ft-list">
+        {fonts.slice(0, LIBRARY_SHOWN).map((f) => {
+          const inGame = gameFontFor(f.path, gameFonts)
+          const isTried = trying.some((t) => t.libraryPath === f.path)
+          const where = f.styles !== undefined ? `${f.styles} ${f.styles === 1 ? 'style' : 'styles'} · ${f.file ?? f.path}` : (f.file ?? f.path)
+          return (
+            <li key={f.path} className="ft-list-row ft-lib-row">
+              <span className="ft-list-name"><Highlight text={f.name} terms={terms} /></span>
+              <span className="ft-list-note"><Highlight text={where} terms={terms} /></span>
+              <span className="ft-lib-actions">
+                {inGame ? (
+                  <span className="ft-tag">in the game{inGame.name !== f.name ? ` as ${inGame.name}` : ''} ✓</span>
+                ) : (
+                  <>
+                    <button className="devkit-btn" disabled={isTried || busy !== null} onClick={() => tryLibraryFont(f)}>{isTried ? 'Trying' : 'Try'}</button>
+                    <button className="devkit-btn" disabled={busy !== null} onClick={() => addToGame(f.path)}>Add to game</button>
+                  </>
+                )}
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      {fonts.length > LIBRARY_SHOWN && <p className="ct-legend">Showing {LIBRARY_SHOWN} of {fonts.length} — type in the search box to narrow.</p>}
+    </>
+  )
+  const skippedWords = Object.entries(installed?.skipped ?? {})
+    .map(([kind, n]) => `${n} ${kind === 'ttc' ? '.ttc collections' : 'old .fon screen fonts'}`)
+    .join(' and ')
 
   return (
     <div className="ct ft">
@@ -218,7 +268,7 @@ function FontsEditor({ query }: { query: string }) {
             </div>
             {onLibrary && tried?.libraryPath && (
               <p className="ft-warn">
-                {tried.name} is from your font library, not in the game yet — Save waits.{' '}
+                {tried.name} is {isInstalledPath(tried.libraryPath) ? 'installed on this PC' : 'from your font library'}, not in the game yet — Save waits.{' '}
                 <button className="devkit-btn" disabled={busy !== null} onClick={() => addToGame(tried.libraryPath!)}>Add to game</button>
               </p>
             )}
@@ -247,7 +297,7 @@ function FontsEditor({ query }: { query: string }) {
       })}
 
       {CAN_SAVE && (
-        <Section id="fonts:Library" title="Font library" count={library ? libraryFonts.length : 0} terms={terms} defaultOpen={false} onGoTo={() => goTo('fonts:Library')}>
+        <Section id="fonts:Library" title="Your font folder" count={library ? libraryFonts.length : 0} terms={terms} defaultOpen={false} onGoTo={() => goTo('fonts:Library')}>
           {libraryProblem && <p className="devkit-status is-error">Couldn't read the font library: {libraryProblem}</p>}
           {library && !library.found && (
             <p className="ct-legend">No font library at {library.folder}. Put fonts there, or point to another folder in devkit.local.json (the game's folder): {'{ "fontLibrary": "D:/Fonts" }'}</p>
@@ -257,31 +307,28 @@ function FontsEditor({ query }: { query: string }) {
               <p className="ct-legend">
                 {library.folder} · {library.fonts.length}{library.more ? '+' : ''} fonts · Try = into the comparisons above · Add to game = copied into public/fonts/ with its licence files
               </p>
-              <ul className="ft-list">
-                {libraryFonts.slice(0, LIBRARY_SHOWN).map((f) => {
-                  const inGame = gameFontFor(f.path, gameFonts)
-                  const isTried = trying.some((t) => t.libraryPath === f.path)
-                  return (
-                    <li key={f.path} className="ft-list-row ft-lib-row">
-                      <span className="ft-list-name"><Highlight text={f.name} terms={terms} /></span>
-                      <span className="ft-list-note"><Highlight text={f.path} terms={terms} /></span>
-                      <span className="ft-lib-actions">
-                        {inGame ? (
-                          <span className="ft-tag">in the game{inGame.name !== f.name ? ` as ${inGame.name}` : ''} ✓</span>
-                        ) : (
-                          <>
-                            <button className="devkit-btn" disabled={isTried || busy !== null} onClick={() => tryLibraryFont(f)}>{isTried ? 'Trying' : 'Try'}</button>
-                            <button className="devkit-btn" disabled={busy !== null} onClick={() => addToGame(f.path)}>Add to game</button>
-                          </>
-                        )}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-              {libraryFonts.length > LIBRARY_SHOWN && (
-                <p className="ct-legend">Showing {LIBRARY_SHOWN} of {libraryFonts.length} — type in the search box to narrow.</p>
-              )}
+              {libraryRows(libraryFonts)}
+            </>
+          )}
+        </Section>
+      )}
+
+      {CAN_SAVE && installed && (
+        <Section id="fonts:Installed" title="Installed on this PC" count={installedFonts.length} terms={terms} defaultOpen={false} onGoTo={() => goTo('fonts:Installed')}>
+          {!installed.on ? (
+            <p className="ct-legend">Turned off in devkit.local.json ({'"installedFonts": false'}) or by DEVKIT_INSTALLED_FONTS.</p>
+          ) : (
+            <>
+              <p className="ft-warn">🔴 {warning} An installed font is always added with licence "unknown".</p>
+              <p className="ct-legend">
+                {installed.folders.join(' · ') || 'No installed-font folder found'} · {installed.fonts.length}{installed.more ? '+' : ''} families (Try / Add use each
+                one's regular style){skippedWords && ` · not listed: ${skippedWords} — a browser can't load those from a page`}
+              </p>
+              <p className="ct-legend">
+                <button className="devkit-btn" disabled={busy !== null} onClick={lookAgain} title="Read the installed-font folders again (after installing a font)">Look again</button>{' '}
+                after installing a font (the list is read once per npm run dev)
+              </p>
+              {libraryRows(installedFonts)}
             </>
           )}
         </Section>

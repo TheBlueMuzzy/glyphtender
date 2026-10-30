@@ -96,6 +96,10 @@ export function snapshotForClaude(snapshot: Snapshot): string {
   ].join('\n')
 }
 
+/** A version as shown: "vX.Y.Z.B" — the adapter's version is shown as given (the version module's versionLabel already
+ *  has the v); an older adapter's "0.1.0.12" gets one (0.20.5: never "vv0.1.0.12"). */
+export const versionTag = (version: string) => (/^v/i.test(version) ? version : `v${version}`)
+
 /** Does a snapshot match the Dev Kit search? (its name, its one-line summary, its version) */
 export const snapshotMatches = (snapshot: Snapshot, query: string) =>
-  matchesAll(searchTerms(query), [snapshot.name, snapshot.summary, `v${snapshot.version}`])
+  matchesAll(searchTerms(query), [snapshot.name, snapshot.summary, versionTag(snapshot.version)])

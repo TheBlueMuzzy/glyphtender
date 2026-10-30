@@ -5,7 +5,7 @@
 //   import { registerDevKitGame } from '../devkit/devkitGame'
 //   registerDevKitGame({
 //     name: 'Glyphtender',
-//     version: '0.1.0.12',
+//     version: versionLabel,                  // "v0.1.0.12" — from the version module (src/version)
 //     getState: () => ({ ... }),              // this exact moment, as plain JSON data
 //     setState: (state) => { ... },           // put the game back to a getState() moment
 //     canRestore: () => !isOnlineGame,        // false in online games: restoring would change play for others
@@ -17,7 +17,8 @@ import { useSyncExternalStore } from 'react'
 export interface DevKitGame {
   /** Shown in snapshots and bug captures, e.g. "Glyphtender". */
   name: string
-  /** The game's version, e.g. "0.1.0.12" — stamped on every snapshot and bug capture. */
+  /** The game's version, "vX.Y.Z.B" (the version module's versionLabel — the same words as the main menu and Settings),
+   *  stamped as given on every snapshot and bug capture. An older "0.1.0.12" still works (shown as v0.1.0.12). */
   version: string
   /** This exact moment of the game, as plain JSON data. */
   getState: () => unknown

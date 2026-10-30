@@ -69,7 +69,7 @@ export function SoundEditor({ audio, name, edited, saved, live, baseUrl, canSave
       setCredit({ path: savedFile.path, source: dropped.name, author: '', licence: 'CC0', url: '' })
       onStatus({
         kind: 'ok',
-        text: `Added ${savedFile.file}${savedFile.trimmedMs ? ` (silent start trimmed: ${savedFile.trimmedMs} ms)` : ''}. Press Save to keep it in the sound list.`,
+        text: `Added ${savedFile.file}${savedFile.trimmedMs ? ` (silent start trimmed: ${savedFile.trimmedMs} ms)` : ''}${savedFile.loudness ? `, ${savedFile.loudness}` : ''}. Press Save to keep it in the sound list.`,
       })
     } catch (e) {
       onStatus({ kind: 'error', text: `Couldn't add ${dropped.name}: ${(e as Error).message}` })

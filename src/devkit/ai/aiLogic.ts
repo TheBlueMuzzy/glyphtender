@@ -2,7 +2,7 @@
 // edit personalities and skills without ever changing the rest of a content file (_help, _labels, _sections stay).
 import { filterSections, readableKey, type Section } from '../search/searchLogic'
 import { tuningSections, type TuningItem } from '../tuning/tuningSections'
-import type { AiFile, AiPersonality, AiSettingsFile, AiShift, DevKitAi } from './aiTypes'
+import type { AiBanterLines, AiFile, AiPersonality, AiSettingsFile, AiShift, AiTuneResult, DevKitAi } from './aiTypes'
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
@@ -136,6 +136,120 @@ export function listChanges(before: { id: string }[], after: { id: string }[]): 
   return lines
 }
 
+// ---- Suggest sliders (0.26.0, framework F26) ----
+
+/** "Apply": the personality as it is in the tab now, with ONLY the suggestion's changed sliders set (a trait's whole
+ *  range, nudge, focus, a steady goal) — any other unsaved edit stays. No suggestion (or another personality's) → as it is. */
+export function withSuggestion(current: AiPersonality, result: AiTuneResult): AiPersonality {
+  const s = result.suggested
+  if (!s || s.id !== current.id) return current
+  let next: AiPersonality = { ...current, traits: { ...current.traits } }
+  for (const { path, changed } of result.sliders) {
+    if (!changed) continue
+    const [kind, name] = path.split('.')
+    if (kind === 'traits' && s.traits[name]) next.traits[name] = { min: s.traits[name].min, max: s.traits[name].max }
+    else if (kind === 'steady' && s.steady?.[name] !== undefined) next = withSteady(next, name, s.steady[name])
+    else if ((kind === 'nudge' || kind === 'focus') && typeof s[kind] === 'number') next = { ...next, [kind]: s[kind] }
+  }
+  return next
+}
+
+// ---- Banter lines (0.24.0, framework F22) ----
+// The lines live in the game's text file ("banter": { "<personality>": { "<moment>": "…", "<moment>_2": "…" } }) — the
+// AI kit says them as the emote id banter.<personality>.<moment>. The tab edits a copy AND writes every change straight
+// into the game's own imported object (applyBanterLive), so the bots use it at their next moment.
+
+const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
+
+/** Is this key a line for this moment: the moment itself or a numbered extra ("won_2")? (Same rule as the AI kit's.) */
+export const isLineFor = (key: string, moment: string) => key === moment || (key.startsWith(`${moment}_`) && /^\d+$/.test(key.slice(moment.length + 1)))
+
+/** A plain copy of the lines at `at` in a file (only string lines; anything else is left out). Missing → {}. */
+export function banterOf(data: unknown, at: string[]): AiBanterLines {
+  const found = getAt(data, at)
+  if (!isRecord(found)) return {}
+  const out: AiBanterLines = {}
+  for (const [who, lines] of Object.entries(found)) {
+    if (!isRecord(lines)) continue
+    out[who] = Object.fromEntries(Object.entries(lines).filter(([, w]) => typeof w === 'string')) as Record<string, string>
+  }
+  return out
+}
+
+/** A personality's line keys for a moment, in order: the moment, then won_2, won_3… */
+export function lineKeys(lines: AiBanterLines, who: string, moment: string): string[] {
+  const number = (key: string) => (key === moment ? 1 : Number(key.slice(moment.length + 1)))
+  return Object.keys(lines[who] ?? {}).filter((k) => isLineFor(k, moment)).sort((a, b) => number(a) - number(b))
+}
+
+/** The key "+ Line" adds: the moment itself when free, else the first free numbered one (won_2, won_3…). */
+export function nextLineKey(lines: AiBanterLines, who: string, moment: string): string {
+  const taken = Object.keys(lines[who] ?? {})
+  if (!taken.includes(moment)) return moment
+  for (let n = 2; ; n++) if (!taken.includes(`${moment}_${n}`)) return `${moment}_${n}`
+}
+
+/** The lines with one line set (words) or removed (undefined). The original is untouched. */
+export function withLine(lines: AiBanterLines, who: string, key: string, words: string | undefined): AiBanterLines {
+  const mine = { ...lines[who] }
+  if (words === undefined) delete mine[key]
+  else mine[key] = words
+  return { ...lines, [who]: mine }
+}
+
+/** A personality's keys that aren't a line for any of the game's moments (never said — a typo, or a moment that went). */
+export const strayKeys = (lines: AiBanterLines, who: string, moments: string[]) =>
+  Object.keys(lines[who] ?? {}).filter((k) => !moments.some((m) => isLineFor(k, m)))
+
+const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key)
+
+/** Make the lines in `box` (the "banter" object) exactly `lines`, in place. Only lines are touched — the tab only ever
+ *  holds a personality's TEXT entries (banterOf), so anything else ("_help": "…" beside the personalities, a non-text
+ *  value inside one) is the game's and stays. */
+function fitLines(box: Record<string, unknown>, lines: AiBanterLines): void {
+  for (const who of Object.keys(box)) if (isRecord(box[who]) && !has(lines, who)) delete box[who]
+  for (const [who, mine] of Object.entries(lines)) {
+    if (!isRecord(box[who])) box[who] = {}
+    const target = box[who] as Record<string, unknown>
+    for (const key of Object.keys(target)) if (typeof target[key] === 'string' && !has(mine, key)) delete target[key]
+    for (const [key, words] of Object.entries(mine)) target[key] = words
+  }
+}
+
+/** LIVE: make the lines at `at` inside the game's own object exactly `lines` — in place (the game holds this object),
+ *  making the containers it needs. Other keys in the file are never touched. */
+export function applyBanterLive(data: Record<string, unknown>, at: string[], lines: AiBanterLines): void {
+  let box: Record<string, unknown> = data
+  for (const key of at) {
+    if (!isRecord(box[key])) box[key] = {}
+    box = box[key] as Record<string, unknown>
+  }
+  fitLines(box, lines)
+}
+
+/** For Save: a copy of the file with the lines at `at` made exactly `lines` (same rule as applyBanterLive — only lines
+ *  change). The original is untouched. */
+export function withBanter(data: Record<string, unknown>, at: string[], lines: AiBanterLines): Record<string, unknown> {
+  const found = getAt(data, at)
+  const box = isRecord(found) ? (JSON.parse(JSON.stringify(found)) as Record<string, unknown>) : {}
+  fitLines(box, lines)
+  return setAt(data, at, box)
+}
+
+/** Plain-English lines for what changed ("banter.Bully.won: "Too easy." → "Next!""), for Copy for Claude. */
+export function banterChanges(before: AiBanterLines, after: AiBanterLines): string[] {
+  const out: string[] = []
+  for (const who of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    const a = before[who] ?? {}
+    const b = after[who] ?? {}
+    for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+      if (a[key] === b[key]) continue
+      out.push(`banter.${who}.${key}: ${a[key] === undefined ? '(new)' : JSON.stringify(a[key])} → ${b[key] === undefined ? '(removed)' : JSON.stringify(b[key])}`)
+    }
+  }
+  return out
+}
+
 // ---- Sections + search ----
 // The tab's parts sit in the content files' own "_sections" (so they're named and grouped where Muzzy edits them),
 // plus the tab's own: the bio, watching a game and the Personality Check.
@@ -152,6 +266,7 @@ export type AiSection = Section<AiItem> & {
 }
 
 export const BIO_SECTION = 'AI: bio'
+export const BANTER_SECTION = 'AI: banter lines'
 export const WATCH_SECTION = 'AI: watch a game'
 export const CHECK_SECTION = 'AI: Personality Check'
 
@@ -217,10 +332,11 @@ export function aiSections(ai: DevKitAi): AiSection[] {
   return [
     ...fileSections(ai.personalities, 'personalities', 'AI: personality'),
     ...(ai.bios ? [tabSection(BIO_SECTION, [['bio', 'Bio (the one line players read)']])] : []),
+    ...(ai.banter ? [tabSection(BANTER_SECTION, [['banter', 'Banter: what it says at each moment'], ...ai.banter.moments.map((m): [string, string] => [`banter.${m}`, ai.banter?.describe?.[m] ? `${m} — ${ai.banter.describe[m]}` : m])])] : []),
     ...settingsSections(ai.settings ?? []),
     ...fileSections(ai.skills, 'skills', 'AI: skill'),
     ...(ai.watch ? [tabSection(WATCH_SECTION, [['watch', 'Watch AIs play: notes and beliefs']])] : []),
-    ...(ai.runCheck ? [tabSection(CHECK_SECTION, [['check', 'Run the Personality Check (N games, report)']])] : []),
+    ...(ai.runCheck ? [tabSection(CHECK_SECTION, [['check', 'Run the Personality Check (N games, report)'], ...(ai.suggest ? [['suggest', 'Suggest sliders: the computer tries values to hit its feel targets (tune, auto-tune)'] as [string, string]] : [])])] : []),
   ]
 }
 
