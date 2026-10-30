@@ -303,6 +303,26 @@ flowchart LR
   F88 --> F87
 ```
 
+## v0.16 — On today's framework  ← current · planned 2026-10-30
+Goal (Muzzy 2026-10-30): every framework module current (framework v0.34.0), portrait only, the board nearer the middle of a phone — from the framework's catch-up rehearsal (framework .planning/research/2026-10-29-glyphtender-catchup.md).
+- 🔨 F90 🔧 Quiet module updates — Dev Kit, table, ai, rooms, audio to the newest with every printed hand step; bots stay silent (chattiness 0); the tuned mix kept — must · sprint 30
+- 🔨 F97 🎮 Portrait only — "orientation": "portrait", a sideways phone shows turn-your-phone, landscape sizes dropped from checks; GDD updated (Muzzy 2026-10-30) — must · sprint 30
+- 🔨 F91 🎮 New kit look — UI kit 0.20 → 0.38, the board near the vertical middle of a phone for comfort, Muzzy's OK on before/after shots — must · needs: F97 · sprint 30
+- 🔨 F92 🔧 Version label + crash reports — the version in the menu + Settings, crash reports wired and their server live, a privacy page — must · sprint 30
+- ⏳ F93 🔧 Lint clean-up — install lint 0.4.0, fix the ~9 real finds (player words → en.json, AI weights → content/ai), then errors on — must · needs: F90
+- ⏳ F94 🧱 Saves switch-over — 4 keys onto createSave + oldSave (tutorial "done" carried over as plain text), golden saves — must · needs: F90
+- ⏳ F95 🎮 Rejoin match — the kit's lastRoom + "Rejoin match" on the main menu after a closed tab — should · needs: F90
+- ⏳ F96 🔧 Matches survive a server restart — room storage in party/worker.ts + onRestore for the 2 timers; keepMatchDays (Muzzy: live ~7 / async ~30) — should · needs: F95
+```mermaid
+flowchart LR
+  F90[🔨 F90 Quiet module updates] --> F93[⏳ F93 Lint clean-up]
+  F90 --> F94[⏳ F94 Saves switch-over]
+  F90 --> F95[⏳ F95 Rejoin match]
+  F95 --> F96[⏳ F96 Matches survive a restart]
+  F97[🔨 F97 Portrait only] --> F91[🔨 F91 New kit look]
+  F92[🔨 F92 Version + crash reports]
+```
+
 ## Later
 - 🟢 F85 ❓ Tutorial follow-ups (from F80, Muzzy's to-dos 2026-10-13): 🙋 a short looping video for each of the 3 "How to play" cards (then 🤖 wires them in) · 🙋 play it on a phone + have other people play it · 🙋 reword nudges / tips / Explore lines in Dev Kit → Text · ❓ nudge look ("a bit small and lack visibility": bigger text / brighter edge / bounce) · ❓ a "suggested word" nudge (a glow on one spot vs a "show me a move" button) · ❓ should Replay tutorial game re-lock the device for testers? · the Story grip partly covers the "R1" label — must:1.0
 - 🟢 F89 🔧 Dev Kit ◐ half pause holds Glyphtender (rules freeze, animations keep playing): turn steps that wait for an animation to finish (bot glide → throw, the bot's draft landing, Reveal, Handoff, the score sequence; ~8 places) wait while the rules clock is stopped. A small framework helper comes first, so the next game is cheaper. ~3–5 h — should · from framework F63 (2026-10-19, Muzzy: "later, on its roadmap"); until then it is a known gap in content/devkit.json
