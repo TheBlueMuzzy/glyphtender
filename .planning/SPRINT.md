@@ -15,14 +15,14 @@ Check: install-module's checks green per module; check:full; the three online e2
 Checked: install-module per module (devkit, table green; ai + rooms green after their wiring, Rejoin = known gap F95; audio green); check:full 32/34 then both fixed + re-run green (STATE Last full check); online, online4, online-ai PASS; /health answers {"ok":true} on party:dev. Muzzy's listen 2026-10-30: "the 4 sounds are fine" — approved.
 
 ## F97 🎮 Portrait only
-Done when: content/ui/style.json says "orientation": "portrait", a phone on its side shows a "turn your phone" screen (built in Glyphtender, queued for the kit), check:framework and the e2e/screenshot sizes drop 844x390 and 768x343, and the GDD says portrait only.
-- [x] 🤖 1. "orientation": "portrait" in style.json + a "turn your phone" screen on a sideways phone, built in Glyphtender from kit parts (the kit has none — Goops neither; Muzzy 2026-10-30: build it here, queue it for the kit) — content/ui/style.json
-- [x] 🤖 1b. Queue the turn-your-phone screen for the framework (extract.mjs add) — src/ui/TurnPhone.tsx
+Done when: content/ui/style.json says "orientation": "portrait", installed / full screen it stays upright (a plain browser tab does nothing — Muzzy 2026-10-30), check:framework and the e2e/screenshot sizes drop 844x390 and 768x343, and the GDD says portrait only.
+- [x] 🤖 1. "orientation": "portrait" in style.json (Muzzy 2026-10-30, after a "Turn your phone" screen was built and shown: "do nothing for browsers. it'll be obvious to the user they need to turn back upright" → screen removed, 22c0b52) — content/ui/style.json
+- [x] 🤖 1b. ~~Queue the turn-your-phone screen for the framework~~ — withdrawn with the screen (framework X01 removed from the queue) — src/ui/TurnPhone.tsx
 - [x] 🤖 1c. Upright when installed and in full screen: PWA manifest "orientation": "portrait"; full screen asks the phone to hold portrait (Android; iPhone ignores it) — vite.config.ts
 - [ ] 🤖 2. Drop the landscape sizes from Glyphtender's own e2e + screenshot lists (and their reference shots) — e2e/shots.mjs
 - [x] 🤖 3. Update GDD §6 Look & sound / §4 How it plays: portrait only (Muzzy 2026-10-30) — .planning/GDD.md
 - [ ] 🤖 4. check:full green — scripts/check-all.mjs
-Check: a sideways phone shows the turn-your-phone screen (screenshot); check:full green.
+Check: the built manifest says orientation portrait; full screen asks for the portrait lock; check:full green.
 Checked:
 
 ## F91 🎮 New kit look
