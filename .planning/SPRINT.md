@@ -17,8 +17,8 @@ Checked: install-module per module (devkit, table green; ai + rooms green after 
 ## F97 🎮 Portrait only
 Done when: content/ui/style.json says "orientation": "portrait", a phone on its side shows a "turn your phone" screen (built in Glyphtender, queued for the kit), check:framework and the e2e/screenshot sizes drop 844x390 and 768x343, and the GDD says portrait only.
 - [x] 🤖 1. "orientation": "portrait" in style.json + a "turn your phone" screen on a sideways phone, built in Glyphtender from kit parts (the kit has none — Goops neither; Muzzy 2026-10-30: build it here, queue it for the kit) — content/ui/style.json
-- [ ] 🤖 1b. Queue the turn-your-phone screen for the framework (extract.mjs add) — src/ui/TurnPhone.tsx
-- [ ] 🤖 1c. Upright when installed and in full screen: PWA manifest "orientation": "portrait"; full screen asks the phone to hold portrait (Android; iPhone ignores it) — vite.config.ts
+- [x] 🤖 1b. Queue the turn-your-phone screen for the framework (extract.mjs add) — src/ui/TurnPhone.tsx
+- [x] 🤖 1c. Upright when installed and in full screen: PWA manifest "orientation": "portrait"; full screen asks the phone to hold portrait (Android; iPhone ignores it) — vite.config.ts
 - [ ] 🤖 2. Drop the landscape sizes from Glyphtender's own e2e + screenshot lists (and their reference shots) — e2e/shots.mjs
 - [ ] 🤖 3. Update GDD §6 Look & sound / §4 How it plays: portrait only (Muzzy 2026-10-30) — .planning/GDD.md
 - [ ] 🤖 4. check:full green — scripts/check-all.mjs

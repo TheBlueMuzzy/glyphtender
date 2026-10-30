@@ -38,6 +38,7 @@ export default defineConfig({
         theme_color: '#141a2e',
         background_color: '#141a2e',
         display: 'standalone',
+        orientation: 'portrait', // installed, it always opens upright (F97 — Portrait only)
         start_url: './',
         scope: './',
         icons: [
