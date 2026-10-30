@@ -9,10 +9,10 @@ Done when: Dev Kit, table, ai, rooms and audio are at the framework's newest (de
 - [x] 🤖 2. table, ai, rooms with each printed hand step: ai chattiness → 0 for all 4 personalities (bots stay silent), the Dev Kit previews' fake OnlineRoom gets matchEnded/cameBack/clearCameBack/sendEmote, roomsPort() in vite.config, /health in party/worker.ts — src/devkit-game/PreviewApp.tsx
 - [x] 🤖 3. audio 0.5.0 + `npm run audio:check -- --fix` (the tuned mix kept via volumeDb) — content/audio.json
 - [x] 🤖 4. The template's checks.yml (browser cache) + check-all's port pre-flight (scripts/ports.mjs) — scripts/check-all.mjs
-- [ ] 🤖 5. check:full green; e2e online, online4, online-ai pass — scripts/check-all.mjs
+- [x] 🤖 5. check:full green; e2e online, online4, online-ai pass — scripts/check-all.mjs
 - [ ] 🙋 6. Listen to seed.pick, seed.drop, no and reveal.bonus (variants of one sound now even with each other, up to 2.6 dB per variant) — content/audio.json
 Check: install-module's checks green per module; check:full; the three online e2e; Muzzy's listen.
-Checked:
+Checked: install-module per module (devkit, table green; ai + rooms green after their wiring, Rejoin = known gap F95; audio green); check:full 32/34 then both fixed + re-run green (STATE Last full check); online, online4, online-ai PASS; /health answers {"ok":true} on party:dev. Muzzy's listen: waiting (task 6).
 
 ## F97 🎮 Portrait only
 Done when: content/ui/style.json says "orientation": "portrait", a phone on its side shows the kit's "turn your phone" screen, check:framework and the e2e/screenshot sizes drop 844x390 and 768x343, and the GDD says portrait only.
@@ -47,5 +47,6 @@ Notes:
 - Install order (framework v0.34.0's install-module enforces it): devkit before ai.
 - F90 task 2 (Claude's calls): ai's banter steps 2–4 skipped (bots silent, chattiness 0 → check:framework skips both banter checks). ai's arena steps 1 + 5 → ROADMAP Ideas (optional, no player change). rooms steps 3–4 (keep a match through a server restart) = F96 — Matches survive a server restart, sprint 31; rooms' "Rejoin match" promise = F95 — Rejoin match → listed as a known gap in content/devkit.json until then. Table 0.8.0 → 0.8.2 changed only its VERSION in the game.
 - F90 task 4: checks.yml = the template (browser + apt cache); check-all's pre-flight covers E2E + ALONE. Proof attempt: a dummy server on 5243 was NOT caught, because netstat shows no row for it in Claude's shell (the shared Windows port lookup, not this copy) → added to the framework ROADMAP Ideas note. The pre-flight is in place for when that lookup is fixed.
+- F90 task 5: two test fixes the new Dev Kit needed — words-tab pressed ` at a fixed 1.5 s, but Dev Kit 0.28 arrives ~2 s after the page (probe: 2045 ms) → waits for aside.devkit now (devkit-ai's way); devkit-sound left audio-originals/ui/<test sound> behind (the Sound tab keeps an original of each added file) → its put-back removes it.
 - Surprise: stop-servers.mjs said "nothing is listening" while party:dev still held 1997 → logged in the framework ROADMAP Ideas; `stop-servers.mjs wrangler` stops it by name.
 Retro:
