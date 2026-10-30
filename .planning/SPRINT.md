@@ -19,6 +19,7 @@ Done when: content/ui/style.json says "orientation": "portrait", installed / ful
 - [x] 🤖 1. "orientation": "portrait" in style.json (Muzzy 2026-10-30, after a "Turn your phone" screen was built and shown: "do nothing for browsers. it'll be obvious to the user they need to turn back upright" → screen removed, 22c0b52) — content/ui/style.json
 - [x] 🤖 1b. ~~Queue the turn-your-phone screen for the framework~~ — withdrawn with the screen (framework X01 removed from the queue) — src/ui/TurnPhone.tsx
 - [x] 🤖 1c. Upright when installed and in full screen: PWA manifest "orientation": "portrait"; full screen asks the phone to hold portrait (Android; iPhone ignores it) — vite.config.ts
+- [x] 🙋 1d. Muzzy's change mid-feature (2026-10-30): "do nothing for browsers" → the Turn your phone screen, its words, setting, Select object, e2e and framework X01 removed (22c0b52, framework 6d8e2cb) — src/App.tsx
 - [x] 🤖 2. Drop the landscape sizes from Glyphtender's own e2e + screenshot lists (and their reference shots) — e2e/shots.mjs
 - [x] 🤖 3. Update GDD §6 Look & sound / §4 How it plays: portrait only (Muzzy 2026-10-30) — .planning/GDD.md
 - [x] 🤖 4. check:full green — scripts/check-all.mjs
