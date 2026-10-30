@@ -21,9 +21,9 @@ Done when: content/ui/style.json says "orientation": "portrait", installed / ful
 - [x] 🤖 1c. Upright when installed and in full screen: PWA manifest "orientation": "portrait"; full screen asks the phone to hold portrait (Android; iPhone ignores it) — vite.config.ts
 - [x] 🤖 2. Drop the landscape sizes from Glyphtender's own e2e + screenshot lists (and their reference shots) — e2e/shots.mjs
 - [x] 🤖 3. Update GDD §6 Look & sound / §4 How it plays: portrait only (Muzzy 2026-10-30) — .planning/GDD.md
-- [ ] 🤖 4. check:full green — scripts/check-all.mjs
+- [x] 🤖 4. check:full green — scripts/check-all.mjs
 Check: the built manifest says orientation portrait; full screen asks for the portrait lock; check:full green.
-Checked:
+Checked: built dist/manifest.webmanifest has "orientation":"portrait"; fullscreen unit tests 4/4 + e2e:fullscreen on an upright phone pass (the lock itself needs a real Android phone — not testable here); check:full 37/38 at 2a9893d, the 1 = screenshots' known 1-pixel flake (B028), alone 162/162 the same; no e2e tests a sideways size any more (grep clean, 54 reference shots removed).
 
 ## F91 🎮 New kit look
 Done when: UI kit 0.38.0 installed with Glyphtender's two test-helper fixes, the game screen lays out so the board sits near the vertical middle of a phone (player cards above/below it), Muzzy approved the look from before/after screenshots, and the reference screenshots are re-recorded.
