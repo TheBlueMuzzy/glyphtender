@@ -39,7 +39,7 @@ Done when: UI kit 0.38.0 installed with Glyphtender's two test-helper fixes, the
 - [x] 🤖 4c. GDD §4 + TDD: the prompt now sits under the top bar on an upright phone (D101 replaces D41) — .planning/TDD.md
 - [x] 🤖 5. Apply his choice; `npm run shots:record` once approved — e2e/shots.mjs
 Check: check:framework (every kit promise at every portrait size); screenshots looked at; Muzzy's OK.
-Checked:
+Checked: check:framework PASS (34 kept, 2 known gaps F89 / F95; sideways sizes skipped — portrait); looked at the phone presets 0 / 0.5 / 1, the seed1 bubble before/after, the cream bubbles (seed1, noWord) and desktop 1440×900 + 1066×1192 (tray beside, unchanged); check:full 37/38 at a5b4e3a, the 1 = new-game hit ERR_NO_BUFFER_SPACE (Windows network buffers, PC busy) — alone: pass; screenshots 162/162 on the re-recorded set. Muzzy 2026-10-31: "approved".
 
 ## F92 🔧 Version label + crash reports
 Done when: the version module shows the version in the main menu footer and Settings; crashes is wired (startCrashes, crashRootOptions, the Privacy → "Send crash reports" row) on a port of its own; its server is live with Muzzy; a privacy page says what a report holds.
