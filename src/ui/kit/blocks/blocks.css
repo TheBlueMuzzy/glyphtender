@@ -615,10 +615,12 @@
   .kit-callout-layer[data-ready] :is(.kit-callout, .kit-callout-dim, .kit-callout-ring) { visibility: visible; }
 }
 @layer kit-style {
-  .kit-callout { background: var(--surface) var(--panel-texture); color: var(--on-surface); border: var(--border-width) solid var(--border);
+  /* callout / on-callout / callout-border (0.39.0): the bubble's own colours, so a game can make it stand out from its
+     panels (Glyphtender: a light bubble with dark words on a dark game); every preset sets them to its panel colours */
+  .kit-callout { background: var(--callout) var(--panel-texture); color: var(--on-callout); border: var(--border-width) solid var(--callout-border);
     border-radius: var(--radius-panel); corner-shape: var(--corner-shape); box-shadow: var(--depth-2); }
   .kit-callout-layer[data-ready] .kit-callout { animation: var(--enter) var(--motion-normal) var(--ease) backwards; }
-  .kit-callout-tip { background: var(--surface); border: 0 solid var(--border); }
+  .kit-callout-tip { background: var(--callout); border: 0 solid var(--callout-border); }
   /* Only the two sides that point out get the outline (the square is turned 45°) */
   .kit-callout-layer[data-side="top"] .kit-callout-tip { border-inline-end-width: var(--border-width); border-block-end-width: var(--border-width); }
   .kit-callout-layer[data-side="bottom"] .kit-callout-tip { border-inline-start-width: var(--border-width); border-block-start-width: var(--border-width); }

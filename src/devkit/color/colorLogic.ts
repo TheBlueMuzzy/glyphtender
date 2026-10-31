@@ -3,7 +3,7 @@
 import { filterSections, type Section } from '../search/searchLogic'
 import { isUiShape, shapeDefault, shapeOf, UI_SHAPES } from './styleValues'
 
-/** The 17 UI kit colours, in the order the panel lists them, with names Muzzy would use. */
+/** The 20 UI kit colours, in the order the panel lists them, with names Muzzy would use. */
 export const UI_COLOURS = [
   { token: 'bg', name: 'Page background' },
   { token: 'on-bg', name: 'Text on page' },
@@ -22,6 +22,10 @@ export const UI_COLOURS = [
   { token: 'ink', name: 'Ink' },
   { token: 'on-game', name: 'HUD text on the game' },
   { token: 'game-shade', name: 'HUD text halo' },
+  // the teaching bubble (tutorial, tips) — UI kit 0.39.0; an older kit's presets don't have them, the panel skips those
+  { token: 'callout', name: 'Tip bubbles' },
+  { token: 'on-callout', name: 'Text in tip bubbles' },
+  { token: 'callout-border', name: 'Tip bubble outline' },
 ] as const
 
 export type UiColours = Record<string, string> // token → "#rrggbb"
@@ -49,7 +53,10 @@ export function sameColour(a: string | undefined, b: string | undefined): boolea
 /** The colours the game shows: the preset's, with the file's tweaks on top. */
 export function uiColoursFrom(preset: Record<string, unknown>, tweaks: Record<string, unknown> = {}): UiColours {
   const out: UiColours = {}
-  for (const { token } of UI_COLOURS) out[token] = String(tweaks[token] ?? preset[token])
+  for (const { token } of UI_COLOURS) {
+    const value = tweaks[token] ?? preset[token]
+    if (value !== undefined) out[token] = String(value) // (a colour an older kit's preset doesn't have is left out)
+  }
   return out
 }
 

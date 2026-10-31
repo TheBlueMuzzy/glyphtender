@@ -19,6 +19,12 @@ export const colourTokens = {
   'border': 'Outlines, dividers, empty tracks',
   'focus': 'Keyboard/gamepad focus ring',
   'on-game': 'HUD text drawn straight on the game (no plate): instructions, "Round 1". Light, e.g. white',
+  // The teaching bubble (Callout — tutorials, tips; 0.39.0). Every preset sets them to its panel colours (surface,
+  // on-surface, border); a game's tweaks change them so the bubble stands out from its panels (Glyphtender: a light
+  // bubble with dark words and outline, on a dark game).
+  'callout': 'Tip / tutorial bubbles',
+  'on-callout': 'Text in tip bubbles',
+  'callout-border': 'Tip bubble outline',
 } as const
 
 // Colours that never have text on them, so the contrast test skips them.

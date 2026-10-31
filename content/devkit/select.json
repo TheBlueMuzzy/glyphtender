@@ -140,7 +140,8 @@
         "Look": ["tutorial.calloutRoom", "tutorial.railsDim"],
         "Explore": ["tutorial.exploreRemind", "tutorial.exploreDim"]
       },
-      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails", "tutorial.explore.remind"]
+      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails", "tutorial.explore.remind"],
+      "style": ["callout", "on-callout", "callout-border", "border-width", "radius-panel", "depth-2"]
     },
     "ribbon": {
       "label": "Award ribbon",

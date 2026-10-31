@@ -135,7 +135,8 @@ function UiColoursEditor({ query }: { query: string }) {
               onGoTo={() => goTo(section.id)}
             >
               <p className="ct-legend">content/ui/style.json · ↺ = back to the {presetTitle} preset</p>
-              {section.items.map(({ token, name }) => row(token, <Highlight text={`${name} (${token})`} terms={terms} />))}
+              {/* (a colour the game's kit doesn't have yet — tip bubbles before UI kit 0.39.0 — isn't listed) */}
+              {section.items.filter(({ token }) => isUiShape(token) || token in colours).map(({ token, name }) => row(token, <Highlight text={`${name} (${token})`} terms={terms} />))}
             </Section>
           ))}
         </>
