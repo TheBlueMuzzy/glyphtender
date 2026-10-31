@@ -37,7 +37,7 @@ Done when: UI kit 0.38.0 installed with Glyphtender's two test-helper fixes, the
   - Ask Muzzy: (1) the draft steps still cover 2 hexes at 390 (5 at 360) · (2) the noWord / handOver pauses (big, board dimmed) cover 23–40 hexes · (3) the plantNothing nudge covers 9–14. → Muzzy 2026-10-31: "1. b. 2. a. 3. a." — leave all three as they are.
 - [x] 🤖 4d. Tip bubbles light with dark words and a dark outline (Muzzy 2026-10-31: "currently they are blue on a blue background and they aren't standing out enough") → UI kit 0.39.0 gives the bubble its own colours (callout / on-callout / callout-border; framework d00f05e, Dev Kit 0.28.2 lists them as "Tip bubbles"); Glyphtender style.json: #f3e9d7 / #10162a / #1c2742; on the tip's Select object — content/ui/style.json
 - [x] 🤖 4c. GDD §4 + TDD: the prompt now sits under the top bar on an upright phone (D101 replaces D41) — .planning/TDD.md
-- [ ] 🤖 5. Apply his choice; `npm run shots:record` once approved — e2e/shots.mjs
+- [x] 🤖 5. Apply his choice; `npm run shots:record` once approved — e2e/shots.mjs
 Check: check:framework (every kit promise at every portrait size); screenshots looked at; Muzzy's OK.
 Checked:
 
