@@ -10,6 +10,10 @@
 // In a release build import.meta.env.DEV is false, so `frozen` is always false and none of this ships.
 export const frozen = import.meta.env.DEV && new URLSearchParams(window.location.search).has('freeze')
 
+/** The version as the menu and Settings show it: one fixed label while frozen — every /save bumps the build number,
+ *  which would change those screenshots each time (F92). The real check of the version is checkVersion (game e2e). */
+export const shownVersion = (label: string) => (frozen ? 'v0.0.0.0' : label)
+
 export function freezeScreen() {
   // The same dice every run: a plain "multiply and wrap" number sequence (Park–Miller), always starting at 1
   let n = 1
