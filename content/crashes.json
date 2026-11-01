@@ -21,6 +21,6 @@
     "server.samplesPerKind": [1, 1000, 1],
     "server.keepDays": [1, 365, 1]
   },
-  "client": { "url": "", "perSession": 5, "moments": 20, "sendInDev": false },
+  "client": { "url": "https://glyphtender-crashes.joebrogno.workers.dev", "perSession": 5, "moments": 20, "sendInDev": false },
   "server": { "perAddressPerHour": 30, "perDay": 15000, "newKindsPerDay": 200, "samplesPerKindPerDay": 20, "samplesPerKind": 100, "keepDays": 90 }
 }

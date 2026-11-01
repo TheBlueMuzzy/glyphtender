@@ -46,9 +46,11 @@ Done when: the version module shows the version in the main menu footer and Sett
 - [x] 🤖 1. version 0.1.3: versionPlugin, MainMenu + Settings version, Dev Kit adapter, checkVersion in an e2e check:full runs — src/main.tsx
 - [x] 🤖 2. crashes 0.2.2 wired + "Send crash reports" row; its local port not 1995 (that's the online e2e's wrangler) — content/ui/settings.json
 - [x] 🤖 2b. check:fast runs the static framework check AFTER the build, in one step — side by side, crashes' "no source map ships" read dist/ mid-build, before crashesMaps() moved the maps out (found 2026-10-31) — scripts/check-all.mjs
-- [ ] 🙋 3. Put the crash server online together (~10 min: a token, `npm run crashes:deploy`) — package.json
-- [ ] 🤖 4. client.url in content/crashes.json + a privacy page (what a report holds, how to turn it off) + the Crashes: line in STATE Key facts — package.json
+- [x] 🙋 3. Put the crash server online together (~10 min: a token, `npm run crashes:deploy`) — package.json
+  - done 2026-11-01 (Claude — wrangler was already logged in on the PC, so no steps for Muzzy): token in ~/.config/bmuz/crashes/ (PC only), `npm run crashes:deploy` → https://glyphtender-crashes.joebrogno.workers.dev, CRASHES_TOKEN secret set, /health says token ok. Proof: the built game (vite preview, Playwright) threw a test error → POST /report 204 → `npm run crashes` showed it (v0.11.0.6, Chrome/Windows); then marked fixed (c4179a40f1210f35).
+- [x] 🤖 4. client.url in content/crashes.json + a privacy page (what a report holds, how to turn it off) + the Crashes: line in STATE Key facts — package.json
   - done 2026-10-31 (autonomous): public/privacy.html (the framework's crash-report wording, 90 days, how to turn it off) + Settings → About → Privacy link (the live address). Waits on task 3 (going live): client.url + the Crashes: Key fact.
+  - done 2026-11-01: client.url = https://glyphtender-crashes.joebrogno.workers.dev + the Crashes: Key fact in STATE. Players start sending once /deliver ships this build.
   - Ask Muzzy: the privacy page only covers crash reports. Should it also say what online play keeps (room names, the submitted-words list)? I didn't guess at those. → Muzzy 2026-11-01: "1. a." — yes; and "2. a." — keep the version in both Settings spots.
 - [ ] 🤖 4b. Privacy page: add what online play keeps — read party/server.ts, party/worker.ts and party/submittedWords.ts first (names in a room, how long a room lives, the submitted-words list) and write only what the code really stores (Muzzy 2026-11-01: "1. a.") — public/privacy.html
 Check: crashes + version checks green; a test crash reaches the live server; check:full green.
