@@ -1,0 +1,18 @@
+# Changelog
+
+## v0.11.2 — 2026-11-01
+
+On a phone, the board now sits in the middle of the screen, and the game's version shows on the main menu. If something ever breaks, the game says so instead of going blank and sends a short anonymous report so it can be fixed. You can turn reports off in Settings.
+
+### New
+- The version number shows at the bottom of the main menu and in Settings.
+- When the game breaks, a "Something broke" screen with a Reload button appears instead of a blank page.
+- Crash reports: an anonymous technical report is sent when something breaks (no name, address or account). You can switch them off in Settings → Privacy → Send crash reports.
+- A privacy page (Settings → About → Privacy) says what crash reports hold, what online play keeps and what happens to submitted words.
+
+### Changed
+- On an upright phone, the turn's words sit under the top bar and the board sits in the middle of the screen, easier to reach with a thumb.
+- Tip bubbles are light with dark words, so they stand out from the board.
+- Tutorial tips about your tray now sit below the tray's seeds instead of covering the board's bottom row.
+- The installed app opens upright, and full screen on Android holds the phone upright.
+- A few sound effects were evened out so none sticks out.

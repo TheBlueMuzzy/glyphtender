@@ -1,3 +1,4 @@
+- 2026-10-12 — Released v0.9.3: B027 New Game scrolls on phones (UI kit 0.8.2 + a real touch-swipe check in e2e:new-game). Full check; fixed 2 e2e scripts gone stale in v0.9.2 (they tapped hidden settings rows). Server unchanged.
 - 2026-10-12 — Released v0.9.2: Settings shows only rows that work (12 kit placeholders off; ui-kit 0.8.1 installer now starts games that way). Fast + shots + previews checks; perf unchanged (slow phone 1.61 s to Play, 60 fps).
 - 2026-10-12 — Released v0.9.1: the live site's console is clean again (Words tab fetched /__words/list on the live build → 404). Server unchanged.
 - 2026-10-12 — Released v0.9.0 = v0.13 Fair words: cleaner word list + Muzzy's word passes, Submit a word (online server Words list), Dev Kit Words tab (checklist, B / V marks), British spelling + Vulgar words as New Game / lobby options. Full check 30/30, security + code review clean; Dev Kit 0.12.3 + UI kit 0.8.0 on framework.

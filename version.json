@@ -1,6 +1,6 @@
 {
   "name": "Glyphtender",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "build": 0,
   "history": [
     {
@@ -97,6 +97,11 @@
       "version": "0.11.1",
       "date": "2026-10-25",
       "summary": "Installed as an app (Add to Home screen), Glyphtender now opens full screen — no clock/battery strip"
+    },
+    {
+      "version": "0.11.2",
+      "date": "2026-11-01",
+      "summary": "Board in the middle on phones, version label, crash reports + privacy page"
     }
   ]
 }
