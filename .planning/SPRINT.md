@@ -47,6 +47,8 @@ Done when: the version module shows the version in the main menu footer and Sett
 - [x] 🤖 2. crashes 0.2.2 wired + "Send crash reports" row; its local port not 1995 (that's the online e2e's wrangler) — content/ui/settings.json
 - [ ] 🙋 3. Put the crash server online together (~10 min: a token, `npm run crashes:deploy`) — package.json
 - [ ] 🤖 4. client.url in content/crashes.json + a privacy page (what a report holds, how to turn it off) + the Crashes: line in STATE Key facts — package.json
+  - done 2026-10-31 (autonomous): public/privacy.html (the framework's crash-report wording, 90 days, how to turn it off) + Settings → About → Privacy link (the live address). Waits on task 3 (going live): client.url + the Crashes: Key fact.
+  - Ask Muzzy: the privacy page only covers crash reports. Should it also say what online play keeps (room names, the submitted-words list)? I didn't guess at those.
 Check: crashes + version checks green; a test crash reaches the live server; check:full green.
 Checked:
 

@@ -28,6 +28,7 @@
       { "id": "secAbout", "type": "heading", "label": "About" },
       { "id": "version", "type": "info", "label": "Version", "default": "0.1.0" },
       { "id": "credits", "type": "button", "label": "Credits" },
+      { "id": "privacyPage", "type": "link", "label": "Privacy", "url": "https://thebluemuzzy.github.io/glyphtender/privacy.html" },
       { "id": "feedback", "type": "link", "label": "Send feedback", "url": "https://example.com/feedback", "on": false },
       { "id": "resetProgress", "type": "destructive", "label": "Reset progress", "button": "Reset", "confirm": "All your unlocks and scores will be gone. This can’t be undone.", "on": false }
     ]},
