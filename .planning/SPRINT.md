@@ -49,7 +49,8 @@ Done when: the version module shows the version in the main menu footer and Sett
 - [ ] 🙋 3. Put the crash server online together (~10 min: a token, `npm run crashes:deploy`) — package.json
 - [ ] 🤖 4. client.url in content/crashes.json + a privacy page (what a report holds, how to turn it off) + the Crashes: line in STATE Key facts — package.json
   - done 2026-10-31 (autonomous): public/privacy.html (the framework's crash-report wording, 90 days, how to turn it off) + Settings → About → Privacy link (the live address). Waits on task 3 (going live): client.url + the Crashes: Key fact.
-  - Ask Muzzy: the privacy page only covers crash reports. Should it also say what online play keeps (room names, the submitted-words list)? I didn't guess at those.
+  - Ask Muzzy: the privacy page only covers crash reports. Should it also say what online play keeps (room names, the submitted-words list)? I didn't guess at those. → Muzzy 2026-11-01: "1. a." — yes; and "2. a." — keep the version in both Settings spots.
+- [ ] 🤖 4b. Privacy page: add what online play keeps — read party/server.ts, party/worker.ts and party/submittedWords.ts first (names in a room, how long a room lives, the submitted-words list) and write only what the code really stores (Muzzy 2026-11-01: "1. a.") — public/privacy.html
 Check: crashes + version checks green; a test crash reaches the live server; check:full green.
 Checked:
 
