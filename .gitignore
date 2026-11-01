@@ -66,3 +66,7 @@ devkit.local.json
 
 # Project planner page (drawn by build-ppp, never committed)
 .planning/ppp.html
+
+# The service worker's source map changes on every build (workbox revision hashes) and is never needed:
+# the crash catcher only reports errors from the page, never from the service worker (F92).
+releases/*/maps/sw.js.map
