@@ -43,7 +43,7 @@ Checked: check:framework PASS (34 kept, 2 known gaps F89 / F95; sideways sizes s
 
 ## F92 🔧 Version label + crash reports
 Done when: the version module shows the version in the main menu footer and Settings; crashes is wired (startCrashes, crashRootOptions, the Privacy → "Send crash reports" row) on a port of its own; its server is live with Muzzy; a privacy page says what a report holds.
-- [ ] 🤖 1. version 0.1.3: versionPlugin, MainMenu + Settings version, Dev Kit adapter, checkVersion in an e2e check:full runs — src/main.tsx
+- [x] 🤖 1. version 0.1.3: versionPlugin, MainMenu + Settings version, Dev Kit adapter, checkVersion in an e2e check:full runs — src/main.tsx
 - [ ] 🤖 2. crashes 0.2.2 wired + "Send crash reports" row; its local port not 1995 (that's the online e2e's wrangler) — content/ui/settings.json
 - [ ] 🙋 3. Put the crash server online together (~10 min: a token, `npm run crashes:deploy`) — package.json
 - [ ] 🤖 4. client.url in content/crashes.json + a privacy page (what a report holds, how to turn it off) + the Crashes: line in STATE Key facts — package.json

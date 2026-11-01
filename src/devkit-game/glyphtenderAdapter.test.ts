@@ -6,6 +6,7 @@ import { useGameStore } from '../store/gameStore'
 import { screens } from '../ui/kit'
 import { TRAY_GAP } from '../store/turnPlan'
 import { describeGlyphtender, glyphtenderAdapter, savedTrayOrder, type GlyphtenderMoment } from './glyphtenderAdapter'
+import { versionLabel } from '../version'
 
 const store = () => useGameStore.getState()
 
@@ -22,9 +23,10 @@ beforeEach(() => {
 })
 
 describe('glyphtenderAdapter', () => {
-  it('names the game and its version (from version.json)', () => {
+  it('names the game and its version (the version module\'s label, as the menu shows it)', () => {
     expect(glyphtenderAdapter.name).toBe('Glyphtender')
-    expect(glyphtenderAdapter.version).toMatch(/^\d+\.\d+\.\d+\.\d+$/)
+    expect(glyphtenderAdapter.version).toBe(versionLabel)
+    expect(glyphtenderAdapter.version).toMatch(/^v\d+\.\d+\.\d+\.\d+$/) // (the test run has the plugin: "vX.Y.Z.B", not "dev")
   })
 
   it('a snapshot is plain JSON, and restoring it brings the game back — without the planned move', () => {

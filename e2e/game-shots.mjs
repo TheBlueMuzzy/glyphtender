@@ -18,6 +18,7 @@ import garden from '../content/tuning/garden.json' with { type: 'json' }
 import anim from '../content/tuning/anim.json' with { type: 'json' }
 import { leftoverPops } from './leftover-pops.mjs'
 import { castColour } from '../src/game/castShade.ts'
+import { checkVersion } from '../src/version/e2e.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const PORT = Number(process.argv[3] ?? 5188)
@@ -292,6 +293,7 @@ try {
 
     // ---- menu → Play ----
     await page.goto(`http://127.0.0.1:${PORT}/`)
+    await checkVersion(page) // the page is the build version.json says (no stale build / cached service worker) — version module
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Start' }).click() // the new-game screen's defaults: 2 players, Small
     await page.waitForFunction(() => window.__glyphtender?.store.getState().wordsStatus === 'ready', null, { timeout: 15000 })
