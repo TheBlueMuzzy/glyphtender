@@ -17,11 +17,13 @@ import { availableParallelism } from 'node:os'
 // [name, command] — fast checks don't use ports, so they all run at once
 const FAST = [
   ['unit tests', 'npx vitest run'],
-  ['build', 'npm run -s build'],
   ['lint', 'npm run -s lint'],
   ['golden games', 'npm run -s check:golden'],
   ['UI kit rules', 'npm run -s check:ui'], // the UI kit's rule: it was missing here, so an inline style shipped in v0.11.0 (F63)
-  ['framework (code)', 'node src/devkit/check-framework.mjs --static'], // every framework piece's code promises, e.g. no dead Settings row (template line; framework F76)
+  // every framework piece's code promises, e.g. no dead Settings row (template line; framework F76) — AFTER the build, in
+  // one step: crashes' "no source map ships" reads dist/, and side by side it caught the maps mid-build, before
+  // crashesMaps() moved them out (F92, 2026-10-31)
+  ['build + framework (code)', 'npm run -s build && node src/devkit/check-framework.mjs --static'],
 ]
 // e2e: [name, script, args] — every one on its own ports (see each script's header for what it checks).
 // Measured 2026-10-04, 3 at a time: end 462 s · online 334 · online4 274 · screenshots 213 · pass4 114 · game 95 · pass 95 ·

@@ -10,6 +10,7 @@
 //   Mute in background · Mono): straight to the audio engine (src/audio settings.ts reads the same ids; src/game/sound.ts).
 import { create } from 'zustand'
 import { applyAudioSettings, getAudio } from '../audio'
+import { applyCrashSetting } from '../crashes'
 import settingsFile from '../../content/ui/settings.json'
 import text from '../../content/text/en.json'
 import { fullscreenSetting, withFullscreenDefault } from './fullscreen'
@@ -57,4 +58,5 @@ export function settingsChanged(values: SettingsValues, changed?: string) {
   fullscreenSetting(values, changed)
   const audio = getAudio() // (none in tests and the Dev Kit's previews)
   if (audio) applyAudioSettings(audio, values)
+  applyCrashSetting(values) // Privacy → Send crash reports (crashes module, F92)
 }

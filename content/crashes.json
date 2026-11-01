@@ -1,0 +1,26 @@
+{
+  "_help": {
+    "client.url": "The game's own crash server (made with npm run crashes:deploy — going live is Muzzy's call), e.g. https://goops-crashes.joebrogno.workers.dev. Empty = the game catches errors but sends nothing.",
+    "client.perSession": "Reports one play session (one open tab) may send, at most. Each kind of error is only sent once per session anyway; repeats are just counted.",
+    "client.moments": "How many of the last game moments (code names like roundStart + numbers, never text a player typed) go with a report, so you can see what led up to it.",
+    "client.sendInDev": "true = the dev build (npm run dev) sends reports too — only to try the server out. Leave false so your own testing isn't counted.",
+    "server.perAddressPerHour": "Reports one address (a home or a school shares one) may send in an hour; past that they're dropped. The address is never stored. Redeploy the crash server after changing a server value.",
+    "server.perDay": "Reports the whole game may store in a day (UTC). Past that only a count goes up. Keeps the Cloudflare account's shared allowance (100,000 requests a day, online play included) safe.",
+    "server.newKindsPerDay": "New kinds of error the server takes in a day, so a flood of made-up ones can't fill it.",
+    "server.samplesPerKindPerDay": "Full reports kept for one kind of error per day; past that the kind is only counted.",
+    "server.samplesPerKind": "Full reports kept for one kind of error in all; the newest replace the oldest.",
+    "server.keepDays": "Days reports are kept before they're deleted (and a kind not seen for that long). The privacy line says this number. Muzzy 2026-10-22: 90."
+  },
+  "_ranges": {
+    "client.perSession": [1, 20, 1],
+    "client.moments": [0, 30, 1],
+    "server.perAddressPerHour": [1, 1000, 1],
+    "server.perDay": [100, 50000, 100],
+    "server.newKindsPerDay": [1, 2000, 1],
+    "server.samplesPerKindPerDay": [1, 100, 1],
+    "server.samplesPerKind": [1, 1000, 1],
+    "server.keepDays": [1, 365, 1]
+  },
+  "client": { "url": "", "perSession": 5, "moments": 20, "sendInDev": false },
+  "server": { "perAddressPerHour": 30, "perDay": 15000, "newKindsPerDay": 200, "samplesPerKindPerDay": 20, "samplesPerKind": 100, "keepDays": 90 }
+}
