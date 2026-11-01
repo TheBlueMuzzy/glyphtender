@@ -1,4 +1,4 @@
-// A 3-PLAYER (or 2/4: the third argument) PASS-AND-PLAY GAME THROUGH THE REAL SCREEN — at phone-tall 390×844, phone-wide 844×390, desktop 1440×900:
+// A 3-PLAYER (or 2/4: the third argument) PASS-AND-PLAY GAME THROUGH THE REAL SCREEN — at phone-tall 390×844 and desktop 1440×900:
 // menu → Play → New game (3 players → the Small garden since F46) → Start → draft 6 → "Pass to Yellow" → a few turns, passing the
 // device each time (the tray stays hidden until "Show my seeds") → a glyphling with 1 move left shows its warning ring
 // (the dev hook fast-forwards to one) → fast-forward to the end → the Magic reveal plays by itself (mid + end shots)
@@ -8,7 +8,7 @@
 // shade of it (garden.json castShade), no cast arc; once a turn has landed no trail is left (not after the handoff either).
 // Checks every screenshot: nothing past a screen edge, buttons ≥ 44 px (words on one line), the prompt's words inside
 // its box, no console errors.
-// Side-by-side layouts (phone-wide, desktop): the right-hand column keeps one width from a normal turn through the
+// Side-by-side layouts (desktop): the right-hand column keeps one width from a normal turn through the
 // reveal, even with a very long player name in the prompt (it used to shrink to the reveal's chips — F13 bug).
 // Starts its OWN dev server (default port 5193 — never Muzzy's 5180) and closes only that one at the end.
 //   npm run e2e:pass [outDir] [port] [players]     (players 2–4, default 3; npm run e2e:pass4 = 4 players)
@@ -27,7 +27,6 @@ if (![2, 3, 4].includes(COUNT)) throw new Error(`Players must be 2–4, got ${pr
 const TAG = COUNT === 3 ? 'pass' : `pass${COUNT}`
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 const PLAYERS = ['Yellow', 'Blue', 'Purple', 'Pink'].slice(0, COUNT)
@@ -44,10 +43,16 @@ function problems() {
     if (r.left < -0.5 || r.top < -0.5 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) out.push(`clipped: ${name}`)
     if (el.tagName === 'BUTTON' && (r.height < 43.5 || r.width < 43.5)) out.push(`small button: ${name} ${Math.round(r.width)}×${Math.round(r.height)}`)
     // a button whose words wrapped onto a second line (buttons can be tall now — a board hex — so count the lines)
+    // (only the words' own boxes: an icon Button's symbol sits in its own box, .kit-button-glyph — UI kit 0.35.5+)
     if (el.tagName === 'BUTTON' && el.textContent.trim()) {
-      const range = document.createRange()
-      range.selectNodeContents(el)
-      const lines = new Set([...range.getClientRects()].map((line) => Math.round(line.top)))
+      const lines = new Set()
+      const words = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+      for (let node = words.nextNode(); node; node = words.nextNode()) {
+        if (!node.textContent.trim() || node.parentElement?.closest('.kit-button-glyph')) continue
+        const range = document.createRange()
+        range.selectNodeContents(node)
+        for (const line of range.getClientRects()) lines.add(Math.round(line.top))
+      }
       if (lines.size > 1) out.push(`button words wrapped: ${name}`)
     }
   }
@@ -264,7 +269,7 @@ try {
     await table.waitFor({ timeout: 10000 })
     await shot('9-end-table', 700)
     // The end screen (F26): everyone on the first page — every player's glyphling on screen without scrolling, the winner
-    // big (the highlights under them may scroll on a phone on its side)
+    // big
     check(`the end screen shows ${COUNT} players`, (await table.locator('.game-end-player').count()) === COUNT)
     check('a winner is shown big', (await table.locator('.game-end-player[data-winner]').count()) >= 1)
     const allInView = await page.evaluate(() => {

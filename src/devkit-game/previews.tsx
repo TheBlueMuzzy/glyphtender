@@ -48,6 +48,7 @@ function fakeRoom(seats: RoomSeat[], phase: 'lobby' | 'playing', mySeat: number)
     view: null, error: null, closedReason: null, send: () => false,
     setReady: nothing, start: nothing, kick: nothing, addBot: nothing, backToLobby: nothing, leave: nothing, clearError: nothing,
     idleWarning: null, botPlaysForMe: false, active: nothing,
+    matchEnded: false, cameBack: null, clearCameBack: nothing, sendEmote: () => false,
   }
 }
 

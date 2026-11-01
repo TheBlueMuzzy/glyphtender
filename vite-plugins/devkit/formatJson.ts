@@ -17,8 +17,10 @@
 /** The longest a NEW one-line object or list may make its line (indent and key included). */
 export const LINE_LIMIT = 120
 
-/** How the old file was written, by place: objects / lists → one line or not; plain values → their exact text. */
-export type Layout = Map<string, { oneLine?: boolean; raw?: string; pad?: boolean; comma?: string }>
+/** How the old file was written, by place: objects / lists → one line or not; plain values → their exact text.
+ *  A list wrapped by hand (0.28.0, F133) also keeps `gaps`: the exact space before each item (after the [ or the
+ *  comma) and `close`, the space before the ] — so ["a", "b",\n      "c"] comes back with its break where it was. */
+export type Layout = Map<string, { oneLine?: boolean; raw?: string; pad?: boolean; comma?: string; gaps?: string[]; close?: string }>
 
 type Key = string | number
 type Entry = [key: string | null, value: unknown] // key = null for a list item
@@ -55,6 +57,9 @@ export function readLayout(text: string): Layout {
       at++
       const pad = text[at] === ' ' // { "a": 1 } or {"a": 1}
       let comma: string | undefined // what follows each comma: ", " or ","
+      const gaps: string[] = [] // a list: the space before each item, and before its ] (a hand-wrapped list, F133)
+      let closeGap = ''
+      let gapStart = at
       skipSpace()
       if (text[at] === close) at++
       else {
@@ -67,15 +72,23 @@ export function readLayout(text: string): Layout {
             key = JSON.parse(text.slice(start, at)) as string
             skipSpace()
             at++ // the :
+          } else {
+            skipSpace()
+            gaps.push(text.slice(gapStart, at))
           }
           readValue([...path, key])
+          const endStart = at
           skipSpace()
+          closeGap = text.slice(endStart, at)
           if (text[at++] !== ',') break // } or ] ends it
           comma ??= text[at] === ' ' ? ', ' : ','
+          gapStart = at
         }
       }
       const oneLine = line === startLine
-      layout.set(placeOf(path), oneLine ? { oneLine, pad, comma } : { oneLine })
+      // Spread over lines, but not one item per line: wrapped by hand — keep where each line breaks
+      const wrapped = open === '[' && !oneLine && gaps.some((gap) => !gap.includes('\n'))
+      layout.set(placeOf(path), oneLine ? { oneLine, pad, comma } : wrapped ? { oneLine, gaps, close: closeGap } : { oneLine })
       return
     }
     const start = at
@@ -147,6 +160,14 @@ function writer(layout: Layout) {
     const isFile = path.length === 0
     const wasOneLine = layout.get(placeOf(path))?.oneLine
     if (wasOneLine === true && !isFile) return joined(object, path)
+    // A list of plain values wrapped by hand: each item after the space it had (its line break, if it had one).
+    // An added item takes the last item's space (it joins the last line); a removed one takes its space with it.
+    const had = layout.get(placeOf(path))
+    if (had?.gaps && isList && entries.every(([, v]) => isPlain(v))) {
+      const gap = (i: number) => (had.gaps![i] ?? had.gaps![had.gaps!.length - 1]).replace(/\r/g, '')
+      const items = entries.map(([, v], i) => `${i > 0 ? ',' : ''}${gap(i)}${plain(v, [...path, i])}`)
+      return `[${items.join('')}${(had.close ?? '').replace(/\r/g, '')}]`
+    }
     // 2. New: the rule of thumb
     if (wasOneLine === undefined && !isFile && entries.every(([, v]) => isPlain(v))) {
       const line = joined(object, path)

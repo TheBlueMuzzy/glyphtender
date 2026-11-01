@@ -1,6 +1,6 @@
 // NEW GAME OPENS CENTRED, THEN ONLY GROWS DOWN (F58 — Muzzy 2026-10-10: "it should start in the center and only
 // expand downwards"). Since UI kit 0.10.0 (sprint 28) it's a menu card: the header (‹ · New game · Start) stays, the
-// rows scroll INSIDE the card (no scroll bar) once it's as tall as it may get (Screen grow="down"). At 5 sizes, a fresh
+// rows scroll INSIDE the card (no scroll bar) once it's as tall as it may get (Screen grow="down"). At 4 sizes (portrait only — F97), a fresh
 // New Game (2 players, both people):
 //   · on open the card is in the middle: the gap above it = the gap below it (±4 px)
 //   · Players + to the most (2 → 4) and then the 2nd seat Person → AI (its picker rows appear): the Players + button
@@ -23,7 +23,6 @@ const STILL_SLACK = 1 // px: how far the + may move
 const SIZES = [
   { width: 390, height: 844, mobile: true },
   { width: 360, height: 780, mobile: true },
-  { width: 844, height: 390, mobile: true },
   { width: 1440, height: 900, mobile: false },
   { width: 1920, height: 1080, mobile: false },
 ]

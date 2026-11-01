@@ -80,7 +80,7 @@ try {
   const errors = []
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
   await page.goto(`http://127.0.0.1:${PORT}/`)
-  await page.waitForTimeout(1500)
+  await page.locator('aside.devkit').waitFor({ state: 'attached' }) // the Dev Kit loads a moment after the page (~2 s since Dev Kit 0.28 — a fixed 1.5 s wait pressed ` before it listened)
   await page.keyboard.press('Backquote')
   await pickTab(page, 'Words')
   await page.locator('.devkit-body:not([hidden]) .rv-row').first().waitFor({ timeout: 15000 })

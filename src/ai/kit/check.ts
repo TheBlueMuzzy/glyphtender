@@ -16,6 +16,8 @@ export interface SeatResult {
   skill: string
   meters: Record<string, number>
   won: number
+  /** "What wins?" (F25): the game's situations at each moment — "turn 3" / "end" → situation → number. */
+  situations?: Record<string, Record<string, number>>
 }
 
 export interface GameResult {

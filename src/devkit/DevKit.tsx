@@ -15,16 +15,20 @@
 // While selecting on a desktop, the panel slides off to a thin pink bar on the right when the mouse leaves it (so the
 // whole game shows), and slides back when the mouse comes back over the bar — picked something or not.
 // The one rule (DEVKIT.md): tools edit content/ JSON files, never code.
-import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from 'react'
+import { Suspense, lazy, type KeyboardEvent as ReactKeyboardEvent, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent } from 'react'
 import { gameTabs } from '../devkit-game/tabs'
 import { CaptureTab } from './capture/CaptureTab'
 import { Carousel } from './carousel/Carousel'
 import { ColorTab } from './color/ColorTab'
+import { styleStore } from './color/uiKit'
+import { FontsTab } from './fonts/FontsTab'
 import { CAN_SAVE } from './saveContent'
 import { SearchBar } from './search/SearchBar'
 import { DevKitSearch } from './search/searchContext'
 import { goToSection } from './search/sectionState'
 import { DevKitPick, type PanelPick } from './select/pickContext'
+import { cyclePause, usePause } from './pause/pause'
+import { PauseBadge, PauseBadgeClosed, PauseButtons } from './pause/PauseButtons'
 import { NARROW_PX, SelectLayer } from './select/SelectLayer'
 import { selectFile } from './select/selectFiles'
 import { pickOf } from './select/selectMap'
@@ -60,6 +64,8 @@ const KIT_TABS: DevKitTab[] = [
   // Only when the game has content/devkit/select.json (its object → knobs list)
   ...(selectFile ? [{ id: 'select', label: 'Select', Panel: SelectTab, searchable: false }] : []),
   { id: 'color', label: 'Color', Panel: ColorTab },
+  // Only when the game has the UI kit (its fonts are the kit's text roles)
+  ...(styleStore ? [{ id: 'fonts', label: 'Fonts', Panel: FontsTab }] : []),
   // Only when the game has content/tuning/*.json files
   ...(tuningFiles.length > 0 ? [{ id: 'tuning', label: 'Tuning', Panel: TuningTab }] : []),
   // These two need the game's adapter (registerDevKitGame, devkitGame.ts); without it they say how to add it
@@ -83,6 +89,14 @@ function isTyping(target: EventTarget | null) {
   const el = target as HTMLElement | null
   if (!el || el.closest?.('.devkit')) return false
   return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
+}
+
+// A box you type in (the P key is a letter there, not the pause key)
+function isTextBox(target: EventTarget | null) {
+  const el = target as HTMLElement | null
+  if (!el) return false
+  if (el.isContentEditable || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true
+  return el.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button', 'color'].includes((el as HTMLInputElement).type)
 }
 
 export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab[] }) {
@@ -207,6 +221,13 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
     // element = the mouse left the window (off the right edge), not onto the game — stay put
     if (select.on && e.pointerType === 'mouse' && e.nativeEvent.relatedTarget instanceof Element && window.innerWidth > NARROW_PX) setTucked(true)
   }
+  // P (in the panel, not while typing in a box): pause off → full → half → off (pause/pause.ts)
+  const pause = usePause()
+  const onPanelKey = (e: ReactKeyboardEvent) => {
+    if ((e.key !== 'p' && e.key !== 'P') || e.ctrlKey || e.metaKey || e.altKey || isTextBox(e.target)) return
+    e.preventDefault()
+    cyclePause()
+  }
   const classes = ['devkit', select.on && 'is-selecting', tucked && 'is-tucked'].filter(Boolean).join(' ')
 
   const showsPick = (t: DevKitTab) => panelPick !== null && PICK_TABS.includes(t.id)
@@ -219,9 +240,11 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
   return (
     <>
     {selectFile && <SelectLayer panelOpen={open} />}
+    <PauseBadgeClosed panelOpen={open} />
     <aside ref={panel} {...{ popover: 'manual' }} className={classes} data-devkit={DEVKIT_MARKER} hidden={!open} aria-label="Dev Kit"
       onPointerLeave={tuckIfSelecting}
       onPointerEnter={() => setTucked(false)}
+      onKeyDown={onPanelKey}
     >
       {/* Tucked away (desktop, select mode): the bar that's left showing; hover it to bring the panel back (select.css) */}
       <div className="devkit-tuck-bar" aria-hidden="true">
@@ -239,7 +262,12 @@ export function DevKit({ tabs = [...KIT_TABS, ...gameTabs] }: { tabs?: DevKitTab
       {/* Two rows: a small title + ✕, then the tool tabs across the panel's FULL width (more tabs per page) */}
       <header className="devkit-top">
         <div className="devkit-title-row">
-          <strong className="devkit-title">Dev Kit</strong>
+          {/* ⏸ Full pause · ◐ Half pause, left of the title; the badge says which is on (pause/) */}
+          <span className="devkit-title-left">
+            <PauseButtons />
+            <strong className="devkit-title">Dev Kit</strong>
+            <PauseBadge mode={pause} />
+          </span>
           <button className="devkit-close" onClick={closeFromButton} aria-label="Close the Dev Kit" title="Close (Esc)">
             ✕
           </button>

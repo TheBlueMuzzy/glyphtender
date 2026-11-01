@@ -4,7 +4,7 @@
 //   loadWaveform → fetch + decode a file once (cached), for the waveform drawing
 import type { creditEntry } from './soundLogic'
 
-export type SavedSound = { path: string; file: string; trimmedMs: number }
+export type SavedSound = { path: string; file: string; trimmedMs: number; loudness?: string }
 
 async function answer(res: Response) {
   const body = await res.json().catch(() => ({}))

@@ -1,4 +1,4 @@
-// THE GAME, PLAYED THROUGH THE REAL SCREEN — at phone-tall 390×844, phone-wide 844×390 and desktop 1440×900:
+// THE GAME, PLAYED THROUGH THE REAL SCREEN — at phone-tall 390×844 and desktop 1440×900:
 // Play → Start (new-game screen) → snake draft (1 drag + 3 taps) → turns by tap (move, seed, cast, Plant · +N) and by drag, undo,
 // no tray drag before the move (B008: it shakes), tray reorder after the move, shuffle, a refresh → passing the device
 // (Show my seeds) → fast-forward to the end with the dev hook →
@@ -18,12 +18,12 @@ import garden from '../content/tuning/garden.json' with { type: 'json' }
 import anim from '../content/tuning/anim.json' with { type: 'json' }
 import { leftoverPops } from './leftover-pops.mjs'
 import { castColour } from '../src/game/castShade.ts'
+import { checkVersion } from '../src/version/e2e.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const PORT = Number(process.argv[3] ?? 5188)
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 mkdirSync(OUT, { recursive: true })
@@ -220,7 +220,6 @@ try {
       // the default (moonlit) keeps the letter legible: a brightness gradient map, not a pale wash over everything
       if (garden.plannedSeedLook === 'moonlit' && !(await page.locator('#planned-seed-look feFuncR[type="table"]').count()))
         fail(`${size.name}: B010: the moonlit look isn't drawn (no gradient map in the filter)`)
-      if (size.name === 'phone-wide') return
       const tune = (data) => page.evaluate((data) => window.dispatchEvent(new CustomEvent('devkit:tuning', { detail: { file: 'garden', data } })), data)
       for (const look of ['moonlit', 'stencil', 'misty', 'greyed', 'dimmed']) {
         await tune({ ...garden, plannedSeedLook: look })
@@ -294,6 +293,7 @@ try {
 
     // ---- menu → Play ----
     await page.goto(`http://127.0.0.1:${PORT}/`)
+    await checkVersion(page) // the page is the build version.json says (no stale build / cached service worker) — version module
     await page.getByRole('button', { name: 'Play', exact: true }).click()
     await page.getByRole('button', { name: 'Start' }).click() // the new-game screen's defaults: 2 players, Small
     await page.waitForFunction(() => window.__glyphtender?.store.getState().wordsStatus === 'ready', null, { timeout: 15000 })

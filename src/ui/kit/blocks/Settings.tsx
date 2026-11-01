@@ -8,7 +8,7 @@
 // Values are remembered in the browser, in a slot of the game's own (or pass your own load/save).
 // At start-up, call applyAccessibility(loadSettings(schema)) so text size and reduce motion apply
 // before Settings opens.
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Panel, Row, Screen } from '../layout'
 import { Button, ListRow, ScrollArea, Selector, Slider, Stepper, Tabs, Text, Toggle } from '../controls'
 import { screens } from '../screens'
@@ -103,12 +103,30 @@ export function applyAccessibility(values: SettingsValues, root = document.docum
   root.toggleAttribute('data-reduce-motion', values.reduceMotion === true)
 }
 
+// Each tab's page keeps two of its list's rows (0.38.0, F162: on a phone on its side at 200% text the Accessibility
+// list showed 1.4 rows). ScrollArea measures that floor on its own box (--kit-scroll-rows, --kit-scroll-contents);
+// the pages share one cell (blocks.css), so the page needs it too: copied up here, and only when it changes.
+// Self-contained, so the look tests can run it in a browser.
+export function keepPageFloors(pages: HTMLElement | null) {
+  for (const page of Array.from(pages?.children ?? []) as HTMLElement[]) {
+    const list = page.querySelector<HTMLElement>('.kit-scroll')
+    if (!list) continue
+    for (const name of ['--kit-scroll-rows', '--kit-scroll-contents']) {
+      const value = list.style.getPropertyValue(name)
+      if (page.style.getPropertyValue(name) !== value) page.style.setProperty(name, value)
+    }
+  }
+}
+
 export const settingsWords = { title: 'Settings', back: 'Back', reset: 'Reset to defaults', resetAsk: 'Every setting on this tab goes back to how it started.' }
 type SettingsProps = {
   schema?: SettingsSchema
   onChange?: (values: SettingsValues, changedId: string) => void
   onAction?: (id: string) => void // button and destructive rows
   info?: Record<string, string> // text for info rows, e.g. { version: '1.2.0' }
+  // 0.24.0: the game's version ("vX.Y.Z.B" — the version module's versionLabel), one quiet line at the bottom of every
+  // tab, so a game needs no About tab. An info row with id "version" shows it too, unless info gives its own.
+  version?: string
   onBack?: () => void
   storageKey?: string // the browser save slot; each game gets its own by default (see settingsStorageKey)
   load?: () => SettingsValues | null; save?: (values: SettingsValues) => void // or the game's own saving
@@ -117,9 +135,10 @@ type SettingsProps = {
   hide?: string[] // row ids to leave out right now, e.g. in-game-only rows when opened from the main menu
 }
 
-export function Settings({ schema = defaultSchema, onChange, onAction, info = {}, onBack = () => screens.pop(),
+export function Settings({ schema = defaultSchema, onChange, onAction, info: infoText = {}, version, onBack = () => screens.pop(),
   storageKey = settingsStorageKey(), load = () => loadFromBrowser(storageKey), save = (values) => saveToBrowser(storageKey, values), words, labels = {}, hide = [] }: SettingsProps) {
   const w = { ...settingsWords, ...words }
+  const info: Record<string, string> = version ? { version, ...infoText } : infoText
   const [values, setValues] = useState(() => withSaved(schema, load()))
   const tabs = schema.tabs
     .map((tab) => ({ ...tab, rows: visibleRows(tab.rows, hide) }))
@@ -127,6 +146,16 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
   const [tabId, setTabId] = useState<string | undefined>(tabs[0]?.id)
   const tab = tabs.find((t) => t.id === tabId) ?? tabs[0]
   const labelOf = (item: { id: string; label: string }) => labels[item.id] ?? item.label
+  // (the floors follow each list's: ScrollArea rewrites them on its own style when its rows change size)
+  const pagesBox = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const pages = pagesBox.current
+    keepPageFloors(pages)
+    if (!pages || typeof MutationObserver === 'undefined') return
+    const lists = new MutationObserver(() => keepPageFloors(pages))
+    lists.observe(pages, { attributes: true, attributeFilter: ['style'], subtree: true })
+    return () => lists.disconnect()
+  }, [])
 
   function update(next: SettingsValues, changedId: string) {
     setValues(next)
@@ -188,7 +217,10 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
   return (
     <Screen label={w.title} grow="down">
       <Panel depth={2} gap="m" className="kit-wide">
-        <MenuHeader title={w.title} onBack={onBack} backLabel={w.back} />
+        {/* The version (0.24.0) on a short screen (a phone on its side): at the right of the header, where it takes no
+            height from the rows (blocks.css swaps it with the line under the pages) */}
+        <MenuHeader title={w.title} onBack={onBack} backLabel={w.back}
+          action={version && <span className="kit-settings-version-top"><Text kind="caption">{version}</Text></span>} />
         {/* 3 tabs or fewer: always the tab bar, on one line. More: phones and short screens get ◀ Audio ▶ instead
             (8 tabs would fill half the screen). One tab: no picker at all. */}
         {tabs.length > 1 && tabs.length <= 3 && <div className="kit-settings-few"><Tabs {...tabPicker} /></div>}
@@ -201,7 +233,7 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
             neither scrolls into the tall one's empty space nor fades as if there were more (0.10.3). Only the current
             one shows; the others are inert and hidden from screen readers. */}
         {tab && (
-          <div className="kit-settings-pages">
+          <div ref={pagesBox} className="kit-settings-pages">
             {tabs.map((t) => {
               const current = t.id === tab.id
               return (
@@ -213,6 +245,9 @@ export function Settings({ schema = defaultSchema, onChange, onAction, info = {}
             })}
           </div>
         )}
+        {/* The version (0.24.0): below the pages, so it's in the same spot on every tab and never scrolls away
+            (short screens: in the header instead) */}
+        {version && <Row justify="center" className="kit-settings-version"><Text kind="caption">{version}</Text></Row>}
       </Panel>
     </Screen>
   )

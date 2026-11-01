@@ -11,6 +11,7 @@
 import { useEffect, useRef } from 'react'
 import { elementsOf, idsOnScreen, objectAt } from './domPicker'
 import { tagsOf } from './selectMap'
+import { devkitCancelRaf, devkitRaf } from '../pause/freeze' // the Dev Kit's own loop keeps running while the game is frozen
 import { getSelect, setSelect, useSelect } from './selectStore'
 
 const SCAN_MS = 300
@@ -83,7 +84,7 @@ export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
     if (!drawing) return
     let frame = 0
     const draw = () => {
-      frame = requestAnimationFrame(draw)
+      frame = devkitRaf(draw)
       const box = layer.current
       if (!box) return
       const now = getSelect()
@@ -116,7 +117,7 @@ export function SelectLayer({ panelOpen }: { panelOpen: boolean }) {
     }
     draw()
     return () => {
-      cancelAnimationFrame(frame)
+      devkitCancelRaf(frame)
       layer.current?.replaceChildren()
     }
   }, [drawing])

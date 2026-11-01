@@ -10,6 +10,15 @@ import { startFullscreen } from './ui/fullscreen'
 import { freezeScreen, frozen } from './game/freeze'
 import { startSound } from './game/sound'
 import { startWordOutbox } from './ui/online/wordOutbox'
+import { setPaceClock } from './ai/kit/pace'
+import { rulesClock } from './devkit/gameClock'
+import crashesJson from '../content/crashes.json'
+import { applyCrashSetting, readCrashesConfig, startCrashes } from './crashes'
+import { crashRootOptions } from './crashes/ui/crashRoot'
+import { versionLabel } from './version'
+
+// Bots wait on the rules clock, so a pause (Dev Kit ◐ / ⏸) holds a bot mid-think (AI 0.2.0)
+setPaceClock(rulesClock)
 
 // Dev only: ?freeze holds the screen still for the before / after screenshots (src/game/freeze.ts)
 if (frozen) freezeScreen()
@@ -26,6 +35,11 @@ if (import.meta.env.DEV && location.search.includes('devkit-preview=')) {
 }
 
 function startGame() {
+  // Crash reports (crashes module, F92): errors are caught from here on and sent to content/crashes.json client.url
+  // (empty until the crash server is live) — Settings → Privacy → Send crash reports turns them off
+  startCrashes({ config: readCrashesConfig(crashesJson), version: versionLabel })
+  applyCrashSetting(loadSettings(settings))
+
   // Offline cache: when a new release is out it downloads in the background and the page swaps
   // to it straight away — returning players never see an old version (Roll Better B020).
   registerSW({ immediate: true })
@@ -55,7 +69,8 @@ function startGame() {
   // Dev only: window.__glyphtender for the e2e check and the console (src/game/devHook.ts)
   if (import.meta.env.DEV) import('./game/devHook').then((m) => m.installDevHook())
 
-  createRoot(document.getElementById('root')!).render(
+  // (crashRootOptions: a broken screen shows "Something broke · Reload" and is reported, instead of a blank page)
+  createRoot(document.getElementById('root')!, crashRootOptions()).render(
     <StrictMode>
       <App />
     </StrictMode>,

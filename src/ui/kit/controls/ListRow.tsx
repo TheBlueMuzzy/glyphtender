@@ -2,6 +2,7 @@
 // The building block of settings, lobbies and scoreboards. With onClick the whole row is a button.
 import type { ReactNode } from 'react'
 import { controlSound } from './controlSound'
+import { shown } from '../shown'
 
 type ListRowProps = { label: ReactNode; detail?: ReactNode; children?: ReactNode; onClick?: () => void }
 
@@ -10,7 +11,7 @@ export function ListRow({ label, detail, children, onClick }: ListRowProps) {
     <>
       <span className="kit-listrow-text">
         <span>{label}</span>
-        {detail && <span className="kit-listrow-detail">{detail}</span>}
+        {shown(detail) && <span className="kit-listrow-detail">{detail}</span>}
       </span>
       {children}
     </>

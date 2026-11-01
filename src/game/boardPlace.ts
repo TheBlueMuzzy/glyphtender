@@ -9,9 +9,11 @@ export type TraySide = 'bottom' | 'top' | 'right' | 'left'
 /**
  * How far to move the board from the middle of its box toward the tray, in board units (hex sizes).
  * spareX / spareY: the box's room left over around the board, in the same units (one of them is 0).
+ * lean (tray below only — F91, layout.json boardVertical): where the board sits up/down in its box when the prompt
+ * is above the board: 0 = at the top, 0.5 = in the middle, 1 = right on the tray (the default, as before).
  */
-export function boardShift(side: TraySide, spareX: number, spareY: number): { x: number; y: number } {
-  if (side === 'bottom') return { x: 0, y: spareY / 2 }
+export function boardShift(side: TraySide, spareX: number, spareY: number, lean = 1): { x: number; y: number } {
+  if (side === 'bottom') return { x: 0, y: spareY * (lean - 0.5) }
   if (side === 'top') return { x: 0, y: -spareY / 2 }
   if (side === 'right') return { x: (spareX * 3) / 8, y: 0 }
   return { x: (-spareX * 3) / 8, y: 0 }

@@ -18,11 +18,13 @@ const full = (page) => page.evaluate(() => !!document.fullscreenElement)
 const button = (page) => page.locator('.kit-main-menu-extra button')
 
 try {
-  // ---- a phone on its side ----
-  const phone = await browser.newPage({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true })
+  // ---- an upright phone (portrait only — F97) ----
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
   await phone.goto(`http://127.0.0.1:${PORT}/`)
   await phone.getByRole('button', { name: 'Play', exact: true }).waitFor()
   check('phone: not full screen before any tap', !(await full(phone)))
+  const pressable = await phone.evaluate(() => !!document.elementFromPoint(30, 30)?.closest('button, a, input, [role="button"], [role="switch"]'))
+  check('phone: (30, 30) is an empty spot (nothing to press there)', !pressable)
   await phone.touchscreen.tap(30, 30) // an empty spot
   await phone.waitForTimeout(300)
   check('phone: a tap goes full screen', await full(phone))

@@ -13,7 +13,7 @@ import { Highlight, SearchCount } from '../search/Section'
 import { searchTerms } from '../search/searchLogic'
 import { snapshotFiles } from './snapshotFiles'
 import {
-  addSnapshot, cleanName, deleteSnapshot, loadSnapshots, shortTime, snapshotFilePath, snapshotForClaude, snapshotMatches, type Snapshot,
+  addSnapshot, cleanName, deleteSnapshot, loadSnapshots, shortTime, snapshotFilePath, snapshotForClaude, snapshotMatches, versionTag, type Snapshot,
 } from './snapshotStore'
 import './snapshots.css'
 
@@ -157,7 +157,7 @@ function SnapshotRow({ snapshot, terms, canRestore, onRestore, onCopy, children 
     <li className="sn-row">
       <div className="sn-info">
         <strong className="sn-row-name"><Highlight text={snapshot.name} terms={terms} /></strong>
-        <small className="sn-time">{shortTime(snapshot.savedAt)} · <Highlight text={`v${snapshot.version}`} terms={terms} /></small>
+        <small className="sn-time">{shortTime(snapshot.savedAt)} · <Highlight text={versionTag(snapshot.version)} terms={terms} /></small>
         {snapshot.summary && <small className="sn-summary"><Highlight text={snapshot.summary} terms={terms} /></small>}
       </div>
       <div className="sn-buttons">

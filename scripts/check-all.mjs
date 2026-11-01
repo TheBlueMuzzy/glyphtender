@@ -1,20 +1,29 @@
 // CHECK EVERYTHING, SIDE BY SIDE — the BMUZ check tiers in one command (BMUZ "Checks", 2026-10-04).
-//   npm run check:fast            the quick ones, together (~1 min): unit tests, type check + build, lint, golden games
+//   npm run check:fast            the quick ones, together (~1 min): unit tests, type check + build, lint, golden games, UI kit rules
 //   npm run check:full            fast first; if green, every e2e script + the before/after screenshots, a few at a time
 //   npm run check:full -- game online   only these e2e scripts (an "area" check: the scripts for what you touched)
 // Each e2e script gets its OWN port (and the online ones their own wrangler port + storage), so they can run side by
 // side; `--jobs 3` sets how many run at once (default 3 — more makes the animation-timed scripts flaky on a busy PC).
 // Writes e2e-shots/checks.html: every check, pass/fail, how long, and its full log — the page Claude links for Muzzy
 // (dev server: /e2e-shots/checks.html), next to golden.html and report.html. Exit code 0 = everything passed.
+// PORT PRE-FLIGHT (F118): before anything starts, a full run checks every port it will use is free — a port another
+// server holds fails the run at once, naming who holds it and the line that frees it. The ports a run uses: every number
+// from 1024 up in an E2E/ALONE line's args, plus each script's `const …PORT = 5291` and `// ports: 5462 5463` lines.
+// Needs scripts/ports.mjs (a copy of ~/.claude/config/bmuz/templates/ports.mjs); only a full run loads it.
 import { spawn } from 'node:child_process'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { availableParallelism } from 'node:os'
 
 // [name, command] — fast checks don't use ports, so they all run at once
 const FAST = [
   ['unit tests', 'npx vitest run'],
-  ['build', 'npm run -s build'],
   ['lint', 'npm run -s lint'],
   ['golden games', 'npm run -s check:golden'],
+  ['UI kit rules', 'npm run -s check:ui'], // the UI kit's rule: it was missing here, so an inline style shipped in v0.11.0 (F63)
+  // every framework piece's code promises, e.g. no dead Settings row (template line; framework F76) — AFTER the build, in
+  // one step: crashes' "no source map ships" reads dist/, and side by side it caught the maps mid-build, before
+  // crashesMaps() moved them out (F92, 2026-10-31)
+  ['build + framework (code)', 'npm run -s build && node src/devkit/check-framework.mjs --static'],
 ]
 // e2e: [name, script, args] — every one on its own ports (see each script's header for what it checks).
 // Measured 2026-10-04, 3 at a time: end 462 s · online 334 · online4 274 · screenshots 213 · pass4 114 · game 95 · pass 95 ·
@@ -29,7 +38,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'],
   ['submit-word', 'e2e/submit-word.mjs', 'e2e-shots 5435 1989'], // (F69: Pause → Submit a word → the server's list; repeat, offline queue, < 3 letters) // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)
   ['word-switches', 'e2e/word-switches.mjs', 'e2e-shots 5437 1984'], // (F71: Settings → British Spelling / Vulgar Words — a game keeps its switches; COLOUR scores only with British on; online the host's rule the room)
-  ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 7 sizes)
+  ['ai', 'e2e/ai-play.mjs', 'e2e-shots 5431'], // (measured ~4 min alone: two whole games against the AI + 5 sizes)
   ['pass4', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5403 4'],
   ['game', 'e2e/game-shots.mjs', 'e2e-shots 5401'],
   ['pass', 'e2e/pass-and-play-shots.mjs', 'e2e-shots 5402 3'],
@@ -41,12 +50,12 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
   ['drag', 'e2e/drag-styles.mjs', 'e2e-shots 5432'], // (F63: carry styles A–D × draft / seed / reorder / move, phone + desktop)
-  ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — 3 sizes)
-  ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 5 sizes)
+  ['drag-targets', 'e2e/drag-targets.mjs', 'e2e-shots 5434'], // (F64: target looks — highlight / ghost / tether, snap, tray marker / make room — phone + desktop)
+  ['new-game', 'e2e/new-game-position.mjs', 'e2e-shots/new-game 5419'], // (F58: New Game opens centred, then only grows down — 4 sizes)
   ['tutorial-shell', 'e2e/tutorial-shell.mjs', 'e2e-shots/tutorial-shell 5440'], // (F74: new device → locks, overview, Leave tutorial unlocks; returning device; Replay)
   ['tutorial-rails', 'e2e/tutorial-rails.mjs', 'e2e-shots/tutorial-rails 5445'], // (F76: the tutorial game's draft + first 2 turns by drag / tap, phone + desktop — one callout, one live target, Sprout's script, then free play)
   ['tutorial-tips', 'e2e/tutorial-tips.mjs', 'e2e-shots/tutorial-tips 5446'], // (F77–F78: first-time tips once each + the pause hold, idle glow then words, wrong-action callouts, Tips off → none; phone + desktop)
-  ['explore', 'e2e/explore.mjs', 'e2e-shots/explore 5447'], // (F79: the ? button — vs AI at 3 sizes: taps explain, ☰ doesn't open, the AI waits; pass-and-play: the handoff ends it)
+  ['explore', 'e2e/explore.mjs', 'e2e-shots/explore 5447'], // (F79: the ? button — vs AI at phone + desktop: taps explain, ☰ doesn't open, the AI waits; pass-and-play: the handoff ends it)
   ['fullscreen', 'e2e/fullscreen.mjs', ''], // (always port 5243)
 ]
 
@@ -57,6 +66,7 @@ const ALONE = [
   ['devkit-sound', 'e2e/devkit-sound.mjs', 'e2e-shots/devkit-sound 5418'], // (Sound tab: adds a test MP3 + saves audio.json, then puts both back; the 8 moments)
   ['words-tab', 'e2e/words-tab.mjs', 'e2e-shots/words-tab 5432'], // (Words tab: a stand-in word server on 1986; saves both word files, then puts them back)
   ['devkit-select', 'e2e/devkit-select.mjs', 'e2e-shots/devkit-select 5448'], // (F86 Select tab: pick a glyphling by click / tap, its knobs, + Add a knob saves select.json then puts it back)
+  ['framework', 'src/devkit/check-framework.mjs', '--port 5298'], // (F63: every installed framework piece keeps its promises; timed pause checks, so alone; writes e2e-shots/framework.json for the planner)
 ]
 
 const args = process.argv.slice(2)
@@ -72,6 +82,52 @@ if (unknown.length) {
   process.exit(1)
 }
 mkdirSync('e2e-shots/logs', { recursive: true })
+
+// One e2e run at a time (framework F79, from the BMUZ template): the Dev Kit scripts save + restore content files,
+// which reloads every running dev server mid-test (sprint 23: a false "navigation destroyed"). A second full/area run
+// is refused while the first is going.
+const LOCK = 'e2e-shots/.check-lock'
+if (tier === 'full') {
+  const held = existsSync(LOCK) && readFileSync(LOCK, 'utf8')
+  const [pid, ...when] = held ? held.split(' ') : []
+  if (held && isRunning(Number(pid))) {
+    console.log(`Another check run is still going (process ${pid}, started ${when.join(' ')}). Wait for it — two at once break each other. (If it died, delete ${LOCK}.)`)
+    process.exit(1)
+  }
+  writeFileSync(LOCK, `${process.pid} ${new Date().toLocaleTimeString()}`)
+  process.on('exit', () => { try { rmSync(LOCK) } catch { /* already gone */ } })
+  process.on('SIGINT', () => process.exit(130)) // Ctrl+C still frees the lock
+}
+function isRunning(pid) {
+  try { process.kill(pid, 0); return true } catch (error) { return error.code === 'EPERM' }
+}
+
+// Port pre-flight (F118, see the top): every port this run's e2e scripts (and the ALONE ones) use must be free before anything starts.
+if (tier === 'full') {
+  const users = new Map() // port → the e2e names that use it
+  for (const [name, script, a] of [...e2e, ...alone]) {
+    const text = existsSync(script) ? readFileSync(script, 'utf8') : ''
+    const declared = [...text.matchAll(/^\s*\/\/\s*ports:(.*)$/gim)].map((m) => m[1]).join(' ')
+    const constants = [...text.matchAll(/\b(?![A-Z0-9_]*DEFAULT)(?:[A-Z0-9]+_)*PORT(?:_[A-Z0-9]+)*\s*=\s*(\d+)\b/g)].map((m) => m[1]).join(' ')
+    for (const port of `${a} ${declared} ${constants}`.match(/\b\d+\b/g) ?? []) {
+      if (Number(port) < 1024 || Number(port) > 65535) continue
+      users.set(Number(port), [...new Set([...(users.get(Number(port)) ?? []), name])])
+    }
+  }
+  if (!existsSync(new URL('./ports.mjs', import.meta.url))) {
+    console.log('NOT STARTED — scripts/ports.mjs is missing (the port pre-flight needs it): copy ~/.claude/config/bmuz/templates/ports.mjs to scripts/ports.mjs')
+    process.exit(1)
+  }
+  const { heldPorts } = await import('./ports.mjs')
+  const held = heldPorts([...users.keys()])
+  for (const { port, cmd, folder } of held) {
+    console.log(`Port ${port} (${users.get(port).join(', ')}) is held by \`${cmd}\`${folder ? ` in ${folder}` : ''} — free it: node ~/.claude/config/bmuz/scripts/stop-servers.mjs ${port}`)
+  }
+  if (held.length) {
+    console.log(`\nNOT STARTED — ${held.length} port${held.length > 1 ? 's' : ''} already in use (the scripts would fail on ${held.length > 1 ? 'them' : 'it'} later as a vague timeout).`)
+    process.exit(1)
+  }
+}
 
 /** Runs one check; resolves with { name, ok, seconds, log }. */
 function run(name, command) {
@@ -105,8 +161,11 @@ async function pool(checks, jobs) {
 }
 
 const started = Date.now()
-console.log(`Fast checks (${FAST.length}, together):`)
-const results = await pool(FAST, FAST.length)
+// All at once on a big PC; on a small machine (GitHub's has 4 cores) half as many as it has cores — five at once there
+// starved the unit tests' whole-AI-game tests past their 5 s limit (F70, 2026-10-19). 32 threads → all 5; 4 cores → 2.
+const FAST_JOBS = Math.max(1, Math.min(FAST.length, Math.floor(availableParallelism() / 2)))
+console.log(`Fast checks (${FAST.length}, ${FAST_JOBS >= FAST.length ? 'together' : `${FAST_JOBS} at a time`}):`)
+const results = await pool(FAST, FAST_JOBS)
 if (tier === 'full') {
   if (results.every((r) => r.ok)) {
     console.log(`\nFull checks (${e2e.length} at ${JOBS} at a time, then ${alone.length} alone):`)

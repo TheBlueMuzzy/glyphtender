@@ -1,6 +1,6 @@
 // THE END OF THE GAME, EVERY VIEW — 2, 3, 4 players and a shared win (the finished games in e2e/fixtures/end-*.json,
-// made by scripts/end-fixtures.mjs) at 8 window sizes: phones tall (390×844, 360×780) and on their side (844×390),
-// a short browser window (768×343 — Muzzy's reveal shot), and desktops (1066×1192, 1099×846, 1440×900, 1920×1080).
+// made by scripts/end-fixtures.mjs) at 6 window sizes: upright phones (390×844, 360×780) and desktops (1066×1192,
+// 1099×846, 1440×900, 1920×1080). Portrait only (F97): a phone on its side shows "Turn your phone upright" instead.
 // Each: jump to the finished game (dev hook) → the Magic reveal playing (shot) → Skip → Results (shot) → Story, tap a
 // mark (shot) → Scorecard (shot) → swipe back (phones) → See board (shot: the finished garden + the end bar) →
 // See results (back).
@@ -19,7 +19,7 @@
 //           player's play on that round (words + Magic, a refresh, a move - read against the fixture's log), inside the
 //           chart, clear of the key, never cut off; it follows the line; the Tangles column lists the tangle bonuses;
 //           the slot under the key holds that round's awards only (a round with none: empty, same size)
-//   all     no page scrolls (phones on their side / short windows may — reported as a NOTE, not a failure); on a
+//   all     no page scrolls; on a
 //           desktop the page's content uses ≥ 70% of the window's height (not floating small in the middle);
 //           (or as wide as the page — width ran out first); nothing within 12 px of the window's edges; buttons ≥ 44 px;
 //           nothing sideways out of its page (a carousel's off-screen awards aside: they're hidden, waiting their turn)
@@ -36,13 +36,10 @@ import { chromium } from 'playwright-core'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const PORT = Number(process.argv[3] ?? 5196)
-// mayScroll: a phone on its side / a short window — a page may scroll there if it truly can't fit (reported as a NOTE)
 // desktop: the page must fill the window (≥ 70% of its height)
 const SIZES = [
   { width: 390, height: 844, mobile: true },
   { width: 360, height: 780, mobile: true },
-  { width: 844, height: 390, mobile: true, mayScroll: true },
-  { width: 768, height: 343, mobile: false, mayScroll: true },
   { width: 1066, height: 1192, mobile: false, desktop: true },
   { width: 1099, height: 846, mobile: false, desktop: true },
   { width: 1440, height: 900, mobile: false, desktop: true },
@@ -115,7 +112,6 @@ const server = await createServer({ server: { port: PORT, strictPort: true, host
 await server.listen()
 const browser = await chromium.launch()
 let failures = 0
-const notes = []
 const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }
 
 try {
@@ -137,12 +133,10 @@ try {
         out.forEach((p) => fail(`${tag} ${name}: ${p}`))
         console.log(`${out.length ? 'FAIL' : 'ok  '} ${tag} ${name}`)
       }
-      // The page fits — nothing to scroll (a phone on its side / short window: noted if it can't)
+      // The page fits — nothing to scroll
       const fits = async (name) => {
         const over = await page.locator('.game-end-page .kit-scroll').evaluate((el) => el.scrollHeight - el.clientHeight)
-        if (over <= 1) return
-        if (size.mayScroll) notes.push(`${tag} ${name} scrolls ${over} px`)
-        else fail(`${tag}: ${name} doesn't fit without scrolling (${over} px too tall)`)
+        if (over > 1) fail(`${tag}: ${name} doesn't fit without scrolling (${over} px too tall)`)
       }
       // Desktop: the page's content fills the window (≥ 70% of its height), not floating small in the middle
       // (or, when it's the WIDTH that ran out first — the page as wide as it can go — that counts as filled too: with one
@@ -156,7 +150,11 @@ try {
       }
 
       await page.goto(`http://127.0.0.1:${PORT}/`)
-      await page.waitForFunction(() => window.__glyphtender?.store, null, { timeout: 15000 })
+      // (F63: twice in 4 runs the dev hook never appeared — say what the page said, so the next one can be traced)
+      await page.waitForFunction(() => window.__glyphtender?.store, null, { timeout: 15000 }).catch(async (e) => {
+        const seen = await page.evaluate(() => ({ ready: document.readyState, root: document.getElementById('root')?.childElementCount, devkit: !!window.__devkit })).catch(() => null)
+        throw new Error(`${tag}: the game never booted (no window.__glyphtender in 15 s) — page ${JSON.stringify(seen)}; console errors: ${errors.join(' | ') || 'none'}`, { cause: e })
+      })
       await page.evaluate((g) => window.__glyphtender.store.getState().loadState(g), game)
 
       // ---- The Magic reveal, playing: calm and centred — chips in one tidy group, Skip a normal-size button ----
@@ -524,6 +522,5 @@ try {
   await browser.close()
   await server.close()
 }
-if (notes.length) console.log(`\nNOTE (allowed — a phone on its side / short window):\n  ${notes.join('\n  ')}`)
 console.log(failures ? `\n✗ ${failures} problem(s)` : '\n✓ end screen e2e passed')
 process.exit(failures ? 1 : 0)

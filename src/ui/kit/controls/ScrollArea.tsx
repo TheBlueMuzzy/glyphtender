@@ -19,7 +19,7 @@ export function ScrollArea({ label, max, children }: { label: string; max?: 's' 
     const check = () => markMore(el)
     check()
     el.addEventListener('scroll', check, { passive: true })
-    watcher.current = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(check)
+    watcher.current = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => { markMore(el); measureContents(el) })
     watcher.current?.observe(el)
     return () => {
       el.removeEventListener('scroll', check)
@@ -34,6 +34,7 @@ export function ScrollArea({ label, max, children }: { label: string; max?: 's' 
     if (!el) return
     for (const child of Array.from(el.children)) watcher.current?.observe(child)
     markMore(el)
+    measureContents(el)
   })
 
   // tabIndex lets keyboard players focus it and scroll with the arrow keys
@@ -51,4 +52,31 @@ function markMore(el: HTMLElement) {
   el.toggleAttribute('data-more-end', room > 1 && above < room - 1)
   el.style.setProperty('--kit-more-start', `${Math.round(above)}px`)
   el.style.setProperty('--kit-more-end', `${Math.round(room - above)}px`)
+}
+
+// How tall its contents are (0.35.1, F145) → --kit-scroll-contents: in a card it never gives up height below
+// --kit-scroll-min (kit.css), but a short list is never held taller than itself. (scrollHeight can't tell: it's never
+// less than the box's own height.) Measured on a resize or a render only, never per scroll, and set only when it changes.
+export function measureContents(el: HTMLElement) {
+  let top = Infinity, bottom = -Infinity
+  for (const child of Array.from(el.children)) {
+    const r = child.getBoundingClientRect()
+    top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom)
+  }
+  const s = getComputedStyle(el)
+  const pad = parseFloat(s.paddingTop) + parseFloat(s.paddingBottom)
+  const contents = bottom > top ? bottom - top + pad : 0
+  const tall = `${Math.ceil(contents)}px`
+  if (el.style.getPropertyValue('--kit-scroll-contents') !== tall) el.style.setProperty('--kit-scroll-contents', tall)
+  // …and its first two rows → --kit-scroll-rows (0.38.0, F162): the floor is two of its own rows, not a guess — at 200%
+  // text the Room's player rows are ~156 px, and a 4rem list (128 px) showed under one. Its rows: what's in it, through
+  // a lone wrapper (a Stack or Grid); the second row is the first thing that starts below the first (a grid's row of
+  // cards counts once). Its own padding isn't added: the rows scroll under it, and two 2rem rows keep today's 4rem.
+  // One row only: its contents are the floor.
+  let rows = Array.from(el.children)
+  while (rows.length === 1) rows = Array.from(rows[0].children)
+  const boxes = rows.map((r) => r.getBoundingClientRect()).filter((r) => r.height > 0)
+  const second = boxes.find((r) => r.top >= boxes[0].bottom - 1)
+  const two = second ? `${Math.ceil(second.bottom - boxes[0].top)}px` : tall
+  if (el.style.getPropertyValue('--kit-scroll-rows') !== two) el.style.setProperty('--kit-scroll-rows', two)
 }

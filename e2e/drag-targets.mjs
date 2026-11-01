@@ -1,6 +1,6 @@
 // DRAG TARGET FEEDBACK (F64) — what the TARGET shows while a piece is dragged (ui-kit drag/target.ts, content/tuning/
-// drag.json targets / snap), dragged with the mouse on the real screen at phone 390×844, a phone on its side 844×390 and
-// desktop 1440×900. Each look is switched live (as the Dev Kit does — on desktop once through its own Tuning dropdown):
+// drag.json targets / snap), dragged with the mouse on the real screen at phone 390×844 and desktop
+// 1440×900. Each look is switched live (as the Dev Kit does — on desktop once through its own Tuning dropdown):
 //   board drags (draft · seed · glyphling move), mid-drag over a legal hex:
 //     highlight — the hex glows at full strength; no ghost preview, no tether
 //     ghost     — a see-through copy of the piece ([data-target-preview], its own drag-layer image) sits ON that hex, the
@@ -25,7 +25,6 @@ const OUT = `${process.argv[2] ?? 'e2e-shots'}/drag-targets`
 const PORT = Number(process.argv[3] ?? 5434)
 const SIZES = [
   { name: 'phone', width: 390, height: 844 },
-  { name: 'landscape', width: 844, height: 390 },
   { name: 'desktop', width: 1440, height: 900 },
 ]
 mkdirSync(OUT, { recursive: true })

@@ -1,6 +1,6 @@
 // A 2-PLAYER ONLINE GAME THROUGH THE REAL SCREENS AND A REAL LOCAL SERVER — a phone (390×844, Ada, the host)
 // and a desktop (1440×900, Bo) in two separate browsers (own storage = two different players):
-// Play online → Create (code) / Join by code → lobby (Bo ready, one shot at 844×390) → Start → the draft and a few
+// Play online → Create (code) / Join by code → lobby (Bo ready) → Start → the draft and a few
 // turns by taps (shots of the other player's turn arriving: its trail in their colour before the glide, mid-glide, then
 // no trail left after the landing) → Bo reloads mid-game and gets his seat back
 // → the host's browser closes: Bo becomes host, keeps playing, a bot takes Ada's seat after botTakesOverAfterMs
@@ -193,7 +193,6 @@ try {
 
   // ---- Bo joins by the code (typed into the code boxes), readies up ----
   await bo.open()
-  await bo.page.setViewportSize({ width: 844, height: 390 })
   await bo.tap(bo.page.getByRole('button', { name: 'Play online' }))
   await bo.page.getByRole('textbox', { name: 'Your name' }).fill('Bo')
   await bo.page.locator('.kit-roomcode-box').first().click()
@@ -201,9 +200,7 @@ try {
   await bo.shot('0-join')
   await bo.tap(bo.page.getByRole('button', { name: 'Join', exact: true }))
   await bo.page.getByRole('button', { name: 'I’m ready' }).waitFor({ timeout: 10000 })
-  await bo.shot('1-lobby-guest')
   await bo.tap(bo.page.getByRole('button', { name: 'I’m ready' }))
-  await bo.page.setViewportSize({ width: 1440, height: 900 })
   await bo.shot('1-lobby-guest')
   const start = ada.page.getByRole('button', { name: 'Start game' })
   await ada.page.waitForFunction(() => !document.querySelector('.kit-modal button:last-child')?.disabled, null, { timeout: 10000 })
@@ -227,9 +224,6 @@ try {
     const label = await p.page.locator('.game-turn-bar [data-room-label]').textContent().catch(() => null)
     check(`${p.name} sees the room code by the Menu button (${label})`, label === `Room: ${code}`)
   }
-  await bo.page.setViewportSize({ width: 844, height: 390 })
-  await bo.shot('3b-room-label')
-  await bo.page.setViewportSize({ width: 1440, height: 900 })
   await bo.tap(bo.page.getByRole('button', { name: 'Menu' }))
   const pauseTitle = await bo.page.getByRole('dialog').getByText(`Paused · Room ${code}`).count()
   check(`the Menu says the room code (Paused · Room ${code})`, pauseTitle > 0)

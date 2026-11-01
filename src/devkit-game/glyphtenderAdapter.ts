@@ -11,7 +11,7 @@
 //               — read from the rules' events (store.happened, F31); only a new game, leaving and a jump back (not
 //               moves: no events) are read from the game itself
 // Reads and writes the store only through its public getState / setState / subscribe / loadState.
-import versionFile from '../../version.json'
+import { versionLabel } from '../version'
 import text from '../../content/text/en.json'
 import type { DevKitGame } from '../devkit/devkitGame'
 import { getBoard } from '../engine/boards'
@@ -143,7 +143,7 @@ function isMoment(state: unknown): state is GlyphtenderMoment {
 
 export const glyphtenderAdapter: DevKitGame = {
   name: 'Glyphtender',
-  version: `${versionFile.version}.${versionFile.build}`,
+  version: versionLabel,
 
   getState: (): GlyphtenderMoment => {
     const { game, trayOrder, stats, options, seats } = useGameStore.getState()
@@ -171,4 +171,12 @@ export const glyphtenderAdapter: DevKitGame = {
   }),
 
   describe: describeGlyphtender,
+
+  // F63 (Dev Kit 0.19+): npm run check:framework's way into live play — an all-AI 2-player game, so play moves on its own
+  conformance: {
+    startPlay: async () => {
+      useGameStore.getState().startGame({ players: 2, seed: 7, bots: [0, 1] })
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+    },
+  },
 }

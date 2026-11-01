@@ -1,6 +1,6 @@
 // DEV KIT AI TAB (F41, framework Dev Kit 0.6.0) — Muzzy: "I want to be able to tweak these in the Dev Kit. select a
 // personality, tweak the values etc." and "test the expectation of a personality against lots of games".
-// Over a real game, at phone 390×844, phone landscape 844×390 and desktop 1440×900:
+// Over a real game, at phone 390×844 and desktop 1440×900:
 //   ` → AI tab → pick Strategist → open "AI: traits" → move the aggression low handle (keyboard, like a drag) → Save →
 //   reload → the saved value is still there (first size only; content/ai/personalities.json is put back afterwards,
 //   whatever happens) → ▶ Watch: an all-AI game starts on the board, decision notes and belief bars appear → ■ Stop.
@@ -21,7 +21,6 @@ const OUT = process.argv[2] ?? 'e2e-shots/devkit-ai'
 const PORT = Number(process.argv[3] ?? 5415)
 const SIZES = [
   { name: 'phone', width: 390, height: 844, mobile: true },
-  { name: 'landscape', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 const FILE = 'content/ai/personalities.json'
@@ -244,5 +243,5 @@ try {
   await browser.close()
   await server.close()
 }
-console.log(failures ? `FAIL — ${failures} problem(s)` : `PASS — Dev Kit AI tab at phone, landscape and desktop; screenshots in ${OUT}/`)
+console.log(failures ? `FAIL — ${failures} problem(s)` : `PASS — Dev Kit AI tab at phone and desktop; screenshots in ${OUT}/`)
 process.exit(failures ? 1 : 0)

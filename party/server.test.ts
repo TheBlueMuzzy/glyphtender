@@ -264,7 +264,7 @@ describe('online server — the move record (setup with its secret numbers + eve
     expect(server.game!.game.phase).toBe('over')
     expect(server.game!.record.moves.some((m) => m.seat === 1)).toBe(true)
     expect(replay(glyphtenderRules(words), server.game!.record).state).toEqual(server.game!.game)
-  })
+  }, 30_000) // a whole game played by the real AI: ~1 s here, 4–8 s on GitHub's 4-core runner (F70 — it timed out there)
 
   for (const [players, seed] of [[2, 11], [4, 9]]) {
     it(`${players} players, game ${seed}: the record and its secret numbers never reach a player — in any message`, () => {
@@ -502,7 +502,7 @@ describe('online server — the turn timer and idle players', () => {
     }
     expect(server.game!.game.phase).toBe('over')
     conns[0].views().forEach(expectNoSecrets)
-  })
+  }, 30_000) // a whole game played by the real AI: ~1 s here, 4–8 s on GitHub's 4-core runner (F70 — it timed out there)
 })
 
 // ─── Side doors (F36) ───────────────────────────────────────────────
@@ -702,7 +702,7 @@ describe('online server — the AI plays bot seats (F43)', () => {
     expect(fallbacks(logs)).toEqual([]) // (the AI itself played, not the fallback)
     expect(replay(glyphtenderRules(words), server.game!.record).state).toEqual(server.game!.game)
     conns.slice(0, 2).forEach((conn) => conn.views().forEach(expectNoSecrets))
-  })
+  }, 30_000) // a whole game played by the real AI: ~1 s here, 3+ s on GitHub's 4-core runner (F70)
 
   it('the host adds AI seats in the lobby: named after the personality, each played by its own personality + skill', () => {
     vi.useFakeTimers()
@@ -859,7 +859,7 @@ describe('online server — who played each turn (F62)', () => {
     const blues = logTurns(server).filter((t) => t.seat === 1).map((t) => t.turnNo)
     expect(blues.length).toBeGreaterThan(3)
     expect(conns[0].lastView()!.results!.botTurns).toEqual(blues)
-  })
+  }, 30_000) // a whole game played by the real AI: ~1 s here, ~5 s on GitHub's 4-core runner (F70)
 
   it('an AI seat the host added is a bot from the start: its turns are never listed', () => {
     vi.useFakeTimers()

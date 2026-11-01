@@ -27,6 +27,20 @@
       "left foot right" auto
       "bottom bottom bottom" auto / auto minmax(0, 1fr) auto;
   }
+  /* F91 (layout.json boardVertical above 0): tall space, tray below — the prompt moves up under the turn bar, the gap
+     between it and the board, and the board comes down to the tray (where in its box: the board's lean, boardPlace.ts) */
+  .game[data-layout="stacked"][data-prompt="top"] {
+    grid-template:
+      "top top top" auto
+      "left bar right" auto
+      "left prompt right" auto
+      "left gap right" auto
+      "left board right" minmax(0, 1fr)
+      "left panel right" auto
+      "left foot right" auto
+      "bottom bottom bottom" auto / auto minmax(0, 1fr) auto;
+  }
+  .game-prompt-top { grid-area: prompt; display: flex; justify-content: center; min-inline-size: 0; }
   /* Wide space: board on the left; turn bar, tray and buttons in a column on the right
      (the column is as wide as the tray, which is sized from layout.json → sidePanelShare). The ruler, an empty
      SVG that wide, is the ONLY thing that sizes the column: the bar and panel are contained, so neither a long
@@ -83,6 +97,7 @@
      the prompt can show, piled in one spot — sets its height, the real words sit in its middle */
   .game-prompt { inline-size: 100%; min-inline-size: 0; display: grid; }
   .game-prompt > * { grid-area: 1 / 1; min-inline-size: 0; }
+  .game-prompt[data-stepped-aside] { visibility: hidden; } /* the rails callout is up: its room stays (B013) */
   .game-prompt > :not(.game-prompt-sizer) { align-self: center; }
   .game-prompt-sizer { visibility: hidden; }
   /* A prompt row: the glyphling of whoever the words are for, right beside the words, the two centred together. The
@@ -164,6 +179,10 @@
   .game[data-ended][data-layout="stacked"][data-flipped] {
     grid-template: "top top top" auto "left panel right" auto "left gap right" auto "left board right" minmax(0, 1fr)
                    "dock dock dock" auto / auto minmax(0, 1fr) auto;
+  }
+  .game[data-ended][data-layout="stacked"][data-prompt="top"] {
+    grid-template: "top top top" auto "left prompt right" auto "left gap right" auto "left board right" minmax(0, 1fr)
+                   "left panel right" auto "dock dock dock" auto / auto minmax(0, 1fr) auto;
   }
   .game[data-ended][data-layout="side"] {
     grid-template: "top top top top top" auto "left board middle panel right" minmax(0, 1fr)

@@ -1,4 +1,4 @@
-// Screenshots + a scripted move → cast → Cast of the move-cast sketch, at phone-tall, phone-wide and desktop.
+// Screenshots + a scripted move → cast → Cast of the move-cast sketch, at phone-tall and desktop.
 // Needs the dev server: npx vite --host --port 5180. Usage: node e2e/sketch-shots.mjs <outDir>
 import { chromium } from 'playwright-core'
 
@@ -6,7 +6,6 @@ const OUT = process.argv[2] ?? '.'
 const URL = 'http://localhost:5180/sketches/move-cast/'
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 const browser = await chromium.launch()

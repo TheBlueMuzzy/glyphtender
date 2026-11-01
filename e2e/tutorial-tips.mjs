@@ -18,11 +18,13 @@ import { chromium } from 'playwright-core'
 import text from '../content/text/en.json' with { type: 'json' }
 import tutorialTuning from '../content/tuning/tutorial.json' with { type: 'json' }
 import rules from '../content/tuning/rules.json' with { type: 'json' }
+import layout from '../content/tuning/layout.json' with { type: 'json' }
 
 const OUT = process.argv[2] ?? 'e2e-shots/tutorial-tips'
 const PORT = Number(process.argv[3] ?? 5446)
 const URL = `http://127.0.0.1:${PORT}/?tips=on`
-const SIZES = [{ name: 'phone', width: 390, height: 844, mobile: true }, { name: 'desktop', width: 1440, height: 900, mobile: false }]
+const SIZES = [{ name: 'phone', width: 390, height: 844, mobile: true }, { name: 'desktop', width: 1440, height: 900, mobile: false },
+  { name: 'small', width: 360, height: 780, mobile: true, only: true }] // (only: runs with SIZE=small alone — F91's shots)
 const TIPS = text.tutorial.tips
 const NUDGES = text.tutorial.nudges
 mkdirSync(OUT, { recursive: true })
@@ -35,7 +37,7 @@ await server.listen()
 const browser = await chromium.launch()
 
 try {
-  for (const size of SIZES.filter((s) => !process.env.SIZE || s.name === process.env.SIZE)) {
+  for (const size of SIZES.filter((s) => (!process.env.SIZE && !s.only) || s.name === process.env.SIZE)) {
     console.log(`— ${size.name} ${size.width}×${size.height}`)
     const context = await browser.newContext({ viewport: { width: size.width, height: size.height }, isMobile: size.mobile, hasTouch: size.mobile })
     await context.addInitScript(() => {
@@ -93,6 +95,9 @@ try {
     const shows = (words, timeout = 6000) => bubble.filter({ hasText: words }).waitFor({ timeout }).then(() => true, () => false)
     const none = async (ms) => { await page.waitForTimeout(ms); return (await page.locator('.kit-callout-layer').count()) === 0 }
     let shotNo = 0
+    const upright = size.mobile && layout.boardVertical > 0
+    // A nudge about the whole tray points at its first seed when the prompt is on top (tipsPlace.ts nudgeTarget, F91)
+    const trayAim = upright ? '.game-tray [data-hand]' : '.game-tray'
     const shot = (name) => page.screenshot({ path: `${OUT}/${size.name}-${String(++shotNo).padStart(2, '0')}-${name}.png` })
     /** The callout: one only, not over its target, clear of the screen's edges (≥ 8 px). */
     async function placed(target, what) {
@@ -103,8 +108,25 @@ try {
         const bubbles = [...document.querySelectorAll('.kit-callout-layer[data-ready] .kit-callout')]
         const target = document.querySelector(sel)
         const b = box(bubbles[0])
-        return { count: bubbles.length, covers: !!target && over(b, box(target)), edge: Math.round(Math.min(b.l, b.t, innerWidth - b.r, innerHeight - b.b)) }
+        // F91: how many board hexes it covers (its box against each hex's six corners), said for a tray / button target
+        const hexesUnder = [...document.querySelectorAll('.game-garden > polygon[data-hex]')].filter((p) => {
+          const m = p.getScreenCTM()
+          const pts = [...p.points].map((q) => ({ x: m.a * q.x + m.c * q.y + m.e, y: m.b * q.x + m.d * q.y + m.f }))
+          const rect = [{ x: b.l, y: b.t }, { x: b.r, y: b.t }, { x: b.r, y: b.b }, { x: b.l, y: b.b }]
+          const axes = [{ x: 1, y: 0 }, { x: 0, y: 1 }, ...pts.map((q, i) => { const n = pts[(i + 1) % pts.length]; return { x: q.y - n.y, y: n.x - q.x } })]
+          return axes.every((a) => {
+            const span = (ps) => ps.map((q) => q.x * a.x + q.y * a.y)
+            const h = span(pts), r = span(rect), len = Math.hypot(a.x, a.y)
+            return Math.min(...h) < Math.max(...r) - 0.5 * len && Math.min(...r) < Math.max(...h) - 0.5 * len
+          })
+        }).length
+        return { count: bubbles.length, covers: !!target && over(b, box(target)), edge: Math.round(Math.min(b.l, b.t, innerWidth - b.r, innerHeight - b.b)),
+          hexesUnder, onBoard: !!target?.closest('.game-garden') }
       }, target)
+      // F91: an upright phone with the prompt on top — a callout about the tray or the buttons covers no board hex
+      // (Not yet the wrong-tap "Drag a seed… first" at the whole tray, after a tap on Plant — waiting on Muzzy's call, F91 4b)
+      if (upright && !geo.onBoard && /plantNothing/.test(what)) console.log(`note   ${what} still covers ${geo.hexesUnder} board hexes — waiting on Muzzy's call`)
+      else if (upright && !geo.onBoard) ok(geo.hexesUnder === 0, `  ${what}: it covers no board hex (${geo.hexesUnder})`)
       ok(geo.count === 1, `  ${what}: one callout (${geo.count})`)
       ok(!geo.covers, `  ${what}: it doesn't cover ${target}`)
       ok(geo.edge >= 8, `  ${what}: clear of the screen's edge (${geo.edge} px)`)
@@ -191,7 +213,7 @@ try {
     await page.waitForTimeout(1400)
     ok(await glowing() > 0 && (await page.locator('.kit-callout-layer').count()) === 0, `(b) after idleGlow: the tray breathes (${await glowing()} seeds), no words yet`)
     ok(await shows(NUDGES.idle.plant, 3000), `(b) after idleText: "${NUDGES.idle.plant}"`)
-    await placed('.game-tray', '(b)')
+    await placed(trayAim, '(b)')
     await shot('idle-plant')
     await tapEmpty()
     ok(await none(300), '(b) a tap: the words go')
@@ -218,6 +240,7 @@ try {
     })
     await tap(page.locator('[data-action="plant"]'))
     ok(await shows(NUDGES.wrong.plantNothing, 2000), `(c) Plant with nothing aimed: "${NUDGES.wrong.plantNothing}"`)
+    await placed('.game-tray', '(c) plantNothing')
     await shot('wrong-plantNothing')
 
     // (d) Settings → Tips off: nothing

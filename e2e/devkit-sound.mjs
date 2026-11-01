@@ -33,10 +33,15 @@ const TUNING = ['content/tuning/anim.json', 'content/tuning/feel.json']
 const tuningBefore = TUNING.map((f) => readFileSync(f, 'utf8'))
 const filesBefore = new Set(readdirSync(UI_FOLDER))
 const newFiles = () => readdirSync(UI_FOLDER).filter((f) => !filesBefore.has(f))
-/** Put the repo back as it was: the two JSON files, and no test MP3. */
+// The Sound tab evens out an added file and keeps its original here (Dev Kit 0.22+, audio-originals/ — outside public/)
+const KEPT_FOLDER = 'audio-originals/ui'
+const keptBefore = new Set(existsSync(KEPT_FOLDER) ? readdirSync(KEPT_FOLDER) : [])
+const newKept = () => (existsSync(KEPT_FOLDER) ? readdirSync(KEPT_FOLDER).filter((f) => !keptBefore.has(f)) : [])
+/** Put the repo back as it was: the two JSON files, no test MP3, and no kept original of it. */
 function putBack() {
   for (const [file, text] of Object.entries(originals)) if (readFileSync(file, 'utf8') !== text) writeFileSync(file, text)
   for (const f of newFiles()) rmSync(`${UI_FOLDER}/${f}`)
+  for (const f of newKept()) rmSync(`${KEPT_FOLDER}/${f}`)
 }
 
 /** A tiny WAV: `silence` s of nothing, then `tone` s of a 660 Hz tone (16-bit mono, 22 050 Hz). */
@@ -101,7 +106,7 @@ async function openGame(size) {
   return { context, page, errors }
 }
 
-/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
+/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ◀ back to the first page, then ▶ to its page, like a person would). */
 async function pickTab(page, name) {
   const inView = () => page.evaluate((name) => {
     // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
@@ -109,6 +114,12 @@ async function pickTab(page, name) {
     const box = tab?.getBoundingClientRect()
     return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
   }, name)
+  // (the tab may be on an EARLIER page than the one showing — e.g. Screens after Sound once the Dev Kit gained Fonts)
+  const back = page.getByRole('button', { name: 'Previous tools' })
+  for (let i = 0; i < 6 && !(await inView()) && (await back.isVisible()) && (await back.isEnabled()); i++) {
+    await back.click()
+    await page.waitForTimeout(250)
+  }
   for (let i = 0; i < 6 && !(await inView()); i++) {
     await page.getByRole('button', { name: 'Next tools' }).click()
     await page.waitForTimeout(250)

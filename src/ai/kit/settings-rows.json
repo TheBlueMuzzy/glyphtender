@@ -1,0 +1,10 @@
+{
+  "about": "The AI module's Settings row, for the UI kit's Settings check (UI kit 0.30.0+, framework F110). Each row: its id in content/ui/settings.json, readBy = patterns (JavaScript regex source) that mean the game's own code passes the row on to this module, hint = what to do when nothing does. Copied into the game with the module — don't edit the game's copy.",
+  "rows": [
+    {
+      "id": "botChatter",
+      "readBy": ["\\b(applyBanterSetting|setChatter)\\s*\\("],
+      "hint": "pass it to the bots' voice: applyBanterSetting(banter, loadSettings(settingsJson)) when the banter is made and applyBanterSetting(banter, values) in the Settings onChange (src/ai/kit/settingsRow.ts)"
+    }
+  ]
+}

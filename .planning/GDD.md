@@ -7,7 +7,7 @@
 - **Theme:** You're competing to become the next **Grand Glyphtender**. Command your glyphlings to plant **runeblossom seeds** in the **Glyphwood Gardens**. Seeds grow into topiary shaped like letters; when letters form words they create **Magic**. Create the most Magic to prove you can keep magic alive in the Glyphwood!
 - **Catchphrase:** ***The best speller doesn't always win.***
 - **One line:** A cozy hex-garden game — move a glyphling, cast a seed, grow words into Magic; but where your garden grows matters as much as what it spells.
-- **Platform:** web — phone (portrait **and** landscape) + desktop, one responsive layout. Installable (PWA).   **Audience:** general (not made for kids) · board-gamers and word-game players, 2–4 around one device or online.
+- **Platform:** web — phone held **upright only** (portrait; Muzzy 2026-10-30: "glyphtender should be a vertical game only") + desktop windows, one responsive layout. Installable (PWA).   **Audience:** general (not made for kids) · board-gamers and word-game players, 2–4 around one device or online.
 - **References:** Game of the Amazons (turn + ending skeleton) · Hive (hex board on a phone, pieces hemmed in) · Santorini (move-then-build turn, legal-move highlights) · Scrabble GO / Wordfeud (rack + board on a phone, live score on the commit button) · board-game apps for handoff, shape-based layout, undo-until-commit, staged endings. `research/discovery.md`.
 
 ## 2. Experience targets  (MDA)
@@ -65,7 +65,7 @@
   - Before the move, seeds can't be dragged at all (not even to reorder) — they shake (Muzzy, B008)
   - **Planned seed, not see-through:** "you shouldn't be able to see through the ghosted image of a placed seed… maybe there's another treatment… to make it a ghost while also keeping it not see-through" → a solid misty wash over the targeted seed (B010). Then: "the ghost letter isn't really legible due to contrast reasons… maybe there's a better way than to just push the values towards white?" → **moonlit**: the targeted seed turns colourless moonlight-silver but its letter stays as bright against its tile as a real seed's (garden.json plannedSeedLook: moonlit · stencil · misty · greyed · dimmed; research/ghost-pieces.md)
   - **Refresh shows itself:** "the tiles they selected shrink, and new ones scale into their place. THEN it goes to the next player" — Keep all just goes on; online only you see it, on your own tray (B011)
-  - **Layout:** buttons finger-sized like a glyphling (also on PC); the seed tray about half as far from the board; a setting flips board ↔ tray; the prompt sits just above the tray in larger letters (not in the top bar).
+  - **Layout:** buttons finger-sized like a glyphling (also on PC); the seed tray about half as far from the board; a setting flips board ↔ tray; the prompt sits just above the tray in larger letters (not in the top bar) — **on an upright phone, since 2026-10-30 (F91 — New kit look, Muzzy: ".5 is good"): the prompt sits just under the top bar and the board in the middle of the screen, for thumb reach** (layout.json boardVertical 0.5; 0 = the old layout). Desktop: unchanged.
   - **End screen:** just "New game" (no "Play again" — fewer, clearer options).
   - **End screen overhaul (F26, 2026-10-01 — Muzzy: the old table was "confusing, cluttered, cramped, and didn't highlight interesting things"; research/end-screen.md):** after the staged Magic reveal, three pages with tabs, swipeable sideways — **Results · Story · Scorecard** — with **Menu · New game** pinned on every page.
     - **Results:** "Grand Glyphtender: Yellow!", then the winner big and centred (glyphling, name, Magic in the biggest words on the screen, a thin bar split into Magic from Words and from Tangles); everyone else smaller underneath in place order. Every glyphling wears its place's **ribbon** (1–4, gold · silver · bronze · blue — Muzzy, 2026-10-02: no "=3rd" / "2nd" words, "you just give them the ribbon/badge icon and it'll be obvious"); ties share the ribbon. Ties for 1st: "Shared win!" with the winners side by side. On a phone on its side and on desktop: a podium, 2nd · **1st** · 3rd · 4th, the winner raised in the middle (Muzzy's "the thing you're trying to do is in the middle"), with the highlights under it. Online, your own card says "You".
@@ -115,6 +115,7 @@ Players add words from Pause → **Submit a word** (3+ letters; 2-letter words a
 - **Function first; look is secondary for now.** Muzzy (2026-09-30).
 - **Night-time garden** — dark, so Magic sparkles *pop* when they come (sparkles: later).
 - **UI:** Game UI kit, **Cozy** style, tuned to night colours in `content/ui/style.json` (Cozy's preset is light paper).
+- **Upright only (F97 — Portrait only, Muzzy 2026-10-30):** installed, it opens upright; full screen asks Android to hold it upright. A plain browser tab does nothing: a phone on its side just shows the game sideways, which tells the player to turn it back ("do nothing for browsers. it'll be obvious"). Desktop windows of any shape still play; sideways phone sizes are no longer tested.
 - **Art:** the original's runeblossom letters (A–Z × 4 colours) and glyphling portraits, used as-is as stand-ins. **Muzzy will redraw them** (he also has board art for later).
 - **Signature moment (later):** seed arcs to the hex → buried → glyphling splashes magic water → letter topiary grows.
 - **Sound (beta): the garden sings** (Muzzy 2026-10-09). A night garden at a once-in-a-generation contest to become the Grand Glyphtender — cozy, magical, a little ceremonial. Night ambience + a quiet bed that rests; your play is the melody (score pops climb one key, long words ring a chord, two-birds casts flourish); the Magic reveal is the ceremony, ending in a gentle fanfare for the new Grand Glyphtender. Wood, glass, bells, kalimba, harp, soft earth, water — never arcade. Beta = every moment sounded from free libraries, systems right ("don't let perfect be the enemy of good"); final audio in 1.0. Sound list + mix: [design/audio.md](design/audio.md). Engine: the framework Audio module.
@@ -124,7 +125,7 @@ Releases: **alpha → beta → 1.0** (no "prototype" release — prototypes are 
 
 **Must — alpha (pass-and-play + online)**
 - Rules engine (rules above, the original's bugs fixed) + dictionary
-- Responsive layout: phone portrait, phone landscape, desktop; board always fits
+- Responsive layout: phone portrait, phone landscape, desktop; board always fits (landscape phones dropped 2026-10-30 — F97 — Portrait only)
 - Snake draft; move → cast turn with legal highlights; commit style from F01
 - Seed tray: tap + drag, reorder, shuffle, refresh mode
 - Live Magic preview on the Cast button; words outlined as they grow

@@ -177,7 +177,7 @@ describe('the AI on this device (driveLocalBots)', () => {
       stop()
       unhear()
     }
-  })
+  }, 30_000) // a whole game played by the real AI: ~1 s here, 4–5 s on GitHub's 4-core runner (F70 — it timed out there)
 
   it('an AI draft still on its way when the game is left or restarted is never placed (F50)', async () => {
     setAiSpeedOverride('instant')

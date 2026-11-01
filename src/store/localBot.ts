@@ -17,7 +17,7 @@
 // playLocalBot (below) is the old instant greedy bot — tests only. If thinking ever fails, the greedy bot plays that
 // one move instead, so a game never freezes.
 import paceFile from '../../content/ai/pace.json'
-import { thinkDelay, waitLeft, type Pace } from '../ai/kit/pace'
+import { botWait, paceNow, thinkDelay, waitLeft, type Pace } from '../ai/kit/pace'
 import { botSeed } from '../ai/kit/brain'
 import type { Decision } from '../ai/kit/types'
 import { makeGameThinker, type AiThinker } from '../ai/thinker'
@@ -103,12 +103,12 @@ export function driveLocalBots(): () => void {
   let rngs: number[] = []
   let paceRng = 1
   let job: Job | null = null
-  let timer: ReturnType<typeof setTimeout> | null = null
+  let timer: (() => void) | null = null // botWait's "cancel" (waits on the rules clock — a pause holds the bot)
 
   const dropJob = () => {
     if (job) job.dropped = true
     job = null
-    if (timer) clearTimeout(timer)
+    timer?.()
     timer = null
   }
   const closeThinker = () => {
@@ -143,26 +143,26 @@ export function driveLocalBots(): () => void {
     if (scripted) {
       job = mine
       paceRng = delay.rng
-      timer = setTimeout(() => {
+      timer = botWait(delay.ms, () => {
         timer = null
         job = null
         if (mine.dropped || store().game !== mine.game || held()) return check()
         const aim = aimPause(scripted, paceRng)
         paceRng = aim.rng
         store().botPlays(scripted, true, aim.ms)
-      }, delay.ms)
+      })
       return
     }
     thinker ??= makeGameThinker(s.words)
     const ai = s.seats[seat].ai ?? defaultAi()
     job = mine
-    const started = performance.now()
+    const started = paceNow()
     paceRng = delay.rng
     thinker
       .think({ view: viewFor(game, seat), seat, rng: rngs[seat], personalityId: ai.personality, skillId: ai.skill, custom: ai.custom })
       .then((answer) => {
         if (mine.dropped) return
-        timer = setTimeout(() => {
+        timer = botWait(waitLeft(delay.ms, paceNow() - started), () => {
           timer = null
           job = null
           if (mine.dropped || store().game !== mine.game || held()) return check()
@@ -171,7 +171,7 @@ export function driveLocalBots(): () => void {
           const aim = aimPause(answer.action, paceRng)
           paceRng = aim.rng
           store().botPlays(answer.action, true, aim.ms)
-        }, waitLeft(delay.ms, performance.now() - started))
+        })
       })
       .catch((error) => {
         if (mine.dropped) return

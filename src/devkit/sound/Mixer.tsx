@@ -3,6 +3,7 @@
 // These are the GAME's defaults, not the player's Settings sliders (those work on top of these).
 // Meters: the engine's level(bus) read every frame and written straight into the bar's style (no React re-render).
 import { useEffect, useRef, useState } from 'react'
+import { devkitCancelRaf, devkitRaf } from '../pause/freeze'
 import { FieldRow } from '../tuning/FieldRow'
 import type { TuningItem } from '../tuning/tuningSections'
 import type { RawAudio } from './soundLogic'
@@ -53,10 +54,10 @@ export function Mixer({ audio, edited, saved, onChange }: Props) {
         bar.style.width = `${Math.max(0, Math.min(100, ((db + 60) / 60) * 100))}%` // −60 dB … 0 dB
         bar.dataset.hot = db > -3 ? 'true' : ''
       }
-      frame = requestAnimationFrame(tick)
+      frame = devkitRaf(tick)
     }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
+    frame = devkitRaf(tick)
+    return () => devkitCancelRaf(frame)
   }, [audio])
 
   const meter = (bus: SoundBus) => (

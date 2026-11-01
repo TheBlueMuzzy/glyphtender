@@ -34,7 +34,7 @@ import { idleGlowTargets, idleKind, idleTarget, idleWords, takeWrong, wrongFromD
 import { useTutorial } from './progress'
 import { useRailsDirector } from './railsDirector'
 import { dueTip, REPEAT_TIPS, type DueTip, type TipId } from './tips'
-import { calloutPlacement } from './tipsPlace'
+import { calloutPlacement, nudgeTarget } from './tipsPlace'
 import { countTip, newTipBudget, tipMode, tipRoomThisTurn, tipSelector, tipWords } from './tipsPlay'
 
 type Shown = { words: string; target: string; placement: CalloutPlacement; key: number }
@@ -177,7 +177,7 @@ export function HelpLayer() {
   }, [stage, later, kind, anim.turnPulseTime])
   const idle: Shown | null = useMemo(() => {
     if (stage !== 'text' || !kind || !game) return null
-    const target = idleTarget(kind, game)
+    const target = nudgeTarget(idleTarget(kind, game))
     return { words: idleWords(kind), target, placement: calloutPlacement(target), key: ++shownKeys }
     // (once per showing — the game changing under it doesn't move it)
     // eslint-disable-next-line react-hooks/exhaustive-deps

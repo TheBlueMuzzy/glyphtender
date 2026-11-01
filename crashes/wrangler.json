@@ -1,0 +1,31 @@
+{
+  "name": "glyphtender-crashes",
+  "main": "worker.ts",
+  "compatibility_date": "2026-09-01",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CrashStore",
+        "class_name": "CrashStore"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "CrashStore"
+      ]
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "invocation_logs": false
+    }
+  },
+  "dev": {
+    "port": 1996,
+    "ip": "0.0.0.0"
+  }
+}

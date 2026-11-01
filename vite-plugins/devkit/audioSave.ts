@@ -11,15 +11,23 @@
 //         10 % of the peak, minus 4 ms, then a 3 ms fade-in) — Glyphtender B026: tap sounds with 40–90 ms of quiet
 //         at the front felt "really delayed".
 //       music + ambience: stereo 128 kbps, untouched (their quiet starts are on purpose).
+//     And (F31) every file is brought to its folder's target loudness (content/audio.json "loudness", default -18), with
+//       a fast limiter for the spikes. The measuring is the audio module's own: the game's src/audio/loudness.mjs
+//       (audio 0.4.0+), loaded when a file is dropped — one matcher for the drop, npm run audio:check and
+//       check:framework. A game with an older audio module still gets its MP3, just not levelled (the answer says so).
+//       The dropped file itself is kept in audio-originals/<folder>/<same name>.<its type> (outside public/, so it's
+//       never shipped to players) — that's also how audio:check knows this file has been levelled once already.
+//     → also { loudness: "levelled to -18.0 dB (was -24.3)" } — said in the Sound tab.
 //   POST /__devkit/add-credit   body: { "entry": { paths, source, author, licence, light, url, credit } }
 //     → appends the entry to content/credits.json (a list; made if missing).
 //
 // ffmpeg: the system's `ffmpeg` (or the FFMPEG_PATH environment variable). Missing → a clear message:
 //   "install ffmpeg: winget install Gyan.FFmpeg" (Mac: brew install ffmpeg).
 import { execFile, spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 export const SAVE_AUDIO_URL = '/__devkit/save-audio'
 export const ADD_CREDIT_URL = '/__devkit/add-credit'
@@ -140,13 +148,43 @@ async function decodeMono(ffmpeg: string, input: string): Promise<Float32Array> 
   return new Float32Array(copy.buffer, 0, Math.floor(copy.byteLength / 4))
 }
 
-export type SavedAudio = { path: string; file: string; trimmedMs: number }
+export type SavedAudio = { path: string; file: string; trimmedMs: number; loudness: string }
+
+// ---------- loudness (F31): the audio module's matcher, read from the game ----------
+// Only the parts the drop uses. The full description is in the audio module's loudness.mjs.
+type LoudnessSettings = { targets: Record<string, number>; toleranceDb: number; ceilingDb: number; lateMs: number }
+type Measured = { loudnessDb: number; peakDb: number; onsetMs: number; lengthMs: number; method: string }
+type Levelled = { before: Measured; after: Measured; gainDb: number; trimMs: number; peakLimited: boolean }
+export type LoudnessTools = {
+  readLoudness: (audioJson: unknown) => { settings: LoudnessSettings; warnings: string[] }
+  /** reads input, trims (trimMs) + levels it, writes output (MP3: mono 96k for effects + menus, stereo 128k for music + ambience) */
+  levelFile: (ffmpeg: string, input: string, output: string, folder: string, settings: LoudnessSettings, options: { trimMs: number }) => Promise<Levelled>
+}
+
+/** Where the audio module keeps its matcher in a game (audio 0.4.0+) */
+export const LOUDNESS_FILE = 'src/audio/loudness.mjs'
+export const LOUDNESS_MISSING = 'not levelled: this game\'s audio module is older than 0.4.0 (update it to level dropped sounds)'
+
+/** The game's loudness matcher, or null when its audio module doesn't have one yet. */
+export async function loadLoudnessTools(root: string): Promise<LoudnessTools | null> {
+  const file = resolve(root, LOUDNESS_FILE)
+  if (!existsSync(file)) return null
+  return (await import(/* @vite-ignore */ pathToFileURL(file).href)) as LoudnessTools
+}
+
+/** The game's content/audio.json (null when missing or unreadable — the defaults are used then) */
+function readAudioJson(root: string): unknown {
+  try { return JSON.parse(readFileSync(resolve(root, 'content', 'audio.json'), 'utf8')) } catch { return null }
+}
+
+const oneDecimal = (db: number) => (Number.isFinite(db) ? db.toFixed(1) : 'silent')
 
 /**
- * Converts `bytes` to MP3 and saves it under <root>/public/audio/<folder>/<stem>_<NN>.mp3.
- * Throws with a plain-English reason (ffmpeg missing, unreadable file, refused name).
+ * Converts `bytes` to MP3 and saves it under <root>/public/audio/<folder>/<stem>_<NN>.mp3, at its folder's target
+ * loudness. Throws with a plain-English reason (ffmpeg missing, unreadable file, refused name).
+ * `tools`: the loudness matcher (default: the game's own, from src/audio/loudness.mjs; null = don't level).
  */
-export async function saveAudioFile(root: string, target: AudioTarget, bytes: Buffer, ffmpeg = findFfmpeg()): Promise<SavedAudio> {
+export async function saveAudioFile(root: string, target: AudioTarget, bytes: Buffer, ffmpeg = findFfmpeg(), tools?: LoudnessTools | null): Promise<SavedAudio> {
   if (!ffmpeg) throw new Error(FFMPEG_MISSING)
   if (bytes.length === 0) throw new Error('the file is empty')
   const audioDir = resolve(root, 'public', 'audio')
@@ -163,12 +201,37 @@ export async function saveAudioFile(root: string, target: AudioTarget, bytes: Bu
     writeFileSync(input, bytes)
     const startSec = isLongBus(target.bus) ? 0 : findOnsetSec(await decodeMono(ffmpeg, input), 44100)
     const temp = join(work, 'out.mp3')
-    await run(ffmpeg, encodeArgs(input, temp, target.bus, startSec))
+    const matcher = tools === undefined ? await loadLoudnessTools(root) : tools
+    let loudness = LOUDNESS_MISSING
+    if (matcher) {
+      // Level it: measure the dropped file, then trim + gain + limiter + MP3 in one go (the audio module's settings)
+      const { settings } = matcher.readLoudness(readAudioJson(root))
+      const { before, after, peakLimited } = await matcher.levelFile(ffmpeg, input, temp, target.folder, settings, { trimMs: startSec * 1000 })
+      loudness = `levelled to ${oneDecimal(after.loudnessDb)} dB (was ${oneDecimal(before.loudnessDb)}; target ${settings.targets[target.folder]})`
+      if (peakLimited) loudness += ' — it is spiky, so it stays a little under target rather than being squashed'
+    } else {
+      await run(ffmpeg, encodeArgs(input, temp, target.bus, startSec))
+    }
     writeFileSync(output, readFileSync(temp))
-    return { path: `${target.folder}/${name}`, file: `public/audio/${target.folder}/${name}`, trimmedMs: Math.round(startSec * 1000) }
+    if (matcher) keepOriginal(root, target, name, bytes)
+    return { path: `${target.folder}/${name}`, file: `public/audio/${target.folder}/${name}`, trimmedMs: Math.round(startSec * 1000), loudness }
   } finally {
     rmSync(work, { recursive: true, force: true })
   }
+}
+
+/**
+ * Keeps the dropped file as it came in: audio-originals/<folder>/<name without .mp3>.<its type>. Never overwrites
+ * (a name is only ever used once in public/audio, so a clash means someone put a file there by hand — it stays).
+ */
+function keepOriginal(root: string, target: AudioTarget, name: string, bytes: Buffer) {
+  const originalsDir = resolve(root, 'audio-originals', target.folder)
+  const original = resolve(originalsDir, `${name.replace(/\.mp3$/, '')}.${target.ext}`)
+  if (!original.startsWith(originalsDir + sep) || existsSync(original)) return
+  mkdirSync(originalsDir, { recursive: true })
+  // a linked folder in audio-originals/ can't lead the copy elsewhere
+  if (realpathSync(originalsDir) !== join(realpathSync(root), 'audio-originals', target.folder)) return
+  writeFileSync(original, bytes, { flag: 'wx' }) // never over an existing file
 }
 
 // ---------- credits ----------

@@ -5,7 +5,7 @@
 //   import { registerDevKitGame } from '../devkit/devkitGame'
 //   registerDevKitGame({
 //     name: 'Glyphtender',
-//     version: '0.1.0.12',
+//     version: versionLabel,                  // "v0.1.0.12" — from the version module (src/version)
 //     getState: () => ({ ... }),              // this exact moment, as plain JSON data
 //     setState: (state) => { ... },           // put the game back to a getState() moment
 //     canRestore: () => !isOnlineGame,        // false in online games: restoring would change play for others
@@ -17,7 +17,8 @@ import { useSyncExternalStore } from 'react'
 export interface DevKitGame {
   /** Shown in snapshots and bug captures, e.g. "Glyphtender". */
   name: string
-  /** The game's version, e.g. "0.1.0.12" — stamped on every snapshot and bug capture. */
+  /** The game's version, "vX.Y.Z.B" (the version module's versionLabel — the same words as the main menu and Settings),
+   *  stamped as given on every snapshot and bug capture. An older "0.1.0.12" still works (shown as v0.1.0.12). */
   version: string
   /** This exact moment of the game, as plain JSON data. */
   getState: () => unknown
@@ -29,6 +30,30 @@ export interface DevKitGame {
   onEvent?: (send: (text: string, data?: unknown) => void) => () => void
   /** Optional: one line about a moment, e.g. "turn 12 · Blue to move" — shown next to snapshots and marks. */
   describe?: (state: unknown) => string
+  /**
+   * Optional (0.18.0): the Pause buttons. The Dev Kit already freezes any game for ⏸ Full pause (frames, animations,
+   * sound) and stops gameClock's rulesClock for both. pause() is for machinery the clocks don't reach (a physics
+   * engine, an AI worker, a server tick): 'full' = stop everything, 'half' = stop the rules only, null = go on.
+   */
+  pause?: (mode: 'full' | 'half' | null) => void
+  /** Optional: the pauses this game supports. ◐ Half pause shows when this lists 'half' or the game reads rulesClock. */
+  pauseModes?: ('full' | 'half')[]
+  /** Optional: may the Dev Kit pause right now? Left out = canRestore() (an online game can't stop for everyone). */
+  canPause?: () => boolean
+  /**
+   * Optional (0.19.0): what `npm run check:framework` needs to test the game's promises in a real browser
+   * (src/devkit/check-framework.mjs). Without it, the checks that need live play say exactly what to add here.
+   */
+  conformance?: DevKitConformance
+}
+
+/** The game's help for the framework checks. Runs in the page. */
+export interface DevKitConformance {
+  /** From the page as it first loads (a menu, a title screen) to live play — e.g. click Start and wait until the
+   *  first piece falls. Resolve once play is running. */
+  startPlay: () => void | Promise<void>
+  /** Optional: the address query the checks open the game with — e.g. '?seed=7' for a fixed, replayable game. */
+  query?: string
 }
 
 let current: DevKitGame | null = null

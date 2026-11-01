@@ -23,9 +23,12 @@
       { "id": "colourBlind", "type": "selector", "label": "Colour-blind mode", "options": ["Off", "Red-green", "Blue-yellow"], "default": "Off", "on": false },
       { "id": "highContrast", "type": "toggle", "label": "High contrast", "default": false, "on": false },
       { "id": "subtitles", "type": "toggle", "label": "Subtitles", "default": true, "on": false },
+      { "id": "secCrashes", "type": "heading", "label": "Privacy" },
+      { "id": "crashReports", "type": "toggle", "label": "Send crash reports", "default": true, "detail": "If the game breaks, it sends an anonymous report so it can be fixed. No name or IP is kept." },
       { "id": "secAbout", "type": "heading", "label": "About" },
       { "id": "version", "type": "info", "label": "Version", "default": "0.1.0" },
       { "id": "credits", "type": "button", "label": "Credits" },
+      { "id": "privacyPage", "type": "link", "label": "Privacy", "url": "https://thebluemuzzy.github.io/glyphtender/privacy.html" },
       { "id": "feedback", "type": "link", "label": "Send feedback", "url": "https://example.com/feedback", "on": false },
       { "id": "resetProgress", "type": "destructive", "label": "Reset progress", "button": "Reset", "confirm": "All your unlocks and scores will be gone. This can’t be undone.", "on": false }
     ]},

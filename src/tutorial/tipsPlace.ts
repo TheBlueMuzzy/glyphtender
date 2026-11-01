@@ -1,9 +1,9 @@
-// WHERE A TUTORIAL CALLOUT GOES FIRST (the rails, the tips, the nudges — one rule, so they all sit the same way).
+// WHERE A TUTORIAL CALLOUT GOES FIRST (the rails, the tips, the nudges, explore — one rule, so they all sit the same way).
 // A board target: away from the live hex (the one glowing, when it isn't the target itself), else toward the nearer
 // of the top bar and the tray (above a target in the board's top half, below one in its bottom half — but below when
 // there's less than tutorial.json calloutRoom px above it before the turn bar) — so it covers
-// as few board rows as it can. Anything else (the tray, the buttons, the reveal): above it, in the prompt's place
-// (the prompt hides while a callout is up — useTutorial.calloutUp). The kit's Callout flips it if it doesn't fit.
+// as few board rows as it can. Anything else (the tray, the buttons, the reveal) — offBoardSide.
+// The kit's Callout flips it if it doesn't fit.
 import { hexKey, type Hex } from '../engine/hex'
 import type { CalloutPlacement } from '../ui/kit'
 import tutorial from '../../content/tuning/tutorial.json'
@@ -16,10 +16,42 @@ function roomAbove(r: DOMRect): number {
   return r.top - (barAbove ? bar.bottom : 0)
 }
 
+/**
+ * A target that isn't on the board (the tray, a seed, the buttons, the reveal):
+ * - the prompt on top (an upright phone, layout.json boardVertical above 0 — GameScreen's data-prompt="top"): BELOW it,
+ *   over the tray rows / buttons under it — never over the board, which now sits close above the tray (F91, Muzzy
+ *   2026-10-30: "tray-pointing bubbles must not cover the board"). No step needs what's under it then (a rails step
+ *   holds every piece but its own; the pauses hold everything). Where there's no room below (the button row) the kit
+ *   flips it above — over the tray, which a button step doesn't need.
+ * - otherwise (the prompt just above the tray — desktop, boardVertical 0): above it, in the prompt's place (the prompt
+ *   hides while a callout is up — useTutorial.calloutUp).
+ */
+export function offBoardSide(promptOnTop: boolean): CalloutPlacement {
+  return promptOnTop ? 'bottom' : 'top'
+}
+
+/** Is the prompt above the board right now (GameScreen's data-prompt="top")? */
+export const promptOnTop = () => !!document.querySelector('.game[data-prompt="top"]')
+
+/** offBoardSide for the page as it is. */
+export const offBoardPlacement = (): CalloutPlacement => offBoardSide(promptOnTop())
+
+/** What an IDLE nudge about the whole tray ("Drag a seed onto a pale hex.") points at: with the prompt on top, the
+ *  tray's first seed — below it there's room (over the second row and the buttons); below the whole tray there's none,
+ *  and above it is the board, whose pale hexes the player needs then (F91). Otherwise the tray itself, as before.
+ *  (Not the wrong-tap nudge "…first" after a tap on Plant: below the first seed it would pop up under the finger on
+ *  Plant, and the finger's release would close it — it stays at the whole tray.) */
+export function nudgeTarget(selector: string): string {
+  if (selector !== '.game-tray' || !promptOnTop()) return selector
+  const first = [...document.querySelectorAll('.game-tray [data-hand]')].find((el) => el.getBoundingClientRect().width > 0)
+  return first ? `[data-hand="${first.getAttribute('data-hand')}"]` : selector
+}
+
 export function calloutPlacement(selector: string, live: Hex | null = null): CalloutPlacement {
   const el = document.querySelector(selector)
-  const board = el?.closest('.game-garden')
-  if (!el || !board) return 'top'
+  if (!el) return offBoardPlacement()
+  const board = el.closest('.game-garden')
+  if (!board) return offBoardPlacement()
   const middle = (box: DOMRect) => (box.top + box.bottom) / 2
   const r = el.getBoundingClientRect()
   const liveEl = live && document.querySelector(`.game-garden > polygon[data-hex="${hexKey(live)}"]`)

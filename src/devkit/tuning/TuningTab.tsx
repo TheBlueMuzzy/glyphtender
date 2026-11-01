@@ -18,7 +18,7 @@ import { DevKitPick, pickedSections } from '../select/pickContext'
 import { countFound, searchTerms } from '../search/searchLogic'
 import { FieldRow } from './FieldRow'
 import { sendTuning } from './liveTuning'
-import { sectionOrder, tuningFiles, type TuningFile } from './tuningFiles'
+import { sectionOrder, tuningFileProblems, tuningFiles, tuningPath, type TuningFile } from './tuningFiles'
 import { groupOf, listTuningChanges, tuningChanged, valueAt, withValue, type TuningData } from './tuningLogic'
 import { searchTuning, tuningSections, type TuningItem } from './tuningSections'
 import '../color/color.css'
@@ -27,15 +27,18 @@ import './tuning.css'
 type Files = Record<string, TuningData> // file name → its data
 
 const byName = (files: TuningFile[]): Files => Object.fromEntries(files.map((f) => [f.name, f.data]))
-const pathOf = (name: string) => `content/tuning/${name}.json`
 
 type Props = {
   files?: TuningFile[]
   order?: string[] // section titles in the order to list them (content/devkit.json "sectionOrder")
   query?: string // the Dev Kit search box's text (DevKit.tsx passes it while this tab is open); '' = show everything
+  problems?: string[] // what's wrong with content/devkit.json "tuningFiles" (F132), shown at the top
 }
 
-export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '' }: Props) {
+export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '', problems = tuningFileProblems }: Props) {
+  // Where each file saves to: content/tuning/<name>.json, or its listed path (content/rooms.json — F132)
+  const pathOf = (name: string) => tuningPath(files.find((f) => f.name === name) ?? { name })
+  const afterOf = (name: string) => files.find((f) => f.name === name)?.after
   const search = useContext(DevKitSearch)
   const picking = useContext(DevKitPick)
   const [loaded] = useState(() => byName(files)) // as the page loaded — ranges and Copy for Claude start from this
@@ -65,15 +68,20 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '
     try {
       for (const name of unsaved) await saveContentFile(pathOf(name), values[name])
       setSaved(values)
-      setStatus({ kind: 'ok', text: `Saved ${unsaved.map(pathOf).join(', ')} — refresh and it stays.` })
+      // a file the game picks up later says when (its "after" note): "content/rooms.json — restart npm run party:dev"
+      const later = unsaved.filter(afterOf).map((name) => ` ${pathOf(name)}: ${afterOf(name)}.`).join('')
+      setStatus({ kind: 'ok', text: `Saved ${unsaved.map(pathOf).join(', ')} — refresh and it stays.${later}` })
     } catch (e) {
       setStatus({ kind: 'error', text: `Couldn't save: ${(e as Error).message}` })
     }
   }
 
   async function copyForClaude() {
-    const changes = names.flatMap((name) => listTuningChanges(name, loaded[name], values[name]))
-    const text = copyForClaudeText(document.title, changes, unsaved.length === 0, !CAN_SAVE, 'Tuning', 'content/tuning/')
+    // (a listed file is named by its path — "content/rooms.json: idleWarnAfterMs" — so Claude knows where it is)
+    const listed = (name: string) => files.some((f) => f.name === name && f.path)
+    const changes = names.flatMap((name) => listTuningChanges(listed(name) ? pathOf(name).replace(/\.json$/, '') : name, loaded[name], values[name]))
+    const where = ['content/tuning/', ...files.flatMap((f) => (f.path ? [f.path] : []))].join(', ')
+    const text = copyForClaudeText(document.title, changes, unsaved.length === 0, !CAN_SAVE, 'Tuning', where)
     if (await copyText(text)) {
       setCopyFallback(null)
       setStatus({ kind: 'ok', text: 'Copied — paste it into your chat with Claude.' })
@@ -153,6 +161,8 @@ export function TuningTab({ files = tuningFiles, order = sectionOrder, query = '
           <p className="tt-legend">
             <span className="tt-dot" /> = changed, not saved yet · ↺ = back to the saved value · changes show in the game live
           </p>
+          {files.filter((f) => f.after).map((f) => <p key={f.name} className="tt-help">{tuningPath(f)}: {f.after}.</p>)}
+          {problems.map((p) => <p key={p} className="devkit-status is-error">{p}</p>)}
           <SectionIndex label="Tuning" sections={sections.map((s) => ({ id: s.id, title: s.title, count: s.items.length }))} />
         </>
       )}

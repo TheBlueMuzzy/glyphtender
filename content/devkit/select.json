@@ -51,7 +51,7 @@
         "Look": ["garden.background", "garden.hexFill", "garden.hexLine", "garden.hexLineWidth"],
         "Highlights": ["garden.glowStrength", "garden.castFill", "garden.castShade", "garden.dropStrength"],
         "Turn trails": ["garden.trailWidth", "garden.trailStrength", "anim.trailLead", "anim.trailHold"],
-        "Space around it": ["layout.boardMargin", "layout.edgeMargin", "layout.edgeMarginShare"],
+        "Space around it": ["layout.boardMargin", "layout.boardVertical", "layout.edgeMargin", "layout.edgeMarginShare"],
         "Player colours": ["garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
         "Drop targets": ["drag.targets.move", "drag.targets.draft", "drag.targets.seed", "drag.ghostGlow"]
       },
@@ -126,7 +126,7 @@
       "label": "Prompt line",
       "help": "The line that says whose turn it is and what to do.",
       "knobs": {
-        "Space": ["layout.promptGap"]
+        "Space": ["layout.promptGap", "layout.boardVertical"]
       },
       "text": ["game.turnOf", "game.prompts", "tutorial.explore.bar", "tutorial.explore.barDetail"]
     },
@@ -140,7 +140,8 @@
         "Look": ["tutorial.calloutRoom", "tutorial.railsDim"],
         "Explore": ["tutorial.exploreRemind", "tutorial.exploreDim"]
       },
-      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails", "tutorial.explore.remind"]
+      "text": ["tutorial.tips", "tutorial.nudges", "tutorial.rails", "tutorial.explore.remind"],
+      "style": ["callout", "on-callout", "callout-border", "border-width", "radius-panel", "depth-2"]
     },
     "ribbon": {
       "label": "Award ribbon",

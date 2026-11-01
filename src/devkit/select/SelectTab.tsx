@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react'
 import { copyText } from '../saveContent'
 import { valueAt } from '../tuning/tuningLogic'
-import { tuningFiles } from '../tuning/tuningFiles'
+import { tuningFiles, tuningPath } from '../tuning/tuningFiles'
 import { catalog, SELECT_FILE } from './selectFiles'
 import { checkSelectMap, countKnobs, type SelectObject } from './selectMap'
 import { OUTLINE_MIN, pickedObject, setSelect, useSelect } from './selectStore'
@@ -51,9 +51,9 @@ export function SelectTab() {
         `${title}:`,
         ...ids.map((id) => {
           const [file, ...rest] = id.split('.')
-          const data = tuningFiles.find((f) => f.name === file)?.data
-          const value = rest.length ? valueAt(data, rest.join('.')) : undefined
-          return `  content/tuning/${file}.json ${rest.join('.')}${value !== undefined && typeof value !== 'object' ? ` = ${JSON.stringify(value)}` : ''}`
+          const found = tuningFiles.find((f) => f.name === file)
+          const value = rest.length ? valueAt(found?.data, rest.join('.')) : undefined
+          return `  ${tuningPath(found ?? { name: file })} ${rest.join('.')}${value !== undefined && typeof value !== 'object' ? ` = ${JSON.stringify(value)}` : ''}`
         }),
       ]),
       ...(obj.text.length ? [`Text (content/text/en.json): ${obj.text.join(', ')}`] : []),

@@ -46,7 +46,9 @@ export interface RoomState {
 
 export type ClientMessage =
   /** Sent every time the socket opens (first time AND every reconnect). A known persistentId gets its seat back. */
-  | { type: 'join'; name: string; persistentId: string; create: boolean }
+  | { type: 'join'; name: string; persistentId: string; create: boolean; rejoin?: boolean }
+  // rejoin (0.9.0): "Rejoin match" from the menu — only take back MY seat. No seat of mine in that room (it was cleared
+  // and the code reused, or I lost my lobby seat) → no_room, never a stranger's lobby and never a new room.
   /** On purpose: gives up the seat (a bot takes it mid-game). */
   | { type: 'leave' }
   | { type: 'ready'; ready: boolean }
@@ -63,6 +65,9 @@ export type ClientMessage =
   /** "I'm here" — the player tapped or pressed a key. Resets their idle clock; if a bot holds their seat because they
    *  went idle, it's theirs again at once. (useRoom's active() sends it at most every few seconds.) */
   | { type: 'active' }
+  /** A preset phrase for every seat (Rooms 0.12.0, the emotes module). Only its id travels — never words, never a
+   *  seat: the server knows whose connection it is, checks the id against content/emotes.json and keeps its own count. */
+  | { type: 'emote'; id: string }
 
 // ─── Server → player ────────────────────────────────────────────────
 
@@ -100,12 +105,20 @@ export type ServerMessage =
   | { type: 'idle_warning'; msLeft: number }
   /** Only to that player: the warning is over (they did something, their turn moved on, or the bot took over). */
   | { type: 'idle_warning_off' }
+  /** Only to a player who came back into a game after being away (closed the tab, lost the connection, left the
+   *  screen idle): `botTurns` = how many of their turns a bot played meanwhile (0 = none). (Rooms 0.9.0.) */
+  | { type: 'back'; botTurns: number }
+  /** A seat said a preset phrase (or a server bot its banter line) — to every seat, the sender's too. Each device drops
+   *  the senders its player muted (the emotes module's receive). (Rooms 0.12.0.) */
+  | { type: 'emote'; seat: string; id: string }
 
 // ─── Checking what arrives ──────────────────────────────────────────
 
 export const MAX_NAME_LENGTH = 16
 /** A bot's profile is a short tag (the game checks what it means). */
 export const MAX_PROFILE_LENGTH = 40
+/** An emote id is a short code name (a phrase id, or banter.<who>.<moment> from a server bot). */
+export const EMOTE_ID = /^[A-Za-z][A-Za-z0-9_.-]{0,79}$/
 /** Bigger messages than this are refused unread (a real one is far smaller). */
 export const MAX_MESSAGE_LENGTH = 16_000
 
@@ -138,6 +151,8 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'join':
       if (typeof data.name !== 'string' || typeof data.persistentId !== 'string' || typeof data.create !== 'boolean') return null
       if (data.persistentId.length < 8 || data.persistentId.length > 64) return null
+      if (data.rejoin !== undefined && typeof data.rejoin !== 'boolean') return null
+      if (data.rejoin === true) return { type: 'join', name: data.name, persistentId: data.persistentId, create: false, rejoin: true }
       return { type: 'join', name: data.name, persistentId: data.persistentId, create: data.create }
     case 'leave':
       return { type: 'leave' }
@@ -157,6 +172,8 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
       return { type: 'action', action: data.action }
     case 'active':
       return { type: 'active' }
+    case 'emote':
+      return typeof data.id === 'string' && EMOTE_ID.test(data.id) ? { type: 'emote', id: data.id } : null
     default:
       return null
   }

@@ -14,7 +14,8 @@ import { wordSwitchesLine } from './online/onlineOptions'
 import { useGameStore } from '../store/gameStore'
 import text from '../../content/text/en.json'
 import credits from '../../content/credits.json'
-import version from '../../version.json'
+import { versionLabel } from '../version'
+import { shownVersion } from '../game/freeze'
 import tutorialTuning from '../../content/tuning/tutorial.json'
 import { useTutorial } from '../tutorial/progress'
 import { leaveTutorial, openTutorial, replayTutorial, showUnlockedToast, startTutorialGame } from '../tutorial/start'
@@ -41,6 +42,7 @@ export function MainMenuScreen() {
     <MainMenu
       title={w.title}
       subtitle={w.subtitle}
+      version={shownVersion(versionLabel)}
       items={[
         { label: w.play, onClick: closing(tutorialDone ? openNewGame : openTutorial), primary: true },
         ...(onlineAvailable ? [tutorialDone
@@ -70,7 +72,7 @@ export function SettingsScreen() {
   }
   // (Esc on a computer turns Full screen off from outside this screen: key = start again from the saved values)
   const resaved = useFullscreen((s) => s.resaved)
-  return <Settings key={resaved} schema={settings} info={{ version: `v${version.version}` }} hide={hiddenFullscreenRows()} onAction={onAction} onChange={settingsChanged} />
+  return <Settings key={resaved} schema={settings} version={shownVersion(versionLabel)} hide={hiddenFullscreenRows()} onAction={onAction} onChange={settingsChanged} />
 }
 
 // CREDITS — people from en.json, then every asset listed in content/credits.json.

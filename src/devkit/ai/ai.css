@@ -168,4 +168,28 @@
 }
 .ai-note { padding: 2px 0; overflow-wrap: anywhere; }
 .ai-link { color: #8fb4ff; }
+/* "What wins?" after a Run check (0.25.0): the report's top sentences */
+.ai-wins { padding: 8px 10px; background: #1d1e26; border: 1px solid #34353f; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+.ai-wins-title { font-weight: 600; }
+.ai-wins-list { margin: 0; padding: 0 0 0 20px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; }
+.ai-wins-none { margin: 0; font-size: 12px; color: #9a9bab; }
 @media (prefers-reduced-motion: reduce) { .ai-bar-fill { transition: none; } }
+/* "Suggest sliders" (0.26.0): old → new per slider, each feel target now → suggested */
+.ai-suggest { margin-top: 6px; padding-top: 8px; border-top: 1px solid #34353f; display: flex; flex-direction: column; gap: 6px; }
+.ai-tune-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ai-tune-table th, .ai-tune-table td { padding: 4px 6px; border-bottom: 1px solid #34353f; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.ai-tune-table thead th { color: #9a9bab; font-weight: 600; }
+.ai-tune-table tbody th { font-weight: 400; }
+.ai-tune-table td, .ai-tune-table thead th:not(:first-child) { white-space: nowrap; } /* "Suggested" never breaks mid-word */
+.ai-tune-new { font-weight: 600; color: #8fb4ff; }
+.ai-pass { color: #7bd88f; font-weight: 600; }
+.ai-fail { color: #ff7b7b; font-weight: 600; }
+
+/* banter lines (0.24.0): per moment, a box per line with ✕, then "+ Line" */
+.ai-banter { display: flex; flex-direction: column; gap: 4px; }
+.ai-moment { gap: 6px; }
+.ai-line { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center; }
+.ai-line .tt-dot { grid-column: 1; }
+.ai-line-text { grid-column: 2; width: 100%; min-width: 0; }
+.ai-line .tt-reset { grid-column: 3; }
+.ai-add-line { align-self: flex-start; }

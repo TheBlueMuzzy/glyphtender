@@ -1,6 +1,6 @@
 // BEFORE / AFTER SCREENSHOTS — the proof that a rebuild "looks the same" (F29 safety net).
-// Every screen at 8 window sizes: phones tall (390×844, 360×780) and on their side (844×390), a short browser window
-// (768×343), and desktops (1066×1192, 1099×846, 1440×900, 1920×1080).
+// Every screen at 6 window sizes: upright phones (390×844, 360×780) and desktops (1066×1192, 1099×846, 1440×900,
+// 1920×1080). Portrait only (F97): a phone on its side shows "Turn your phone upright" instead.
 // Screens (27): main menu · Settings (Gameplay, Audio) · Credits · Play online · New game · a 2-player game: draft, the device passed on
 // (Pass to …), a turn starting, a move + cast planned, the refresh step (a cast with no Magic) · Pause · Rules ·
 // the online lobby (host and guest — from the Dev Kit's preview, no server needed) · the end of a 2-player and a
@@ -43,8 +43,6 @@ const ALLOWED = 0 // how many differing pixels a picture may have
 const SIZES = [
   { width: 390, height: 844, mobile: true },
   { width: 360, height: 780, mobile: true },
-  { width: 844, height: 390, mobile: true },
-  { width: 768, height: 343, mobile: false },
   { width: 1066, height: 1192, mobile: false },
   { width: 1099, height: 846, mobile: false },
   { width: 1440, height: 900, mobile: false },
@@ -83,7 +81,8 @@ async function settle(page) {
     const s = window.__glyphtender?.store.getState()
     if (s && (s.flying || s.scoring !== null || s.refreshFx !== null)) return false
     if ([...document.images].some((img) => !img.complete)) return false
-    return document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity)
+    // (scroll-driven animations — UI kit 0.35.5+: a scrolling card's stuck buttons + their fade — never "finish": skip them)
+    return document.getAnimations().every((a) => a.timeline !== document.timeline || a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity)
   }, null, { timeout: 20000, polling: 50 })
   // SVG's own looping blinks (<animate> on a planned seed / a tangled hex) aren't page animations: hold them at their start
   await page.evaluate(() => document.querySelectorAll('svg').forEach((svg) => { svg.pauseAnimations(); svg.setCurrentTime(0) }))
@@ -91,7 +90,7 @@ async function settle(page) {
 }
 
 /** "Held still" uses the same measure as the before / after comparison (pixelmatch at THRESHOLD, ALLOWED pixels):
- *  at 844×390 (sprint 24) Chrome re-drew the turn portrait's edge a hair differently on every picture — 36 faint pixels
+ *  on a phone on its side (sprint 24, a size no longer shot) Chrome re-drew the turn portrait's edge a hair differently on every picture — 36 faint pixels
  *  no comparison would ever count — and a byte-for-byte test called the screen "never still". */
 function samePicture(a, b) {
   const pa = PNG.sync.read(a), pb = PNG.sync.read(b)
@@ -203,7 +202,7 @@ async function menusAndGame(size) {
     await shot(page, size, 'game-refresh')
 
     // The ☰ Menu: Pause, then Rules
-    // (a real tap: B019 — in a short window, 768×343, the prompt's words used to run over ☰ and catch it)
+    // (a real tap, as a player makes it: B019 — the prompt's words once ran over ☰ and caught it)
     await tap(page.getByRole('button', { name: 'Menu' }).first())
     await page.getByRole('button', { name: 'Rules' }).waitFor()
     await shot(page, size, 'pause')

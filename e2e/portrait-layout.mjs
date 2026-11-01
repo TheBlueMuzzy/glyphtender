@@ -4,7 +4,7 @@
 //   B012 clear room between the board and the prompt (at least layout.json → promptGap)
 //   B014 every button and the tray sit at least layout.json → bottomRoom above the bottom edge (the phone's
 //        home/back gesture zone), on every size
-// At phone 390×844 and 360×780 (the checks), plus landscape 844×390 and desktop 1440×900 (fit + screenshots).
+// At phone 390×844 and 360×780 (the checks), plus desktop 1440×900 (fit + screenshots).
 // Starts its OWN dev server (default port 5198 — never Muzzy's 5180) and closes only that one at the end.
 //   npm run e2e:portrait [outDir] [port]
 import { mkdirSync } from 'node:fs'
@@ -17,7 +17,6 @@ const PORT = Number(process.argv[3] ?? 5198)
 const SIZES = [
   { name: 'phone-tall', width: 390, height: 844, mobile: true, portrait: true },
   { name: 'phone-small', width: 360, height: 780, mobile: true, portrait: true },
-  { name: 'phone-wide', width: 844, height: 390, mobile: true },
   { name: 'desktop', width: 1440, height: 900, mobile: false },
 ]
 mkdirSync(OUT, { recursive: true })
@@ -135,9 +134,11 @@ try {
       if (new Set(frames).size > 1) fail(`${size.name}: B013: the prompt frame changed height (${frames.join(' → ')})`)
       else console.log(`${new Set(tops).size > 1 ? 'FAIL' : 'ok  '} ${size.name} B013 board top ${tops[0]} for prompts of ${[...lineCounts].join(' and ')} lines`)
       // B012: room between the board's box and the prompt frame (layout.json promptGap); and what the eye sees,
-      // the board's hexes to the nearest words
-      const gap = Math.min(...seen.map((m) => m.frame.top - m.boardBox.bottom))
-      const seenGap = Math.min(...seen.map((m) => m.words.top - m.board.bottom))
+      // the board's hexes to the nearest words. F91 (layout.json boardVertical above 0): the prompt may sit ABOVE the
+      // board — then the room is between the prompt's bottom and the board's top
+      const above = (m) => m.frame.bottom <= m.boardBox.top + 0.5
+      const gap = Math.min(...seen.map((m) => (above(m) ? m.boardBox.top - m.frame.bottom : m.frame.top - m.boardBox.bottom)))
+      const seenGap = Math.min(...seen.map((m) => (above(m) ? m.board.top - m.words.bottom : m.words.top - m.board.bottom)))
       if (gap < layout.promptGap - 0.5) fail(`${size.name}: B012: only ${Math.round(gap)}px between the board and the prompt (needs ≥ ${layout.promptGap})`)
       else console.log(`ok   ${size.name} B012 ${Math.round(gap)}px between the board's box and the prompt · ${Math.round(seenGap)}px from the hexes to the words`)
     }

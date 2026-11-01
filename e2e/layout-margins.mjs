@@ -1,5 +1,5 @@
-// MARGINS AND EVEN SPACING (Muzzy's playtest, 2026-10-01) — checked on the real screen at 7 sizes:
-//   phone 390×844 · 360×780 · phone on its side 844×390 · a short window 768×343 (B019) · desktop windows 1066×1192 · 1099×846 · 1443×900 · 1920×1080
+// MARGINS AND EVEN SPACING (Muzzy's playtest, 2026-10-01) — checked on the real screen at 6 sizes:
+//   phone 390×844 · 360×780 · desktop windows 1066×1192 · 1099×846 · 1443×900 · 1920×1080 (portrait only — F97)
 //   · a mid-game turn: the portrait, ☰, the board's hexes, the tray and the buttons are all at least MIN_EDGE from
 //     every edge of the window (bottom: the tray and buttons keep layout.json bottomRoom — B014)
 //   · board BESIDE the tray (wide screens): the gap edge→board and the gap tray→edge within 20% of each other, and
@@ -8,7 +8,7 @@
 //   · B019: the prompt (its words and glyphling) never shares space with the turn bar (portrait + ☰) — at least
 //     PROMPT_CLEAR px below it — and nothing in the panel spills out of it: on the turn, a planned cast AND the refresh
 //     step (the longest prompt, "No Magic this turn — refresh seeds?", + its small line); then a REAL tap on ☰ opens Pause
-//   · the Pause menu: the room left and right of its content (title + buttons — side by side on a short wide screen) the same (±2 px), and the top about the same
+//   · the Pause menu: the room left and right of its content (title + buttons) the same (±2 px), and the top about the same
 //   · the Dev Kit: the tool tabs on their own full-width row under the title + ✕ (all 5 fit on a desktop)
 // Screenshots of each (turn, pause, Dev Kit Tuning + Screens) go to the out folder.
 // Starts its OWN dev server (default port 5233 — never Muzzy's 5180/5192) and closes only that one.
@@ -25,8 +25,6 @@ const PROMPT_CLEAR = 4 // px: the prompt's top at least this far below the turn 
 const SIZES = [
   { width: 390, height: 844, mobile: true },
   { width: 360, height: 780, mobile: true },
-  { width: 844, height: 390, mobile: true },
-  { width: 768, height: 343, mobile: false, narrow: true }, // (a narrow window: the Dev Kit pages its tabs like a phone)
   { width: 1066, height: 1192, mobile: false },
   { width: 1099, height: 846, mobile: false },
   { width: 1443, height: 900, mobile: false },
@@ -172,7 +170,7 @@ try {
     await page.screenshot({ path: `${OUT}/${name}-1b-refresh.png` })
     await promptClear('refresh')
 
-    // The Pause menu — opened by a REAL tap on ☰ (B019: in a short window the prompt used to catch it): even padding
+    // The Pause menu — opened by a REAL tap on ☰ (B019: the prompt once caught it): even padding
     const menuButton = page.getByRole('button', { name: 'Menu' })
     await (size.mobile ? menuButton.tap() : menuButton.click())
     await page.locator('.kit-modal .kit-menu').waitFor()
@@ -208,8 +206,8 @@ try {
     if (!d.titleShown || !d.closeShown) fail(`${name}: Dev Kit title or ✕ missing`)
     if (!d.tabsBelow) fail(`${name}: the Dev Kit tabs aren't on their own row under the title`)
     if (d.tabsWidth < d.panelWidth - 24) fail(`${name}: the Dev Kit tabs row isn't the panel's full width (${Math.round(d.tabsWidth)} of ${Math.round(d.panelWidth)})`)
-    if (!size.mobile && !size.narrow && d.shown < d.total) fail(`${name}: only ${d.shown} of ${d.total} Dev Kit tabs fit on a desktop`)
-    if ((size.mobile || size.narrow) && d.shown < 4) fail(`${name}: only ${d.shown} Dev Kit tabs fit per page on a phone (4 should)`)
+    if (!size.mobile && d.shown < d.total) fail(`${name}: only ${d.shown} of ${d.total} Dev Kit tabs fit on a desktop`)
+    if (size.mobile && d.shown < 4) fail(`${name}: only ${d.shown} Dev Kit tabs fit per page on a phone (4 should)`)
     console.log(`${failures > failedBefore ? '     ' : 'ok   '}${name} Dev Kit: tabs row ${Math.round(d.tabsWidth)}/${Math.round(d.panelWidth)} px, ${d.shown} of ${d.total} tabs in view`)
     await toTab('Screens')
     await page.screenshot({ path: `${OUT}/${name}-4-devkit-screens.png` })

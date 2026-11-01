@@ -20,10 +20,11 @@ import { CheckPanel } from './CheckPanel'
 import { RangeSlider } from './RangeSlider'
 import { WatchPanel } from './WatchPanel'
 import {
-  BIO_SECTION, CHECK_SECTION, WATCH_SECTION, aiSections, copyPersonality, freeId, getAt, helpOf, labelOf, listChanges,
-  listOf, moveGoal, newShift, searchAi, setAt, settingsName, steadyLabel, withList, withRange, withSteady, type AiSection,
+  BANTER_SECTION, BIO_SECTION, CHECK_SECTION, WATCH_SECTION, aiSections, applyBanterLive, banterChanges, banterOf,
+  copyPersonality, freeId, getAt, helpOf, labelOf, lineKeys, listChanges, listOf, moveGoal, newShift, nextLineKey,
+  searchAi, setAt, settingsName, steadyLabel, strayKeys, withBanter, withLine, withList, withRange, withSteady, withSuggestion, type AiSection,
 } from './aiLogic'
-import type { AiFile, AiPersonality, AiShift, AiSkill, DevKitAi } from './aiTypes'
+import type { AiBanter, AiBanterLines, AiFile, AiPersonality, AiShift, AiSkill, AiTuneResult, DevKitAi } from './aiTypes'
 import '../tuning/tuning.css'
 import './ai.css'
 
@@ -38,6 +39,10 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
   const [skills, setSkills] = useState(savedSkills)
   const [savedBios, setSavedBios] = useState(() => ai.bios?.data ?? {})
   const [bios, setBios] = useState(savedBios)
+  // The bots' banter lines (0.24.0): a copy to edit; every edit also goes straight into the game's own object (live)
+  const banterAt = ai.banter?.at ?? ['banter']
+  const [savedLines, setSavedLines] = useState(() => banterOf(ai.banter?.data, banterAt))
+  const [lines, setLines] = useState(savedLines)
   // The game's AI settings files (goals.json, pace.json…), by name ("goals") — as loaded, as saved, as edited
   const [loadedSettings] = useState(() => Object.fromEntries((ai.settings ?? []).map((f) => [settingsName(f.path), f.data])))
   const [savedSettings, setSavedSettings] = useState(loadedSettings)
@@ -58,9 +63,10 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
   const peopleChanged = !same(people, savedPeople)
   const skillsChanged = !same(skills, savedSkills)
   const biosChanged = !same(bios, savedBios)
+  const linesChanged = !same(lines, savedLines)
   const settingsPath = (name: string) => ai.settings?.find((f) => settingsName(f.path) === name)?.path ?? name
   const settingsChanged = Object.keys(settings).filter((name) => tuningChanged(settings[name], savedSettings[name]))
-  const unsaved = peopleChanged || skillsChanged || biosChanged || settingsChanged.length > 0
+  const unsaved = peopleChanged || skillsChanged || biosChanged || linesChanged || settingsChanged.length > 0
   const problems = people.flatMap((p) => ai.validate?.(p) ?? [])
   const isChanged = (path: (p: AiPersonality) => unknown) => !savedPicked || !same(path(picked), path(savedPicked))
 
@@ -68,6 +74,11 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
   const editSkill = (next: AiSkill) => setSkills((list) => list.map((s) => (s.id === skill.id ? next : s)))
   const bioPath = ai.bios?.at(picked.id) ?? []
   const bio = String(getAt(bios, bioPath) ?? '')
+  /** Change the lines: in the tab, and LIVE in the game (its next moment says the new words — no reload). */
+  const editLines = (next: AiBanterLines) => {
+    setLines(next)
+    if (ai.banter) applyBanterLive(ai.banter.data, banterAt, next)
+  }
 
   function copyToNew() {
     const id = freeId(newName ?? '', people.map((p) => p.id))
@@ -80,9 +91,18 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
         return setAt(named, texts.at(id), bio)
       })
     }
+    if (lines[picked.id]) editLines({ ...lines, [id]: { ...lines[picked.id] } })
     setPickedId(id)
     setNewName(null)
     setStatus({ kind: 'info', text: `${id} is a copy of ${picked.id} — not saved yet.` })
+  }
+
+  /** "Suggest sliders" → Apply (0.26.0): the suggested sliders go in as UNSAVED edits of that personality (picked, so
+   *  its sliders show the new values); Save writes them, Undo unsaved takes them back. */
+  function applySuggestion(result: AiTuneResult) {
+    setPeople((list) => list.map((p) => (p.id === result.personality ? withSuggestion(p, result) : p)))
+    setPickedId(result.personality)
+    setStatus({ kind: 'info', text: `Suggested sliders put in for ${result.personality} — not saved yet.` })
   }
 
   function undo() {
@@ -90,6 +110,7 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
     setSkills(savedSkills)
     setBios(savedBios)
     setSettings(savedSettings)
+    if (linesChanged) editLines(savedLines)
     if (!savedPeople.some((p) => p.id === pickedId)) setPickedId(savedPeople[0]?.id ?? '')
   }
 
@@ -109,9 +130,17 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
         await saveContentFile(ai.skills.path, withList(ai.skills, skills))
         written.push(ai.skills.path)
       }
-      if (biosChanged && ai.bios) {
-        await saveContentFile(ai.bios.path, bios)
-        written.push(ai.bios.path)
+      // The text files: the bios' and the banter lines' (often the same file — then one write carries both, and a
+      // bios write always carries the current lines, never the copy it took at the start)
+      const texts = new Map<string, Record<string, unknown>>()
+      if (biosChanged && ai.bios) texts.set(ai.bios.path, bios)
+      if (ai.banter && (linesChanged || texts.has(ai.banter.path))) {
+        const base = texts.get(ai.banter.path) ?? (ai.bios?.path === ai.banter.path ? bios : ai.banter.data)
+        texts.set(ai.banter.path, withBanter(base, banterAt, lines))
+      }
+      for (const [path, data] of texts) {
+        await saveContentFile(path, data)
+        written.push(path)
       }
       for (const name of settingsChanged) {
         await saveContentFile(settingsPath(name), settings[name])
@@ -120,6 +149,7 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
       setSavedPeople(people)
       setSavedSkills(skills)
       setSavedBios(bios)
+      setSavedLines(lines)
       setSavedSettings(settings)
       setStatus({ kind: 'ok', text: `Saved ${written.join(', ')} — refresh and it stays.` })
     } catch (e) {
@@ -128,18 +158,19 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
   }
 
   async function copyForClaude() {
-    const lines = [
+    const changes = [
       ...listChanges(savedPeople, people).map((l) => `${ai.personalities.path} → ${l}`),
       ...listChanges(savedSkills, skills).map((l) => `${ai.skills.path} → ${l}`),
       ...people.filter((p) => ai.bios && !same(getAt(bios, ai.bios.at(p.id)), getAt(savedBios, ai.bios.at(p.id))))
         .map((p) => `${ai.bios!.path} → ${p.id} bio: "${String(getAt(bios, ai.bios!.at(p.id)) ?? '')}"`),
       ...people.filter((p) => ai.bios?.nameAt && !same(getAt(bios, ai.bios.nameAt(p.id)), getAt(savedBios, ai.bios.nameAt(p.id))))
         .map((p) => `${ai.bios!.path} → ${p.id} name: "${String(getAt(bios, ai.bios!.nameAt!(p.id)) ?? '')}"`),
+      ...(ai.banter ? banterChanges(savedLines, lines).map((l) => `${ai.banter!.path} → ${l}`) : []),
       ...Object.keys(settings).flatMap((name) =>
         listTuningChanges(name, savedSettings[name], settings[name]).map((c) => `${settingsPath(name)} → ${c.name.split(': ').pop()} ${c.from} → ${c.to}`)),
     ]
-    const text = lines.length
-      ? `AI tab changes in ${document.title}${CAN_SAVE ? (unsaved ? ' (not saved yet)' : ' (saved)') : ' (live build — please put these in the files)'}:\n${lines.map((l) => `- ${l}`).join('\n')}`
+    const text = changes.length
+      ? `AI tab changes in ${document.title}${CAN_SAVE ? (unsaved ? ' (not saved yet)' : ' (saved)') : ' (live build — please put these in the files)'}:\n${changes.map((l) => `- ${l}`).join('\n')}`
       : `No AI changes in ${document.title}.`
     if (await copyText(text)) {
       setCopyFallback(null)
@@ -248,8 +279,12 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
         </Row>
       )
     }
+    if (section.title === BANTER_SECTION && ai.banter) {
+      return <BanterLines banter={ai.banter} who={picked.id} chattiness={picked.chattiness} lines={lines} saved={savedLines}
+        onChange={(key, words) => editLines(withLine(lines, picked.id, key, words))} />
+    }
     if (section.title === WATCH_SECTION && ai.watch) return <WatchPanel watch={ai.watch} picked={picked} everyone={people} skill={skill} />
-    if (section.title === CHECK_SECTION && ai.runCheck) return <CheckPanel runCheck={ai.runCheck} personalities={people} skills={skills} />
+    if (section.title === CHECK_SECTION && ai.runCheck) return <CheckPanel runCheck={ai.runCheck} personalities={people} skills={skills} suggest={ai.suggest} picked={picked.id} onApply={applySuggestion} />
     return null
   }
 
@@ -260,6 +295,7 @@ export function AiTab({ ai, query = '' }: { ai: DevKitAi; query?: string }) {
     if (s.file === 'personalities') return s.keys.some((k) => isChanged((p) => p[k]))
     if (s.file === 'skills') return s.keys.some((k) => !same(skill[k], savedSkill?.[k]))
     if (s.file === 'settings') return (s.fields ?? []).some((f) => valueAt(settings[f.file], f.path) !== valueAt(savedSettings[f.file], f.path))
+    if (s.title === BANTER_SECTION) return linesChanged
     return s.title === BIO_SECTION && biosChanged
   }
 
@@ -448,7 +484,58 @@ function Steady({ file, goals, steady, saved, changed, onChange }: SteadyProps) 
   )
 }
 
-type ShiftsProps = { shifts: AiShift[]; readings: string[]; traits: string[]; changed: boolean; file: AiFile; onChange: (s: AiShift[]) => void }
+type BanterLinesProps = {
+  banter: AiBanter
+  who: string
+  chattiness: number
+  lines: AiBanterLines
+  saved: AiBanterLines
+  onChange: (key: string, words: string | undefined) => void
+}
+
+/** The banter lines of one personality: per moment of the game, its lines (a box each, ✕ removes) and "+ Line". Every
+ *  keystroke is live in the game. Lines for a moment the game doesn't name are listed last (never said). */
+function BanterLines({ banter, who, chattiness, lines, saved, onChange }: BanterLinesProps) {
+  const at = (banter.at ?? ['banter']).join('.')
+  const line = (key: string) => (
+    <div key={key} className="ai-line">
+      {lines[who]?.[key] !== saved[who]?.[key] && <span className="tt-dot" title="Changed, not saved yet" />}
+      <input className="ai-text ai-line-text" value={lines[who]?.[key] ?? ''} aria-label={`${who} ${key} line`} onChange={(e) => onChange(key, e.target.value)} />
+      <button className="tt-reset" onClick={() => onChange(key, undefined)} aria-label={`Remove ${who} ${key}`} title="Remove this line">✕</button>
+    </div>
+  )
+  const stray = strayKeys(lines, who, banter.moments)
+  return (
+    <div className="ai-banter">
+      <p className="tt-help">
+        What {who} says at each moment, in its emote bubble ({banter.path} · {at}.{who}.…). Live: the next moment uses it.
+        {chattiness <= 0 && <b> Its chattiness is 0 — it never talks (raise it in its banter settings).</b>}
+      </p>
+      {banter.moments.map((moment) => {
+        const keys = lineKeys(lines, who, moment)
+        return (
+          <div key={moment} className="ai-row ai-moment">
+            <span className="tt-name">
+              <span className="tt-label">{moment}</span>
+              {banter.describe?.[moment] && <span className="tt-key">{banter.describe[moment]}</span>}
+            </span>
+            {keys.map(line)}
+            {!keys.length && <p className="tt-row-help">No line — it stays quiet here (or presses a preset emote, content/ai/banter.json "presets").</p>}
+            <button className="devkit-btn ai-add-line" onClick={() => onChange(nextLineKey(lines, who, moment), '')} aria-label={`Add a ${moment} line`}>+ Line</button>
+          </div>
+        )
+      })}
+      {stray.length > 0 && (
+        <div className="ai-row ai-moment">
+          <span className="tt-name"><span className="tt-label">Not one of the game's moments — never said</span></span>
+          {stray.map(line)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type ShiftsProps ={ shifts: AiShift[]; readings: string[]; traits: string[]; changed: boolean; file: AiFile; onChange: (s: AiShift[]) => void }
 
 /** The mood shifts: one row each — when [reading] goes [from] → [full], [trait] moves by [by]. ✕ removes, + adds. */
 function Shifts({ shifts, readings, traits, changed, file, onChange }: ShiftsProps) {

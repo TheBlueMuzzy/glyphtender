@@ -4,7 +4,8 @@
 //   screens.replace('shop')    swap the top screen for another
 //   screens.current            the open screens, e.g. ['settings', 'quit']
 // Esc and the browser/phone Back button close the top screen on their own (Esc skips it while a tooltip is open).
-// Gamepad: call screens.pop() when B is pressed (the kit doesn't read gamepads itself).
+// Gamepad: call screens.pop() when B is pressed (the kit doesn't read gamepads itself),
+// and markPadUsed() on any press, so screens opened by code show the focus ring (keysOrPad.ts).
 //
 // Back button: every open screen is also a browser history entry, so a phone's Back closes
 // the screen instead of leaving the page. Once every screen is closed, Back leaves as normal.
