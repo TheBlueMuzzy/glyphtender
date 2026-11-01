@@ -25,6 +25,21 @@
       Reports are deleted after 90 days.</p>
     <p>You can turn this off in <strong>Settings → Privacy → Send crash reports</strong>.</p>
 
+    <!-- Online play: what party/ really keeps (read 2026-11-01). Rooms live in the server's memory only (worker.ts gives
+         the rooms kit no saveRoom); "5 minutes" = content/rooms.json keepEmptyRoomMs; the log lines = roomServer.ts log();
+         submitted words = party/submittedWords.ts (word, status, day — no sender); this device = src/rooms/identity.ts + lastRoom.ts. -->
+    <h2>Online play</h2>
+    <p>When you play online, the game's own server holds the room while it's open: the names players typed and the game
+      itself. It isn't saved anywhere else, and it's cleared at most 5 minutes after everyone has left.
+      The server also writes short notes such as "Sam joined", with the room code, which Cloudflare (who runs the server)
+      keeps for a few days so problems can be fixed. No account, email or address book is ever asked for.</p>
+    <p>Your name, a random player number and the last room's code stay on this device, so the name box is filled in
+      and you can get back into a match. Clearing the site's data in your browser removes them.</p>
+
+    <h2>Submitted words</h2>
+    <p>A word you send from <strong>Pause → Submit a word</strong> goes on a list for review, with the day it was sent.
+      Who sent it isn't stored.</p>
+
     <p><a href="./">Back to Glyphtender</a></p>
   </main>
 </body>
