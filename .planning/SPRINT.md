@@ -66,4 +66,8 @@ Notes:
 - F90 task 5: two test fixes the new Dev Kit needed — words-tab pressed ` at a fixed 1.5 s, but Dev Kit 0.28 arrives ~2 s after the page (probe: 2045 ms) → waits for aside.devkit now (devkit-ai's way); devkit-sound left audio-originals/ui/<test sound> behind (the Sound tab keeps an original of each added file) → its put-back removes it.
 - F91 task 2 (helper, 315efd7 + 4fe6a22): the board was already as low as its box allows at 390×844 — the space under it is the prompt's fixed 3-line frame (B013). The only lever: move the prompt ABOVE the board. layout.boardVertical 0–1 (0 = today exactly; >0 = prompt under the top bar, board placed between prompt and tray; default 0.5). Board centre at 390×844: 36.5% → 49.7% (0.5) → 52.9% (1); 360×780: 33.3% → 49.7% → 51.0%. Desktop unchanged at every value. Reverses D41 (2026-09-30, "the prompt sits just above the tray") — Muzzy's call. Open if >0: tutorial callouts that point at the tray still sit where the prompt was, covering the board's bottom row(s). Shots: ~/Documents/dev/.scratch/gt-f91/.
 - Surprise: stop-servers.mjs said "nothing is listening" while party:dev still held 1997 → logged in the framework ROADMAP Ideas; `stop-servers.mjs wrangler` stops it by name.
-Retro:
+- F92 — Version label + crash reports: Muzzy 2026-11-01 "1a" — approved.
+Retro: (Muzzy 2026-11-01: "2a" — Claude's draft kept)
+- Went well: all 6 framework pieces caught up to the newest, and the crash server went live and was proven end to end in one step.
+- Went wrong: the screenshot check kept failing for reasons unrelated to the game — B028's 1-pixel flake (6 times) and the menu's version number.
+- Change: fix B028 at its cause (wait for the pictures to finish loading) instead of re-running.
