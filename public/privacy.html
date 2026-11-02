@@ -38,7 +38,7 @@
       server's own storage, so a server restart doesn't lose it. It's deleted when the match ends, when the host goes back
       to the lobby, or after 7 days without a move (24 hours, if nobody has made a move yet and nobody is there).
       The lobby and a finished game are only held in the server's memory, and cleared at most 5 minutes after everyone has left.
-      None of it is saved anywhere else.
+      None of it is saved anywhere else. (Cloudflare keeps its own recovery copy of the server&#39;s storage for up to 30 days, then it&#39;s gone.)
       The server also writes short notes such as "Sam joined", with the room code, which Cloudflare (who runs the server)
       keeps for a few days so problems can be fixed. No account, email or address book is ever asked for.</p>
     <p>Your name, a random player number and the last room's code stay on this device, so the name box is filled in

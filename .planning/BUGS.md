@@ -1,6 +1,8 @@
 # Glyphtender — Bugs
-Open: 8 (P0 0 · P1 0 · P2 1 · P3 7)
+Open: 9 (P0 0 · P1 0 · P2 2 · P3 7)
 ## Open
+### B033 · P2 · open · found 2026-11-01 by the v0.12.0 security review (F96 — Matches survive a server restart) · online server storage
+Steps: a script makes a room, adds a bot, starts, leaves; repeat ~500×/day · Expected: real matches, submitted words and crash reports keep saving · Actual: bots finish each empty match (~180–230 storage rows each) and the account's free 100,000 rows/day run out until 00:00 UTC — saves then fail quietly (nothing crashes; matches just aren't kept). Muzzy 2026-11-01: released v0.12.0 anyway ("1a"). Fix lives in the rooms kit (framework ROADMAP Ideas, 2026-11-01 "Rooms: kept matches + bots…"): bots wait in an empty match, or the stop-gap — save only once a person has moved.
 ### B032 · P3 · open · found 2026-11-01 by check:full (sprint 31, F95 — Rejoin match, 4541ce8) · e2e:online-ai (test, not the game as far as known)
 Steps: `npm run check:full` · Expected: online-ai passes · Actual: "gave up waiting after 60 s" in playUntil(… myTurn(ada), 60) (e2e/online-ai.mjs:182), then no Explore button for Ada (locator timeout 30 s, line 198). Alone: PASS (15/15, 234 s); beside rejoin + online: PASS (177 s). First failure of this test. Suspect: a wall-clock cap (60 s) on "Ada's turn comes round" while the AI seat's turns slow down under the full load — the same family as the framework Idea "e2e that waits on wall-clock time". Fix idea: wait on turns played, not seconds (or a cap by turn count). Seen again 2026-11-01 (F96 — Matches survive a server restart helper): "gave up waiting after 120 s" while the bot played Ada's turns, beside 4 online e2e; passed on the re-run.
 ### B030 · P3 · open · found 2026-10-19 by framework F63 (dev/framework-checks) · e2e: devkit-search, devkit-select, previews, words-tab (test, not the game)
