@@ -310,13 +310,13 @@ Goal (Muzzy 2026-10-30): every framework module current (framework v0.34.0), por
 - ✅ F91 🎮 New kit look — UI kit 0.20 → 0.38, the board near the vertical middle of a phone for comfort, Muzzy's OK on before/after shots — must · needs: F97 · sprint 30
 - ✅ F92 🔧 Version label + crash reports — the version in the menu + Settings, crash reports wired and their server live, a privacy page — must · sprint 30
 - ✅ F93 🔧 Lint clean-up — install lint 0.4.0, fix the ~9 real finds (player words → en.json, AI weights → content/ai), then errors on — must · needs: F90
-- 🔨 F94 🧱 Saves switch-over — 4 keys onto createSave + oldSave (tutorial "done" carried over as plain text), golden saves — must · needs: F90
+- ✅ F94 🧱 Saves switch-over — 4 keys onto createSave + oldSave (tutorial "done" carried over as plain text), golden saves — must · needs: F90
 - 🔨 F95 🎮 Rejoin match — the kit's lastRoom + "Rejoin match" on the main menu after a closed tab — should · needs: F90
 - 🔨 F96 🔧 Matches survive a server restart — room storage in party/worker.ts + onRestore for the 2 timers; keepMatchDays (Muzzy: live ~7 / async ~30); then update public/privacy.html's Online play part (it says rooms are in memory only, cleared ≤ 5 min after everyone leaves) — should · needs: F95
 ```mermaid
 flowchart LR
   F90[✅ F90 Quiet module updates] --> F93[✅ F93 Lint clean-up]
-  F90 --> F94[🔨 F94 Saves switch-over]
+  F90 --> F94[✅ F94 Saves switch-over]
   F90 --> F95[🔨 F95 Rejoin match]
   F95 --> F96[🔨 F96 Matches survive a restart]
   F97[✅ F97 Portrait only] --> F91[✅ F91 New kit look]

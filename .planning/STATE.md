@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-01 — **F93 — Lint clean-up ✅ (Muzzy: "approved")**: lint 0.4.0 strict (errors) — settings in content/, player words in en.json; AI weights in content/ai/weights.json (same values, golden SAME); 3 new Dev Kit sliders (layout.bigHexPx, anim.scoreEndBeat, endscreen.chartTangleColumnMin). B028 moved out → F98 — Steady Story chart shot (Muzzy "1a"). Sprint 31 — Nothing gets lost on dev/v0-16-nothing-lost. **Next: /develop F94 — Saves switch-over, task 1** (`install-module.mjs saves .` — its starter test waits for the first createSave).
+2026-11-01 — **F94 — Saves switch-over ✅ (Muzzy: "approved")**: New Game, lobby, tutorial done and words-to-send go through saves 0.7.0 (createSave + oldSave; v0.11.2 saves load the same; 6 golden saves); fullscreen.ts + session.ts in content/saves.json storageAllowed (session.ts goes in F95). F93 — Lint clean-up ✅ earlier today. Sprint 31 — Nothing gets lost on dev/v0-16-nothing-lost. **Next: /develop F95 — Rejoin match, task 1** (the kit's lastRoom replaces session.ts's sessionStorage room code; then drop session.ts from storageAllowed).
 Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn yet.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F94 — Saves switch-over · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
+Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F95 — Rejoin match · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
@@ -41,6 +41,7 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing ge
 **Since Dev Kit 0.28 (F90 — Quiet module updates):** the Dev Kit arrives ~2 s after the page — an e2e that opens it waits for `aside.devkit` attached, never a fixed time. Adding a sound in the Sound tab keeps its original in `audio-originals/` (committed; `npm run audio:check -- --fix` uses it). Port lookups (stop-servers, check-all's pre-flight) can miss a server started from Claude's shell — stop wrangler by name: `node ~/.claude/config/bmuz/scripts/stop-servers.mjs wrangler`.
 
 ## Log
+- 2026-11-01 — F94 — Saves switch-over ✅: everything the game remembers (New Game choices, lobby choices, tutorial unlock, words waiting to send) now has a version and backups; old saves carry over unchanged.
 - 2026-11-01 — F93 — Lint clean-up ✅: the game's settings and words live in its content files (three new Dev Kit sliders: roomy-screen hex size, the pause after scoring, the Story chart's tangle column); the AI plays exactly as before.
 - 2026-11-01 — Sprint 31 started (Nothing gets lost): the code checker is in, and screen readers now name the garden, the seed tray and the tips from the game's text file.
 - 2026-11-01 — Released v0.11.2: the board sits in the middle of a phone, the version shows on the main menu, and if the game breaks it says so and sends an anonymous crash report (switch in Settings → Privacy); a privacy page explains what is kept.
