@@ -88,6 +88,21 @@ export function afterSeatChange(state: ServerGame, seatId: string, change: SeatC
 }
 
 /**
+ * The match was loaded back from storage (the server restarted or redeployed, or the room woke up — F96). A timer is
+ * code, so only its end time was saved (`timersEndAt`): each one that was running starts again for what's left of it —
+ * one already past fires at once, as the rooms kit describes (rules.onRestore). So the turn timer keeps its end time
+ * (turnEndsAt, which every screen shows, stays right) and a bot that was thinking plays when it would have.
+ */
+export function restartTimers(state: ServerGame, room: RoomTools<ServerGame, never>, words: WordsFor, timersEndAt: Record<string, number>): ServerGame {
+  if (state.game.phase === 'over') return state
+  const left = (name: string) => Math.max(0, timersEndAt[name] - Date.now())
+  const seatId = state.seatIds[state.game.current]
+  if (timersEndAt[TURN_TIMER] !== undefined) room.timers.start(TURN_TIMER, left(TURN_TIMER), () => room.timedOut(seatId))
+  if (timersEndAt[BOT_TIMER] !== undefined) room.timers.start(BOT_TIMER, left(BOT_TIMER), () => room.update((now) => botStep(now, room, words)))
+  return state
+}
+
+/**
  * The AI's next action for the seat whose turn it is, from that seat's view only. Never throws: if the AI fails or
  * names a move the rules refuse, the greedy bot's move (or "keep all" on a refresh) is played instead.
  */
