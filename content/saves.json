@@ -30,7 +30,6 @@
   "cloud": { "keepDays": 7, "wrongTriesPerHour": 10, "uploadsPerHour": 20 },
   "board": { "dailyTries": 1, "keepDays": 7, "sendsPerDay": 30, "show": 10 },
   "storageAllowed": [
-    { "file": "src/ui/online/session.ts", "why": "the room code for a reload mid-match — replaced by the rooms kit's lastRoom in F95 — Rejoin match" },
     { "file": "src/ui/fullscreen.ts", "why": "a computer's Esc turns Settings → Full screen off: it writes the UI kit's own settings slot (settingsStorageKey), and the kit 0.39.0 has a loadSettings but no save function to write it through — goes when the kit exports one" }
   ]
 }

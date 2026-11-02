@@ -3,6 +3,7 @@
 //   views → the game store (onlinePlay.ts) · refused moves → the store · other problems → a toast
 //   a bot takes another player's seat / they're back → a toast (seatStatus.ts, B015)
 //   shut out (no such room, full, started, kicked…) → back to the menu with the reason in friendly words
+//   rejoining (Rejoin match, or a reload mid-match) → "Rejoining…", then "You're back" — or "That match has ended"
 //   any tap or key while it matters → "I'm here" (F52 — the room's idle clock)
 // While the connection is coming back it shows the kit's Reconnecting box; otherwise the kit's IdleWarning (F52:
 // my idle bar, or "a bot is playing for you — tap to play").
@@ -17,7 +18,7 @@ import { actionRefused, connectOnline, receiveView, roomSeatsChanged } from '../
 import { useGameStore } from '../../store/gameStore'
 import { isMyTurn } from '../../store/myTurn'
 import { useExplore } from '../../store/explore'
-import { IdleWarning, Reconnecting, fill, screens, toast } from '../kit'
+import { IdleWarning, Reconnecting, fill, screens, toast, welcomeBackLine } from '../kit'
 import { closeAllScreens } from '../newGame'
 import { seatNotices } from './seatStatus'
 import { closedMessage, createRoom, endOnline, leaveOnline, partyHost, useOnline } from './session'
@@ -28,7 +29,8 @@ export function OnlineSession() {
   const code = useOnline((s) => s.code)
   const creating = useOnline((s) => s.creating)
   const name = useOnline((s) => s.name)
-  const room = useRoom<GameView, OnlineAction, OnlineOptions>(code, { name, create: creating }, { host: partyHost() })
+  const rejoin = useOnline((s) => s.rejoin) // (a reload mid-match, or Rejoin match: only my own seat will do)
+  const room = useRoom<GameView, OnlineAction, OnlineOptions>(code, { name, create: creating, rejoin }, { host: partyHost() })
 
   // The screens read the room from the session store
   useEffect(() => { useOnline.setState({ room }) })
@@ -106,18 +108,35 @@ export function OnlineSession() {
     }
   }, [code, active])
 
-  // Shut out of the room
-  const { status, closedReason } = room
+  // Shut out of the room. The match I came back for is gone (cleared while everyone was away, or the room closed):
+  // "That match has ended" and back to the menu — never the join screen's "no room with that code".
+  const { status, closedReason, matchEnded } = room
   useEffect(() => {
     if (status !== 'closed' || !closedReason || closedReason === 'left') return
     if (closedReason === 'code_taken' && creating) return createRoom() // that code was in use: try another
+    if (matchEnded && rejoin) {
+      endOnline(null)
+      toast(w.rejoin.ended)
+      return
+    }
     const why = closedMessage(closedReason)
     endOnline(why)
     toast(why)
-  }, [status, closedReason, creating])
+  }, [status, closedReason, creating, matchEnded, rejoin])
 
+  // Back in a match after being away: "You're back" (+ how many turns a bot played for me meanwhile)
+  const { cameBack, clearCameBack } = room
+  useEffect(() => {
+    if (!cameBack) return
+    toast(welcomeBackLine(cameBack.botTurns, w.rejoin))
+    clearCameBack()
+  }, [cameBack, clearCameBack])
+
+  // Getting back into my match (Rejoin match, or a reload mid-match): "Rejoining…" until the room answers
+  const quit = () => { closeAllScreens(); leaveOnline() }
+  if (rejoin && status === 'connecting') return <Reconnecting words={{ title: w.rejoin.joiningTitle, quit: w.reconnect.quit }} message={w.rejoin.joining} onQuit={quit} />
   return status === 'reconnecting'
-    ? <Reconnecting words={{ title: w.reconnect.title, quit: w.reconnect.quit }} message={w.reconnect.message} onQuit={() => { closeAllScreens(); leaveOnline() }} />
+    ? <Reconnecting words={{ title: w.reconnect.title, quit: w.reconnect.quit }} message={w.reconnect.message} onQuit={quit} />
     // (centre: at the top it would cover the turn bar and ☰; it never catches taps)
     : <IdleWarning place="center" endsAt={idleWarning?.endsAt ?? null} botPlaying={botPlaysForMe} words={w.idle} />
 }

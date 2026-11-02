@@ -375,6 +375,15 @@
       "problem": "That didn’t work — {reason}",
       "badCode": "A room code is 4 letters, like BAKU"
     },
+    "rejoin": {
+      "rejoin": "Rejoin match",
+      "joiningTitle": "Rejoining…",
+      "joining": "Getting you back into your match.",
+      "back": "You’re back",
+      "backOneTurn": "You’re back — a bot played 1 turn for you",
+      "backTurns": "You’re back — a bot played {n} turns for you",
+      "ended": "That match has ended"
+    },
     "reconnect": {
       "title": "Reconnecting…",
       "message": "Connection lost — getting you back into the garden.",

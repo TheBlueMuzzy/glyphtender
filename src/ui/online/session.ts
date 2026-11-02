@@ -9,6 +9,7 @@ import type { OnlineRoom } from '../../rooms/useRoom'
 import type { CloseReason } from '../../rooms/protocol'
 import { makeRoomCode } from '../../rooms/roomCodes'
 import { getPlayerName, setPlayerName } from '../../rooms/identity'
+import { roomBeforeReload } from '../../rooms/lastRoom'
 import { stopOnline } from '../../store/onlinePlay'
 import { useGameStore } from '../../store/gameStore'
 import { toast } from '../kit'
@@ -20,6 +21,8 @@ interface Session {
   code: string | null
   /** true = this device made the room (only its very first join may create it). */
   creating: boolean
+  /** true = getting back into a match this device was in (a reload, or Rejoin match): only my own seat will do. */
+  rejoin: boolean
   name: string
   /** The live room (useRoom's result), or null before OnlineSession has run. */
   room: Room | null
@@ -27,25 +30,14 @@ interface Session {
   joinError: string | null
 }
 
-// This tab's room code is kept through a reload (sessionStorage), so a reload goes straight back to its seat
-const ROOM_KEY = 'glyphtender:room'
-function rememberRoom(code: string | null) {
-  try {
-    if (code) sessionStorage.setItem(ROOM_KEY, code)
-    else sessionStorage.removeItem(ROOM_KEY)
-  } catch {
-    // no storage (private window, tests): a reload just lands on the menu
-  }
-}
-function roomBeforeReload(): string | null {
-  try {
-    return sessionStorage.getItem(ROOM_KEY)
-  } catch {
-    return null
-  }
-}
+// Which room this device was in lives in the rooms kit (src/rooms/lastRoom.ts — useRoom remembers and forgets it by
+// itself). A reload in the same tab goes straight back in: a match as a rejoin (only my own seat), a lobby as a plain
+// join (the lobby seat went when the page unloaded). After a closed tab, the main menu offers "Rejoin match".
+const reloaded = roomBeforeReload()
 
-export const useOnline = create<Session>()(() => ({ code: roomBeforeReload(), creating: false, name: getPlayerName(), room: null, joinError: null }))
+export const useOnline = create<Session>()(() => ({
+  code: reloaded?.code ?? null, creating: false, rejoin: reloaded?.phase === 'playing', name: getPlayerName(), room: null, joinError: null,
+}))
 
 /**
  * Where the online server is. Live builds: VITE_PARTY_HOST. Local: the computer that served this page, on
@@ -69,13 +61,11 @@ export function setName(name: string) {
 
 export function createRoom() {
   const code = makeRoomCode()
-  rememberRoom(code)
-  useOnline.setState({ code, creating: true, room: null, joinError: null })
+  useOnline.setState({ code, creating: true, rejoin: false, room: null, joinError: null })
 }
 
 export function joinRoom(code: string) {
-  rememberRoom(code)
-  useOnline.setState({ code, creating: false, room: null, joinError: null })
+  useOnline.setState({ code, creating: false, rejoin: false, room: null, joinError: null })
 }
 
 /** Out of the room (Leave, Menu → Leave game): tell the server, stop the online game, back to the menu. */
@@ -84,11 +74,11 @@ export function leaveOnline() {
   endOnline(null)
 }
 
-/** The room is gone for us (left, or shut out): forget it. `why` shows on the join screen if given. */
+/** The room is gone for us (left, or shut out). `why` shows on the join screen if given. (useRoom has already
+ *  forgotten the room on this device — lastRoom.ts — unless another tab has the seat now.) */
 export function endOnline(why: string | null) {
   stopOnline()
-  rememberRoom(null)
-  useOnline.setState({ code: null, creating: false, room: null, joinError: why })
+  useOnline.setState({ code: null, creating: false, rejoin: false, room: null, joinError: why })
   if (useGameStore.getState().online) useGameStore.getState().leaveGame()
 }
 

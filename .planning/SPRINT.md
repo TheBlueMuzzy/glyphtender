@@ -34,7 +34,7 @@ Approved: Muzzy 2026-11-01 "approved" — F94: done (465672d), saved v0.11.2.3.
 
 ## F95 🎮 Rejoin match
 Done when: a player who closed the tab mid-match sees "Rejoin match" on the main menu and gets their seat back with one tap; the game's own room-code copy is gone (the kit's lastRoom is the one memory); the Dev Kit's known gap is closed.
-- [ ] 🤖 1. The kit's lastRoom replaces the game's own room-code copy (sessionStorage ROOM_KEY) — src/ui/online/session.ts
+- [x] 🤖 1. The kit's lastRoom replaces the game's own room-code copy (sessionStorage ROOM_KEY) — src/ui/online/session.ts — done: session.ts starts from the kit's roomBeforeReload() (a match = a rejoin, a lobby = a plain join), OnlineSession passes rejoin to useRoom ("Rejoining…" box, "You're back" toast, a gone match = "That match has ended"); session.ts out of saves.json storageAllowed
 - [ ] 🤖 2. "Rejoin match" on the main menu from matchToRejoin(), words in en.json — src/ui/menus.tsx
 - [ ] 🤖 3. e2e: start a 2-player match, close one tab, reopen → Rejoin → same seat, the game goes on — e2e/online-kit.mjs
 - [ ] 🤖 4. Close the known gap ("a closed tab can rejoin its match") + GDD §Online line — content/devkit.json
