@@ -1,0 +1,31 @@
+{
+  "about": "New Game's choices as builds before 2026-10-08 kept them (plain JSON straight in localStorage, no twoLetterSave marker — the shape from just before fix 040b070): 3 players on the large garden, 2-letter words ON (the old default), an AI seat. It must load with today's default for 2-letter words (off — Muzzy: \"it should default to off\") and everything else as saved.",
+  "stored": {
+    "players": 3,
+    "boardName": "large",
+    "twoLetterWords": true,
+    "hideSeeds": true,
+    "wordIndicators": false,
+    "seats": [
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": true, "personality": "Scholar", "skill": "Archmage" },
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" }
+    ]
+  },
+  "expect": {
+    "players": 3,
+    "boardName": "large",
+    "twoLetterWords": false,
+    "britishWords": false,
+    "vulgarWords": false,
+    "hideSeeds": true,
+    "wordIndicators": false,
+    "seats": [
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": true, "personality": "Scholar", "skill": "Archmage" },
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" }
+    ]
+  }
+}

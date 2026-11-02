@@ -1,0 +1,5 @@
+{
+  "about": "Words waiting to be sent (F69) as v0.11.2 and earlier kept them: a plain JSON list of words straight in localStorage, written when the server couldn't be reached. They must load as the same words, in order, so they still go on the next start.",
+  "stored": ["QI", "GLYPH", "SPROUTLING"],
+  "expect": { "words": ["QI", "GLYPH", "SPROUTLING"] }
+}

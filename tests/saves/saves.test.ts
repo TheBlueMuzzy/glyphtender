@@ -13,11 +13,21 @@ import {
   checkDamagedSaves, checkFullStorage, checkGoldenSave, checkRoundTrip, checkRunEnds, goldenSavesFor, missingGoldenVersions, savesInCode,
   type RunUnderTest, type SaveUnderTest,
 } from '../../src/saves/oldSaves'
-// import { progressSave } from '../../src/progress/save'
-// import { matchRun } from '../../src/game/run'
+import { tutorialSave } from '../../src/tutorial/progress'
+import { newGameSave, SURPRISE } from '../../src/ui/newGame'
+import { onlineOptionsSave } from '../../src/ui/online/onlineOptions'
+import { wordQueueSave } from '../../src/ui/online/wordOutbox'
+
+const person = { ai: false, personality: SURPRISE, skill: 'FirstClass' }
 
 const SAVES: SaveUnderTest[] = [
-  // { save: progressSave, sample: { totalXp: 1200, unlocks: ['hat'] } },
+  // New Game's last choices: 3 players, 2-letter words on, one AI seat (the 4th seat keeps its choice for next time)
+  { save: newGameSave(), sample: { players: 3, boardName: 'large', twoLetterWords: true, britishWords: true, vulgarWords: false, hideSeeds: true, wordIndicators: false,
+    seats: [person, { ai: true, personality: 'Scholar', skill: 'Archmage' }, person, { ai: true, personality: SURPRISE, skill: 'Apprentice' }] } },
+  // the online host's last table options
+  { save: onlineOptionsSave(), sample: { boardName: 'small', minWordLength: 2, turnSeconds: 90, wordIndicators: true, britishWords: false, vulgarWords: true } },
+  { save: tutorialSave(), sample: { done: true } },
+  { save: wordQueueSave(), sample: { words: ['QI', 'GLYPH'] } },
 ]
 
 const RUNS: RunUnderTest[] = [
