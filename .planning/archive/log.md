@@ -1,3 +1,4 @@
+- 2026-10-13 — Overnight (auto): the tutorial built end to end — sprint 26 (plant wording, callouts + tips memory, tutorial shell + locks, Sprout) and sprint 27 (Text tab, rails, tips, nudges, Explore). Framework: ui-kit 0.9.0 + devkit 0.13.0 on branch dev/tutorial-kits. Full check 33/33.
 - 2026-10-12 — Released v0.9.3: B027 New Game scrolls on phones (UI kit 0.8.2 + a real touch-swipe check in e2e:new-game). Full check; fixed 2 e2e scripts gone stale in v0.9.2 (they tapped hidden settings rows). Server unchanged.
 - 2026-10-12 — Released v0.9.2: Settings shows only rows that work (12 kit placeholders off; ui-kit 0.8.1 installer now starts games that way). Fast + shots + previews checks; perf unchanged (slow phone 1.61 s to Play, 60 fps).
 - 2026-10-12 — Released v0.9.1: the live site's console is clean again (Words tab fetched /__words/list on the live build → 404). Server unchanged.
