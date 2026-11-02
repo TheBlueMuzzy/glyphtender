@@ -29,7 +29,7 @@ Done when: the saves module is installed and Glyphtender's 4 saved things (New G
 - [x] 🤖 5. Full screen writes through the kit's settings, not its key directly — src/ui/fullscreen.ts
   done: the kit (0.39.0) has loadSettings but no save function to write through, so fullscreen.ts is listed in content/saves.json storageAllowed with why (and session.ts until F95) — check:framework PASS, Saves ✓ (only createRun / recordRun "none in the game")
 Check: check:fast (golden saves) + e2e game, new-game, word-switches, submit-word, tutorial-shell; a browser with old saves (v0.11.2's keys) keeps its choices.
-Checked:
+Checked: 2026-11-01 — check:fast green (saves test 23/23 incl. 6 golden saves); check:framework Saves promises kept (2 files allowed: fullscreen.ts — the kit has no settings write yet, framework Ideas; session.ts until F95 — Rejoin match); e2e game, new-game, word-switches, submit-word, tutorial-shell pass; the helper's browser proof 12/12 (v0.11.2-style saves for all 4 keys came back the same; re-saved as module records, load the same); check:full at dfd9f44 ALL PASS 37/37. Known trade-off: a save re-written in the new format reads as defaults on v0.11.2 or older (only matters for a rollback).
 
 ## F95 🎮 Rejoin match
 Done when: a player who closed the tab mid-match sees "Rejoin match" on the main menu and gets their seat back with one tap; the game's own room-code copy is gone (the kit's lastRoom is the one memory); the Dev Kit's known gap is closed.
