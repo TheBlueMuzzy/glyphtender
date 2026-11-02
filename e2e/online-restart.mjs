@@ -8,6 +8,10 @@
 // Also: every frame either browser got had no secrets (e2e:online's secretsIn — the move record and its seed numbers
 // are stored on the server but never sent), and the storage writes a game action costs (the server logs each one
 // with --var TEST_LOG_STORAGE:1 — measured against the Workers free plan's 100,000 rows written a day, SPRINT F96).
+// F99 — bots wait in an empty match: then Bo taps Leave (a bot takes his seat) and Ada closes her tab — nobody is
+// connected, so for EMPTY_WAIT_SECONDS (env, 20) no bot may move and nothing may be written to storage (before F99:
+// 52 bot moves + 106 rows in 120 s, SPRINT F99 Notes); Ada reopens → Rejoin match → the same version and turn → the
+// game goes on (Bo's bot plays, Ada plays).
 // Starts its OWN `wrangler dev` and Vite — never 1997/1999/5180 — and stops only those.
 // ports: 5452 1979
 // Shots: <outDir>/restart-<size>-<step>.png
@@ -173,7 +177,11 @@ try {
   check(`the same game id (${before.gameId})`, after.gameId === before.gameId && boAfter.gameId === before.gameId)
   check(`the same turn count (${before.turns}) and version (${before.version})`, after.turns === before.turns && after.version === before.version && boAfter.version === before.version)
   check(`the same player's turn (seat ${before.current})`, after.current === before.current && boAfter.current === before.current)
-  check('the turn timer came back with the same end time', after.turnEndsAt === before.turnEndsAt)
+  // (F99: nobody is connected right after the restart, so the turn clock waits for the first one back — its end moves by
+  // that moment, a few seconds at most)
+  const clockMoved = after.turnEndsAt - before.turnEndsAt
+  check(`the turn timer came back with its time left (end moved ${(clockMoved / 1000).toFixed(1)} s: the moment before the first reconnect)`,
+    after.turnEndsAt === boAfter.turnEndsAt && clockMoved >= 0 && clockMoved <= 15_000)
   for (const p of [ada, bo]) {
     check(`${p.name} is back in the game (seat kept)`, await p.store((s) => !!s.game && s.online?.mySeat !== undefined && s.online.mySeat !== null && s.wordsStatus === 'ready'))
   }
