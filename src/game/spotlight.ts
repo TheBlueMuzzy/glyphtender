@@ -39,8 +39,8 @@ export function litWord(seconds: number, count: number, hold: number, fade: numb
 // ---- where the label goes ----
 export interface Box { minX: number; minY: number; w: number; h: number }
 
-const LETTER = 0.8 // a piece's letter/art, as a circle this big round its hex centre (hex size 1: corner 1, edge 0.87)
-const STEP = 0.25 // candidate spots are tried on a grid this fine
+const LETTER = 0.8 // tuning-ok: the art's real size, measured — a piece's letter/art, as a circle this big round its hex centre (hex size 1: corner 1, edge 0.87)
+const STEP = 0.25 // tuning-ok: how finely the search looks, not a look — candidate spots are tried on a grid this fine
 
 // How far a rectangle (centre x,y, size w×h) is from a circle round point p; 0 = they touch or overlap
 function gap(x: number, y: number, w: number, h: number, p: { x: number; y: number }, r: number) {

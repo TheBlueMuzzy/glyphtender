@@ -99,7 +99,7 @@ export const mobilityNow = (state: GameState): number[] => remember(boardMemo(st
  * rules), and so how many hexes each seat reaches FIRST — strictly before every other seat. A hex two seats reach in
  * the same number of moves belongs to nobody. Glyphlings and seeds block the way (the movers' own starting hexes too).
  */
-const FAR = 9999
+const FAR = 9999 // tuning-ok: "never reaches this cell" — a stand-in bigger than any board's move count, not a setting
 
 /** For each seat, how many moves its glyphlings need to reach each cell (FAR = never), remembered per board. */
 function reachDistances(state: GameState): Int16Array[] {

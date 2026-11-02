@@ -15,12 +15,13 @@ import type { Special } from './kit/types'
 import { beliefsOf, leastConfidence } from './evidence'
 import { hexDistance, junkiness, mobilityNow, movesFrom, occupiedHexes, openDirections, outcomeOf, type TurnAction } from './look'
 import type { GlyphContext } from './goals/shared'
+import weightsFile from '../../content/ai/weights.json'
 
 const trait = (ctx: GlyphContext, name: string) => ctx.traits[name] ?? 50
 
 // ── Draft ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-export const DRAFT_WEIGHTS = { perMove: 0.5, perHexFromCentre: 1, perHexFromRival: 1.5 }
+export const DRAFT_WEIGHTS = weightsFile.draft // content/ai/weights.json (Obsidian)
 
 /** How good a hex is to place a glyphling on, for this bot (higher = better). */
 export function draftValue(world: GameState, seat: number, hex: Hex, aggression: number, caution: number): number {

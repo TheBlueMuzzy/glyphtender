@@ -30,7 +30,6 @@ import type { GardenTuning } from './useTuning'
 import text from '../../content/text/en.json'
 
 const w = text.game.gameOver.chart
-const MIN_TANGLE_COLUMN = 44
 
 /** The chart's word size, px: 15 on a phone, growing with the chart's width up to 22 on a big screen (readable at desktop). */
 const fontFor = (width: number) => Math.round(Math.min(22, Math.max(15, width / 46)))
@@ -133,7 +132,7 @@ export function StoryChart({ chart, colours, tuning, scrub, onScrub, awards, sta
   const PAD = padFor(FONT)
   const S = FONT / 15 // marks and end shapes grow with the words
   const plotW = Math.max(0, width - PAD.left - PAD.right)
-  const tangleW = Math.max(MIN_TANGLE_COLUMN, plotW / (chart.rounds + 1))
+  const tangleW = Math.max(tuning.chartTangleColumnMin, plotW / (chart.rounds + 1))
   const step = chart.rounds > 0 ? (plotW - tangleW) / chart.rounds : 0
   const X = (i: number) => PAD.left + (i <= chart.rounds ? i * step : chart.rounds * step + tangleW)
   const guide = guideStep(chart.max)

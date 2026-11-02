@@ -43,7 +43,7 @@ export interface SeatChoice {
 type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem'>
 const SAVE_KEY = 'glyphtender:new-game'
 const MIN_PLAYERS = 2
-const MAX_PLAYERS = 4
+const MAX_PLAYERS = 4 // tuning-ok: the game has 4 player colours and boards for up to 4
 
 /** "Surprise me": a random personality, picked when the game starts. */
 export const SURPRISE = 'surprise'

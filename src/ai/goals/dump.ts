@@ -4,8 +4,9 @@
 import type { WordList } from '../../engine/types'
 import { hexDistance, junkiness, outcomeOf } from '../look'
 import { NOTHING, asTurn, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const DUMP_WEIGHTS = { farAway: 3, farDistance: 3 }
+export const DUMP_WEIGHTS = weightsFile.DUMP // content/ai/weights.json (Obsidian)
 
 export function dumpGoal(words: WordList): GlyphGoal {
   return {

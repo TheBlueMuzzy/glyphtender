@@ -15,8 +15,9 @@ import type { GameState, WordList } from '../../engine/types'
 import tutorialTuning from '../../../content/tuning/tutorial.json'
 import { mobilityAfter, mobilityNow, outcomeOf } from '../look'
 import { NOTHING, asTurn, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const SELF_TANGLE_WEIGHTS = { tangle: 50, perRivalPieceAtTangle: 15, perMoveCloser: 6, perRivalPieceNear: 2, otherCornered: -20, endsGame: -100 }
+export const SELF_TANGLE_WEIGHTS = weightsFile.SELFTANGLE // content/ai/weights.json (Obsidian)
 /** "Cornered" for the other glyphling: this many moves or fewer. */
 const CORNERED = 2
 

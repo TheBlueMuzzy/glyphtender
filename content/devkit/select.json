@@ -82,7 +82,7 @@
       "help": "The +2 / +1 that pops off each seed and flies into the total.",
       "knobs": {
         "Look": ["garden.scorePop", "garden.scorePopSize", "garden.scorePopMinPx"],
-        "Timing": ["anim.scorePopDelay", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime", "anim.arcHeight"],
+        "Timing": ["anim.scorePopDelay", "anim.scoreEndBeat", "anim.scoreWordTime", "anim.scorePopGap", "anim.scorePopTime", "anim.scorePopHold", "anim.scoreFlyTime", "anim.arcHeight"],
         "Feel": ["feel.events.seedPop", "feel.tiers"],
         "Rules": ["rules.ownershipBonus"]
       },
@@ -126,7 +126,7 @@
       "label": "Prompt line",
       "help": "The line that says whose turn it is and what to do.",
       "knobs": {
-        "Space": ["layout.promptGap", "layout.boardVertical"]
+        "Space": ["layout.promptGap", "layout.boardVertical", "layout.bigHexPx"]
       },
       "text": ["game.turnOf", "game.prompts", "tutorial.explore.bar", "tutorial.explore.barDetail"]
     },
@@ -165,7 +165,7 @@
       "label": "Story chart",
       "help": "The end screen's Story page: everyone's Magic over the game, with moment markers and the turn list.",
       "knobs": {
-        "Chart": ["endscreen.maxMarkers", "endscreen.chartDrawSeconds", "endscreen.chartLineWidth", "endscreen.chartHeight", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
+        "Chart": ["endscreen.maxMarkers", "endscreen.chartDrawSeconds", "endscreen.chartLineWidth", "endscreen.chartTangleColumnMin", "endscreen.chartHeight", "garden.yellow", "garden.blue", "garden.purple", "garden.pink"],
         "Bot band": ["endscreen.botBandWidth", "endscreen.botBandDarken", "endscreen.botBandOpacity"],
         "Turn list": ["endscreen.storyListFontScale", "endscreen.storyListMaxWordChars", "endscreen.storyListBackdrop", "endscreen.storyListMaxWidth", "endscreen.storyListMaxHeight", "endscreen.storyListSmallest"]
       },
@@ -185,7 +185,7 @@
       "knobs": {
         "Timing": ["anim.revealTangles", "anim.tangleBlinkTime", "anim.revealBonus", "anim.revealCount", "anim.revealWinner", "anim.revealPopTime"],
         "Music": ["anim.revealMusicCalm", "anim.revealMusicPeak", "anim.revealMusicSettle"],
-        "Look": ["garden.revealPop", "garden.revealPopSize", "layout.revealBigZoom", "layout.revealMinZoom"],
+        "Look": ["garden.revealPop", "garden.revealPopSize", "layout.revealBigZoom", "layout.revealMinZoom", "layout.bigHexPx"],
         "Points & pops": ["feel.events.seedPop", "feel.events.totalPop", "feel.tiers", "anim.scorePopTime", "anim.scoreFlyTime", "anim.arcHeight", "anim.tangleBlinkTime"],
         "Rules": ["rules.tangleBonus"]
       },

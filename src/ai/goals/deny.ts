@@ -7,8 +7,9 @@ import type { WordList } from '../../engine/types'
 import { junkiness, outcomeOf, seatName } from '../look'
 import { threatsFor } from '../threats'
 import { NOTHING, asTurn, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const DENY_WEIGHTS = { junkBlock: 2 }
+export const DENY_WEIGHTS = weightsFile.DENY // content/ai/weights.json (Obsidian)
 
 export function denyGoal(words: WordList): GlyphGoal {
   return {

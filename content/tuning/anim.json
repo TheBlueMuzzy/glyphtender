@@ -25,6 +25,7 @@
     "movePerHex": "Added for each hex it crosses, so long moves take longer. 0 = every move takes the same time. Try 0.02–0.06.",
     "moveSettle": "How far a gliding glyphling overshoots its new hex before settling back. Higher = a bouncier stop; 0 = it stops dead. Try 0.03–0.1.",
     "scorePopDelay": "Score sequence (word indicators on): seconds after a seed lands before the first word starts scoring.",
+    "scoreEndBeat": "Score sequence: seconds after the last score fade before the turn moves on. Higher = a longer breath after the scoring.",
     "scoreWordTime": "Score sequence: the words score ONE AT A TIME (outline + word bubble, its seeds pop their points, the points fly to the glyphling). This is the time each word gets, in seconds — a long word may take a little longer, because the next word waits until its last point has arrived in the total.",
     "scorePopGap": "Score sequence: seconds between one seed's \"+1\" / \"+2\" popping and the next (they ripple along the word) — and between one point arriving in the glyphling's total and the next.",
     "scorePopTime": "Score sequence: how long one \"+1\" / \"+2\" takes to pop in over its seed (grow past full size and settle), in seconds. The glyphling's total pops this fast too each time points arrive.",
@@ -60,6 +61,7 @@
     "spotlightHold": "Word spotlight: time each word stays lit (seconds)",
     "spotlightFade": "Word spotlight: fade time as it moves between words (seconds)",
     "scorePopDelay": "Score: wait after landing",
+    "scoreEndBeat": "Score: pause after the last fade",
     "scoreWordTime": "Score: time per word",
     "scorePopGap": "Score: time between seed pops",
     "scorePopTime": "Score: pop-in time",
@@ -113,6 +115,7 @@
     ],
     "Score pops": [
       "scorePopDelay",
+      "scoreEndBeat",
       "scoreWordTime",
       "scorePopGap",
       "scorePopTime",
@@ -275,6 +278,7 @@
       1,
       0.05
     ],
+    "scoreEndBeat": [0, 0.6, 0.02],
     "scorePopGap": [
       0,
       0.3,
@@ -386,6 +390,7 @@
   "movePerHex": 0.04,
   "moveSettle": 0.06,
   "scorePopDelay": 0.25,
+  "scoreEndBeat": 0.12,
   "scoreWordTime": 0.9,
   "scorePopGap": 0.08,
   "scorePopTime": 0.25,

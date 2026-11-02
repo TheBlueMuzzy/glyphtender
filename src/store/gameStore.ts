@@ -186,7 +186,6 @@ const noPlan = (): Pick<GameStore, 'move' | 'cast' | 'selected' | 'setAside' | '
   ({ move: null, cast: null, selected: null, setAside: [], note: null, botDraft: null })
 const NO_WORDS: WordList = new Map() // the draft and refresh never read words
 const anim = liveTuning('anim', animFile) // the refresh's timings (read when a refresh starts)
-const SCORE_BEAT_MS = 120 // the score sequence's timer waits this much past the fade (see startScoring)
 
 export const useGameStore = create<GameStore>()((set, get) => {
   // May this piece be picked up at all right now (the drag referee — the same answer as the shake and the glow)?
@@ -559,7 +558,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({ scoring: landed!.count })
       // (+ a beat: the board's animations start a frame or two after this, and the fade's last frame must be painted
       // before anything of the next turn shows)
-      scoreTimer = setTimeout(() => get().endScoring(), landingSeconds(game, turn, true, anim.current) * 1000 + SCORE_BEAT_MS)
+      scoreTimer = setTimeout(() => get().endScoring(), (landingSeconds(game, turn, true, anim.current) + anim.current.scoreEndBeat) * 1000) // + the beat past the last fade (anim.json)
     },
     endScoring: () => {
       stopScoring()

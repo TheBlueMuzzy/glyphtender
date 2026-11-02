@@ -11,8 +11,9 @@ import { getBoard } from '../../engine/boards'
 import type { WordList } from '../../engine/types'
 import { LEYLINES, boardMemo, knows, lineThrough, outcomeOf, remember, turnKey } from '../look'
 import { NOTHING, asTurn, vocabulary, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const BUILD_WEIGHTS = { perSetup: 1, perOwnSeedNear: 1.5, perFrameFill: 1.5, perRivalFill: 1 }
+export const BUILD_WEIGHTS = weightsFile.BUILD // content/ai/weights.json (Obsidian)
 
 export function buildGoal(words: WordList): GlyphGoal {
   return {

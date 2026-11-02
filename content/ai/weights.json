@@ -1,0 +1,25 @@
+{
+  "_help": {
+    "_file": "How much each thing counts when a goal scores a move (the AI's instincts). Each goal adds these up into its own score; goals.json's bigAt is the bar on that same scale. Change one, then run the AI checks (npm run ai:arena, or the Dev Kit AI tab's Run check) to see what it does to how the personalities play. Read when the AI starts thinking (src/ai/goals/*, decisions.ts, readings.ts).",
+    "TRAP": "Hunting a rival glyphling: per move cut from it, a tangle, own pieces near it, nearly trapped, hexes taken, cast spots taken, siege pieces round a cornered one, threats cut, ending the game while behind (a big minus).",
+    "SCORE": "Spelling: per letter past 4, each extra word in the same turn.",
+    "DENY": "Blocking a rival's best spot: extra when the seed played there is a junk letter anyway.",
+    "ESCAPE": "Getting out of danger: per danger point dropped, per route out, per open direction, too few routes (minus), tangling itself (big minus), per hex kept.",
+    "BUILD": "Setting up its own words: per setup, per own seed near, per frame letter it fills, per rival letter in the frame (minus).",
+    "STEAL": "Growing a rival's word into its own: per rival seed used, share of the Magic, owning the majority.",
+    "DUMP": "Getting rid of a junk letter: bonus for dumping it far from every glyphling, and how far counts as far (hexes).",
+    "SELFTANGLE": "The Survivor's own trick, tangling itself on purpose when it pays: the tangle, per rival piece there, per move closer, per rival piece near, another glyphling left cornered (minus), ending the game (big minus).",
+    "draft": "Placing glyphlings at the start: per move of room, per hex from the centre (minus), per hex from the nearest rival (scaled by caution − aggression).",
+    "magicPerPoint": "Magic per point of the 'behind' / 'ahead' readings (0–10) that the personalities' mood shifts use."
+  },
+  "TRAP": { "perMoveCut": 5, "tangle": 50, "perOwnPieceNear": 3, "nearlyTrapped": 15, "perHexTaken": 2, "perCastSpotTaken": 0, "perSiegePiece": 4, "perThreatCut": 1, "endWhileBehind": -100 },
+  "SCORE": { "perLetterPast4": 2, "extraWordBonus": 3 },
+  "DENY": { "junkBlock": 2 },
+  "ESCAPE": { "perDangerDrop": 5, "perRoute": 2, "perOpenDirection": 3, "fewRoutes": -10, "selfTangle": -50, "perHexKept": 1 },
+  "BUILD": { "perSetup": 1, "perOwnSeedNear": 1.5, "perFrameFill": 1.5, "perRivalFill": 1 },
+  "STEAL": { "perRivalSeed": 3, "magicShare": 0.5, "majority": 1.5 },
+  "DUMP": { "farAway": 3, "farDistance": 3 },
+  "SELFTANGLE": { "tangle": 50, "perRivalPieceAtTangle": 15, "perMoveCloser": 6, "perRivalPieceNear": 2, "otherCornered": -20, "endsGame": -100 },
+  "draft": { "perMove": 0.5, "perHexFromCentre": 1, "perHexFromRival": 1.5 },
+  "magicPerPoint": 2.5
+}
