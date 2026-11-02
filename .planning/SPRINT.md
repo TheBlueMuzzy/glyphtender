@@ -33,6 +33,7 @@ Done when: end4-story-round6 matches every time — alone and under check:full l
   done 2026-11-02: check:full 3× — screenshots PASS (same) all 3 times: run 1 "ALL PASS — 39 checks (22.1 min)"; run 2 "NOT OK — 1 failed: words-tab (23.4 min)" (screenshots, end, online-ai PASS; words-tab: the Dev Kit's Words tab not found in 30 s under load — alone right after: PASS); run 3 "ALL PASS — 39 checks (21.6 min)".
 Check: check:full twice, screenshots SAME both times.
 Checked: 2026-11-02 — before: end4-story-round6 differed 7/20 @1920×1080 and 13/20 @360×780 ALONE; after: one picture every run at all 6 sizes (12/12, 6/6), check:shots alone 162/162 same, and screenshots SAME in 3 of 3 check:full runs. online-ai PASS alone and in all 3 full runs (B032). Code read by Claude: no bugs.
+Approved: Muzzy 2026-11-02 ("1 approved") — F98: done.
 
 ## Notes
 - Claude's call (2026-11-02): when someone returns to a waiting match, the seats of players still away go to bots after botTakesOverAfterMs, as today.
@@ -44,9 +45,7 @@ Checked: 2026-11-02 — before: end4-story-round6 differed 7/20 @1920×1080 and 
 - F98 task 10 runs (2026-11-02, full load): run 1 at b991395 — "ALL PASS — 39 checks (22.1 min)": screenshots PASS (198 s), end PASS, online-ai PASS (229 s). Run 2 — "NOT OK — 1 failed: words-tab (23.4 min)": screenshots PASS (213 s), end PASS (421 s), online-ai PASS (95 s); words-tab "locator.click: Timeout 30000ms — waiting for locator('.devkit-tab').filter({ hasText: /^Words$/ })", alone right after: PASS (10 s) — the e2e-under-load family (B023 / B030), not logged as a bug by the helper: for Claude-main to decide. Run 3 — "ALL PASS — 39 checks (21.6 min)": screenshots PASS (197 s), end PASS (409 s), online-ai PASS (185 s).
 - Open bugs: no P0/P1. B033 (P2) is F99. B032 (P3) is task 9; B028 (P3) is F98.
 - Claude (2026-11-02, autonomous): the run-2 words-tab failure went into B030 (the same "open a Dev Kit tab" family), not a new bug.
-- Ask Muzzy: F98 — Steady Story chart shot — approve? (test-only: the game is unchanged; screenshots SAME in 3 of 3 loaded runs)
-- Ask Muzzy: the retro below — OK, or your words?
-Retro (Claude's draft):
+Retro: (Muzzy 2026-11-02: "2 ok" — Claude's draft kept)
 - Went well: the "measure it alone first" rule paid off at once — B028 failed 7–13 times in 20 alone, which finally showed it wasn't the chart moving but how Chrome re-draws; and F99's before/after numbers (52 moves → 0) made the fix easy to trust.
 - Went wrong: the full check refused to start 4 times on ports with only closing connections (a leftover server from another run), costing ~10 min each time.
 - Change: fix the check runner's port pre-flight (framework Ideas, 2026-11-02) before the next sprint relies on it.
