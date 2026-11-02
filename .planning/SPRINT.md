@@ -41,6 +41,7 @@ Done when: a player who closed the tab mid-match sees "Rejoin match" on the main
 Check: check:framework (the rooms Rejoin promise kept) + e2e online, online4 + the new rejoin e2e; screenshots of the menu with Rejoin at phone + desktop.
 Checked: 2026-11-01 — check:fast green; check:framework rooms "a closed tab can rejoin its match" kept for real, saves 1 file allowed (fullscreen.ts); e2e:rejoin (new, ports 5450/1981) + online + online4 pass; menu shots looked at (390x844, 360x780, 1440x900, 1920x1080: Rejoin on top, same size, nothing at an edge); screenshots 161/162 (B028), no menu shot changed. check:full at 4541ce8 35/37: B028 + online-ai once under load (B032), online-ai then PASS alone and beside rejoin + online.
 Muzzy 2026-11-01 "1.a": while Rejoin match shows, only it is green (Play becomes a normal button) — as built.
+Approved: Muzzy 2026-11-01 "approved" — F95: done (a030939), saved v0.11.2.4.
 
 ## F96 🔧 Matches survive a server restart
 Done when: an online match is kept in the room's storage, so a server restart or a redeploy doesn't lose it; the turn timer and bot timers start again where they were; a match nobody plays for 7 days ends (keepMatchDays 7); the privacy page says so.
