@@ -334,7 +334,7 @@ Goal (Muzzy 2026-11-02 "yes"): an online match everyone leaves waits for its pla
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could
 - **beta (AI):** now milestone v0.7 above.
 - **1.0:** tutorial → v0.14 · accessibility pass (Muzzy 2026-10-11: not until the final art is being worked on) · Muzzy's final art + board art · audio pass · lifetime stats screen + Wordsmith/Tanglesmith radar · credits + privacy · ❓ word list licence (keep + permission, or re-run the Zipf pipeline on a free base)
-- **Should:** board themes · colour preference · random starting player · hint · topiary-grow cast effect
+- **Should:** board themes · colour preference · ~~random starting player~~ (done: F46, 2026-10-07 — rules.json randomTurnOrder 1) · hint · topiary-grow cast effect
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
