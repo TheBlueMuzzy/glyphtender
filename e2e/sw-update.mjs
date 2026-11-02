@@ -4,7 +4,7 @@
 // changes with the build). Run alone: npm run e2e:update [port]
 import { chromium } from 'playwright-core'
 import { execSync, spawn } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, existsSync, readdirSync } from 'node:fs'
 import { createServer as netServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -22,6 +22,11 @@ const portFree = (port) => new Promise((ok) => {
   const probe = netServer().once('error', () => ok(false)).once('listening', () => probe.close(() => ok(true))).listen(port)
 })
 if (!(await portFree(PORT))) throw new Error(`Port ${PORT} is busy — pass another: npm run e2e:update <port>`)
+
+// this test's builds write crash maps too, without the deploy's settings — keep only the release's own
+const { version, build } = JSON.parse(vj)
+const mapsDir = join('releases', `${version}.${build}`, 'maps')
+const mapsBefore = new Set(existsSync(mapsDir) ? readdirSync(mapsDir, { recursive: true }) : [])
 
 let server, ctx, result = 1
 try {
@@ -52,6 +57,11 @@ try {
   result = shown === secondBuild ? 0 : 1
 } finally {
   writeFileSync('version.json', vj)
+  rmSync(join('releases', `${version}.99`), { recursive: true, force: true })
+  if (existsSync(mapsDir)) for (const f of readdirSync(mapsDir, { recursive: true })) {
+    if (!mapsBefore.has(f) && f.endsWith('.map')) rmSync(join(mapsDir, f), { force: true })
+  }
+  if (!mapsBefore.size) rmSync(join('releases', `${version}.${build}`), { recursive: true, force: true })
   await ctx?.close()
   if (server) { try { execSync(`taskkill /PID ${server.pid} /T /F`, { stdio: 'ignore' }) } catch {} }
 }
