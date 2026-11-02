@@ -190,6 +190,49 @@ try {
   check('both screens agree whose turn it is', (await ada.store((s) => s.game.current)) === (await bo.store((s) => s.game.current)))
   await shot(ada, '3-game-goes-on')
 
+  // ---- F99: everyone leaves → the match WAITS (no bot moves, no turn timer, no storage writes) ----
+  // Bo taps Leave (a bot takes his seat at once) and Ada closes her tab (away). Nobody is connected, so nothing may
+  // move: before F99 the bots played it out with nobody watching (~2 rows written a move — B033).
+  await bo.tap(bo.page.getByRole('button', { name: 'Menu' }))
+  await bo.tap(bo.page.getByRole('button', { name: /^Leave/ }).first())
+  const confirmLeave = bo.page.getByRole('dialog').getByRole('button', { name: /^Leave/ })
+  if (await confirmLeave.count()) await bo.tap(confirmLeave.last())
+  const boIsBot = await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.some((s) => s.name === 'Bo' && s.kind === 'bot'), null, { timeout: 10000 }).then(() => true, () => false)
+  check('a bot took Bo\'s seat after he left', boIsBot)
+  const adaSeat = await ada.store((s) => s.online.mySeat)
+  const leftView = facts(lastView(ada))
+  await ada.page.close()
+  await wait(1500) // (the leave and the drop are saved: those rows are the room changing, not a bot playing)
+  const emptyFrom = storageLines(code).length
+  const EMPTY_SECONDS = Number(process.env.EMPTY_WAIT_SECONDS ?? 20)
+  console.log(`     nobody connected (version ${leftView.version}, turn ${leftView.turns}) — waiting ${EMPTY_SECONDS} s`)
+  await wait(EMPTY_SECONDS * 1000)
+  const emptyLines = storageLines(code).slice(emptyFrom)
+  const emptyPuts = emptyLines.filter((l) => /\bput\b/.test(l)).length
+  const emptyAlarms = emptyLines.filter((l) => l.includes('+alarm')).length
+  const emptyDeletes = emptyLines.filter((l) => /\bdelete\b/.test(l)).length
+  console.log(`     while empty (${EMPTY_SECONDS} s): ${emptyPuts} saves + ${emptyAlarms} alarm moves + ${emptyDeletes} deletes = ${emptyPuts + emptyAlarms + emptyDeletes} rows written`)
+  check(`no storage writes while nobody is connected (${emptyLines.length} in ${EMPTY_SECONDS} s)`, emptyLines.length === 0)
+
+  // ---- Ada comes back: the same match, nothing moved, and the game goes on (Bo's bot plays, Ada plays) ----
+  await ada.open()
+  await ada.page.getByRole('button', { name: 'Rejoin match' }).waitFor({ timeout: 10000 })
+  await ada.tap(ada.page.getByRole('button', { name: 'Rejoin match' }))
+  const adaBack = await ada.page.waitForFunction((seat) => {
+    const s = window.__glyphtender.store.getState()
+    return s.online?.mySeat === seat && s.wordsStatus === 'ready' && s.game
+  }, adaSeat, { timeout: 15000 }).then(() => true, () => false)
+  check(`Ada rejoined her seat (${adaSeat})`, adaBack)
+  const backView = facts(lastView(ada))
+  console.log(`     bot moves while empty: ${backView.version - leftView.version} (version ${leftView.version} → ${backView.version}, turn ${leftView.turns} → ${backView.turns})`)
+  check('no bot moved while nobody was connected (same version, same turn)', backView.version === leftView.version && backView.turns === leftView.turns && backView.gameId === leftView.gameId)
+  ada.turnsPlayed = 0
+  const goesOn = async () => (await ada.store((s) => s.game.phase === 'over')) || (ada.turnsPlayed >= 1 && facts(lastView(ada)).turns >= backView.turns + 2)
+  await playUntil([ada], goesOn, 120)
+  const onward = facts(lastView(ada))
+  check(`the game goes on after Ada is back (turn ${backView.turns} → ${onward.turns}, Ada played ${ada.turnsPlayed})`, await goesOn())
+  await shot(ada, '4-back-after-empty')
+
   // ---- secrets: the saved match holds the move record + its seed numbers, but no frame ever carried them ----
   for (const p of [ada, bo]) {
     const leaks = p.frames.flatMap(secretsIn)

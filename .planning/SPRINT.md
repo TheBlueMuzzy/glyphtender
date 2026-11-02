@@ -5,7 +5,8 @@ What changes: an online match every player has left stops — no bots finish it;
 
 ## F99 🧱 Bots wait in an empty match
 Done when: in the rooms kit, a match with nobody connected makes no bot moves and runs no turn timers (so no storage writes), and carries on when a person reconnects; a persistentId starting `bot:` is refused; Glyphtender has the new kit and an e2e proves both; B033 is fixed.
-- [ ] 🤖 1. Measure today: a match everyone leaves — storage writes + bot moves over 2 min (TEST_LOG_STORAGE) — party/worker.ts
+- [x] 🤖 1. Measure today: a match everyone leaves — storage writes + bot moves over 2 min (TEST_LOG_STORAGE) — party/worker.ts
+  done 2026-11-02: Bo Leaves + Ada closes her tab mid-match, 120 s with nobody connected → 52 bot moves (turn 4 → 49), 53 saves + 53 alarm moves = 106 rows written (~0.9 rows/s); numbers in Notes. The measuring section is the new F99 part of e2e/online-restart.mjs (EMPTY_WAIT_SECONDS=120).
 - [ ] 🤖 2. Rooms kit: no bot or timer moves while nobody is connected; timers restart when someone reconnects (+ unit tests) — ../../framework/rooms/kit/server/roomServer.ts
 - [ ] 🤖 3. Rooms kit: refuse a persistentId that starts with `bot:` (security review, low) — ../../framework/rooms/kit/protocol.ts
 - [ ] 🤖 4. Release the rooms kit (UPGRADES.md note) and install it in Glyphtender — ../../framework/rooms/UPGRADES.md
@@ -23,4 +24,5 @@ Check: check:full twice, screenshots SAME both times.
 
 ## Notes
 - Claude's call (2026-11-02): when someone returns to a waiting match, the seats of players still away go to bots after botTakesOverAfterMs, as today.
+- Measured before F99 (2026-11-02, task 1, rooms 0.13.1, e2e/online-restart.mjs with EMPTY_WAIT_SECONDS=120, ports 5463/1972): a 2-player match with the 120 s turn timer, both gone at turn 4 (Bo Leave → bot at once; Ada tab closed → bot after 60 s) → in 120 s with nobody connected: **52 bot moves** (version 13 → 65, turn 4 → 49, not finished yet), **53 saves + 53 alarm moves = 106 rows written**. While both played: 10 actions → 17 rows (1.7 a action).
 - Open bugs: no P0/P1. B033 (P2) is F99. B032 (P3) is task 9; B028 (P3) is F98.
