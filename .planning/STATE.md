@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-01 — **Sprint 31 — Nothing gets lost planned (Muzzy: "1a, 2a")** on branch dev/v0-16-nothing-lost: F93 — Lint clean-up (+ B028 as its task 5), F94 — Saves switch-over, F95 — Rejoin match, F96 — Matches survive a server restart (keepMatchDays 7). It finishes milestone v0.16 → a milestone release after. F93 tasks 1–2 done (lint 0.4.0 in as warnings, 29 finds listed in SPRINT; player text → en.json, 0 left). **Next: /develop F93 — Lint clean-up, task 3** (AI weights → content/ai, the other numbers → content/ or `// tuning-ok:`; golden games must stay SAME).
+2026-11-01 — **F93 — Lint clean-up ✅ (Muzzy: "approved")**: lint 0.4.0 strict (errors) — settings in content/, player words in en.json; AI weights in content/ai/weights.json (same values, golden SAME); 3 new Dev Kit sliders (layout.bigHexPx, anim.scoreEndBeat, endscreen.chartTangleColumnMin). B028 moved out → F98 — Steady Story chart shot (Muzzy "1a"). Sprint 31 — Nothing gets lost on dev/v0-16-nothing-lost. **Next: /develop F94 — Saves switch-over, task 1** (`install-module.mjs saves .` — its starter test waits for the first createSave).
 Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn yet.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F93 — Lint clean-up · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
+Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F94 — Saves switch-over · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
