@@ -80,11 +80,26 @@ async function playTurn(p) {
   await page.waitForFunction(() => { const s = window.__glyphtender.store.getState(); return !s.flying && !s.waiting }, null, { timeout: 10000 })
 }
 
-/** Whoever's turn it is plays (the AIs play on the server), until done() says stop. */
-async function playUntil(players, done, seconds = 120) {
-  const until = Date.now() + seconds * 1000
+/** How far the game has got: draft placements + turns played (read from any open page among `players`). */
+const progressOf = async (players) => {
+  const p = players.find(open)
+  return p ? p.store((s) => (s.game ? s.game.glyphlings.length + s.game.turnCount : 0)) : 0
+}
+// B032: a busy PC slows the AI seats' turns, so a cap in SECONDS failed under check:full load. playUntil gives up by
+// the GAME instead: when `turns` more steps (draft placements + turns) have gone by and done() still isn't true. A game
+// that stops moving altogether (no step for STALL_SECONDS) still fails, so a stuck test can't hang forever.
+const STALL_SECONDS = 180
+
+/** Whoever's turn it is plays (the AIs play on the server), until done() says stop — or `turns` more steps go by
+ *  without it (B032: counted in steps, not seconds). */
+async function playUntil(players, done, turns) {
+  const start = await progressOf(players)
+  let last = start, movedAt = Date.now()
   while (!(await done())) {
-    if (Date.now() > until) return fail(`gave up waiting after ${seconds} s`)
+    const now = await progressOf(players)
+    if (now !== last) { last = now; movedAt = Date.now() }
+    if (now - start > turns) return fail(`gave up: ${now - start} steps played (draft placements + turns) and it still hadn't happened (cap ${turns})`)
+    if (Date.now() - movedAt > STALL_SECONDS * 1000) return fail(`gave up: the game didn't move for ${STALL_SECONDS} s (stuck at step ${now})`)
     let played = false
     for (const p of players) {
       if (!(await myTurn(p))) continue
@@ -165,13 +180,13 @@ try {
   })
   // Ada places first; the AI's placement (seat 1) is the next one her screen plays: it must travel from the tray
   await ada.page.evaluate(recordAiDraft)
-  await playUntil([ada, bo], async () => (await ada.page.evaluate(() => !!window.__f50?.from || window.__glyphtender.store.getState().botDraft !== null)), 30)
+  await playUntil([ada, bo], async () => (await ada.page.evaluate(() => !!window.__f50?.from || window.__glyphtender.store.getState().botDraft !== null)), 3) // (the AI places right after Ada)
   await shot(ada, '2-ai-draft-travel', 0)
   await ada.page.waitForFunction(() => window.__f50?.done, null, { timeout: 10000 }).catch(() => fail("the AI's draft never landed on Ada's screen"))
   checkTravel({ check }, await ada.page.evaluate(() => window.__f50))
-  await playUntil([ada, bo], async () => (await ada.store((s) => s.game.phase !== 'draft')))
+  await playUntil([ada, bo], async () => (await ada.store((s) => s.game.phase !== 'draft')), 8) // (3 seats × 2 placements)
   check('6 glyphlings placed (the AI placed its own)', await ada.store((s) => s.game.glyphlings.filter((g) => g.seat === 1).length === 2))
-  await playUntil([ada, bo], async () => (await ada.store((s) => s.game.turnCount >= 6)), 180)
+  await playUntil([ada, bo], async () => (await ada.store((s) => s.game.turnCount >= 6)), 8)
   await shot(ada, '2-mid-game')
   const seen = await ada.page.evaluate(() => window.__aiSeen)
   check(`the AI's moves glide on Ada's screen like anyone's (${seen.glides} glide frames)`, seen.glides > 0)
@@ -179,7 +194,7 @@ try {
 
   // ---- F52: Ada idles on her turn: a draining bar on HER screen, then a bot plays for her mid-turn (Bo: the toast +
   // 🤖 by her portrait); any tap gives her seat back (Bo: "Ada is back") ----
-  await playUntil([ada, bo], async () => (await myTurn(ada)), 60)
+  await playUntil([ada, bo], async () => (await myTurn(ada)), 4) // (3 seats: her turn comes round within 3)
   await bo.page.evaluate(() => {
     window.__adaIdle = { toasts: [], robot: 0 }
     setInterval(() => {
@@ -220,7 +235,7 @@ try {
   await bo.page.waitForFunction(() => window.__adaIdle.robot > 0 && window.__adaIdle.toasts.some((t) => /idle/.test(t)), null, { timeout: 8000 }).catch(() => {})
   // F62: the bot plays two of Ada's turns (Bo plays his own); she taps on Bo's turn — the game waits for him, so
   // nothing moves while she takes her seat back
-  await playUntil([bo], async () => (await bo.store(`(s) => s.game.phase === 'over' || s.game.turnCount >= ${takenAt + 4}`)) && (await myTurn(bo)), 120)
+  await playUntil([bo], async () => (await bo.store(`(s) => s.game.phase === 'over' || s.game.turnCount >= ${takenAt + 4}`)) && (await myTurn(bo)), 8)
   const backAt = await bo.store((s) => s.game.turnCount)
   await ada.page.mouse.click(8, 300) // any tap (here beside the board) → her seat is hers again
   const adaBack = await ada.page.waitForFunction(() => window.__glyphtender.online.getState().room?.room?.seats?.[0]?.kind === 'human', null, { timeout: 5000 }).then(() => true, () => false)
@@ -233,7 +248,7 @@ try {
   check('Bo is told "Ada is back"', adaIdle.toasts.some((t) => /Ada is back/.test(t)))
 
   // ---- Bo leaves mid-game: the default AI plays his seat ----
-  await playUntil([ada, bo], async () => (await myTurn(bo)), 60)
+  await playUntil([ada, bo], async () => (await myTurn(bo)), 4)
   // Watch Ada's page from here: the toast that a bot took Bo's seat, and 🤖 by Bo's portrait on his turns
   // (Muzzy 2026-10-08: his friend left and "it didn't tell me the AI had taken over… didn't show that she was a robot")
   await ada.page.evaluate(() => {
@@ -256,7 +271,7 @@ try {
   check('a bot took Bo\'s seat after he left', boIsBot)
   const before = await ada.store((s) => s.game.turnCount)
   const movedOn = `(s) => s.game.phase === 'over' || s.game.turnCount >= ${before + 4}` // (3 seats: 4 turns include Bo's)
-  await playUntil([ada], async () => (await ada.store(movedOn)), 60)
+  await playUntil([ada], async () => (await ada.store(movedOn)), 6)
   check('Bo\'s seat plays on without him', await ada.store(movedOn))
   const boLeft = await ada.page.evaluate(() => window.__boLeft)
   check(`Ada is told a bot took Bo's seat ("${boLeft.toast}")`, /Bo left/.test(boLeft.toast))
@@ -264,7 +279,7 @@ try {
   await shot(ada, '3-bo-left')
 
   // ---- Ada plays to the end against two AIs ----
-  await playUntil([ada], async () => (await ada.store((s) => s.game.phase === 'over')), 600)
+  await playUntil([ada], async () => (await ada.store((s) => s.game.phase === 'over')), 400) // (a whole game's turns: far more than any game takes)
   check('Ada sees everyone\'s Magic at the end', await ada.store((s) => s.game.magic.length === 3 && s.game.magic.some((m) => m > 0)))
   await ada.page.waitForTimeout(1500)
   await ada.tap(ada.page.getByRole('button', { name: 'Skip' }))
