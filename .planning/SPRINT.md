@@ -37,7 +37,7 @@ Done when: a player who closed the tab mid-match sees "Rejoin match" on the main
 - [x] 🤖 1. The kit's lastRoom replaces the game's own room-code copy (sessionStorage ROOM_KEY) — src/ui/online/session.ts — done: session.ts starts from the kit's roomBeforeReload() (a match = a rejoin, a lobby = a plain join), OnlineSession passes rejoin to useRoom ("Rejoining…" box, "You're back" toast, a gone match = "That match has ended"); session.ts out of saves.json storageAllowed
 - [x] 🤖 2. "Rejoin match" on the main menu from matchToRejoin(), words in en.json — src/ui/menus.tsx — done: first + main button while matchToRejoin() has a match (Play drops to a normal button meanwhile), shown even before the tutorial is done, one tap = session.ts rejoinMatch(code) with the saved name; words en.json online.rejoin
 - [x] 🤖 3. e2e: start a 2-player match, close one tab, reopen → Rejoin → same seat, the game goes on — e2e/online-kit.mjs — done: e2e/online-rejoin.mjs (npm run e2e:rejoin, ports 5450/1981, in check-all as "rejoin"): no offer on a fresh browser, Rejoin first + as big as Play online at 4 sizes, same seat + game id, Bo plays and the turn passes to Ada
-- [ ] 🤖 4. Close the known gap ("a closed tab can rejoin its match") + GDD §Online line — content/devkit.json
+- [x] 🤖 4. Close the known gap ("a closed tab can rejoin its match") + GDD §Online line — content/devkit.json — done: gap removed, check:framework keeps the rooms Rejoin promise for real (52 kept, 1 known gap F89); GDD §Online "Rejoin match (F95)" line
 Check: check:framework (the rooms Rejoin promise kept) + e2e online, online4 + the new rejoin e2e; screenshots of the menu with Rejoin at phone + desktop.
 Checked:
 
