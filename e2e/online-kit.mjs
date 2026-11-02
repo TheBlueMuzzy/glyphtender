@@ -2,6 +2,7 @@
 // our own servers, the screenshot checks, the secrecy check and "a player = a browser context".
 import { spawn, execSync } from 'node:child_process'
 import { createServer as netServer } from 'node:net'
+import { homedir } from 'node:os'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
 
@@ -20,15 +21,20 @@ export async function startServers(vitePort, partyPort, usage, vars = {}, launch
   if (!(await portFree(vitePort))) throw new Error(`Port ${vitePort} is busy — pass another: ${usage}`)
   // vars: test-only server settings, e.g. { TEST_IDLE_TAKEOVER_MS: 8000 } (party/worker.ts testSettings)
   const varFlags = Object.entries(vars).map(([key, value]) => ` --var ${key}:${value}`).join('')
-  const party = spawn(`npx wrangler dev --port ${partyPort} --ip 127.0.0.1 --inspector-port 0 --persist-to .wrangler/state-e2e-${partyPort}${varFlags}`, { shell: true, cwd: process.cwd() })
+  let party = null
   let partyLog = ''
-  party.stdout.on('data', (d) => { partyLog += d })
-  party.stderr.on('data', (d) => { partyLog += d })
+  const startParty = async () => {
+    party = spawn(`npx wrangler dev --port ${partyPort} --ip 127.0.0.1 --inspector-port 0 --persist-to .wrangler/state-e2e-${partyPort}${varFlags}`, { shell: true, cwd: process.cwd() })
+    let log = ''
+    party.stdout.on('data', (d) => { log += d; partyLog += d })
+    party.stderr.on('data', (d) => { log += d; partyLog += d })
+    for (let t = 0; t < 120 && !/Ready on/.test(log); t++) await wait(500)
+    if (!/Ready on/.test(log)) { stopParty(); throw new Error(`wrangler dev didn't start:\n${log}`) }
+  }
   const stopParty = () => {
     try { process.platform === 'win32' ? execSync(`taskkill /PID ${party.pid} /T /F`, { stdio: 'ignore' }) : party.kill() } catch { /* already gone */ }
   }
-  for (let t = 0; t < 120 && !/Ready on/.test(partyLog); t++) await wait(500)
-  if (!/Ready on/.test(partyLog)) { stopParty(); throw new Error(`wrangler dev didn't start:\n${partyLog}`) }
+  await startParty()
   process.env.VITE_PARTY_PORT = String(partyPort) // the page talks to OUR server
   const vite = await createServer({ server: { port: vitePort, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
   await vite.listen()
@@ -38,7 +44,16 @@ export async function startServers(vitePort, partyPort, usage, vars = {}, launch
     await vite.close().catch(() => {})
     stopParty()
   }
-  return { browser, stop }
+  /** F96 (e2e:restart): the room server goes down — its WHOLE process tree, as stop-servers.mjs does (killing only
+   *  workerd lets wrangler start it again) — and comes back on the same port with the same storage folder. */
+  const restartParty = async () => {
+    try { execSync(`node "${homedir()}/.claude/config/bmuz/scripts/stop-servers.mjs" ${partyPort}`, { stdio: 'ignore' }) } catch { /* checked below */ }
+    stopParty() // (and the shell that started it, if anything's left)
+    for (let t = 0; t < 40 && !(await portFree(partyPort)); t++) await wait(250)
+    if (!(await portFree(partyPort))) throw new Error(`port ${partyPort} is still held after stopping the room server`)
+    await startParty()
+  }
+  return { browser, stop, restartParty, partyLog: () => partyLog }
 }
 
 // Everything visible must be inside the screen, and buttons big enough for a finger (as e2e:pass)
