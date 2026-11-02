@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.15 Click a thing, tweak it ✅ released 2026-10-15 (v0.11.0: Dev Kit Select Mode) · v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test closed — Muzzy has Android only, 2026-10-12: friends will report) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.16 On today's framework ✅ released 2026-11-01 (v0.12.0: Rejoin match, matches survive a server restart) · v0.15 Click a thing, tweak it ✅ released 2026-10-15 (v0.11.0: Dev Kit Select Mode) · v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test closed — Muzzy has Android only, 2026-10-12: friends will report) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -303,7 +303,7 @@ flowchart LR
   F88 --> F87
 ```
 
-## v0.16 — On today's framework  ← current · planned 2026-10-30
+## v0.16 — On today's framework  ✅ released 2026-11-01 (v0.12.0)  · planned 2026-10-30
 Goal (Muzzy 2026-10-30): every framework module current (framework v0.34.0), portrait only, the board nearer the middle of a phone — from the framework's catch-up rehearsal (framework .planning/research/2026-10-29-glyphtender-catchup.md).
 - ✅ F90 🔧 Quiet module updates — Dev Kit, table, ai, rooms, audio to the newest with every printed hand step; bots stay silent (chattiness 0); the tuned mix kept — must · sprint 30
 - ✅ F97 🎮 Portrait only — "orientation": "portrait", a sideways phone shows turn-your-phone, landscape sizes dropped from checks; GDD updated (Muzzy 2026-10-30) — must · sprint 30
