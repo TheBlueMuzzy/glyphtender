@@ -12,16 +12,14 @@
 // ports: 5452 1979
 // Shots: <outDir>/restart-<size>-<step>.png
 //   npm run e2e:restart [outDir] [vitePort] [partyPort]
-import { mkdirSync, rmSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { makePlayer, secretsIn, startServers } from './online-kit.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const VITE_PORT = Number(process.argv[3] ?? 5452)
 const PARTY_PORT = Number(process.argv[4] ?? 1979)
 mkdirSync(OUT, { recursive: true })
-// A clean storage folder each run: matches kept from an earlier run would wake up on their alarms (bots finish them)
-// and muddle the write count (it's this script's own folder — online-kit.mjs --persist-to .wrangler/state-e2e-<port>)
-rmSync(`.wrangler/state-e2e-${PARTY_PORT}`, { recursive: true, force: true })
+// (startServers empties this run's storage folder first, so only THIS run's match is kept — and counted)
 
 let failures = 0
 const fail = (why) => { failures++; console.log(`  FAIL ${why}`) }

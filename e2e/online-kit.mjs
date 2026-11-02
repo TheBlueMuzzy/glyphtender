@@ -3,6 +3,7 @@
 import { spawn, execSync } from 'node:child_process'
 import { createServer as netServer } from 'node:net'
 import { homedir } from 'node:os'
+import { rmSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
 
@@ -34,6 +35,9 @@ export async function startServers(vitePort, partyPort, usage, vars = {}, launch
   const stopParty = () => {
     try { process.platform === 'win32' ? execSync(`taskkill /PID ${party.pid} /T /F`, { stdio: 'ignore' }) : party.kill() } catch { /* already gone */ }
   }
+  // A clean storage folder each run (F96): matches kept by an earlier run would wake up on their alarms — bots finish
+  // them, using CPU beside this run's own game. (restartParty keeps the folder: that's the point of it.)
+  rmSync(`.wrangler/state-e2e-${partyPort}`, { recursive: true, force: true })
   await startParty()
   process.env.VITE_PARTY_PORT = String(partyPort) // the page talks to OUR server
   const vite = await createServer({ server: { port: vitePort, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
