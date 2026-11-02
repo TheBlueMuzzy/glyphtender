@@ -14,6 +14,7 @@ Done when: the framework lint module (0.4.0) is installed, the real finds are fi
 - [x] 🤖 4. Rules to errors; golden games still SAME (the AI weights moved, not changed) — eslint.config.js
   - done 2026-11-01: all 4 bmuz rules are errors. Proof: a throwaway `export const GLOW_SPEED = 0.7` → eslint exit 1 with the "setting written into the code" message (file deleted). `npm run lint` green (1 old React hooks warning). Golden SAME at task 3.
 - [ ] 🤖 5. B028 (P3, the Sprint 30 retro's change): the Story chart shot waits for the chart's own drawing animations (getAnimations) before the picture; 3 check:full runs in a row with screenshots 162/162 — e2e/shots.mjs
+  - 2026-11-01, not fixed: the planned fix wouldn't help (settle() already waits for every animation) and Chrome's deterministic-drawing switches didn't either (still 1 pixel, alone). The pixels are a few shades on the yellow line's soft edge under the purple line's outline. Findings + next ideas in BUGS B028; switches reverted. Ask Muzzy: keep chasing it in this sprint, or move it out?
 Check: check:fast (lint as errors) + golden SAME + e2e ai, online-ai (the AI reads its weights from content/ now); B028: three check:full runs, screenshots 162/162 each.
 Checked:
 
