@@ -224,6 +224,13 @@ describe('F96 — a match kept in storage', () => {
     expect(again.server.game!.version).toBeGreaterThan(version) // the AI played
   })
 
+  it('the privacy page says how long a room is kept — the same numbers as content/rooms.json', () => {
+    const page = readFileSync('public/privacy.html', 'utf8')
+    expect(page).toContain(`after ${settings.keepMatchDays} days without a move`)
+    expect(page).toContain(`(${settings.keepUnplayedMatchHours} hours, if nobody has made a move yet`)
+    expect(page).toContain(`at most ${settings.keepEmptyRoomMs / 60_000} minutes after everyone has left`)
+  })
+
   it('keepMatchDays (7): a match with no move for 7 days ends, and a stored one that ran out while asleep never comes back', async () => {
     vi.useFakeTimers()
     expect(settings.keepMatchDays).toBe(7)
