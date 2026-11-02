@@ -324,6 +324,7 @@ flowchart LR
 ```
 
 ## Later
+- 🟢 F98 🐞 Steady Story chart shot — B028: the end4-story-round6 screenshot differs by 1 pixel now and then (a few shades on the yellow line's soft edge under the purple line's outline; test-only, players never see it). Ruled out + next ideas in BUGS B028 (Muzzy 2026-11-01: out of sprint 31) — should
 - 🟢 F85 ❓ Tutorial follow-ups (from F80, Muzzy's to-dos 2026-10-13): 🙋 a short looping video for each of the 3 "How to play" cards (then 🤖 wires them in) · 🙋 play it on a phone + have other people play it · 🙋 reword nudges / tips / Explore lines in Dev Kit → Text · ❓ nudge look ("a bit small and lack visibility": bigger text / brighter edge / bounce) · ❓ a "suggested word" nudge (a glow on one spot vs a "show me a move" button) · ❓ should Replay tutorial game re-lock the device for testers? · the Story grip partly covers the "R1" label — must:1.0
 - 🟢 F89 🔧 Dev Kit ◐ half pause holds Glyphtender (rules freeze, animations keep playing): turn steps that wait for an animation to finish (bot glide → throw, the bot's draft landing, Reveal, Handoff, the score sequence; ~8 places) wait while the rules clock is stopped. A small framework helper comes first, so the next game is cheaper. ~3–5 h — should · from framework F63 (2026-10-19, Muzzy: "later, on its roadmap"); until then it is a known gap in content/devkit.json
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could

@@ -13,9 +13,7 @@ Done when: the framework lint module (0.4.0) is installed, the real finds are fi
   - done 2026-11-01: **new content/ai/weights.json** — every goal's weights (DENY too, for one place), draft, magicPerPoint; each file now reads its group (a one-off script checked every old value equals the file's — moved, not changed; TDD data table names it). **Into tuning files (Dev Kit + Select):** layout.bigHexPx 64 (prompt + reveal objects), endscreen.chartTangleColumnMin 44 (storyChart), anim.scoreEndBeat 0.12 s (scorePop; was SCORE_BEAT_MS 120). **`// tuning-ok:` with a reason:** look.ts FAR (a "never" stand-in), scoreFrames FLIGHT_STEPS (drawing quality), spotlight LETTER / STEP (art size, search grid), main.tsx Dev Kit idle fallback (as the starter), onlinePlay WAIT_FOR_VIEW_MS (a network retry), ExploreLayer REMIND_ROOM (a measurement of the kit's callout), newGame MAX_PLAYERS (4 colours). Lint: 0 bmuz finds left (only the old React hooks warning). check:fast green incl. golden SAME; e2e ai, online-ai, devkit-select pass. No visual change (same values).
 - [x] 🤖 4. Rules to errors; golden games still SAME (the AI weights moved, not changed) — eslint.config.js
   - done 2026-11-01: all 4 bmuz rules are errors. Proof: a throwaway `export const GLOW_SPEED = 0.7` → eslint exit 1 with the "setting written into the code" message (file deleted). `npm run lint` green (1 old React hooks warning). Golden SAME at task 3.
-- [ ] 🤖 5. B028 (P3, the Sprint 30 retro's change): the Story chart shot waits for the chart's own drawing animations (getAnimations) before the picture; 3 check:full runs in a row with screenshots 162/162 — e2e/shots.mjs
-  - 2026-11-01, not fixed: the planned fix wouldn't help (settle() already waits for every animation) and Chrome's deterministic-drawing switches didn't either (still 1 pixel, alone). The pixels are a few shades on the yellow line's soft edge under the purple line's outline. Findings + next ideas in BUGS B028; switches reverted. Ask Muzzy: keep chasing it in this sprint, or move it out?
-Check: check:fast (lint as errors) + golden SAME + e2e ai, online-ai (the AI reads its weights from content/ now); B028: three check:full runs, screenshots 162/162 each.
+Check: check:fast (lint as errors) + golden SAME + e2e ai, online-ai (the AI reads its weights from content/ now).
 Checked: 2026-11-01 — check:fast green (lint as errors, golden SAME); e2e ai, online-ai, devkit-select pass; a made-up setting in code fails lint (proof); check:full at 93e6862 36/37 — the 1 = screenshots, B028 only (end4-story-round6, 1 pixel at 2 sizes). B028 itself not fixed (task 5 open, see its note).
 
 ## F94 🧱 Saves switch-over
@@ -48,6 +46,7 @@ Check: e2e online, online4, online-ai + the restart e2e; server.test; the write 
 Checked:
 
 Notes:
+- B028 moved out of the sprint (Muzzy 2026-11-01: "1a") → ROADMAP Later: F98 — Steady Story chart shot. Its investigation (2 causes ruled out) is in BUGS B028.
 - Framework v0.34.0 already fixed three things the catch-up rehearsal hit: the lint installer's comma (F165), saves adopting a plain-text old value like the tutorial's "done" (F166), and lint's false alarms on refusal reasons from check* helpers (F167). If any of them shows up again, it's a framework bug — fix it there first.
 - F96 rehearsal note: the starter's worker.ts is the model; Glyphtender's worker already uses SQLite storage (Words), so no new migration for the Main class beyond what the starter shows — check wrangler.json migrations before deploying.
 - B028's entry also suspects the tray tile images on game-play shots; this task covers the Story chart only (the case that keeps showing). If the tray case comes back, it's a second task.
