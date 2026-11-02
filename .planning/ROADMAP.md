@@ -325,7 +325,7 @@ flowchart LR
 
 ## v0.17 — Online waits for you  ← current · planned 2026-11-02
 Goal (Muzzy 2026-11-02 "yes"): an online match everyone leaves waits for its players instead of being finished by bots (closes B033, the daily-writes gap), and the full check stops failing on its own.
-- 🔨 F99 🧱 Bots wait in an empty match — rooms kit (framework first): no bot moves or turn timers while nobody is connected, carry on when someone reconnects; refuse a `bot:` player id; installed in Glyphtender (Muzzy 2026-11-01 "1. a") — should · sprint 32
+- ✅ F99 🧱 Bots wait in an empty match — rooms kit (framework first): no bot moves or turn timers while nobody is connected, carry on when someone reconnects; refuse a `bot:` player id; installed in Glyphtender (Muzzy 2026-11-01 "1. a") — should · sprint 32
 - 🔨 F98 🐞 Steady Story chart shot — B028: the end4-story-round6 screenshot differs by 1 pixel now and then (a few shades on the yellow line's soft edge under the purple line's outline; test-only, players never see it). Ruled out + next ideas in BUGS B028 (Muzzy 2026-11-01: out of sprint 31) — should · sprint 32
 
 ## Later

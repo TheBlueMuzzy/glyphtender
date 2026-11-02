@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-02 — **Sprint 32 — Online waits for you planned (Muzzy "yes"): F99 — Bots wait in an empty match (rooms kit first, closes B033) · F98 — Steady Story chart shot (B028) · B032's fix.** Milestone v0.17 Online waits for you. **Next: /develop — F99 task 1 (measure a match everyone leaves on today's code); /develop makes the dev/v0-17-online-waits branch.** v0.12.0 is live (released 2026-11-02).
-Open: B028 (P3) → F98 · B032 (P3) → task 9 · B033 (P2) → F99.
+2026-11-02 — **F99 — Bots wait in an empty match ✅ approved by Muzzy** (rooms 0.14.0: a match nobody is connected to waits — 0 moves / 0 writes, was 52 moves / 106 rows in 120 s; `bot:` ids refused). Framework branch dev/rooms-bots-wait holds rooms 0.14.0 (not merged — /deliver merges it; install rooms from that branch until then). **Next: /develop — F98 — Steady Story chart shot, task 7 (measure end4-story-round6 alone, 20 runs).** Sprint 32 — Online waits for you, milestone v0.17. v0.12.0 is live.
+Open: B028 (P3) → F98 · B032 (P3) → task 9 · B033 (P2) fixed by F99 (live at the next /deliver).
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.17 Online waits for you · Sprint: 32 Online waits for you · Doing: F99 — Bots wait in an empty match (not started) · Branch: main · Version: 0.12.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.12.0, beta stage, online)
+Stage: develop · Milestone: v0.17 Online waits for you · Sprint: 32 Online waits for you · Doing: F98 — Steady Story chart shot (next) · Branch: dev/v0-17-online-waits · Version: 0.12.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.12.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
