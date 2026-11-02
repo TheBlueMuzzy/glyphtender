@@ -1,0 +1,33 @@
+{
+  "_help": {
+    "backups": "How many older copies of each save are kept beside the current one (0-5). If the newest copy is ever broken (the browser closed mid-write, a bug), the game loads the newest good copy instead. Each copy takes the same space as the save.",
+    "nudge.afterProgress": "How much progress (the game decides what one point is: a finished game, a level, an unlock) before the game suggests \"Back up your save\" (copy the save code). 0 = never suggest it.",
+    "nudge.minDaysBetween": "At least this many days between two \"Back up your save\" suggestions, so it never nags.",
+    "nudge.onlyWhenAtRisk": "true = only suggest a backup when this browser might wipe saves (Safari's 7-day rule, a private window, the itch.io frame, blocked storage). false = suggest it to everyone.",
+    "cloud.keepDays": "Link codes (only in a game with the cloud worker, cloud/): how many days a link code and the copy of the save under it are kept on the game's own server, then they delete themselves. The Save code screen's privacy line says this number. Muzzy 2026-10-20: 7.",
+    "cloud.wrongTriesPerHour": "Wrong link codes one address may type in an hour; after that every try from it is refused until the hour ends (stops guessing).",
+    "cloud.uploadsPerHour": "New link codes one address may make in an hour (stops anyone filling the server).",
+    "board.dailyTries": "The checked leaderboard (only in a game with the board worker, board/): how many finished Daily games each player may send a day. 1 = only the first one counts (arcade-fair: everyone gets one shot at the day's game) · a number N = the best of the first N · 0 = unlimited (the best of all). A game decision, like how long a match is kept (Muzzy 2026-10-20) — the installer asks.",
+    "board.keepDays": "Days a day's board (3-letter names + scores) is kept on the game's own server, then it deletes itself. The board screen's privacy line says this number.",
+    "board.sendsPerDay": "Games one address may send to the board in a day, good or bad (a home or a school shares one address, so keep it well above dailyTries). Stops anyone flooding the server.",
+    "board.show": "How many scores the board shows (the day's top N).",
+    "storageAllowed": "Files of game code that may still use the browser's storage directly instead of the saves module, each with why — e.g. { \"file\": \"src/ui/online/session.ts\", \"why\": \"the room code for rejoining (rooms module, until F95)\" }. check:framework lists every other file that does."
+  },
+  "_ranges": {
+    "backups": [0, 5, 1],
+    "nudge.afterProgress": [0, 100, 1],
+    "nudge.minDaysBetween": [0, 60, 1],
+    "cloud.keepDays": [1, 30, 1],
+    "cloud.wrongTriesPerHour": [1, 100, 1],
+    "cloud.uploadsPerHour": [1, 1000, 1],
+    "board.dailyTries": [0, 20, 1],
+    "board.keepDays": [1, 30, 1],
+    "board.sendsPerDay": [1, 1000, 1],
+    "board.show": [3, 50, 1]
+  },
+  "backups": 2,
+  "nudge": { "afterProgress": 10, "minDaysBetween": 7, "onlyWhenAtRisk": false },
+  "cloud": { "keepDays": 7, "wrongTriesPerHour": 10, "uploadsPerHour": 20 },
+  "board": { "dailyTries": 1, "keepDays": 7, "sendsPerDay": 30, "show": 10 },
+  "storageAllowed": []
+}

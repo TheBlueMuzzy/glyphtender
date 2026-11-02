@@ -1,0 +1,61 @@
+// The Save code screen's words (SaveCodePanel.tsx) — pass `words` to change any of them (another language, the game's
+// own voice). In their own file because a component file that also exports values breaks Vite's hot reload rule.
+export const SAVE_PANEL_WORDS = {
+  title: 'Save code',
+  intro: 'Your save code holds all your progress. Keep a copy somewhere safe, or paste it into the game on another device.',
+  yourCode: 'Your save code',
+  copy: 'Copy code',
+  copied: 'Save code copied.',
+  copyFailed: 'Couldn\'t copy it — select the code and copy it yourself.',
+  download: 'Download file',
+  downloadFailed: 'This browser couldn\'t download the file — copy the code instead.',
+  paste: 'Paste a save code',
+  load: 'Load code',
+  loadFile: 'Load a file',
+  askTitle: 'Load this save?',
+  askMessage: 'Progress is combined with what\'s on this device (nothing is lost); other saved choices are replaced. The save on this device is kept as a backup.',
+  loaded: 'Save loaded.',
+  // F137: part of a code came in — the game shows it after a reload
+  partlyTitle: 'Part of your save came back',
+  partlyReload: 'Reload the game to see what came back.',
+  reload: 'Reload',
+  later: 'Later',
+  close: 'Close',
+  // Link code (F96) — only shown when the game has a cloud (the panel's `cloud` prop). The server's own sentences
+  // (offline, wrong code, too many tries, the privacy line…) are CLOUD_WORDS in ../cloud.ts.
+  linkTitle: 'Link code',
+  linkIntro: 'No copy and paste between your devices? Make a short link code here and type it on the other one.',
+  yourLink: 'Your link code',
+  noLinkYet: 'No link code yet',
+  linkLasts: (days: number) => `A link code works for ${days} days.`,
+  makeLink: 'Make a link code',
+  copyLink: 'Copy link code',
+  linkCopied: 'Link code copied.',
+  typeLink: 'Type a link code',
+  getLink: 'Get my save',
+  deleteData: 'Delete my data',
+  deleteTitle: 'Delete your data?',
+  deleteMessage: 'This deletes your link code and the copy of your save on the game\'s server, now. The save on this device stays.',
+  delete: 'Delete',
+}
+
+// The Daily board screen's words (BoardPanel.tsx, F98). The server's own sentences (offline, refused, no tries left,
+// the privacy line…) are BOARD_WORDS in ../board.ts.
+export const BOARD_PANEL_WORDS = {
+  title: 'Daily board',
+  close: 'Close',
+  day: (day: string) => `Daily game · ${day}`,
+  yourName: 'Your 3 letters',
+  send: 'Send my score',
+  readyToSend: 'Your Daily game is finished — put your 3 letters on the board.',
+  checking: 'Checking your game… the board replays every move before it counts.',
+  yourScore: (score: number, rank: number) => `Your score: ${score} · #${rank} today (checked by the board).`,
+  noScore: 'No score of yours on today\'s board yet.',
+  empty: '—',
+  you: 'You',
+  remove: 'Remove my score',
+  removeTitle: 'Remove your score?',
+  removeMessage: 'This deletes your 3 letters and your score from today\'s board, now. It doesn\'t give you another try.',
+  removeYes: 'Remove',
+  loading: 'Loading the board…',
+}

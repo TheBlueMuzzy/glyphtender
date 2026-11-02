@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import bmuz from './src/lint/rules.mjs' // bmuz lint (F90)
 
 export default defineConfig([
-  globalIgnores(['dist', 'src/ui/kit', 'src/audio', 'sketches', '.claude', 'src/devkit', 'vite-plugins/devkit', 'src/table', 'src/ai/kit', 'src/rooms', 'src/version', 'src/crashes', 'src/lint']), // src/ui/kit + src/audio = framework copies (linted there); sketches = throwaway prototypes; .claude = helpers' worktrees
+  globalIgnores(['dist', 'src/ui/kit', 'src/audio', 'sketches', '.claude', 'src/devkit', 'vite-plugins/devkit', 'src/table', 'src/ai/kit', 'src/rooms', 'src/version', 'src/crashes', 'src/lint', 'src/saves']), // src/ui/kit + src/audio = framework copies (linted there); sketches = throwaway prototypes; .claude = helpers' worktrees
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
