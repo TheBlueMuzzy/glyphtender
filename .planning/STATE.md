@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-01 — **F94 — Saves switch-over ✅ (Muzzy: "approved")**: New Game, lobby, tutorial done and words-to-send go through saves 0.7.0 (createSave + oldSave; v0.11.2 saves load the same; 6 golden saves); fullscreen.ts + session.ts in content/saves.json storageAllowed (session.ts goes in F95). F93 — Lint clean-up ✅ earlier today. Sprint 31 — Nothing gets lost on dev/v0-16-nothing-lost. **Next: /develop F95 — Rejoin match, task 1** (the kit's lastRoom replaces session.ts's sessionStorage room code; then drop session.ts from storageAllowed).
+2026-11-01 — **F95 — Rejoin match ✅ (Muzzy: "approved"; only Rejoin is green while it shows — "1.a")**: the rooms kit's lastRoom is the one memory; "Rejoin match" on the main menu after a closed tab, "Rejoining…" / "You're back" / "That match has ended"; e2e:rejoin (ports 5450/1981). F93 — Lint clean-up ✅ and F94 — Saves switch-over ✅ earlier today; B032 (online-ai wall-clock flake, P3) logged. Sprint 31 — Nothing gets lost on dev/v0-16-nothing-lost. **Next: /develop F96 — Matches survive a server restart, task 1** (measure storage writes per turn / per game on a local server vs Cloudflare's free plan, numbers in SPRINT Notes; model: framework starters/turn-based/party/worker.ts).
 Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn yet.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F95 — Rejoin match · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
+Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F96 — Matches survive a server restart · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
@@ -41,6 +41,7 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing ge
 **Since Dev Kit 0.28 (F90 — Quiet module updates):** the Dev Kit arrives ~2 s after the page — an e2e that opens it waits for `aside.devkit` attached, never a fixed time. Adding a sound in the Sound tab keeps its original in `audio-originals/` (committed; `npm run audio:check -- --fix` uses it). Port lookups (stop-servers, check-all's pre-flight) can miss a server started from Claude's shell — stop wrangler by name: `node ~/.claude/config/bmuz/scripts/stop-servers.mjs wrangler`.
 
 ## Log
+- 2026-11-01 — F95 — Rejoin match ✅: close the tab mid-match and the main menu offers "Rejoin match" — one tap and you're back in your seat ("You're back", with how many turns a bot played for you).
 - 2026-11-01 — F94 — Saves switch-over ✅: everything the game remembers (New Game choices, lobby choices, tutorial unlock, words waiting to send) now has a version and backups; old saves carry over unchanged.
 - 2026-11-01 — F93 — Lint clean-up ✅: the game's settings and words live in its content files (three new Dev Kit sliders: roomy-screen hex size, the pause after scoring, the Story chart's tangle column); the AI plays exactly as before.
 - 2026-11-01 — Sprint 31 started (Nothing gets lost): the code checker is in, and screen readers now name the garden, the seed tray and the tips from the game's text file.
@@ -50,4 +51,3 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing ge
 - 2026-10-30 — F90 — Quiet module updates ✅: every framework module current; plays and looks the same (216/216 screenshots), the bots stay silent, the sounds are evened out with the tuned mix kept (Muzzy listened: fine).
 - 2026-10-30 — Sprint 30 planned: Glyphtender on today's framework (F90 quiet module updates, F97 portrait only, F91 new kit look with the board nearer the middle, F92 version label + crash reports).
 - 2026-10-15 — Released v0.11.0 = v0.15 ✅ Dev Kit Select Mode (F86 game things, F88 menus — Muzzy approved): click anything with the Dev Kit open → every setting for it. Review fix → Dev Kit 0.16.1. Server unchanged (not redeployed).
-- 2026-10-14 — Morning: Select Mode on menus (F88, Dev Kit 0.15.0 — buttons, switches, tabs… → shared UI style values; the Color tab also edits corners, outline, shadows, press feel, timings, menu sizes). Fixed: menus behind a menu were pickable, outlines drew over the panel, a phone tap could re-pick a panel row. Full check 35/35. The overnight run finished at 03:05; Windows Update restarted the PC at 03:29 (nothing lost).
