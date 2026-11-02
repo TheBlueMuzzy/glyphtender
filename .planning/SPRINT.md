@@ -19,6 +19,7 @@ Done when: in the rooms kit, a match with nobody connected makes no bot moves an
   done 2026-11-02: privacy.html Online play: "A match everyone has left waits for its players: nobody plays it for them (no computer moves) until someone comes back or those 7 days pass." + its HTML comment (waitWhileNobodyHere, read 2026-11-02); GDD Online (F96 line) gets the F99 sentence.
 Check: rooms kit tests + check:framework; e2e online, online4, online-ai, restart; check:fast.
 Checked: 2026-11-02 — before: 52 bot moves + 106 rows in 120 s with nobody connected; after: 0 moves, 0 rows, and Rejoin match → the same turn, play goes on (e2e restart). Framework rooms tests 212 pass + typecheck + lint. check:full at c3dea17 37/38 — the 1 = screenshots, B028 only (end4-story-round6, 1 pixel); online, online4, online-ai, rejoin, restart, framework PASS. Code read by Claude: no bugs.
+Approved: Muzzy 2026-11-02 ("approved") — F99: done fb00c04, saved v0.12.0.1.
 
 ## F98 🐞 Steady Story chart shot
 Done when: end4-story-round6 matches every time — alone and under check:full load — fixed at its cause (B028).
