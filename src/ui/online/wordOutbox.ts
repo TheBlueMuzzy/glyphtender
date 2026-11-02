@@ -1,9 +1,10 @@
 // SUBMIT A WORD — sending it (F69). POST <party host>/words/submit { word } to our own server (party/wordsRoutes.ts).
 // The player always hears "Word submitted" (the server answers the same for a new word and a repeat). If the server
-// can't be reached — no signal, server down, a build without a server — the word waits on this device (localStorage)
+// can't be reached — no signal, server down, a build without a server — the word waits on this device (a save — src/saves)
 // and goes on the next app start or when the phone is back online. Only a "too short" answer is ever shown.
 import { partyHost } from './session'
 import submit from '../../../content/words/submit.json'
+import { createSave, type StorageLike } from '../../saves'
 
 const QUEUE_KEY = 'glyphtender:wordsToSend'
 // The same rule as Play online (menus.tsx): local dev always has a server; a live build only if VITE_PARTY_HOST was set
@@ -36,19 +37,24 @@ async function post(word: string): Promise<'sent' | 'too-short' | 'refused' | 'f
 }
 
 // ---- the words waiting on this device (a private window or blocked storage → just not kept) ----
+/** Only words, and only the newest submit.queueMax of them (oldest dropped). */
+const cleanWords = (words: unknown[]): string[] => words.filter((w): w is string => typeof w === 'string').slice(-submit.queueMax)
+
+/** The words waiting, as a save (version 1). v0.11.2 and earlier kept the plain JSON list of words: it loads as is.
+ *  storage: left out = the browser's (through the saves module) · a test's own · null = none at all. */
+export const wordQueueSave = (storage?: StorageLike | null) => createSave<{ words: string[] }>({
+  key: QUEUE_KEY, kind: 'settings', version: 1, fresh: { words: [] },
+  oldSave: (raw) => (Array.isArray(raw) ? { version: 1, data: { words: raw } } : null),
+  clean: (data) => ({ words: cleanWords(data.words) }),
+  ...(storage === undefined ? {} : { storage }),
+})
+
 function readQueue(): string[] {
-  try {
-    const list = JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]')
-    return Array.isArray(list) ? list.filter((w): w is string => typeof w === 'string') : []
-  } catch {
-    return []
-  }
+  return wordQueueSave().load().words
 }
 function writeQueue(list: string[]) {
-  try {
-    if (list.length) localStorage.setItem(QUEUE_KEY, JSON.stringify(list.slice(-submit.queueMax)))
-    else localStorage.removeItem(QUEUE_KEY)
-  } catch { /* storage blocked: nothing to keep */ }
+  if (list.length) wordQueueSave().save({ words: cleanWords(list) })
+  else wordQueueSave().clear()
 }
 /** The words waiting to be sent (the e2e check reads this). */
 export const queuedWords = readQueue

@@ -22,7 +22,8 @@ Done when: the saves module is installed and Glyphtender's 4 saved things (New G
   - done 2026-11-01 (49c6ae5): installed clean (lint green); its promise check lists the direct storage use tasks 2–5 replace (newGame, onlineOptions, progress, wordOutbox, fullscreen) + session.ts (F95). check:fast's framework step stays red until they land.
 - [x] 🤖 2. New Game + online lobby choices onto createSave + oldSave; the 2-letter marker becomes upgrade step v2 — src/ui/online/onlineOptions.ts
   done: newGameSave / onlineOptionsSave (kind settings, version 2; oldSave: unmarked JSON = v1, marked = v2; upgrade 2 drops the old 2-letter choice; all of today's checks in `clean`); loadChoices / saveChoices / loadOnlineOptions / saveOnlineOptions keep their names — newGame + onlineOptions tests 18/18 unchanged
-- [ ] 🤖 3. Tutorial "done" (plain text — saves 0.7.0 adopts it) and the words waiting to send onto createSave — src/tutorial/progress.ts
+- [x] 🤖 3. Tutorial "done" (plain text — saves 0.7.0 adopts it) and the words waiting to send onto createSave — src/tutorial/progress.ts
+  done: tutorialSave ({ done }, v1; oldSave adopts the plain "done") + wordQueueSave ({ words }, v1; oldSave adopts the old raw list; clean keeps only words, capped at submit.queueMax); e2e/tutorial-shell reads the record now — src/tutorial + src/ui tests 95/95
 - [ ] 🤖 4. Golden saves: v1 of all 4, v2 of New Game + lobby, each in the saves test — src/ui/online/wordOutbox.ts
 - [ ] 🤖 5. Full screen writes through the kit's settings, not its key directly — src/ui/fullscreen.ts
 Check: check:fast (golden saves) + e2e game, new-game, word-switches, submit-word, tutorial-shell; a browser with old saves (v0.11.2's keys) keeps its choices.
