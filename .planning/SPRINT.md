@@ -15,7 +15,8 @@ Done when: in the rooms kit, a match with nobody connected makes no bot moves an
   done 2026-11-02: framework e8312a0 — rooms 0.14.0 (README + UPGRADES note); framework check:fast: rooms test/typecheck/lint green (the 1 red = devkit/ui-kit README notes vs kit/VERSION, already on main, not rooms). Installed with install-module.mjs (0.13.1 → 0.14.0); hand step done: party/turnClock.ts resumeTimers → rules.onResume moves turnEndsAt. party/savedMatch.test.ts: 2 restore tests rejoin first + a new F99 test (3 days empty: same version, 0 rows; back: plays on). check:fast ALL PASS.
 - [x] 🤖 5. e2e: everyone leaves → no moves, no writes; one comes back → the game goes on — e2e/online-restart.mjs
   done 2026-11-02: e2e/online-restart.mjs (area `restart`, ports 5452/1979) — after the restart part: Bo Leaves + Ada closes her tab → 20 s (EMPTY_WAIT_SECONDS) with 0 rows written; Ada reopens → Rejoin match → same version + turn → the game goes on (turn 4 → 6). The restart check now allows the turn end to move by the moment before the first reconnect (measured 0.0 s). PASS.
-- [ ] 🤖 6. Privacy page + GDD Online line: a match everyone leaves waits for its players — public/privacy.html
+- [x] 🤖 6. Privacy page + GDD Online line: a match everyone leaves waits for its players — public/privacy.html
+  done 2026-11-02: privacy.html Online play: "A match everyone has left waits for its players: nobody plays it for them (no computer moves) until someone comes back or those 7 days pass." + its HTML comment (waitWhileNobodyHere, read 2026-11-02); GDD Online (F96 line) gets the F99 sentence.
 Check: rooms kit tests + check:framework; e2e online, online4, online-ai, restart; check:fast.
 
 ## F98 🐞 Steady Story chart shot
