@@ -18,7 +18,8 @@ Checked: 2026-11-01 — check:fast green (lint as errors, golden SAME); e2e ai, 
 
 ## F94 🧱 Saves switch-over
 Done when: the saves module is installed and Glyphtender's 4 saved things (New Game choices, online lobby choices, tutorial "done", words waiting to send) go through createSave with oldSave, an old save from every past version loads (golden saves), and full screen goes through the kit's settings.
-- [ ] 🤖 1. `install-module.mjs saves .` (saves 0.7.0) — its starter test waits for the first createSave — src/ui/newGame.ts
+- [x] 🤖 1. `install-module.mjs saves .` (saves 0.7.0) — its starter test waits for the first createSave — src/ui/newGame.ts
+  - done 2026-11-01 (49c6ae5): installed clean (lint green); its promise check lists the direct storage use tasks 2–5 replace (newGame, onlineOptions, progress, wordOutbox, fullscreen) + session.ts (F95). check:fast's framework step stays red until they land.
 - [ ] 🤖 2. New Game + online lobby choices onto createSave + oldSave; the 2-letter marker becomes upgrade step v2 — src/ui/online/onlineOptions.ts
 - [ ] 🤖 3. Tutorial "done" (plain text — saves 0.7.0 adopts it) and the words waiting to send onto createSave — src/tutorial/progress.ts
 - [ ] 🤖 4. Golden saves: v1 of all 4, v2 of New Game + lobby, each in the saves test — src/ui/online/wordOutbox.ts
