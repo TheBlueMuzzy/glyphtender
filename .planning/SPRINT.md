@@ -45,7 +45,7 @@ Approved: Muzzy 2026-11-01 "approved" — F95: done (a030939), saved v0.11.2.4.
 
 ## F96 🔧 Matches survive a server restart
 Done when: an online match is kept in the room's storage, so a server restart or a redeploy doesn't lose it; the turn timer and bot timers start again where they were; a match nobody plays for 7 days ends (keepMatchDays 7); the privacy page says so.
-- [ ] 🤖 1. Measure first: storage writes per turn and per game on a local server against Cloudflare's free plan (Durable Object SQLite writes a day), written in Notes — party/worker.ts
+- [x] 🤖 1. Measure first: storage writes per turn and per game on a local server against Cloudflare's free plan (Durable Object SQLite writes a day), written in Notes — party/worker.ts — done: ~2 rows per action, ~180 per 2-player game, ≤ 45 KB a room → ~500 games a day on a normal day (Notes "F96 measured")
 - [ ] 🤖 2. Room storage + alarm in the worker, from the framework starter's party/worker.ts (saveRoom, restore on start, onAlarm); keepMatchDays 7 — content/rooms.json
 - [ ] 🤖 3. onRestore restarts the turn timer and the bot's timers — party/turnClock.ts
 - [ ] 🤖 4. e2e: a match, the local server restarted mid-game, both players carry on — party/glyphtenderRules.ts
@@ -57,6 +57,14 @@ Notes:
 - B028 moved out of the sprint (Muzzy 2026-11-01: "1a") → ROADMAP Later: F98 — Steady Story chart shot. Its investigation (2 causes ruled out) is in BUGS B028.
 - Framework v0.34.0 already fixed three things the catch-up rehearsal hit: the lint installer's comma (F165), saves adopting a plain-text old value like the tutorial's "done" (F166), and lint's false alarms on refusal reasons from check* helpers (F167). If any of them shows up again, it's a framework bug — fix it there first.
 - F96 rehearsal note: the starter's worker.ts is the model; Glyphtender's worker already uses SQLite storage (Words), so no new migration for the Main class beyond what the starter shows — check wrangler.json migrations before deploying.
+- **F96 measured (2026-11-01)** — one save = 1 row written, moving the alarm = 1 more, a delete = 1:
+  - Local wrangler (e2e:restart, 2 players, 120 s timer): 10 actions → 10 saves + 7 alarm moves = 17 rows (1.7 an action); without the timer 10 actions → 20 rows (2.0 an action) (the 7-day end moves with every move)
+  - Whole games (party/savedMatch.test.ts, the server with a fake storage — an "action" = a draft placement, a turn or a refresh): 2 players 87 actions (53 turns) → 87 saves + up to 87 alarm moves + 1 delete at game over ≈ **175 rows**, ~180 with joins / seat changes · 4 players 114 actions ≈ **230 rows**
+  - Size of one saved room: grows with the move record + log — ~5 KB at the start, **45 KB** at the end of a 2-player game, 53 KB for 4 (limit: 2 MB a value); deleted at game over, so nothing piles up
+  - Free plan (developers.cloudflare.com/durable-objects/platform/pricing, updated 2026-10-18; /limits, updated 2026-10-29): **100,000 rows written a day** (resets 00:00 UTC; past it, writes fail), 5 M rows read, 100,000 requests (incoming WebSocket messages count 20:1, alarm runs count), 5 GB stored per account, 1 GB per object
+  - Same account shares it: the submitted-words list (a row per submitted word — tens a day) and the crash server (~4 rows a stored report; at its 15,000-a-day cap ≤ 60,000 rows — framework crashes README)
+  - → a normal day: (100,000 − ~2,000 kept for words + crashes) / 180 ≈ **540 full 2-player games a day** (~420 4-player). Worst case, a crash flood at its cap: (100,000 − 60,000 − 1,000) / 180 ≈ 215 games. Plenty for friends-and-family online play; if it ever gets close, lower content/crashes.json server.perDay first.
+  - Found: a match everyone walks away from isn't cleared after 5 minutes any more — it's kept, a bot takes each seat after botTakesOverAfterMs and the bots play it to the end with nobody watching (the same ~180 rows as a played game, then deleted). Bounded, but it's the rooms kit's behaviour → reported, not changed here.
 - B028's entry also suspects the tray tile images on game-play shots; this task covers the Story chart only (the case that keeps showing). If the tray case comes back, it's a second task.
 - Deploy: F96 changes the server → at /deliver, `npm run party:deploy` before the site.
 Retro:
