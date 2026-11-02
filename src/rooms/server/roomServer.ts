@@ -15,6 +15,8 @@
 // A match being played is also saved (0.10.0, F100): after each change the room is packed (savedRoom.ts) and handed
 // to party/worker.ts (PartyRoom.saveRoom), which keeps it in the room's Durable Object storage — so a server restart
 // loses nothing and players can come back days later (keepMatchDays). The lobby and a finished game are not kept.
+// A match with nobody connected waits (0.14.0, F99): no bot moves and no turn timer runs until someone is back — so a
+// match everyone walked away from isn't played out by bots with nobody watching (and writes nothing to storage).
 import { parseClientMessage } from '../protocol'
 import type { ClientMessage, CloseReason, ErrorCode, ServerMessage } from '../protocol'
 import type { GameRules, RoomTools, SeatChange } from './gameRules'
@@ -74,6 +76,9 @@ const HOUR_MS = 60 * 60 * 1000
 // A seat on the clock that does nothing: first a warning on their screen, then a bot takes over
 const idleWarnTimer = (seatId: string) => `${ROOM_TIMER}idle-warn:${seatId}`
 const idleTakeoverTimer = (seatId: string) => `${ROOM_TIMER}idle-takeover:${seatId}`
+// Held while nobody is connected (F99): the game's timers (bots' moves, turn clocks) and the away → bot timers. The
+// match's own end (keepMatchDays, keepUnplayedMatchHours) and the empty-room wait keep running.
+const heldWhileEmpty = (name: string) => !name.startsWith(ROOM_TIMER) || name.startsWith(BOT_TAKEOVER)
 
 export class RoomServer<State, Options, Action, View, Event = never> {
   readonly party: PartyRoom
@@ -622,8 +627,46 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     if (nobodyHere && !matchWaits && !this.timers.isRunning(EMPTY_ROOM_TIMER)) this.startEmptyRoomTimer()
     if (!nobodyHere || matchWaits) this.timers.stop(EMPTY_ROOM_TIMER)
     this.watchUnplayedMatch(nobodyHere && matchWaits)
+    this.waitWhileNobodyHere()
     this.changed()
     this.sendRoomToEveryone()
+  }
+
+  /** F99 (0.14.0): a match being played with nobody connected waits — the game's timers and the away → bot timers are
+   *  held where they are (no bot moves, no turn clock, so nothing is written to storage either). The first person back
+   *  starts them again for the time each had left; the game hears it in rules.onResume (to move a shown end time).
+   *  Seats of players still away then go to bots when their away timer ends, as always. */
+  private waitWhileNobodyHere(): void {
+    const waits = this.data.phase === 'playing' && this.sockets.size === 0
+    if (waits && !this.timers.isHolding()) {
+      this.timers.hold(heldWhileEmpty)
+      this.log('nobody is connected — the match waits (no bot moves, no turn timers) until someone is back')
+    } else if (!waits && this.timers.isHolding()) {
+      const ends = this.timers.release()
+      if (this.data.phase !== 'playing' || this.game === null) return
+      this.log('someone is back — the match goes on')
+      this.resumeGame(ends)
+    }
+  }
+
+  /** Tell the game its timers go on again (rules.onResume), with each game timer's new end time. */
+  private resumeGame(ends: Record<string, number>): void {
+    if (!this.rules.onResume || this.game === null || this.insideGameCode) return
+    const gameTimers: Record<string, number> = {}
+    for (const [name, endsAt] of Object.entries(ends)) if (!name.startsWith(ROOM_TIMER)) gameTimers[name] = endsAt
+    let state: State
+    try {
+      this.insideGameCode = true
+      state = this.rules.onResume(this.game, this.tools, gameTimers)
+    } catch (error) {
+      this.log(`onResume failed: ${reasonOf(error)}`)
+      return
+    } finally {
+      this.insideGameCode = false
+    }
+    if (state === this.game) return
+    this.game = state
+    this.afterGameChanged()
   }
 
   /** Everyone's gone and the room isn't kept: wait a little for someone to come back (keepEmptyRoomMs), then clear it. */
@@ -662,6 +705,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     this.sockets.clear()
     this.clearIdleClocks()
     this.timers.stopAll()
+    this.timers.release() // (nothing held is left: this only ends the hold)
     this.game = null
     this.botTurns.clear()
     this.data = newRoom(this.party.id)
@@ -716,6 +760,8 @@ export class RoomServer<State, Options, Action, View, Event = never> {
       const kept = !name.startsWith(ROOM_TIMER) || name.startsWith(BOT_TAKEOVER) || name === MATCH_EXPIRES_TIMER || name === UNPLAYED_TIMER
       if (kept) timersEndAt[name] = endsAt
     }
+    // Held while nobody is here (F99): only how long each has left — no end time, so no alarm wakes the room for them
+    const heldTimers = this.timers.heldTimes()
     return {
       version: SAVED_ROOM_VERSION,
       data: this.data,
@@ -723,6 +769,7 @@ export class RoomServer<State, Options, Action, View, Event = never> {
       botTurns: Object.fromEntries(this.botTurns),
       onClock: [...this.onClock],
       timersEndAt,
+      ...(Object.keys(heldTimers).length > 0 ? { heldTimers } : {}),
     }
   }
 
@@ -731,7 +778,8 @@ export class RoomServer<State, Options, Action, View, Event = never> {
    * older shape, another code): the room starts empty and the caller wipes storage. The players' connections died
    * with the old server: each player still marked "here" is now away (a bot takes over after botTakesOverAfterMs, as
    * with any drop), and they come back by rejoining. Timers start again by name for what was left — the room's own
-   * here, the game's through rules.onRestore.
+   * here, the game's through rules.onRestore. Nobody is connected yet, so the match waits (F99): those timers are held
+   * until the first player is back.
    */
   restore(raw: unknown): boolean {
     const saved = readSavedRoom(raw)
@@ -753,10 +801,14 @@ export class RoomServer<State, Options, Action, View, Event = never> {
     this.botTurns = new Map(Object.entries(saved.botTurns))
     this.onClock = new Set(saved.onClock)
     this.lastSaved = JSON.stringify(saved) // (storage holds it — a wipe must reach it)
+    this.waitWhileNobodyHere() // (nobody is connected yet: the timers started below are held — F99)
 
     const now = Date.now()
     const gameTimers: Record<string, number> = {}
-    for (const [name, endsAt] of Object.entries(saved.timersEndAt)) {
+    // A timer held when it was saved goes on for the time it had left (from now — it's held again at once)
+    const endTimes = { ...saved.timersEndAt }
+    for (const [name, msLeft] of Object.entries(saved.heldTimers ?? {})) endTimes[name] = now + msLeft
+    for (const [name, endsAt] of Object.entries(endTimes)) {
       const msLeft = Math.max(0, endsAt - now)
       if (name.startsWith(BOT_TAKEOVER)) this.startAwayTimer(name.slice(BOT_TAKEOVER.length), msLeft)
       else if (name === MATCH_EXPIRES_TIMER) this.startMatchExpiry(msLeft)

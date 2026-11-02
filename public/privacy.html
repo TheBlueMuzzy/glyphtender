@@ -29,7 +29,9 @@
          storage (worker.ts keep() → the rooms kit's saveRoom; what's in it = src/rooms/server/savedRoom.ts SavedRoom:
          seats with names + persistentId, kicked ids, the game state incl. its move record). It's deleted at game over,
          back to the lobby, a cleared room, after keepMatchDays (7) with no move, or keepUnplayedMatchHours (24) when no
-         person ever moved and nobody is connected (content/rooms.json; roomServer.ts saveNow / clearRoom). The lobby and a
+         person ever moved and nobody is connected (content/rooms.json; roomServer.ts saveNow / clearRoom). While nobody is
+         connected the match waits: no bot moves, no turn timer (rooms 0.14.0, F99 — roomServer.ts waitWhileNobodyHere;
+         read 2026-11-02), so nothing is written until someone is back. The lobby and a
          finished game live in memory only: "5 minutes" = keepEmptyRoomMs. The log lines = roomServer.ts log();
          submitted words = party/submittedWords.ts (word, status, day — no sender); this device = src/rooms/identity.ts + lastRoom.ts. -->
     <h2>Online play</h2>
@@ -37,6 +39,8 @@
       each player (so you get your own seat back) and the game itself. While a match is being played it's kept in the
       server's own storage, so a server restart doesn't lose it. It's deleted when the match ends, when the host goes back
       to the lobby, or after 7 days without a move (24 hours, if nobody has made a move yet and nobody is there).
+      A match everyone has left waits for its players: nobody plays it for them (no computer moves) until someone comes
+      back or those 7 days pass.
       The lobby and a finished game are only held in the server's memory, and cleared at most 5 minutes after everyone has left.
       None of it is saved anywhere else. (Cloudflare keeps its own recovery copy of the server&#39;s storage for up to 30 days, then it&#39;s gone.)
       The server also writes short notes such as "Sam joined", with the room code, which Cloudflare (who runs the server)

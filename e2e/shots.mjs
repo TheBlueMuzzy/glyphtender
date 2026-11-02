@@ -89,6 +89,24 @@ async function settle(page) {
   await page.mouse.move(0, 0) // no button left looking hovered
 }
 
+/** Re-draw one part of the screen from scratch (B028 / F98). When something moves across a picture in quick steps (the
+ *  Story chart's line, → ×5), Chrome only re-draws the strips it passed over, and how those strips' soft line edges
+ *  come out depends on which in-between steps got their own frame — measured 2026-11-02: the same chart, the same
+ *  box, gave 4 slightly different pictures in 20 runs (a few shades on a line's edge). Briefly giving the part its own
+ *  layer and taking it away makes Chrome draw all of it again in one go: 12 of 12 runs then gave the same picture,
+ *  byte for byte, matching the before set. */
+async function redrawWhole(page, selector) {
+  await page.evaluate(async (sel) => {
+    const frames = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+    const el = document.querySelector(sel)
+    await frames()
+    el.style.willChange = 'transform'
+    await frames()
+    el.style.willChange = ''
+    await frames()
+  }, selector)
+}
+
 /** "Held still" uses the same measure as the before / after comparison (pixelmatch at THRESHOLD, ALLOWED pixels):
  *  on a phone on its side (sprint 24, a size no longer shot) Chrome re-drew the turn portrait's edge a hair differently on every picture — 36 faint pixels
  *  no comparison would ever count — and a byte-for-byte test called the screen "never still". */
@@ -251,6 +269,8 @@ async function endOfGame(size, { name, file }) {
     await page.locator('.game-end-chart-svg').focus()
     for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight') // (the line starts on round 1 — Muzzy, 2026-10-13)
     await page.locator('.game-end-plays').waitFor({ timeout: 3000 })
+    await settle(page)
+    await redrawWhole(page, '.game-end-chart-svg') // (B028: the picture mustn't depend on which → steps got a frame)
     await shot(page, size, `${name}-story-round6`)
     await tap(page.getByRole('tab', { name: 'Scorecard' }))
     await page.locator('.game-scorecard').waitFor({ timeout: 3000 })
