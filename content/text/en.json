@@ -10,6 +10,12 @@
     "exitFullscreen": "Leave full screen"
   },
   "game": {
+    "labels": {
+      "_help": "Names a screen reader says for parts of the game screen (not shown as text).",
+      "garden": "Garden",
+      "panel": "Seeds and actions",
+      "tray": "Seeds"
+    },
     "players": {
       "yellow": "Yellow",
       "blue": "Blue",
@@ -409,6 +415,9 @@
   "tutorial": {
     "_help": "The first game teaches itself (design/tutorial.md). Callouts: one idea, 12 words or fewer, verb first.",
     "tipsReset": "Every tip will show again",
+    "tipLabel": "Tip",
+    "tutorialLabel": "Tutorial",
+    "sproutPlaying": "Sprout is playing its scripted turn",
     "locked": "Finish your first game to unlock this.",
     "unlocked": "Everything's unlocked!",
     "overview": {

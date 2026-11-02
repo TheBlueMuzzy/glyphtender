@@ -110,6 +110,7 @@ export function callItDecision(ctx: GlyphContext, words: WordList): { special: S
   const best = endings.reduce((a, b) => (net(b) > net(a) || (net(b) === net(a) && rivalsGet(b.bonus) < rivalsGet(a.bonus)) ? b : a))
   const finalLead = beliefs.lead + net(best)
   if (finalLead < needed) return null
+  // text-ok: a goal name in the Dev Kit's AI notes (like SCORE, TRAP), never shown in the game
   return { special: { action: best.action, goal: 'CALL IT', why: `believes it's ahead by ${Math.round(finalLead)} (nerve ${Math.round(needed)}); rivals get ${rivalsGet(best.bonus)} tangle bonus` } }
 }
 

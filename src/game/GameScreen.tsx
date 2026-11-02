@@ -164,7 +164,7 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
         <svg className="game-garden-back" aria-hidden="true"><rect width="100%" height="100%" fill={colours.background} /></svg>
         <Board onHexSize={onHexSize} traySide={traySide} lean={promptTop ? layout.boardVertical : 1} />
       </div>
-      <section className="game-panel" aria-label="Seeds and actions">
+      <section className="game-panel" aria-label={text.game.labels.panel}>
         {!promptTop && prompt}
         {over ? <RevealPanel compact={!stacked && hexPx < BIG_HEX} big={hexPx >= BIG_HEX} /> : <SeedTray layout={tray} boxWidth={stacked ? tray.width : column} />}
         {!ended && <ActionBar size={buttonPx} fixed={stacked} />}

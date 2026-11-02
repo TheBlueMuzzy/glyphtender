@@ -210,9 +210,9 @@ export function HelpLayer() {
   }, [shown])
   if (!shown) return null
   if (shown === tip && tip.mode === 'pause') {
-    return <Callout key={tip.key} target={tip.target} text={tip.words} placement={tip.placement} label="Tip"
+    return <Callout key={tip.key} target={tip.target} text={tip.words} placement={tip.placement} label={text.tutorial.tipLabel}
       action={text.tutorial.rails.gotIt} onDismiss={() => setTip(null)} dim dimAmount={tuning.railsDim} />
   }
   const dismiss = shown === tip ? () => setTip(null) : shown === wrong ? () => setWrong(null) : poke
-  return <Callout key={shown.key} target={shown.target} text={shown.words} placement={shown.placement} label="Tip" onDismiss={dismiss} />
+  return <Callout key={shown.key} target={shown.target} text={shown.words} placement={shown.placement} label={text.tutorial.tipLabel} onDismiss={dismiss} />
 }

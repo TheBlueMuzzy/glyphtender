@@ -149,5 +149,6 @@ export function personalityCheck(games: ArenaGame[], targets: FeelTargetsFile, s
     return { label: t.label, pass, detail }
   })
   const sample = games[0]?.notes.slice(0, 24) ?? []
+  // text-ok: the title of the Dev Kit / npm run ai:arena report page, for the designer only
   return { title: 'Personality Check — Glyphtender', subtitle, feel, all, tell, wins, ladder, notes: sample }
 }

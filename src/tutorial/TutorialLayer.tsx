@@ -20,6 +20,7 @@ import { useTutorial } from './progress'
 import { useExplore } from '../store/explore'
 import { railsButton, railsText, type RailsStepDef } from './railsSteps'
 import { calloutPlacement } from './tipsPlace'
+import text from '../../content/text/en.json'
 
 /** Where a step's callout goes first: its own choice, else the tutorial's one rule (tipsPlace.ts). */
 function placementOf(step: RailsStepDef, selector: string, live: Hex | null): CalloutPlacement {
@@ -70,6 +71,6 @@ export function TutorialLayer() {
   return (
     <Callout key={`${step.id}-${again}`} target={target} text={railsText(step)} placement={shown.placement}
       action={button} onDismiss={button ? () => ackRailsStep(step.id) : undefined}
-      dim={dim} dimAmount={tuning.current.railsDim} label="Tutorial" />
+      dim={dim} dimAmount={tuning.current.railsDim} label={text.tutorial.tutorialLabel} />
   )
 }
