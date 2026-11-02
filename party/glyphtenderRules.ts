@@ -15,7 +15,7 @@ import { emptyStats } from '../src/store/stats'
 import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
 import type { GameRules } from '../src/rooms/server/gameRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
-import { afterSeatChange, planNextTurn, restartTimers, type WordsFor } from './turnClock'
+import { afterSeatChange, planNextTurn, restartTimers, resumeTimers, type WordsFor } from './turnClock'
 import { botProfile } from './aiSeats'
 import { play, type ServerGame } from './serverGame'
 import { viewOf } from './views'
@@ -150,5 +150,8 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurn
     // The match came back from the room's storage (a server restart or redeploy — F96): the turn timer and a bot's
     // next move start again where they were (turnClock.ts restartTimers)
     onRestore: (state, room, timersEndAt) => restartTimers(state, room, words, timersEndAt),
+
+    // Someone is back in a match nobody was connected to (F99): the held turn timer goes on, so its shown end moves
+    onResume: (state, _room, timersEndAt) => resumeTimers(state, timersEndAt),
   }
 }

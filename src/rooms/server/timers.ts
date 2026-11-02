@@ -13,6 +13,16 @@
 // with the match, and a Durable Object alarm wakes the room at the earliest one — then runDue() fires whatever
 // is due. A timer can't be saved itself (it's a piece of code), so after a restart each one is started again by
 // its name: the room's own by the room, the game's by its rules' onRestore.
+//
+// Held (0.14.0, F99 — bots wait in an empty match): hold(which) stops the chosen timers where they are and keeps how
+// long each had left; release() starts them again for exactly that. A timer started while held is held too. A held
+// timer still counts as waiting (isRunning, msLeft, names), but never fires and has no end time (endTimes) — so no
+// storage alarm is set for it. The room holds the game's timers while nobody is connected.
+
+interface HeldTimer {
+  msLeft: number
+  whenDone: () => void
+}
 
 interface RunningTimer {
   handle: ReturnType<typeof setTimeout>
@@ -26,6 +36,10 @@ const LONGEST_WAIT_MS = 2_147_483_647
 
 export class Timers {
   private running = new Map<string, RunningTimer>()
+  /** Timers stopped where they were by hold(): how long each had left. */
+  private held = new Map<string, HeldTimer>()
+  /** Which timers are held right now (null = none). */
+  private holding: ((name: string) => boolean) | null = null
   private log: (message: string) => void
   // Told after any timer fires — the room then saves, so the stored match never keeps a timer that already ran and
   // the storage alarm moves on to the next one (review F100)
@@ -39,11 +53,16 @@ export class Timers {
   /** Run `whenDone` after `ms`. A timer with the same name is replaced (never two of one kind). */
   start(name: string, ms: number, whenDone: () => void): void {
     this.stop(name)
+    if (this.holding?.(name)) {
+      this.held.set(name, { msLeft: Math.max(0, ms), whenDone })
+      return
+    }
     const endsAt = Date.now() + Math.max(0, ms)
     this.running.set(name, { handle: this.waitFor(name, endsAt), endsAt, whenDone })
   }
 
   stop(name: string): void {
+    this.held.delete(name)
     const timer = this.running.get(name)
     if (!timer) return
     clearTimeout(timer.handle)
@@ -52,27 +71,65 @@ export class Timers {
 
   /** Stop every timer whose name starts with `prefix` ("" = all of them). */
   stopAll(prefix = ''): void {
-    for (const name of [...this.running.keys()]) {
+    for (const name of this.names()) {
       if (name.startsWith(prefix)) this.stop(name)
     }
   }
 
+  /** Waiting to fire — running, or held. */
   isRunning(name: string): boolean {
-    return this.running.has(name)
+    return this.running.has(name) || this.held.has(name)
   }
 
-  /** Milliseconds until it fires (0 if it isn't running). */
+  /** Milliseconds until it fires (0 if it isn't running). A held timer: what it has left once released. */
   msLeft(name: string): number {
+    const held = this.held.get(name)
+    if (held) return held.msLeft
     const timer = this.running.get(name)
     return timer ? Math.max(0, timer.endsAt - Date.now()) : 0
   }
 
-  /** Names of the running timers (for logs and tests). */
+  /** Names of the running and held timers (for logs and tests). */
   names(): string[] {
-    return [...this.running.keys()]
+    return [...this.running.keys(), ...this.held.keys()]
   }
 
-  /** When each running timer ends (name → time, in ms since 1970) — what the room saves so it can start them again after a restart. */
+  /** Stop the timers `which` picks where they are (each keeps its time left), and hold any of them started from now on,
+   *  until release(). Holding again changes which timers are held. */
+  hold(which: (name: string) => boolean): void {
+    this.holding = which
+    const now = Date.now()
+    for (const [name, timer] of [...this.running]) {
+      if (!which(name)) continue
+      clearTimeout(timer.handle)
+      this.running.delete(name)
+      this.held.set(name, { msLeft: Math.max(0, timer.endsAt - now), whenDone: timer.whenDone })
+    }
+  }
+
+  isHolding(): boolean {
+    return this.holding !== null
+  }
+
+  /** Start every held timer again for the time it had left → their new end times (name → ms since 1970). */
+  release(): Record<string, number> {
+    this.holding = null
+    const ends: Record<string, number> = {}
+    for (const [name, timer] of [...this.held]) {
+      this.start(name, timer.msLeft, timer.whenDone)
+      ends[name] = this.running.get(name)!.endsAt
+    }
+    return ends
+  }
+
+  /** How long each held timer has left (name → ms) — saved with the match, so a held timer stays held after a restart. */
+  heldTimes(): Record<string, number> {
+    const left: Record<string, number> = {}
+    for (const [name, timer] of this.held) left[name] = timer.msLeft
+    return left
+  }
+
+  /** When each running timer ends (name → time, in ms since 1970) — what the room saves so it can start them again after a restart. Held timers aren't in it (heldTimes). */
   endTimes(): Record<string, number> {
     const ends: Record<string, number> = {}
     for (const [name, timer] of this.running) ends[name] = timer.endsAt

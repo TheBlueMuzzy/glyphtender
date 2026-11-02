@@ -116,4 +116,12 @@ export interface GameRules<State, Options, Action, View, Event = never> {
    * Check it in the game's tests with jsonProblem(state) (src/rooms/server/savedRoom.ts) → null when it can be saved.
    */
   onRestore?(state: State, room: RoomTools<State, Event>, timersEndAt: Record<string, number>): State
+  /**
+   * Optional (0.14.0, F99): the match waited while nobody was connected and someone is back. While it waited, the
+   * game's timers were held — no bot moved, no turn clock ran — and now each goes on for the time it had left, so it
+   * ends later than it would have. `timersEndAt` = each game timer's NEW end time (name → ms since 1970). Return the
+   * state with anything that shows an end time moved to match (e.g. `{ ...state, turnEndsAt: timersEndAt.turn }`) —
+   * every player then gets their view. A game that keeps no end times in its state doesn't need this.
+   */
+  onResume?(state: State, room: RoomTools<State, Event>, timersEndAt: Record<string, number>): State
 }

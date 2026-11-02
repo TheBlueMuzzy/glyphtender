@@ -25,6 +25,9 @@ export interface SavedRoom<State = unknown> {
   onClock: string[]
   /** When each saved timer ends (name → ms since 1970): the room's own ("room:…") and the game's. */
   timersEndAt: Record<string, number>
+  /** Timers held while nobody is connected (0.14.0, F99): how long each has left (name → ms). They have no end time
+   *  — nothing wakes the room for them — and start again for that long when someone is back. Missing = none. */
+  heldTimers?: Record<string, number>
 }
 
 /**
@@ -72,10 +75,13 @@ export function readSavedRoom(raw: unknown): SavedRoom | null {
   if (data.phase !== 'playing' || typeof data.seatsMade !== 'number' || !('game' in saved)) return null
   if (!isObject(botTurns) || !Array.isArray(onClock) || !isObject(timersEndAt)) return null
   if (!Object.values(timersEndAt).every((end) => typeof end === 'number')) return null
+  const { heldTimers } = saved
+  if (heldTimers !== undefined && (!isObject(heldTimers) || !Object.values(heldTimers).every((left) => typeof left === 'number'))) return null
   return saved as unknown as SavedRoom
 }
 
-/** When the room must wake up next (the earliest timer end), or null if nothing is waiting. For the storage alarm. */
+/** When the room must wake up next (the earliest timer end), or null if nothing is waiting. For the storage alarm.
+ *  (Held timers never wake it: nothing runs until someone is back.) */
 export function wakeUpAt(saved: SavedRoom | null): number | null {
   if (!saved) return null
   const ends = Object.values(saved.timersEndAt)

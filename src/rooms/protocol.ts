@@ -151,6 +151,8 @@ export function parseClientMessage(raw: unknown): ClientMessage | null {
     case 'join':
       if (typeof data.name !== 'string' || typeof data.persistentId !== 'string' || typeof data.create !== 'boolean') return null
       if (data.persistentId.length < 8 || data.persistentId.length > 64) return null
+      // "bot:<n>" owns the bots the host added (server/seats.ts): a player claiming one would get that seat (0.14.0, security review)
+      if (data.persistentId.startsWith('bot:')) return null
       if (data.rejoin !== undefined && typeof data.rejoin !== 'boolean') return null
       if (data.rejoin === true) return { type: 'join', name: data.name, persistentId: data.persistentId, create: false, rejoin: true }
       return { type: 'join', name: data.name, persistentId: data.persistentId, create: data.create }

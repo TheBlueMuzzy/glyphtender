@@ -188,8 +188,10 @@ describe('F96 — a match kept in storage', () => {
     vi.advanceTimersByTime(10_000)
     const again = newServer(storage)
     expect(again.server.restore(saved)).toBe(true)
-    expect(again.server.game!.turnEndsAt).toBe(endsAt) // every screen still shows the same end time
     expect(again.server.timers.isRunning('turn')).toBe(true)
+    expect(again.server.timers.msLeft('turn')).toBe(30_000)
+    join(again.server, again.party, 1, false, 'tab-1-new') // (nobody is connected after a restart: the match waits for the first one back — F99)
+    expect(again.server.game!.turnEndsAt).toBe(endsAt) // back at once: every screen still shows the same end time
     vi.advanceTimersByTime(29_000)
     expect(again.server.data.seats[0].kind).toBe('human')
     vi.advanceTimersByTime(1_000) // …and it ran out: a bot takes the seat (F52), as without a restart
@@ -200,8 +202,11 @@ describe('F96 — a match kept in storage', () => {
     const late = newServer(storage)
     vi.advanceTimersByTime(5 * 60_000)
     expect(late.server.restore(saved)).toBe(true)
+    vi.advanceTimersByTime(60_000)
+    expect(late.server.data.seats[0].kind).toBe('human') // nobody back yet: it waits (F99)
+    join(late.server, late.party, 1, false, 'tab-1-late')
     vi.advanceTimersByTime(0)
-    expect(late.server.data.seats[0].kind).toBe('bot')
+    expect(late.server.data.seats[0].kind).toBe('bot') // the first one back: the timer that ran out fires at once
   })
 
   it('a bot that was thinking plays its move after the restart, when it would have', async () => {
@@ -221,7 +226,40 @@ describe('F96 — a match kept in storage', () => {
     expect(again.server.restore(saved)).toBe(true)
     expect(again.server.timers.isRunning('bot')).toBe(true)
     vi.advanceTimersByTime(BOT_WAIT)
-    expect(again.server.game!.version).toBeGreaterThan(version) // the AI played
+    expect(again.server.game!.version).toBe(version) // nobody is back yet: the match waits (F99)
+    join(again.server, again.party, 0, false, 'tab-0-new')
+    vi.advanceTimersByTime(BOT_WAIT)
+    expect(again.server.game!.version).toBeGreaterThan(version) // the person is back: the AI played
+  })
+
+  it('F99 — bots wait in an empty match: everyone gone → no move and no storage write, even days later; one back → the game goes on, the turn end moved by the wait', async () => {
+    vi.useFakeTimers()
+    // Two people + an AI seat, the 60 s turn timer: P0 plays, then nobody is connected
+    const { storage, server, party, conns } = startRoom(2, { turnSeconds: 60 }, 1)
+    let rng = 11
+    for (let i = 0; i < 4 && server.game!.game.current !== 2; i++) { rng = playOne(server, conns, rng); await vi.advanceTimersByTimeAsync(0) }
+    await vi.advanceTimersByTimeAsync(10_000)
+    server.onMessage(JSON.stringify({ type: 'leave' }), conns[1]) // P1 leaves: a bot plays his seat at once…
+    server.onClose(conns[0]) // …and P0's tab closes: nobody is connected
+    await vi.advanceTimersByTimeAsync(0)
+    const version = server.game!.version
+    const rows = storage.rowsWritten
+    const heldTurn = server.timers.msLeft('turn')
+    await vi.advanceTimersByTimeAsync(3 * 24 * 3600_000) // three days
+    expect(server.game!.version).toBe(version) // no bot moved
+    expect(storage.rowsWritten).toBe(rows) // nothing written
+    expect(server.timers.msLeft('turn')).toBe(heldTurn) // (and the turn clock didn't run)
+
+    // P0 comes back: the AIs play on, and P0 gets a turn again
+    const back = join(server, party, 0, false, 'tab-0-back')
+    if (heldTurn > 0) expect(server.game!.turnEndsAt).toBe(Date.now() + heldTurn) // the end every screen shows moved with the wait
+    let played = 0
+    for (let i = 0; i < 40 && played < 1 && server.game!.game.phase !== 'over'; i++) {
+      await vi.advanceTimersByTimeAsync(BOT_WAIT)
+      if (server.game!.game.current === 0 && back.lastView()!.game.current === 0) { rng = playOne(server, [back], rng); played++ }
+    }
+    expect(server.game!.version).toBeGreaterThan(version + 1)
+    expect(back.errors()).toEqual([])
   })
 
   it('the privacy page says how long a room is kept — the same numbers as content/rooms.json', () => {

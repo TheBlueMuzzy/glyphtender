@@ -90,8 +90,9 @@ export function afterSeatChange(state: ServerGame, seatId: string, change: SeatC
 /**
  * The match was loaded back from storage (the server restarted or redeployed, or the room woke up — F96). A timer is
  * code, so only its end time was saved (`timersEndAt`): each one that was running starts again for what's left of it —
- * one already past fires at once, as the rooms kit describes (rules.onRestore). So the turn timer keeps its end time
- * (turnEndsAt, which every screen shows, stays right) and a bot that was thinking plays when it would have.
+ * one already past fires at once, as the rooms kit describes (rules.onRestore). So the turn timer keeps its time left
+ * and a bot that was thinking plays when it would have. (Nobody is connected right after a restore, so the room holds
+ * them until the first player is back — F99 — and resumeTimers moves turnEndsAt by the time they waited.)
  */
 export function restartTimers(state: ServerGame, room: RoomTools<ServerGame, never>, words: WordsFor, timersEndAt: Record<string, number>): ServerGame {
   if (state.game.phase === 'over') return state
@@ -100,6 +101,16 @@ export function restartTimers(state: ServerGame, room: RoomTools<ServerGame, nev
   if (timersEndAt[TURN_TIMER] !== undefined) room.timers.start(TURN_TIMER, left(TURN_TIMER), () => room.timedOut(seatId))
   if (timersEndAt[BOT_TIMER] !== undefined) room.timers.start(BOT_TIMER, left(BOT_TIMER), () => room.update((now) => botStep(now, room, words)))
   return state
+}
+
+/**
+ * Someone is back in a match nobody was connected to (rooms 0.14.0, F99 — bots wait in an empty match). While it
+ * waited the turn timer was held, so it now ends later: every screen's turnEndsAt moves to its new end.
+ */
+export function resumeTimers(state: ServerGame, timersEndAt: Record<string, number>): ServerGame {
+  const endsAt = timersEndAt[TURN_TIMER]
+  if (endsAt === undefined || state.turnEndsAt === endsAt) return state
+  return { ...state, turnEndsAt: endsAt }
 }
 
 /**
