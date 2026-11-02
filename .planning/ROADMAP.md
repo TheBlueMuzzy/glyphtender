@@ -303,7 +303,7 @@ flowchart LR
   F88 --> F87
 ```
 
-## v0.16 — On today's framework  ✅ released 2026-11-01 (v0.12.0)  · planned 2026-10-30
+## v0.16 — On today's framework  ✅ released 2026-11-02 (v0.12.0)  · planned 2026-10-30
 Goal (Muzzy 2026-10-30): every framework module current (framework v0.34.0), portrait only, the board nearer the middle of a phone — from the framework's catch-up rehearsal (framework .planning/research/2026-10-29-glyphtender-catchup.md).
 - ✅ F90 🔧 Quiet module updates — Dev Kit, table, ai, rooms, audio to the newest with every printed hand step; bots stay silent (chattiness 0); the tuned mix kept — must · sprint 30
 - ✅ F97 🎮 Portrait only — "orientation": "portrait", a sideways phone shows turn-your-phone, landscape sizes dropped from checks; GDD updated (Muzzy 2026-10-30) — must · sprint 30
