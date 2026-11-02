@@ -41,6 +41,7 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing ge
 **Since Dev Kit 0.28 (F90 — Quiet module updates):** the Dev Kit arrives ~2 s after the page — an e2e that opens it waits for `aside.devkit` attached, never a fixed time. Adding a sound in the Sound tab keeps its original in `audio-originals/` (committed; `npm run audio:check -- --fix` uses it). Port lookups (stop-servers, check-all's pre-flight) can miss a server started from Claude's shell — stop wrangler by name: `node ~/.claude/config/bmuz/scripts/stop-servers.mjs wrangler`.
 
 ## Log
+- 2026-11-01 — F96 — Matches survive a server restart ✅ — Sprint 31 done: an online match carries on after the server restarts or updates (same game, turn and timer); a match nobody touches for 7 days is deleted.
 - 2026-11-01 — F95 — Rejoin match ✅: close the tab mid-match and the main menu offers "Rejoin match" — one tap and you're back in your seat ("You're back", with how many turns a bot played for you).
 - 2026-11-01 — F94 — Saves switch-over ✅: everything the game remembers (New Game choices, lobby choices, tutorial unlock, words waiting to send) now has a version and backups; old saves carry over unchanged.
 - 2026-11-01 — F93 — Lint clean-up ✅: the game's settings and words live in its content files (three new Dev Kit sliders: roomy-screen hex size, the pause after scoring, the Story chart's tangle column); the AI plays exactly as before.
@@ -50,4 +51,3 @@ Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing ge
 - 2026-10-30 — F97 — Portrait only ✅: Glyphtender is an upright game — installed it opens upright, full screen on Android holds it upright; a sideways browser tab just looks sideways (Muzzy: "it'll be obvious").
 - 2026-10-30 — F90 — Quiet module updates ✅: every framework module current; plays and looks the same (216/216 screenshots), the bots stay silent, the sounds are evened out with the tuned mix kept (Muzzy listened: fine).
 - 2026-10-30 — Sprint 30 planned: Glyphtender on today's framework (F90 quiet module updates, F97 portrait only, F91 new kit look with the board nearer the middle, F92 version label + crash reports).
-- 2026-10-15 — Released v0.11.0 = v0.15 ✅ Dev Kit Select Mode (F86 game things, F88 menus — Muzzy approved): click anything with the Dev Kit open → every setting for it. Review fix → Dev Kit 0.16.1. Server unchanged (not redeployed).
