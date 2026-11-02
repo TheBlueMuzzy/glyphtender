@@ -68,6 +68,11 @@ export function joinRoom(code: string) {
   useOnline.setState({ code, creating: false, rejoin: false, room: null, joinError: null })
 }
 
+/** Main menu → Rejoin match: back into the match this device was in (the kit's matchToRejoin()), with the saved name. */
+export function rejoinMatch(code: string) {
+  useOnline.setState({ code, creating: false, rejoin: true, room: null, joinError: null })
+}
+
 /** Out of the room (Leave, Menu → Leave game): tell the server, stop the online game, back to the menu. */
 export function leaveOnline() {
   useOnline.getState().room?.leave()

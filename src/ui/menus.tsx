@@ -9,7 +9,8 @@ import { resetTips, settings, settingsChanged } from './gameSettings'
 import { canFullscreen, hiddenFullscreenRows, isInstalled, setFullscreen, useFullscreen } from './fullscreen'
 import { LobbyScreen } from './online/LobbyScreen'
 import { OnlineStartScreen } from './online/OnlineStartScreen'
-import { useOnline } from './online/session'
+import { rejoinMatch, useOnline } from './online/session'
+import { matchToRejoin } from '../rooms/lastRoom'
 import { wordSwitchesLine } from './online/onlineOptions'
 import { useGameStore } from '../store/gameStore'
 import text from '../../content/text/en.json'
@@ -25,6 +26,7 @@ const onlineAvailable = import.meta.env.DEV || !!import.meta.env.VITE_PARTY_HOST
 
 // HOME — title, tagline, and the menu buttons in our order (Play is the main button).
 // A brand-new device (F74): Play opens the tutorial's overview, and Play online is locked — a tap on it says why.
+// After a tab closed mid-match (F95): Rejoin match on top, as the main button.
 export function MainMenuScreen() {
   const w = text.mainMenu
   const tutorialDone = useTutorial((s) => s.done)
@@ -38,13 +40,18 @@ export function MainMenuScreen() {
   // Full screen / Leave full screen — only where it can work and isn't already app-like (fullscreen.ts)
   const fullscreen = useFullscreen((s) => s.on)
   const fullscreenButton = canFullscreen() && !isInstalled()
+  // Rejoin match (F95): an online match this device was in when its tab closed (the rooms kit's lastRoom) — the main
+  // button while it's there. Shown even before the tutorial is done: a player with a match to rejoin has played online.
+  const online = useOnline((s) => s.code !== null) // (already getting back in: no second offer)
+  const rejoin = onlineAvailable && !online ? matchToRejoin() : null
   return (
     <MainMenu
       title={w.title}
       subtitle={w.subtitle}
       version={shownVersion(versionLabel)}
       items={[
-        { label: w.play, onClick: closing(tutorialDone ? openNewGame : openTutorial), primary: true },
+        ...(rejoin ? [{ label: text.online.rejoin.rejoin, onClick: closing(() => rejoinMatch(rejoin.code)), primary: true }] : []),
+        { label: w.play, onClick: closing(tutorialDone ? openNewGame : openTutorial), primary: !rejoin },
         ...(onlineAvailable ? [tutorialDone
           ? { label: w.playOnline, onClick: () => screens.push('online') }
           : { label: w.playOnline, onClick: () => setLockedHint(true), locked: true }] : []),
