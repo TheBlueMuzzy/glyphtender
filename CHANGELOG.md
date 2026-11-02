@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.12.0 — 2026-11-02
+
+Online matches don't get lost any more. If you close the tab, reload, or your phone drops off, Rejoin match on the main menu takes you back to your seat, and a match now survives the game's server restarting.
+
+### New
+- Rejoin match: the main menu shows a Rejoin match button while you're in an online match, and puts you back in the same seat with the game carrying on.
+- Reloading the page in the middle of an online match takes you straight back into it.
+- A welcome-back message shows when you rejoin; if the match finished while you were away, the game tells you it has ended.
+
+### Changed
+- Online matches are kept on the server, so a server restart no longer ends them; the turn timer and any computer player carry on where they left off.
+- A match with no moves for 7 days is cleared. The privacy page says so.
+- Your saved settings, tutorial progress, New Game choices and words waiting to be sent carry over safely from earlier versions.
+
 ## v0.11.2 — 2026-11-01
 
 On a phone, the board now sits in the middle of the screen, and the game's version shows on the main menu. If something ever breaks, the game says so instead of going blank and sends a short anonymous report so it can be fixed. You can turn reports off in Settings.

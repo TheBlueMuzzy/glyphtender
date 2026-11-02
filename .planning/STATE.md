@@ -4,7 +4,7 @@ Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn 
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: deliver · Milestone: v0.16 On today's framework ✅ · Sprint: none · Doing: — · Branch: main · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.12.0, beta stage, online)
+Stage: deliver · Milestone: v0.16 On today's framework ✅ · Sprint: none · Doing: — · Branch: main · Version: 0.12.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.12.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
