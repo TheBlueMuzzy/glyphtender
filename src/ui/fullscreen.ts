@@ -71,6 +71,8 @@ export function hiddenFullscreenRows(): string[] {
 let wanted = false // Settings → Full screen
 let current: () => SettingsValues = () => ({}) // the saved settings, as they are now (startFullscreen)
 
+// Written straight into the UI kit's own settings slot: the kit (0.39.0) can load settings (loadSettings) but has no
+// save function to go through — so this file is listed in content/saves.json "storageAllowed" until it has one.
 function save(on: boolean) {
   const next = { ...current(), fullscreen: on }
   try { localStorage.setItem(settingsStorageKey(), JSON.stringify(next)) } catch { /* not remembered, still works */ }

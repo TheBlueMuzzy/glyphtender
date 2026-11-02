@@ -26,7 +26,8 @@ Done when: the saves module is installed and Glyphtender's 4 saved things (New G
   done: tutorialSave ({ done }, v1; oldSave adopts the plain "done") + wordQueueSave ({ words }, v1; oldSave adopts the old raw list; clean keeps only words, capped at submit.queueMax); e2e/tutorial-shell reads the record now — src/tutorial + src/ui tests 95/95
 - [x] 🤖 4. Golden saves: v1 of all 4, v2 of New Game + lobby, each in the saves test — src/ui/online/wordOutbox.ts
   done: 6 golden saves in tests/saves/ (unmarked v1 with 2-letter on → loads off; marked v2 keeps on; tutorial "done" → done; the raw word list → same words) + all 4 saves in SAVES with real-looking samples — tests/saves 23/23
-- [ ] 🤖 5. Full screen writes through the kit's settings, not its key directly — src/ui/fullscreen.ts
+- [x] 🤖 5. Full screen writes through the kit's settings, not its key directly — src/ui/fullscreen.ts
+  done: the kit (0.39.0) has loadSettings but no save function to write through, so fullscreen.ts is listed in content/saves.json storageAllowed with why (and session.ts until F95) — check:framework PASS, Saves ✓ (only createRun / recordRun "none in the game")
 Check: check:fast (golden saves) + e2e game, new-game, word-switches, submit-word, tutorial-shell; a browser with old saves (v0.11.2's keys) keeps its choices.
 Checked:
 
