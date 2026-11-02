@@ -53,6 +53,7 @@ Done when: an online match is kept in the room's storage, so a server restart or
 Check: e2e online, online4, online-ai + the restart e2e; server.test; the write count within the free plan's daily limit with room to spare.
 Checked: 2026-11-01 — measured ~2 rows a move, ~180 a 2-player game (~540 games/day on the free plan after the words list + crash reserve; ~215 with crash reports at their cap); check:fast green (850 tests incl. savedMatch.test 7); check:framework PASS; e2e:restart (new, ports 5452/1979: the server stopped + started mid-match, same game, turn, timer) + online, online4, online-ai, rejoin pass; check:full at 54dad6f 38/39 — screenshots = B028 only. Security: one key per room, server-only, deleted at end / lobby / 7 days; open: a script + bots can use up the daily writes (framework Ideas 2026-11-01).
 Muzzy 2026-11-01 "1. a": bots should WAIT in a match nobody is connected to (not play it out) — a framework rooms-kit change for a later sprint (framework ROADMAP Ideas 2026-11-01); until then the kit finishes an abandoned match with bots.
+Approved: Muzzy 2026-11-01 "approved" — F96: done.
 
 Notes:
 - B028 moved out of the sprint (Muzzy 2026-11-01: "1a") → ROADMAP Later: F98 — Steady Story chart shot. Its investigation (2 causes ruled out) is in BUGS B028.
@@ -68,4 +69,7 @@ Notes:
   - Found: a match everyone walks away from isn't cleared after 5 minutes any more — it's kept, a bot takes each seat after botTakesOverAfterMs and the bots play it to the end with nobody watching (the same ~180 rows as a played game, then deleted). Bounded, but it's the rooms kit's behaviour → reported, not changed here.
 - B028's entry also suspects the tray tile images on game-play shots; this task covers the Story chart only (the case that keeps showing). If the tray case comes back, it's a second task.
 - Deploy: F96 changes the server → at /deliver, `npm run party:deploy` before the site.
-Retro:
+Retro: (Muzzy 2026-11-01: "retro ok" — Claude's draft kept)
+- Went well: all four features landed in one day, with old saves, rejoining and restarts each proven by their own tests.
+- Went wrong: B028 wasn't fixed — two guesses at the cause were ruled out and it moved to F98 — Steady Story chart shot; a new flake showed up (B032, the online AI test waiting a fixed time under load).
+- Change: reproduce a flake on its own first and measure it, before planning a fix for it.

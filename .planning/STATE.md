@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-01 — **F95 — Rejoin match ✅ (Muzzy: "approved"; only Rejoin is green while it shows — "1.a")**: the rooms kit's lastRoom is the one memory; "Rejoin match" on the main menu after a closed tab, "Rejoining…" / "You're back" / "That match has ended"; e2e:rejoin (ports 5450/1981). F93 — Lint clean-up ✅ and F94 — Saves switch-over ✅ earlier today; B032 (online-ai wall-clock flake, P3) logged. Sprint 31 — Nothing gets lost on dev/v0-16-nothing-lost. **Next: /develop F96 — Matches survive a server restart, task 1** (measure storage writes per turn / per game on a local server vs Cloudflare's free plan, numbers in SPRINT Notes; model: framework starters/turn-based/party/worker.ts).
+2026-11-01 — **Sprint 31 — Nothing gets lost done: F93 — Lint clean-up, F94 — Saves switch-over, F95 — Rejoin match, F96 — Matches survive a server restart ✅ (all approved by Muzzy; retro kept)** on dev/v0-16-nothing-lost — milestone v0.16 On today's framework is complete. **Next: /deliver** (a milestone release, v0.12.0): the server changed (room storage) → `npm run party:deploy` BEFORE the site; after the release commit, rebuild with the deploy's settings and commit the matching crash maps (Crashes key fact); /save before any other local build. Open for later: framework rooms "bots wait in an empty match" (Muzzy "1. a", framework Ideas); F98 — Steady Story chart shot; B032.
 Open: B028 (P3) the screenshot check flakes under load — tray tiles not drawn yet.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: F96 — Matches survive a server restart · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
+Stage: develop · Milestone: v0.16 On today's framework · Sprint: 31 Nothing gets lost · Doing: — (sprint done → /deliver) · Branch: dev/v0-16-nothing-lost · Version: 0.11.2.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.11.2, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
