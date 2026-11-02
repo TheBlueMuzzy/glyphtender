@@ -1,6 +1,8 @@
 # Glyphtender — Bugs
-Open: 7 (P0 0 · P1 0 · P2 1 · P3 6)
+Open: 8 (P0 0 · P1 0 · P2 1 · P3 7)
 ## Open
+### B032 · P3 · open · found 2026-11-01 by check:full (sprint 31, F95 — Rejoin match, 4541ce8) · e2e:online-ai (test, not the game as far as known)
+Steps: `npm run check:full` · Expected: online-ai passes · Actual: "gave up waiting after 60 s" in playUntil(… myTurn(ada), 60) (e2e/online-ai.mjs:182), then no Explore button for Ada (locator timeout 30 s, line 198). Alone: PASS (15/15, 234 s); beside rejoin + online: PASS (177 s). First failure of this test. Suspect: a wall-clock cap (60 s) on "Ada's turn comes round" while the AI seat's turns slow down under the full load — the same family as the framework Idea "e2e that waits on wall-clock time". Fix idea: wait on turns played, not seconds (or a cap by turn count).
 ### B030 · P3 · open · found 2026-10-19 by framework F63 (dev/framework-checks) · e2e: devkit-search, devkit-select, previews, words-tab (test, not the game)
 Steps: on a phone size, these scripts open a Dev Kit tab by pressing ▶ only · Expected: they find the tab wherever it is · Actual: they pass today, but devkit-sound broke exactly this way when the Dev Kit's Fonts tab moved Screens to an earlier page (fixed in 8b9122b: ◀ back to the first page, then forward). Fix idea: one shared "open Dev Kit tab" helper for every e2e script (better still, one the Dev Kit ships).
 ### B029 · P3 · open · found 2026-10-19 by check:full (framework F63, dev/framework-checks) · e2e:end (test, not the game as far as known)

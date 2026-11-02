@@ -39,7 +39,7 @@ Done when: a player who closed the tab mid-match sees "Rejoin match" on the main
 - [x] 🤖 3. e2e: start a 2-player match, close one tab, reopen → Rejoin → same seat, the game goes on — e2e/online-kit.mjs — done: e2e/online-rejoin.mjs (npm run e2e:rejoin, ports 5450/1981, in check-all as "rejoin"): no offer on a fresh browser, Rejoin first + as big as Play online at 4 sizes, same seat + game id, Bo plays and the turn passes to Ada
 - [x] 🤖 4. Close the known gap ("a closed tab can rejoin its match") + GDD §Online line — content/devkit.json — done: gap removed, check:framework keeps the rooms Rejoin promise for real (52 kept, 1 known gap F89); GDD §Online "Rejoin match (F95)" line
 Check: check:framework (the rooms Rejoin promise kept) + e2e online, online4 + the new rejoin e2e; screenshots of the menu with Rejoin at phone + desktop.
-Checked:
+Checked: 2026-11-01 — check:fast green; check:framework rooms "a closed tab can rejoin its match" kept for real, saves 1 file allowed (fullscreen.ts); e2e:rejoin (new, ports 5450/1981) + online + online4 pass; menu shots looked at (390x844, 360x780, 1440x900, 1920x1080: Rejoin on top, same size, nothing at an edge); screenshots 161/162 (B028), no menu shot changed. check:full at 4541ce8 35/37: B028 + online-ai once under load (B032), online-ai then PASS alone and beside rejoin + online.
 
 ## F96 🔧 Matches survive a server restart
 Done when: an online match is kept in the room's storage, so a server restart or a redeploy doesn't lose it; the turn timer and bot timers start again where they were; a match nobody plays for 7 days ends (keepMatchDays 7); the privacy page says so.
