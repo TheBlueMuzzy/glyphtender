@@ -4,8 +4,9 @@
 import type { WordList } from '../../engine/types'
 import { knows, outcomeOf } from '../look'
 import { NOTHING, asTurn, vocabulary, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const SCORE_WEIGHTS = { perLetterPast4: 2, extraWordBonus: 3 }
+export const SCORE_WEIGHTS = weightsFile.SCORE // content/ai/weights.json (Obsidian)
 
 export function scoreGoal(words: WordList): GlyphGoal {
   return {

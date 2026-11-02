@@ -27,7 +27,6 @@
     "Tutorial"
   ],
   "knownGaps": [
-    { "check": "◐ half pause stops the rules, not the looks", "why": "Glyphtender's turns move on when animations finish, so half pause can't hold them yet", "roadmap": "F89" },
-    { "check": "a closed tab can rejoin its match: the kit remembers the room, the menu offers \"Rejoin match\"", "why": "the game still keeps its own room code in sessionStorage and has no Rejoin match button — sprint 31", "roadmap": "F95" }
+    { "check": "◐ half pause stops the rules, not the looks", "why": "Glyphtender's turns move on when animations finish, so half pause can't hold them yet", "roadmap": "F89" }
   ]
 }

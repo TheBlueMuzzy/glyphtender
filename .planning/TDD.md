@@ -116,7 +116,9 @@ flowchart LR
 | `content/ai/pace.json` | think times per action kind (draft, moveCast, refresh: min/max s), speeds (slow 0.5 · normal 1 · fast 2 · instant 0 = no wait), timeBudgetMs. Tuning-tab format (_labels/_sections/_ranges by path), edited in the AI tab's "AI: pace" section (plugged in as a settings file; Watch reads its think times) | Dev Kit → AI / Obsidian |
 | `content/ai/banter.json` | ai 0.8 starter (F90): per-moment chance a chatty bot speaks. **Unused** — every personality's chattiness is 0 (bots silent, Muzzy 2026-10-30); chatty bots wait for a /define | Dev Kit → AI / Obsidian |
 | `content/ai/arena.json` | ai 0.8 starter (F90): settings for the framework's AI arena. **Unused** — the game still runs its own `scripts/ai-arena.mjs` (switch = ROADMAP Ideas 2026-10-30) | Obsidian |
+| `content/ai/weights.json` | F93 (lint): the AI's instincts — how much each thing counts when a goal scores a move (TRAP, SCORE, DENY, ESCAPE, BUILD, STEAL, DUMP, SELFTANGLE), the draft weights and magicPerPoint (behind / ahead readings). Moved out of the top of each `src/ai/goals/*.ts` + decisions.ts + readings.ts, same values; goals.json's bigAt is the bar on the same scale. Change one → `npm run ai:arena` to see what it does | Obsidian |
 | `content/crashes.json` | crashes 0.2.2 (F92): `client` — url (the crash server; empty = errors caught, nothing sent — until it's live), perSession, moments, sendInDev · `server` — per-address / per-day limits, keepDays 90 (Muzzy 2026-10-22). Read at start-up (src/main.tsx startCrashes); the server's values need `npm run crashes:deploy` again. Local try: `npm run crashes:dev` (port **1996** — 1995 is the online e2e's wrangler) with crashes/.dev.vars (never committed). `releases/<version>/maps/` = each build's hidden source maps (committed, never shipped) so `npm run crashes` reads a crash's lines back | Obsidian / Dev Kit |
+| `content/saves.json` | saves 0.7.0 (F94 — Saves switch-over): `backups` (older copies kept beside each save), `nudge` (when to suggest backing up a save), `cloud` / `board` (only for the link-code and leaderboard servers — Glyphtender has neither), `storageAllowed` (game files that may still use browser storage directly, each with why — check:framework lists every other one). Every saved thing goes through `createSave` (src/saves); old saves are proven by golden copies in `tests/saves/` | Obsidian |
 | `content/credits.json` | fonts, word list, sounds | Dev Kit → Sound (Add to credits) / organize-assets |
 | `content/words/submitted.csv` | the check-against list: words still undecided (open) or kept out for good (no, with category — F68) — word, status, category, added, note; accepted words (Yes / B / V) move to words.csv on Save (F71); seeds the server's submitted list on first use (F69) | Dev Kit → Words (F70) / Obsidian |
 | `content/words/submit.json` | Submit a word (F69): minLetters 3, maxLetters 15, pickerMax 8 (picker rows), maxOpenPlayerWords 5000 (server cap on waiting player words), queueMax 20 (offline words kept on a device). The server bundles it: a change needs a server rebuild | Obsidian |
@@ -141,12 +143,14 @@ flowchart LR
 | Audio (beta) | sound effects ≤ ~500 KB, loaded after the first screen (not in first load); music streamed, cached on first play | /deliver quick check |
 | AI turn (beta) | < 1 s on a phone, in a Web Worker | timing test |
 | Network | 1 action + N views per turn; Cloudflare Workers free plan | server logs |
+| Room storage (F96) | ≤ ~2 rows written per action (~180 a 2-player game) — free plan 100,000 rows a day per account; a saved room ≤ ~50 KB (limit 2 MB) | e2e:restart counts them (TEST_LOG_STORAGE) · savedMatch.test |
 
 ## 6. Security & fairness
 - Online: clients only send *intentions*; the server's engine decides. Clients never receive other hands, the bag order or Magic totals — so a cheater can't read them.
 - Pass-and-play is on trust (it's one device).
 - Dev Kit tools that affect play (Snapshots restore, bag editing) are offline-only: the adapter's `canRestore` is false in an online game and the dev hook's `playRest` / `playUntilDanger` do nothing (the server owns the game).
 - Online input checks: the rooms module refuses junk and messages over 16 KB; Glyphtender's checks refuse wrong shapes, other seats, stale versions and illegal moves. Names are trimmed to 16 characters. The persistentId (which owns a seat) is never sent to other players.
+- Room storage (F96, D102): a match being played is kept in its room's own Durable Object storage — names, persistentIds, the whole game incl. the move record with its secret seed numbers. Only the room's own code reads it (no route reads or lists storage; the fetch handler only routes /health, /words/… and rooms); views are still built field by field (savedMatch.test + e2e:restart's frame check). One key per room code, deleted at game over / lobby / cleared / 7 days without a move / 24 h unplayed and empty — so storage can't pile up past one live match per code (~6,400 codes). No per-address limit on making rooms (rooms kit README, "Room-code squatting"): a script could start matches to spend the daily rows written allowance — see SPRINT F96 Notes / the report.
 - No secrets in the repo; `.env` and `.dev.vars` gitignored.
 - Submitted words (F69): anyone may POST a word (size + A–Z checked, the Open pile capped); reading or changing the list needs WORDS_ADMIN_KEY (a Worker secret, never in the game's code) — only the Dev Kit's dev server sends it.
 
@@ -161,6 +165,23 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D102 · 2026-11-01 · A match being played is kept in its room's Durable Object storage (F96 — Matches survive a server restart)
+  Proposed by: the rooms kit 0.10.0 (F100, harvested for every game) · keepMatchDays 7 = Muzzy's call (a live game)
+  Chose: party/worker.ts copies the turn-based starter's storage parts — one key "room" (the kit's SavedRoom JSON:
+  seats with names + persistentIds, kicked ids, the whole ServerGame incl. the SECRET move record) + one alarm for the
+  earliest timer; async onStart restores it before anything reaches the room; onAlarm → room.wakeUp(). The game's own
+  timers come back through rules.onRestore (turnClock.ts restartTimers): 'turn' and 'bot' start again for what's left
+  (past → at once), so turnEndsAt — the end time every screen shows — stays right. No new wrangler migration: v1 already
+  made Main a SQLite class. Wiped at game over, back to lobby, a cleared room, keepMatchDays (7) with no move, or
+  keepUnplayedMatchHours (24, kit default) when no person has moved and nobody's there. The lobby and a finished game stay
+  memory-only (keepEmptyRoomMs).
+  Storage note (measured, SPRINT F96 Notes): ~2 rows written per action (a save + the alarm, which moves with the 7-day
+  end), ~180 per 2-player game, ~230 per 4-player; a saved room is ~5 KB at the start, ~45 KB at the end (limit 2 MB);
+  free plan 100,000 rows written a day across the account (shared with the Words list and the crash server, ≤ 60,000 at
+  its cap) → ~540 2-player games a day normally, ~215 during a crash flood. Proven by e2e:restart (wrangler stopped and
+  started mid-match, same --persist-to) + party/savedMatch.test.ts.
+  Known: a match everyone walks away from is now kept, and after botTakesOverAfterMs bots finish it for nobody (rooms
+  kit behaviour — same cost as a played game, then deleted). Before F96 it was cleared after 5 minutes.
 D101 · 2026-10-30 · Upright phone: the prompt goes under the top bar, the board to the middle (replaces D41 there)
   Proposed by: Muzzy ("the board should be closer to the center so that the ergonomics aren't as bad"; picked ".5 is good")
   Found: the board was already as low as its box allowed — the space under it is the prompt's fixed 3-line frame (B013),

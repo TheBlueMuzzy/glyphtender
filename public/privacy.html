@@ -25,12 +25,20 @@
       Reports are deleted after 90 days.</p>
     <p>You can turn this off in <strong>Settings → Privacy → Send crash reports</strong>.</p>
 
-    <!-- Online play: what party/ really keeps (read 2026-11-01). Rooms live in the server's memory only (worker.ts gives
-         the rooms kit no saveRoom); "5 minutes" = content/rooms.json keepEmptyRoomMs; the log lines = roomServer.ts log();
+    <!-- Online play: what party/ really keeps (read 2026-11-01, F96). A match being played is saved in the room's own
+         storage (worker.ts keep() → the rooms kit's saveRoom; what's in it = src/rooms/server/savedRoom.ts SavedRoom:
+         seats with names + persistentId, kicked ids, the game state incl. its move record). It's deleted at game over,
+         back to the lobby, a cleared room, after keepMatchDays (7) with no move, or keepUnplayedMatchHours (24) when no
+         person ever moved and nobody is connected (content/rooms.json; roomServer.ts saveNow / clearRoom). The lobby and a
+         finished game live in memory only: "5 minutes" = keepEmptyRoomMs. The log lines = roomServer.ts log();
          submitted words = party/submittedWords.ts (word, status, day — no sender); this device = src/rooms/identity.ts + lastRoom.ts. -->
     <h2>Online play</h2>
-    <p>When you play online, the game's own server holds the room while it's open: the names players typed and the game
-      itself. It isn't saved anywhere else, and it's cleared at most 5 minutes after everyone has left.
+    <p>When you play online, the game's own server holds the room: the names players typed, a random player number for
+      each player (so you get your own seat back) and the game itself. While a match is being played it's kept in the
+      server's own storage, so a server restart doesn't lose it. It's deleted when the match ends, when the host goes back
+      to the lobby, or after 7 days without a move (24 hours, if nobody has made a move yet and nobody is there).
+      The lobby and a finished game are only held in the server's memory, and cleared at most 5 minutes after everyone has left.
+      None of it is saved anywhere else. (Cloudflare keeps its own recovery copy of the server&#39;s storage for up to 30 days, then it&#39;s gone.)
       The server also writes short notes such as "Sam joined", with the room code, which Cloudflare (who runs the server)
       keeps for a few days so problems can be fixed. No account, email or address book is ever asked for.</p>
     <p>Your name, a random player number and the last room's code stay on this device, so the name box is filled in

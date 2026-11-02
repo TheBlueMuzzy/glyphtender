@@ -31,7 +31,7 @@ export function wordFrames(seq: ScoreSequence, i: number, peak: number, t: Timin
   ]
 }
 
-const FLIGHT_STEPS = 14 // points along the arc (the browser draws straight between them — 14 reads as a smooth curve)
+const FLIGHT_STEPS = 14 // tuning-ok: drawing quality, not a feel — points along the arc (the browser draws straight between them — 14 reads as a smooth curve)
 
 /**
  * Points flying (dx, dy) into a total, on the same arc a thrown seed flies (trailShape.throwHandle, anim.json arcHeight —

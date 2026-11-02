@@ -6,8 +6,9 @@ import { hexKey } from '../../engine/hex'
 import type { WordList } from '../../engine/types'
 import { knows, outcomeOf, seatName } from '../look'
 import { NOTHING, asTurn, vocabulary, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const STEAL_WEIGHTS = { perRivalSeed: 3, magicShare: 0.5, majority: 1.5 }
+export const STEAL_WEIGHTS = weightsFile.STEAL // content/ai/weights.json (Obsidian)
 
 export function stealGoal(words: WordList): GlyphGoal {
   return {

@@ -10,6 +10,12 @@
     "exitFullscreen": "Leave full screen"
   },
   "game": {
+    "labels": {
+      "_help": "Names a screen reader says for parts of the game screen (not shown as text).",
+      "garden": "Garden",
+      "panel": "Seeds and actions",
+      "tray": "Seeds"
+    },
     "players": {
       "yellow": "Yellow",
       "blue": "Blue",
@@ -369,6 +375,15 @@
       "problem": "That didn’t work — {reason}",
       "badCode": "A room code is 4 letters, like BAKU"
     },
+    "rejoin": {
+      "rejoin": "Rejoin match",
+      "joiningTitle": "Rejoining…",
+      "joining": "Getting you back into your match.",
+      "back": "You’re back",
+      "backOneTurn": "You’re back — a bot played 1 turn for you",
+      "backTurns": "You’re back — a bot played {n} turns for you",
+      "ended": "That match has ended"
+    },
     "reconnect": {
       "title": "Reconnecting…",
       "message": "Connection lost — getting you back into the garden.",
@@ -409,6 +424,9 @@
   "tutorial": {
     "_help": "The first game teaches itself (design/tutorial.md). Callouts: one idea, 12 words or fewer, verb first.",
     "tipsReset": "Every tip will show again",
+    "tipLabel": "Tip",
+    "tutorialLabel": "Tutorial",
+    "sproutPlaying": "Sprout is playing its scripted turn",
     "locked": "Finish your first game to unlock this.",
     "unlocked": "Everything's unlocked!",
     "overview": {

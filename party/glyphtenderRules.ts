@@ -15,7 +15,7 @@ import { emptyStats } from '../src/store/stats'
 import { mustBeListWithoutRepeats, mustBeObject, mustBeOneOf, mustBeText, mustBeTrueOrFalse, mustBeWholeNumber, nullOr } from '../src/rooms/server/checks'
 import type { GameRules } from '../src/rooms/server/gameRules'
 import type { OnlineAction, OnlineOptions, GameView } from './protocol'
-import { afterSeatChange, planNextTurn, type WordsFor } from './turnClock'
+import { afterSeatChange, planNextTurn, restartTimers, type WordsFor } from './turnClock'
 import { botProfile } from './aiSeats'
 import { play, type ServerGame } from './serverGame'
 import { viewOf } from './views'
@@ -146,5 +146,9 @@ export function makeRules({ words, randomSeed: seedMaker = randomSeed, plainTurn
     // A bot took a seat (the player left, idled or stayed away): if it's that seat's turn, it plays now.
     // A player took their seat back from a bot on their turn: their clock starts (turnClock.ts).
     onSeatChange: (state, seat, change, room) => afterSeatChange(state, seat.id, change, room, words),
+
+    // The match came back from the room's storage (a server restart or redeploy — F96): the turn timer and a bot's
+    // next move start again where they were (turnClock.ts restartTimers)
+    onRestore: (state, room, timersEndAt) => restartTimers(state, room, words, timersEndAt),
   }
 }

@@ -45,7 +45,7 @@ import { placesOf, rackOf, refillRack } from '../table/rack'
 import { actorOf, drawnIds, eventOf, showChange, turnOf, type Happened, type TurnPlay } from './happened'
 
 /** How long to wait for my own action's view before asking again (design §6 timers table; counted from Cast). */
-export const WAIT_FOR_VIEW_MS = 3000
+export const WAIT_FOR_VIEW_MS = 3000 // tuning-ok: a network retry (design §6 timers table), not something a player feels
 
 const anim = liveTuning('anim', animJson) // the replay's timings (read when a replay starts, so the Dev Kit's changes count)
 

@@ -49,6 +49,7 @@ import { turnOf } from '../store/happened'
 import { usePreview } from './usePreview'
 import { HEX, useThrow } from './useThrow'
 import { useAnimTuning, useGardenTuning, useLayoutTuning } from './useTuning'
+import text from '../../content/text/en.json'
 
 const NO_WORDS: SpotWord[] = []
 
@@ -175,7 +176,7 @@ export function Board({ onHexSize, traySide = 'bottom', lean = 1 }: Props) {
 
   return (
     <svg ref={svgRef} className="game-garden" data-knobs="board" viewBox={`${view.minX - shift.x} ${view.minY - shift.y} ${view.w} ${view.h}`}
-      preserveAspectRatio="xMidYMid meet" role="img" aria-label="Garden">
+      preserveAspectRatio="xMidYMid meet" role="img" aria-label={text.game.labels.garden}>
       <defs><PlannedSeedFilter colours={colours} /></defs>
       {board.cells.map((h) => {
         const { x, y } = at(h)

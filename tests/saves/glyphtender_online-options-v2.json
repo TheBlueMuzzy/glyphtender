@@ -1,0 +1,5 @@
+{
+  "about": "The online host's table options as builds from 2026-10-08 up to v0.11.2 kept them (plain JSON straight in localStorage, with the twoLetterSave: 2 marker; British/vulgar words since F71): 2-letter words chosen ON since the fix, a 90-second timer, vulgar words on. The marked choice sticks: it must load with minWordLength 2.",
+  "stored": { "boardName": "auto", "minWordLength": 2, "turnSeconds": 90, "wordIndicators": true, "britishWords": false, "vulgarWords": true, "twoLetterSave": 2 },
+  "expect": { "boardName": "auto", "minWordLength": 2, "turnSeconds": 90, "wordIndicators": true, "britishWords": false, "vulgarWords": true }
+}

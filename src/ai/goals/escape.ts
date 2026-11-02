@@ -5,8 +5,9 @@
 import { occupiedHexes, mobilityAfter, mobilityNow, openDirections, outcomeOf, territoryAfter, type TurnAction } from '../look'
 import type { WordList } from '../../engine/types'
 import { NOTHING, asTurn, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const ESCAPE_WEIGHTS = { perDangerDrop: 5, perRoute: 2, perOpenDirection: 3, fewRoutes: -10, selfTangle: -50, perHexKept: 1 }
+export const ESCAPE_WEIGHTS = weightsFile.ESCAPE // content/ai/weights.json (Obsidian)
 
 const danger = (moves: number) => Math.max(0, 6 - moves)
 

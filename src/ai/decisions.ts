@@ -15,12 +15,13 @@ import type { Special } from './kit/types'
 import { beliefsOf, leastConfidence } from './evidence'
 import { hexDistance, junkiness, mobilityNow, movesFrom, occupiedHexes, openDirections, outcomeOf, type TurnAction } from './look'
 import type { GlyphContext } from './goals/shared'
+import weightsFile from '../../content/ai/weights.json'
 
 const trait = (ctx: GlyphContext, name: string) => ctx.traits[name] ?? 50
 
 // ── Draft ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-export const DRAFT_WEIGHTS = { perMove: 0.5, perHexFromCentre: 1, perHexFromRival: 1.5 }
+export const DRAFT_WEIGHTS = weightsFile.draft // content/ai/weights.json (Obsidian)
 
 /** How good a hex is to place a glyphling on, for this bot (higher = better). */
 export function draftValue(world: GameState, seat: number, hex: Hex, aggression: number, caution: number): number {
@@ -110,6 +111,7 @@ export function callItDecision(ctx: GlyphContext, words: WordList): { special: S
   const best = endings.reduce((a, b) => (net(b) > net(a) || (net(b) === net(a) && rivalsGet(b.bonus) < rivalsGet(a.bonus)) ? b : a))
   const finalLead = beliefs.lead + net(best)
   if (finalLead < needed) return null
+  // text-ok: a goal name in the Dev Kit's AI notes (like SCORE, TRAP), never shown in the game
   return { special: { action: best.action, goal: 'CALL IT', why: `believes it's ahead by ${Math.round(finalLead)} (nerve ${Math.round(needed)}); rivals get ${rivalsGet(best.bonus)} tangle bonus` } }
 }
 

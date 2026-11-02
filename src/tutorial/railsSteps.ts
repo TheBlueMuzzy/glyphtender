@@ -91,7 +91,7 @@ const seed2 = (game: GameState): RailsLimit =>
   ({ piece: { kind: 'seed', id: seedIdOf(game, you, rails.turn2.seed) }, to: railsHex(rails.turn2.plant), reason: reason('seed2') })
 /** "Your seed blocks Blue's glyphling": its room glows, so you see the line your seed cut off. */
 const blocksLimit = (game: GameState): RailsLimit => ({ ...refreshLimit(game), showMoves: blocked })
-const SPROUT: RailsLimit = { piece: null, to: null, reason: 'Sprout is playing its scripted turn' }
+const SPROUT: RailsLimit = { piece: null, to: null, reason: text.tutorial.sproutPlaying }
 
 // ─── When ───
 const at = (step: ReturnType<typeof railsStep>) => (s: StepState) => railsStep(s.game) === step

@@ -1,5 +1,5 @@
 # Glyphtender — Roadmap
-Release target: beta — v0.15 Click a thing, tweak it ✅ released 2026-10-15 (v0.11.0: Dev Kit Select Mode) · v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test closed — Muzzy has Android only, 2026-10-12: friends will report) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
+Release target: beta — v0.16 On today's framework ✅ released 2026-11-01 (v0.12.0: Rejoin match, matches survive a server restart) · v0.15 Click a thing, tweak it ✅ released 2026-10-15 (v0.11.0: Dev Kit Select Mode) · v0.13 Fair words ✅ released 2026-10-12 (v0.9.0: a fairer word list, Submit a word, British spelling + Vulgar words options) · v0.12 Beta audits ✅ released 2026-10-11 (v0.8.0, beta; iPhone streaming-music test closed — Muzzy has Android only, 2026-10-12: friends will report) · v0.10 Story + v0.11 Dragging ✅ released 2026-10-10 (v0.7.0) · v0.9 audio ✅ released 2026-10-10 (v0.6.0); beta label after the beta audits (optimize · design + iPhone streaming-music test; accessibility parked — Muzzy 2026-10-09) · AI (v0.7, defined 2026-10-04) — musts 18/18 ✅ (v0.6 8/8 · v0.7 10/10) — v0.7 AI opponents released 2026-10-07 (v0.5.0); beta label after the beta audits (optimize · accessibility · design) · v0.6 Rebuilt on the Table released 2026-10-04 (v0.4.0, musts 8/8) · v0.4.1 update released 2026-10-05 (AI looks human, online AI, New Game redo) · alpha — released 2026-09-30 (v0.1.0) · online added 2026-10-01 (v0.2.0) · polish 2026-10-03 (v0.3.0)
 IDs are names, not build order — follow `needs:`.
 
 ## v0.1 — Sketch  ✅ done 2026-09-30
@@ -303,27 +303,28 @@ flowchart LR
   F88 --> F87
 ```
 
-## v0.16 — On today's framework  ← current · planned 2026-10-30
+## v0.16 — On today's framework  ✅ released 2026-11-01 (v0.12.0)  · planned 2026-10-30
 Goal (Muzzy 2026-10-30): every framework module current (framework v0.34.0), portrait only, the board nearer the middle of a phone — from the framework's catch-up rehearsal (framework .planning/research/2026-10-29-glyphtender-catchup.md).
 - ✅ F90 🔧 Quiet module updates — Dev Kit, table, ai, rooms, audio to the newest with every printed hand step; bots stay silent (chattiness 0); the tuned mix kept — must · sprint 30
 - ✅ F97 🎮 Portrait only — "orientation": "portrait", a sideways phone shows turn-your-phone, landscape sizes dropped from checks; GDD updated (Muzzy 2026-10-30) — must · sprint 30
 - ✅ F91 🎮 New kit look — UI kit 0.20 → 0.38, the board near the vertical middle of a phone for comfort, Muzzy's OK on before/after shots — must · needs: F97 · sprint 30
 - ✅ F92 🔧 Version label + crash reports — the version in the menu + Settings, crash reports wired and their server live, a privacy page — must · sprint 30
-- ⏳ F93 🔧 Lint clean-up — install lint 0.4.0, fix the ~9 real finds (player words → en.json, AI weights → content/ai), then errors on — must · needs: F90
-- ⏳ F94 🧱 Saves switch-over — 4 keys onto createSave + oldSave (tutorial "done" carried over as plain text), golden saves — must · needs: F90
-- ⏳ F95 🎮 Rejoin match — the kit's lastRoom + "Rejoin match" on the main menu after a closed tab — should · needs: F90
-- ⏳ F96 🔧 Matches survive a server restart — room storage in party/worker.ts + onRestore for the 2 timers; keepMatchDays (Muzzy: live ~7 / async ~30); then update public/privacy.html's Online play part (it says rooms are in memory only, cleared ≤ 5 min after everyone leaves) — should · needs: F95
+- ✅ F93 🔧 Lint clean-up — install lint 0.4.0, fix the ~9 real finds (player words → en.json, AI weights → content/ai), then errors on — must · needs: F90
+- ✅ F94 🧱 Saves switch-over — 4 keys onto createSave + oldSave (tutorial "done" carried over as plain text), golden saves — must · needs: F90
+- ✅ F95 🎮 Rejoin match — the kit's lastRoom + "Rejoin match" on the main menu after a closed tab — should · needs: F90
+- ✅ F96 🔧 Matches survive a server restart — room storage in party/worker.ts + onRestore for the 2 timers; keepMatchDays (Muzzy: live ~7 / async ~30); then update public/privacy.html's Online play part (it says rooms are in memory only, cleared ≤ 5 min after everyone leaves) — should · needs: F95
 ```mermaid
 flowchart LR
-  F90[✅ F90 Quiet module updates] --> F93[⏳ F93 Lint clean-up]
-  F90 --> F94[⏳ F94 Saves switch-over]
-  F90 --> F95[⏳ F95 Rejoin match]
-  F95 --> F96[⏳ F96 Matches survive a restart]
+  F90[✅ F90 Quiet module updates] --> F93[✅ F93 Lint clean-up]
+  F90 --> F94[✅ F94 Saves switch-over]
+  F90 --> F95[✅ F95 Rejoin match]
+  F95 --> F96[✅ F96 Matches survive a restart]
   F97[✅ F97 Portrait only] --> F91[✅ F91 New kit look]
   F92[✅ F92 Version + crash reports]
 ```
 
 ## Later
+- 🟢 F98 🐞 Steady Story chart shot — B028: the end4-story-round6 screenshot differs by 1 pixel now and then (a few shades on the yellow line's soft edge under the purple line's outline; test-only, players never see it). Ruled out + next ideas in BUGS B028 (Muzzy 2026-11-01: out of sprint 31) — should
 - 🟢 F85 ❓ Tutorial follow-ups (from F80, Muzzy's to-dos 2026-10-13): 🙋 a short looping video for each of the 3 "How to play" cards (then 🤖 wires them in) · 🙋 play it on a phone + have other people play it · 🙋 reword nudges / tips / Explore lines in Dev Kit → Text · ❓ nudge look ("a bit small and lack visibility": bigger text / brighter edge / bounce) · ❓ a "suggested word" nudge (a glow on one spot vs a "show me a move" button) · ❓ should Replay tutorial game re-lock the device for testers? · the Story grip partly covers the "R1" label — must:1.0
 - 🟢 F89 🔧 Dev Kit ◐ half pause holds Glyphtender (rules freeze, animations keep playing): turn steps that wait for an animation to finish (bot glide → throw, the bot's draft landing, Reveal, Handoff, the score sequence; ~8 places) wait while the rules clock is stopped. A small framework helper comes first, so the next game is cheaper. ~3–5 h — should · from framework F63 (2026-10-19, Muzzy: "later, on its roadmap"); until then it is a known gap in content/devkit.json
 - **Framework Emote module** — players send predefined messages (MTG Arena / Hearthstone style); later the AI module gets triggers + frequency to use it (F44) — could

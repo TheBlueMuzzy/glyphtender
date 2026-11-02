@@ -6,19 +6,21 @@
 // so players from before the tutorial never see a lock (D95).
 import { create } from 'zustand'
 import tutorialTuning from '../../content/tuning/tutorial.json'
+import { createSave, savesStorage, type StorageLike } from '../saves'
 import { setAiPauseScale } from '../store/localBot'
 
-type Storage = Pick<globalThis.Storage, 'getItem' | 'setItem'>
 const DONE_KEY = 'glyphtender:tutorial'
-const PLAYED_BEFORE_KEY = 'glyphtender:new-game' // src/ui/newGame.ts SAVE_KEY
+const PLAYED_BEFORE_KEY = 'glyphtender:new-game' // src/ui/newGame.ts SAVE_KEY (any copy there — the old plain JSON or a save — counts)
+/** What v0.11.2 and earlier kept under DONE_KEY: the plain word done (not JSON). */
+const OLD_DONE = 'done' // text-ok: the stored value, never shown
 
-function browserStorage(): Storage | null {
-  try {
-    return typeof localStorage === 'undefined' ? null : localStorage
-  } catch {
-    return null
-  }
-}
+/** "Has had the tutorial game" as a save (version 1). The plain word done from before the saves module loads as done.
+ *  storage: left out = the browser's (through the saves module) · a test's own · null = none at all. */
+export const tutorialSave = (storage?: StorageLike | null) => createSave<{ done: boolean }>({
+  key: DONE_KEY, kind: 'settings', version: 1, fresh: { done: false },
+  oldSave: (raw) => (raw === OLD_DONE ? { version: 1, data: { done: true } } : null),
+  ...(storage === undefined ? {} : { storage }),
+})
 
 /** DEV ONLY: the e2e checks (navigator.webdriver) start as a returning device, so their Play → New Game paths still
  *  work; `?tutorial=fresh` in the address makes a check (e2e/tutorial-shell.mjs) start as a brand-new device. */
@@ -26,10 +28,10 @@ const e2eSkips = () => import.meta.env.DEV && typeof navigator !== 'undefined' &
   && !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('tutorial') === 'fresh')
 
 /** Has this device had the tutorial game (finished or left it), or played before it existed? */
-export function tutorialDoneOn(storage: Storage | null): boolean {
+export function tutorialDoneOn(storage: StorageLike | null): boolean {
   try {
     if (!storage) return false
-    return storage.getItem(DONE_KEY) === 'done' || storage.getItem(PLAYED_BEFORE_KEY) !== null
+    return tutorialSave(storage).load().done || storage.getItem(PLAYED_BEFORE_KEY) !== null
   } catch {
     return false
   }
@@ -46,15 +48,11 @@ interface Tutorial {
   calloutUp: boolean
 }
 
-export const useTutorial = create<Tutorial>()(() => ({ done: e2eSkips() || tutorialDoneOn(browserStorage()), active: false, justUnlocked: false, calloutUp: false }))
+export const useTutorial = create<Tutorial>()(() => ({ done: e2eSkips() || tutorialDoneOn(savesStorage()), active: false, justUnlocked: false, calloutUp: false }))
 
 /** Finished or left: unlocked for good on this device (if the browser won't store it, just for this visit). */
-export function markTutorialDone(storage: Storage | null = browserStorage()) {
-  try {
-    storage?.setItem(DONE_KEY, 'done')
-  } catch {
-    // not remembered — still unlocked until the page is closed
-  }
+export function markTutorialDone(storage?: StorageLike | null) {
+  tutorialSave(storage).save({ done: true }) // never throws: not remembered → still unlocked until the page is closed
   useTutorial.setState({ done: true })
 }
 

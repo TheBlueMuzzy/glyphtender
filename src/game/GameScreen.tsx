@@ -38,7 +38,6 @@ import { useGardenTuning, useLayoutTuning } from './useTuning'
 import './game.css'
 
 const HEX_HEIGHT = Math.sqrt(3) / 2 // a flat-top hex is this much as tall as it is wide
-const BIG_HEX = 64 // board hexes this wide (px) or more = a roomy screen: the prompt's words go up a size
 
 export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   const game = useGameStore((s) => s.game)!
@@ -146,7 +145,8 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
   // between the prompt and the tray (a little = high, 0.5 = middle, 1 = right on the tray). 0 = the prompt just above
   // the tray, as before. Tray above the board (Flipped) and tray beside it: unchanged.
   const promptTop = stacked && !flipped && layout.boardVertical > 0
-  const prompt = <PromptLine big={hexPx >= BIG_HEX} fixed={stacked && !ended} hangRoom={hangRoom} />
+  // A roomy screen (hexes at least layout.json bigHexPx wide): the prompt's words (and the reveal panel) go up a size
+  const prompt = <PromptLine big={hexPx >= layout.bigHexPx} fixed={stacked && !ended} hangRoom={hangRoom} />
   // Buttons as tall as a board hex (its flat-to-flat height), never below the finger-size floor
   const buttonPx = Math.max(layout.trayTileMin, Math.round(hexPx * HEX_HEIGHT))
 
@@ -164,9 +164,9 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
         <svg className="game-garden-back" aria-hidden="true"><rect width="100%" height="100%" fill={colours.background} /></svg>
         <Board onHexSize={onHexSize} traySide={traySide} lean={promptTop ? layout.boardVertical : 1} />
       </div>
-      <section className="game-panel" aria-label="Seeds and actions">
+      <section className="game-panel" aria-label={text.game.labels.panel}>
         {!promptTop && prompt}
-        {over ? <RevealPanel compact={!stacked && hexPx < BIG_HEX} big={hexPx >= BIG_HEX} /> : <SeedTray layout={tray} boxWidth={stacked ? tray.width : column} />}
+        {over ? <RevealPanel compact={!stacked && hexPx < layout.bigHexPx} big={hexPx >= layout.bigHexPx} /> : <SeedTray layout={tray} boxWidth={stacked ? tray.width : column} />}
         {!ended && <ActionBar size={buttonPx} fixed={stacked} />}
       </section>
       {/* The game is over: the end bar along the bottom (EndBar.tsx — the same spot as the end screen's) */}

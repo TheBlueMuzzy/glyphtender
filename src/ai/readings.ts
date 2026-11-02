@@ -13,13 +13,14 @@ import type { SeatView } from '../engine/rules'
 import type { WordList } from '../engine/types'
 import { beliefsOf } from './evidence'
 import { HARD_LETTERS, VOWELS, gardens, hexDistance, mobilityNow, reading, territoryNow } from './look'
+import weightsFile from '../../content/ai/weights.json'
 
 /** The names, in one place (personalities' shifts must use these). */
 export const READINGS = ['handQuality', 'myDanger', 'rivalDanger', 'fill', 'territory', 'endNear', 'behind', 'ahead', 'garden'] as const
 export type ReadingName = (typeof READINGS)[number]
 
 /** Magic per reading point for behind / ahead. */
-export const MAGIC_PER_POINT = 2.5
+export const MAGIC_PER_POINT = weightsFile.magicPerPoint // content/ai/weights.json (Obsidian)
 
 /** 10 = a great hand. An empty hand reads 5 (nothing to judge). */
 export function handQuality(letters: readonly string[]): number {

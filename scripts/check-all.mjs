@@ -34,6 +34,8 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['online', 'e2e/online-shots.mjs', 'e2e-shots 5404 1995'],
   ['online4', 'e2e/online-four.mjs', 'e2e-shots 5405 1994'],
   ['online-ai', 'e2e/online-ai.mjs', 'e2e-shots 5416 1993'], // (F43: AI seats online — lobby add / remove, the server's AI, idle takeover)
+  ['rejoin', 'e2e/online-rejoin.mjs', 'e2e-shots 5450 1981'], // (F95: a closed tab mid-match → the menu's Rejoin match → the same seat, the game goes on)
+  ['restart', 'e2e/online-restart.mjs', 'e2e-shots 5452 1979'], // (F96: the local room server stopped + started again mid-match → both players carry on in the same game, timer included; storage writes counted)
   ['screenshots', 'e2e/shots.mjs', 'check'], // (always port 5250)
   ['audio', 'e2e/audio-log.mjs', 'e2e-shots 5417 1992'],
   ['submit-word', 'e2e/submit-word.mjs', 'e2e-shots 5435 1989'], // (F69: Pause → Submit a word → the server's list; repeat, offline queue, < 3 letters) // (F55: sound at the animation's moment, rivals' replays, a rejoin is silent)

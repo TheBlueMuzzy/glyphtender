@@ -16,8 +16,9 @@ import type { WordList } from '../../engine/types'
 import { castReachAfter, castReachNow, mobilityAfter, mobilityNow, outcomeOf, seatName, territoryAfter, territoryNow } from '../look'
 import { castReachOf, threatsFor } from '../threats'
 import { NOTHING, asTurn, rivalsOf, type GlyphGoal } from './shared'
+import weightsFile from '../../../content/ai/weights.json'
 
-export const TRAP_WEIGHTS = { perMoveCut: 5, tangle: 50, perOwnPieceNear: 3, nearlyTrapped: 15, perHexTaken: 2, perCastSpotTaken: 0, perSiegePiece: 4, perThreatCut: 1, endWhileBehind: -100 }
+export const TRAP_WEIGHTS = weightsFile.TRAP // content/ai/weights.json (Obsidian)
 
 export function trapGoal(words: WordList): GlyphGoal {
   return {

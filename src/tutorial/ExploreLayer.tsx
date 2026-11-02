@@ -262,7 +262,7 @@ function barUnderButton(): boolean {
   const under = prompt.left < button.right && prompt.right > button.left
   return under && prompt.top - button.bottom < REMIND_ROOM
 }
-const REMIND_ROOM = 96 // px: about a 1-line callout + its pointer and edge room
+const REMIND_ROOM = 96 // tuning-ok: a measurement of the kit's callout, not a look — px: about a 1-line callout + its pointer and edge room
 
 /** Where a callout goes first: on the board, toward the nearer of the top bar and the tray (above a thing in the board's
  *  top half, below one in its bottom half — it covers as few rows as it can); the top bar's parts: below; the rest

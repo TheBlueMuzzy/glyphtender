@@ -38,6 +38,7 @@ import { originOf, useCarried } from './carryState'
 import { useTrayAim } from './dropTarget'
 import { juiceFor, juiceSound } from './feel'
 import { useAnimTuning, useDragTuning, useGardenTuning } from './useTuning'
+import text from '../../content/text/en.json'
 
 /** What sits in a place: a seed (its letter), or during the draft a glyphling still to place ("next" = the one to place now). */
 type Piece = { kind: 'seed'; letter: string } | { kind: 'glyphling'; next: boolean }
@@ -144,7 +145,7 @@ export function SeedTray({ layout, boxWidth }: Props) {
   }
 
   return (
-    <HandView<Piece> layout={layout} boxWidth={boxWidth} className="game-tray" label="Seeds" hidden={hidden} places={places}
+    <HandView<Piece> layout={layout} boxWidth={boxWidth} className="game-tray" label={text.game.labels.tray} hidden={hidden} places={places}
       stage={stage} look={{ ghostOpacity: carried?.ghostOpacity, makeRoom: dragFeel.makeRoom }}
       motion={{ shrinkTime: timing.refreshShrinkTime, growTime: timing.refreshGrowTime, stagger: timing.refreshStagger, overshoot: juiceFor('refreshGrow').grow, roomTime: dragFeel.roomTime }}
       insertAt={aim?.look === 'marker' ? aim.gap : undefined} renderMarker={marker}

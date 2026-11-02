@@ -1,0 +1,5 @@
+{
+  "about": "The online host's table options as builds before 2026-10-08 kept them (plain JSON straight in localStorage, no twoLetterSave marker): the large garden, 2-letter words ON (minWordLength 2, the old default), a 60-second timer. It must load with today's default for 2-letter words (off = minWordLength 3) and everything else as saved.",
+  "stored": { "boardName": "large", "minWordLength": 2, "turnSeconds": 60, "wordIndicators": false },
+  "expect": { "boardName": "large", "minWordLength": 3, "turnSeconds": 60, "wordIndicators": false, "britishWords": false, "vulgarWords": false }
+}

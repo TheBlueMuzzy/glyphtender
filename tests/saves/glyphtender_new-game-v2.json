@@ -1,0 +1,31 @@
+{
+  "about": "New Game's choices as builds from 2026-10-08 up to v0.11.2 kept them (plain JSON straight in localStorage, with the twoLetterSave: 2 marker; British/vulgar words since F71): 4 players, 2-letter words chosen ON since the fix, two AI seats. The marked choice sticks: it must load with 2-letter words still on.",
+  "stored": {
+    "players": 4,
+    "boardName": "large",
+    "twoLetterWords": true,
+    "britishWords": true,
+    "vulgarWords": false,
+    "hideSeeds": false,
+    "wordIndicators": true,
+    "seats": [
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": true, "personality": "surprise", "skill": "Apprentice" },
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": true, "personality": "Strategist", "skill": "Archmage" }
+    ],
+    "twoLetterSave": 2
+  },
+  "expect": {
+    "players": 4,
+    "twoLetterWords": true,
+    "britishWords": true,
+    "vulgarWords": false,
+    "seats": [
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": true, "personality": "surprise", "skill": "Apprentice" },
+      { "ai": false, "personality": "surprise", "skill": "FirstClass" },
+      { "ai": true, "personality": "Strategist", "skill": "Archmage" }
+    ]
+  }
+}

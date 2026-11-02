@@ -1,0 +1,5 @@
+{
+  "about": "The tutorial game as v0.11.2 and earlier remembered it (F74): the plain word done straight in localStorage (not JSON). It must load as done, so a player who finished it never sees the lock again.",
+  "stored": "done",
+  "expect": { "done": true }
+}
