@@ -46,7 +46,7 @@ Approved: Muzzy 2026-11-01 "approved" — F95: done (a030939), saved v0.11.2.4.
 ## F96 🔧 Matches survive a server restart
 Done when: an online match is kept in the room's storage, so a server restart or a redeploy doesn't lose it; the turn timer and bot timers start again where they were; a match nobody plays for 7 days ends (keepMatchDays 7); the privacy page says so.
 - [x] 🤖 1. Measure first: storage writes per turn and per game on a local server against Cloudflare's free plan (Durable Object SQLite writes a day), written in Notes — party/worker.ts — done: ~2 rows per action, ~180 per 2-player game, ≤ 45 KB a room → ~500 games a day on a normal day (Notes "F96 measured")
-- [ ] 🤖 2. Room storage + alarm in the worker, from the framework starter's party/worker.ts (saveRoom, restore on start, onAlarm); keepMatchDays 7 — content/rooms.json
+- [x] 🤖 2. Room storage + alarm in the worker, from the framework starter's party/worker.ts (saveRoom, restore on start, onAlarm); keepMatchDays 7 — content/rooms.json — done: the starter's storage parts in Main (+ an e2e-only TEST_LOG_STORAGE write log); keepMatchDays 7 + keepUnplayedMatchHours 24 (kit default) in rooms.json; no new migration (v1 already makes Main SQLite)
 - [ ] 🤖 3. onRestore restarts the turn timer and the bot's timers — party/turnClock.ts
 - [ ] 🤖 4. e2e: a match, the local server restarted mid-game, both players carry on — party/glyphtenderRules.ts
 - [ ] 🤖 5. Privacy page's Online play part: rooms kept up to 7 days without a move, then deleted (+ the GDD line) — public/privacy.html
