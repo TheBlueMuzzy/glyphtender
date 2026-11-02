@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-02 03:40 — **F98 — Steady Story chart shot built + checked + reviewed — waiting on Muzzy's OK** (autonomous run): B028's cause = Chrome re-drawing only the strips the round line passed over (4 slightly different pictures from one page, 7/20 + 13/20 alone); e2e/shots.mjs re-draws the whole chart once before the shot → one picture every run; screenshots SAME in 3 of 3 loaded check:full runs; B032 fixed (online-ai caps by game steps). All 10 sprint tasks ticked. F99 — Bots wait in an empty match ✅ (rooms 0.14.0 on framework branch dev/rooms-bots-wait — not merged; /deliver merges it). **Next: Muzzy says "approved" for F98 → F98: done → his OK on the drafted retro (SPRINT Notes) → archive Sprint 32 → /deliver (milestone v0.17 Online waits for you complete).**
-Open: B030 (P3) seen again — words-tab under load. B028, B032, B033 fixed on this branch (live at the next /deliver).
+2026-11-02 — **Released v0.13.0 — v0.17 Online waits for you ✅ — next: /sprint (or /roadmap).** A match everyone has left waits for its players (no bot moves, no storage writes) and goes on when someone rejoins; rooms 0.14.0 refuses `bot:` player ids; the Story chart screenshot is steady. Framework branch dev/rooms-bots-wait (rooms 0.14.0) still to merge in the framework.
+Open: B030 (P3) — a Dev Kit tab slow to open under full-check load.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.17 Online waits for you · Sprint: 32 Online waits for you · Doing: F98 — Steady Story chart shot (built — waiting on Muzzy's OK) · Branch: dev/v0-17-online-waits · Version: 0.12.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.12.0, beta stage, online)
+Stage: deliver · Milestone: v0.17 Online waits for you ✅ · Sprint: — (32 done) · Doing: — (v0.13.0 released) · Branch: main · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
 
 ## Key facts
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
@@ -41,6 +41,7 @@ Stage: develop · Milestone: v0.17 Online waits for you · Sprint: 32 Online wai
 **Since Dev Kit 0.28 (F90 — Quiet module updates):** the Dev Kit arrives ~2 s after the page — an e2e that opens it waits for `aside.devkit` attached, never a fixed time. Adding a sound in the Sound tab keeps its original in `audio-originals/` (committed; `npm run audio:check -- --fix` uses it). Port lookups (stop-servers, check-all's pre-flight) can miss a server started from Claude's shell — stop wrangler by name: `node ~/.claude/config/bmuz/scripts/stop-servers.mjs wrangler`.
 
 ## Log
+- 2026-11-02 — Released v0.13.0 — v0.17 Online waits for you ✅: F99 — Bots wait in an empty match (52 bot moves + 106 storage rows in 2 min with nobody there → 0) + `bot:` ids refused (rooms 0.14.0); F98 — Steady Story chart shot (B028: whole-chart redraw before the shot) + B032 online-ai waits by turns. Security review: no real issues.
 - 2026-11-02 — Released v0.12.0 — v0.16 On today's framework ✅: Rejoin match + online matches survive a server restart; privacy page names Cloudflare's 30-day recovery copy; B033 logged from the security review.
 - 2026-11-01 — F96 — Matches survive a server restart ✅ — Sprint 31 done: an online match carries on after the server restarts or updates (same game, turn and timer); a match nobody touches for 7 days is deleted.
 - 2026-11-01 — F95 — Rejoin match ✅: close the tab mid-match and the main menu offers "Rejoin match" — one tap and you're back in your seat ("You're back", with how many turns a bot played for you).

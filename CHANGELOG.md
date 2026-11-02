@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.13.0 — 2026-11-02
+
+An online match now waits for you. If every player leaves, the computer no longer plays the match out on its own; it pauses until someone comes back, and picks up on the same turn.
+
+### Changed
+- When everyone has left an online match, no computer moves are made and the turn timer stops until a player rejoins. The turn timer then carries on with the time that was left.
+- A player who leaves while others are still playing still has their seat taken over by the computer, as before.
+- A waiting match is kept for up to 7 days. The privacy page says so.
+
 ## v0.12.0 — 2026-11-02
 
 Online matches don't get lost any more. If you close the tab, reload, or your phone drops off, Rejoin match on the main menu takes you back to your seat, and a match now survives the game's server restarting.
