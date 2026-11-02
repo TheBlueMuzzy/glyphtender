@@ -16,7 +16,7 @@ Done when: the framework lint module (0.4.0) is installed, the real finds are fi
 - [ ] 🤖 5. B028 (P3, the Sprint 30 retro's change): the Story chart shot waits for the chart's own drawing animations (getAnimations) before the picture; 3 check:full runs in a row with screenshots 162/162 — e2e/shots.mjs
   - 2026-11-01, not fixed: the planned fix wouldn't help (settle() already waits for every animation) and Chrome's deterministic-drawing switches didn't either (still 1 pixel, alone). The pixels are a few shades on the yellow line's soft edge under the purple line's outline. Findings + next ideas in BUGS B028; switches reverted. Ask Muzzy: keep chasing it in this sprint, or move it out?
 Check: check:fast (lint as errors) + golden SAME + e2e ai, online-ai (the AI reads its weights from content/ now); B028: three check:full runs, screenshots 162/162 each.
-Checked:
+Checked: 2026-11-01 — check:fast green (lint as errors, golden SAME); e2e ai, online-ai, devkit-select pass; a made-up setting in code fails lint (proof); check:full at 93e6862 36/37 — the 1 = screenshots, B028 only (end4-story-round6, 1 pixel at 2 sizes). B028 itself not fixed (task 5 open, see its note).
 
 ## F94 🧱 Saves switch-over
 Done when: the saves module is installed and Glyphtender's 4 saved things (New Game choices, online lobby choices, tutorial "done", words waiting to send) go through createSave with oldSave, an old save from every past version loads (golden saves), and full screen goes through the kit's settings.
