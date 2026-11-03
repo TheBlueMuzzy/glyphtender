@@ -42,6 +42,10 @@ import { refreshTimes, type RefreshFx } from './refreshFx'
 import { moveInRack, placesOf, rackOf, refillRack, shuffleRack, swapInRack } from '../table/rack'
 import { landingSeconds } from './wordMarks'
 import type { Trail } from './trail'
+import endscreenFile from '../../content/tuning/endscreen.json'
+import { logOf } from '../engine/log'
+import { awardRecords, type Award } from '../game/stats'
+import { recordNews, type AwardNews } from './awardNews'
 
 /** Short messages for taps that can't do anything (their words live in content/text/en.json → game.notes). */
 export type Note = 'moveFirst' | 'notYours' | 'tangled' | 'wordsLoading' | 'wordsFailed' | 'problem'
@@ -132,7 +136,19 @@ export interface GameStore {
   /** An AI's draft on its way (botPlays with show, F50): its glyphling travels out of the tray to this hex like a person's
    *  drag (useBotDraft) — nothing can be touched — then landBotDraft places it. null = none travelling. */
   botDraft: Hex | null
+  /** Online: the award records the server sent with the newest view (TDD D103 — the view has no log mid-game); null in
+   *  pass-and-play, where they're worked out here. */
+  onlineRecords: Award[] | null
+  /** Award records a finished turn set or took, waiting for the banner, oldest first (awardNews.ts; kept up to date at
+   *  the bottom of this file). */
+  awardNews: AwardNews[]
+  /** A new number each time a game starts, is loaded or joined online — the award records start over (nothing old is
+   *  announced). */
+  gameRun: number
 
+  /** The banner has shown this award news: it goes — only if it's still the oldest (a new game may have emptied the
+   *  queue meanwhile, and its own first news must stay). */
+  shownAwardNews: (news: AwardNews) => void
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
    *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
   startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick>; extraWords?: ExtraWords; stack?: SeedStack }) => void
@@ -364,7 +380,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
     nope: null,
     scoring: null,
     happened: null,
+    onlineRecords: null,
+    awardNews: [],
+    gameRun: 0,
 
+    shownAwardNews: (news) => {
+      if (get().awardNews[0] === news) set({ awardNews: get().awardNews.slice(1) })
+    },
     startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {}, extraWords, stack }) => {
       const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined, extraWords, stack })
       const options: GameOptions = {
@@ -377,13 +399,13 @@ export const useGameStore = create<GameStore>()((set, get) => {
       set({
         ...noPlan(), game, options, flying: false, landed: null, handoff: null, revealAt: null, refreshFx: null, trail: null, scoring: null,
         happened: null, seats, lastViewer: firstViewer(seats, game), stats: emptyStats(players), botTurns: [],
-        trayOrder: game.hands.map(rackOf),
+        trayOrder: game.hands.map(rackOf), onlineRecords: null, awardNews: [], gameRun: get().gameRun + 1,
       })
     },
     leaveGame: () => {
       stopRefreshFx()
       stopScoring()
-      set({ ...noPlan(), game: null, flying: false, landed: null, handoff: null, revealAt: null, online: null, waiting: false, refreshFx: null, trail: null, scoring: null, happened: null })
+      set({ ...noPlan(), game: null, flying: false, landed: null, handoff: null, revealAt: null, online: null, waiting: false, refreshFx: null, trail: null, scoring: null, happened: null, onlineRecords: null, awardNews: [] })
     },
     showSeeds: () => set({ handoff: null }),
     setRevealAt: (step) => set({ revealAt: step }),
@@ -669,6 +691,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
         stats: stats ?? (get().stats.length === game.config.players ? get().stats : emptyStats(game.config.players)),
         botTurns: [], // (a loaded game: nobody played for anyone — the Dev Kit's preview sets its own after)
         trayOrder: game.hands.map(rackOf),
+        onlineRecords: null, awardNews: [], gameRun: get().gameRun + 1, // (its award records are only remembered)
       })
     },
   }
@@ -680,6 +703,31 @@ export const useGameStore = create<GameStore>()((set, get) => {
 useGameStore.subscribe((s) => {
   const viewer = viewerOf(s)
   if (viewer !== s.lastViewer) useGameStore.setState({ lastViewer: viewer })
+})
+
+// Award records during the game (v0.18, awardNews.ts): whenever a turn is finished (the log grows) — or, online, a view
+// brings new records from the server — the records it set or took queue up for the banner. The first records seen for
+// a game (a loaded save, joining a match) are only remembered: nothing old is announced.
+const endTuning = liveTuning('endscreen', endscreenFile) // (follows the Dev Kit's edits)
+let recordsSeen: { records: Award[]; logLength: number; from: Award[] | null; run: number } | null = null
+useGameStore.subscribe((s) => {
+  if (!s.game) return void (recordsSeen = null)
+  const logLength = logOf(s.game).turns.length
+  if (recordsSeen && (s.gameRun !== recordsSeen.run || logLength < recordsSeen.logLength)) recordsSeen = null // another game
+  let records: Award[]
+  if (s.online) {
+    if (!s.onlineRecords || s.onlineRecords === recordsSeen?.from) return
+    records = s.onlineRecords
+  } else {
+    if (recordsSeen && logLength === recordsSeen.logLength) return
+    records = awardRecords(s.game, endTuning.current, s.options?.wordIndicators ?? true)
+  }
+  // (locally, only a record from a turn finished since the last look is news — a Dev Kit tuning edit that makes an older
+  // moment a record isn't announced as if this turn had set it)
+  const fresh = (n: AwardNews) => s.online || !recordsSeen || n.record.moment > recordsSeen.logLength
+  const news = recordsSeen ? recordNews(recordsSeen.records, records).filter(fresh) : []
+  recordsSeen = { records, logLength, from: s.online ? s.onlineRecords : null, run: s.gameRun }
+  if (news.length) useGameStore.setState({ awardNews: [...s.awardNews, ...news] })
 })
 
 // The game's word list (F71): whenever the word file arrives or a game with other switches comes in (a new game, a

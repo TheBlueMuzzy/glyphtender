@@ -33,7 +33,7 @@ import { EndScorecard } from './EndScorecard'
 import { frozen } from './freeze'
 import { playsText, roundPlays, tangleBonusPlays } from './endText'
 import { playerName, winnerTitle } from './prompt'
-import { awardPoint, earnedAwards, scorecards, standings, storyChart, type ChartMarker } from './stats'
+import { awardPoint, awardRecords, earnedAwards, scorecards, standings, storyChart, type ChartMarker } from './stats'
 import { SeatShape, StoryChart } from './StoryChart'
 import { useEndTuning, useGardenTuning } from './useTuning'
 
@@ -86,7 +86,9 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
     const awards = earnedAwards(game, tuning)
     const chart = storyChart(game, tuning.maxMarkers, botTurns)
     const awardMarks = awards.map((a) => awardPoint(game, chart, a)).filter((m): m is ChartMarker => m !== null)
-    return { ranked: standings(game), cards: scorecards(game), awards, chart, awardMarks }
+    // v0.18: the awards that held their game record at the end carry a record mark (AwardRow)
+    const records = new Set(awardRecords(game, tuning).map((a) => `${a.id}:${a.holder}`))
+    return { ranked: standings(game), cards: scorecards(game), awards, chart, awardMarks, records }
   }, [game, tuning, botTurns])
 
   // The page's size, and what the Story page has besides the chart (its key + caption): the chart takes what's left
@@ -194,7 +196,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
           <ScrollArea key={page} label={w.tabs[page]}>
             <div role="tabpanel" aria-label={w.tabs[page]} className="game-end-tabpanel" data-knobs="resultsPage" data-page={page}>
               {page === 'results' && (
-                <EndResults title={game.winners.length > 1 ? w.sharedWin : winnerTitle(game)} game={game} ranked={end.ranked} cards={end.cards} highlights={<EndHighlights awards={end.awards} index={awardAt} onIndex={setAwardAt} name={name} big={wide && !short}
+                <EndResults title={game.winners.length > 1 ? w.sharedWin : winnerTitle(game)} game={game} ranked={end.ranked} cards={end.cards} highlights={<EndHighlights awards={end.awards} records={end.records} index={awardAt} onIndex={setAwardAt} name={name} big={wide && !short}
                   autoSeconds={frozen ? 0 : tuning.carouselSeconds /* ?freeze (dev): held still for screenshots */} pauseSeconds={tuning.carouselPauseSeconds} />} colours={colours} tuning={tuning} wide={wide} compact={short}
                   me={me} name={name} />
               )}
@@ -228,7 +230,7 @@ export function GameOverScreen({ onNewGame, onMenu }: Props) {
                       size (empty on a round with none), so the chart never moves; before the line is touched, how to use it */}
                   <div className="game-end-caption" aria-live="polite" data-moments={moments.length}>
                     <div key={`${scrubbed}:${momentAt % Math.max(1, moments.length)}`} className="game-end-moment">
-                      {slotAward ? <AwardRow award={slotAward} name={name} />
+                      {slotAward ? <AwardRow award={slotAward} name={name} record={end.records.has(`${slotAward.id}:${slotAward.holder}`)} />
                         : untouched && <Text kind="caption">{w.chart.hint}</Text>}
                     </div>
                   </div>

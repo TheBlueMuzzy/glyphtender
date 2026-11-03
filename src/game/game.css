@@ -328,7 +328,11 @@
   }
   /* one award at a time (the kit Carousel): the holder's glyphling (and a smaller rival's), then title over proof */
   .game-end-award { align-items: center; justify-content: center; inline-size: 100%; }
-  .game-end-award-art { display: flex; align-items: end; flex: none; }
+  .game-end-award-art { display: grid; grid-auto-flow: column; align-items: end; flex: none; }
+  /* v0.18: the Record badge, pinned across the bottom of the holder's glyphling (like the podium's ribbons): it shares
+     the glyphling's grid cell, so a card with it is no taller than one without */
+  .game-end-award-art > .game-end-art:first-child, .game-end-award-record { grid-area: 1 / 1; }
+  .game-end-award-record { align-self: end; justify-self: center; display: flex; font-size: 0.7rem; pointer-events: none; }
   .game-end-award-text { min-inline-size: 0; text-align: start; display: flex; flex-direction: column; }
 
   /* Story: the chart (it takes the page's height — GameOver.tsx chartHeight), its key right under it, then the
@@ -367,4 +371,16 @@
   .game-scorecard td[data-best] { background: color-mix(in srgb, var(--on-surface) 15%, transparent); }
   /* the players' avatars over the columns: 2.45em — set through the style name the kit's Avatar sizes itself by (B022) */
   .game-scorecard th[scope="col"] { --target-min: 2.45em; }
+
+  /* The award banner (v0.18, AwardBanner.tsx; sketch S1): over the top of the board, play carries on under it (taps go
+     through). Its slide and the glyphling swap are Web Animations in AwardBanner (times from endscreen.json live*). */
+  /* contain: its width never pushes the board's grid wider (that squeezed the panel beside it — online4's reveal text
+     came out clipped); it's as wide as its words, up to the board's width less a margin each side */
+  .game-award-banner { grid-area: 1 / 1; align-self: start; justify-self: center; z-index: 5; pointer-events: none;
+    margin-block-start: var(--gap-m); contain: inline-size; inline-size: min(calc(100% - 2 * var(--gap-m)), 24rem); }
+  /* ONE glyphling slot: room round it for the overshoot, so the panel never changes size; the old and new holders
+     sit on the same spot */
+  .game-award-banner-slot { display: grid; place-items: center; flex: none; padding: var(--gap-xs); }
+  .game-award-banner-slot-avatar { grid-area: 1 / 1; display: flex; }
+  .game-award-banner-text { min-inline-size: 0; display: flex; flex-direction: column; text-align: start; }
 }

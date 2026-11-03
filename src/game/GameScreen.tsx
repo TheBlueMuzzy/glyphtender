@@ -20,6 +20,7 @@ import { useTutorial } from '../tutorial/progress'
 import { TutorialLayer } from '../tutorial/TutorialLayer'
 import { ExploreLayer } from '../tutorial/ExploreLayer'
 import { ActionBar } from './ActionBar'
+import { AwardBanner } from './AwardBanner'
 import { colourOf, wordListUrl } from './art'
 import { Board } from './Board'
 import { boardView } from './boardPlace'
@@ -163,6 +164,8 @@ export function GameScreen({ onNewGame }: { onNewGame: () => void }) {
       <div className="game-board">
         <svg className="game-garden-back" aria-hidden="true"><rect width="100%" height="100%" fill={colours.background} /></svg>
         <Board onHexSize={onHexSize} traySide={traySide} lean={promptTop ? layout.boardVertical : 1} />
+        {/* v0.18: a turn that sets or takes an award's record — a banner over the top of the board (AwardBanner.tsx) */}
+        <AwardBanner />
       </div>
       <section className="game-panel" aria-label={text.game.labels.panel}>
         {!promptTop && prompt}

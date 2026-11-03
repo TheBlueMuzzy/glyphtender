@@ -6,6 +6,8 @@ import { useGameStore } from './gameStore'
 import { setRails } from './railsLimit'
 import { castOptions, dropKind, highlightFor, letterIn, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
 import { moveInRack, shuffleRack } from '../table/rack'
+import type { GameState, LogTurn } from '../engine/types'
+import type { Award } from '../game/stats'
 
 const store = () => useGameStore.getState()
 /** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
@@ -476,5 +478,52 @@ describe('game store — what happened (the rules’ events, F31)', () => {
     expect(drew && 'seeds' in drew && drew.seeds.map((s) => s.letter)).toEqual(['V'])
     expect(store().trayOrder[0][0]).toBe(drew && 'seeds' in drew && drew.seeds[0].id) // in A's place
     expect(store().handoff).toEqual({ seat: 1, afterGrow: true }) // Blue plays next (turnStarted), after the grow
+  })
+})
+
+describe('game store — award records during the game (v0.18)', () => {
+  /** A logged turn where `seat` made one word (all their own seeds) — enough for the Long word measure. */
+  const turnWith = (turnNo: number, seat: number, word: string): LogTurn => ({
+    turnNo, round: turnNo, seat, glyphlingId: seat * 2, from: { q: 0, r: 0 }, to: { q: 0, r: 1 }, letter: 'A', target: null,
+    words: [{ word, letters: [...word], owners: [...word].map(() => seat), magic: word.length * 2, ownMagic: word.length }],
+    magic: word.length * 2, refreshed: 0, refresh: false, totalsAfter: [0, 0], tangledAfter: [], newlyTangled: [], freed: [],
+  })
+  const withLog = (game: GameState, turns: LogTurn[]): GameState => ({ ...game, log: { turns, end: null } })
+
+  it('a finished turn that sets a record, then one that takes it, queue up for the banner — nothing old is announced', () => {
+    store().startGame({ players: 2, seed: 7 })
+    const game = store().game!
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN')]) })
+    expect(store().awardNews.map((n) => [n.record.id, n.record.holder, n.previous?.holder ?? null])).toEqual([['longWord', 0, null]])
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN'), turnWith(2, 1, 'GARDENS')]) })
+    expect(store().awardNews.map((n) => [n.record.id, n.record.holder, n.previous?.holder ?? null])).toEqual([['longWord', 0, null], ['longWord', 1, 0]])
+    const shown = store().awardNews[0]
+    store().shownAwardNews(shown)
+    expect(store().awardNews).toHaveLength(1)
+    store().shownAwardNews(shown) // (a banner that was already shown, or one from an emptied queue, removes nothing)
+    expect(store().awardNews).toHaveLength(1)
+    // a game loaded mid-way (straight over this one, as the Dev Kit does): its records are only remembered, and the
+    // news still waiting from the old game goes
+    store().loadState(withLog(game, [turnWith(1, 0, 'CASTLE'), turnWith(2, 1, 'GARDENING'), turnWith(3, 0, 'AT')]))
+    expect(store().awardNews).toEqual([])
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'CASTLE'), turnWith(2, 1, 'GARDENING'), turnWith(3, 0, 'AT'), turnWith(4, 0, 'GARDENSIDE')]) })
+    expect(store().awardNews.map((n) => [n.record.holder, n.record.values.word, n.previous?.holder])).toEqual([[0, 'GARDENSIDE', 1]])
+  })
+
+  it('online: the records come with the view — new ones queue up, the first view\'s are only remembered', () => {
+    store().startGame({ players: 2, seed: 7 })
+    const record = (holder: number, moment: number, word: string): Award =>
+      ({ id: 'longWord', holder, seats: [holder], moment, values: { word, n: word.length }, effect: word.length })
+    useGameStore.setState({ online: { mySeat: 0, gameId: 1, version: 1, post: () => {}, landed: () => {}, resume: () => {} } as never, onlineRecords: [record(0, 3, 'GARDEN')], gameRun: store().gameRun + 1 })
+    expect(store().awardNews).toEqual([])
+    useGameStore.setState({ onlineRecords: [record(1, 5, 'GARDENS')] })
+    expect(store().awardNews.map((n) => [n.record.holder, n.previous?.holder])).toEqual([[1, 0]])
+  })
+
+  it('word indicators off: the word awards wait for the end', () => {
+    store().startGame({ players: 2, seed: 7, wordIndicators: false })
+    const game = store().game!
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN')]) })
+    expect(store().awardNews).toEqual([])
   })
 })

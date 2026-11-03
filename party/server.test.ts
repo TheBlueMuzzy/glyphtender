@@ -19,6 +19,7 @@ import { makeRules } from './glyphtenderRules'
 import { HIDDEN, type GameView, type OnlineAction, type OnlineOptions } from './protocol'
 import { botTurns, type ServerGame } from './serverGame'
 import { viewOf } from './views'
+import { awardRecords } from '../src/game/stats'
 import pace from '../content/ai/pace.json'
 import type { ThinkRequest } from '../src/ai/seatBrain'
 
@@ -168,6 +169,9 @@ describe('online server — secrets stay secret', () => {
         // …and the whole game log, for the end screen
         expect(last.game.log!.turns).toHaveLength(server.game!.game.turnCount)
         expect(last.game.log!.end?.totals).toEqual(server.game!.game.magic)
+        // Award records (v0.18) come with every view — worked out by the server, since a view has no log mid-game
+        views.forEach((view) => expect(Array.isArray(view.records)).toBe(true))
+        expect(last.records).toEqual(awardRecords(server.game!.game))
       }
       // Some Magic really was made (so the zeroing above was hiding something real)
       expect(server.game!.game.magic.some((m) => m > 0)).toBe(true)

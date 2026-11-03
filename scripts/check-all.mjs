@@ -49,6 +49,7 @@ const E2E = [ // longest first (measured), so the slow ones never start last
   ['trails', 'e2e/trail-shots.mjs', 'e2e-shots 5409'],
   ['margins', 'e2e/layout-margins.mjs', 'e2e-shots/margins 5411'],
   ['score', 'e2e/score-sequence.mjs', 'e2e-shots 5407'],
+  ['awards', 'e2e/award-banner.mjs', 'e2e-shots 5449'], // (v0.18: a record set, then taken — the banner, the swap, one at a time; 3 sizes + reduce motion)
   ['portrait', 'e2e/portrait-layout.mjs', 'e2e-shots 5410'],
   ['devkit-search', 'e2e/devkit-search.mjs', 'e2e-shots/devkit-search 5414'],
   ['drag', 'e2e/drag-styles.mjs', 'e2e-shots 5432'], // (F63: carry styles A–D × draft / seed / reorder / move, phone + desktop)

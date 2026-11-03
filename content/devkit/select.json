@@ -150,6 +150,17 @@
         "Look": ["endscreen.ribbon1", "endscreen.ribbon2", "endscreen.ribbon3", "endscreen.ribbon4", "endscreen.ribbonSize"]
       }
     },
+    "awardBanner": {
+      "label": "Award banner",
+      "help": "The banner over the board when a turn sets or takes an award's record during the game.",
+      "knobs": {
+        "Which awards": ["endscreen.liveAwards"],
+        "Timing": ["endscreen.liveAfterScore", "endscreen.liveHoldSeconds", "endscreen.liveSwapDelay", "endscreen.liveSwapSeconds"],
+        "Look": ["endscreen.liveOvershoot"]
+      },
+      "text": ["game.awardBanner", "game.gameOver.awards"],
+      "sounds": ["end.award"]
+    },
     "award": {
       "label": "Award",
       "help": "One award in the end screen's highlights: who earned it and why.",
