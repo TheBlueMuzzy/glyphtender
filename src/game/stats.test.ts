@@ -8,7 +8,7 @@ import type { GameState, LogTurn } from '../engine/types'
 import endscreen from '../../content/tuning/endscreen.json'
 import { logIsComplete } from '../engine/log'
 import { hexAt, position } from '../engine/testkit'
-import { awardPoint, botBands, earnedAwards, scorecards, standings, storyChart } from './stats'
+import { awardPoint, awardRecords, botBands, earnedAwards, scorecards, standings, storyChart } from './stats'
 import { awardText } from './endText'
 
 // ─── Hand-built logs ───
@@ -264,6 +264,24 @@ describe('awards (skill, earned only)', () => {
     expect(ids(finished(2, [[0, ['AT:00', 'TO:00', 'TA:00']]])).filter((x) => /powerPlay/.test(x))).toEqual([])
     expect(earnedAwards(g, T).filter((a) => a.id === 'longWord').map((a) => [a.holder, a.values.word])).toEqual([[1, 'GARDENS'], [0, 'GARDEN']])
     expect(ids(finished(2, [[0, ['AT:00', 'TO:00']], [1, ['GARDE:11111']]])).filter((x) => /powerPlay|longWord/.test(x))).toEqual([])
+  })
+
+  describe('records during the game (v0.18): each live award\'s biggest moment so far, by anyone', () => {
+    const records = (g: GameState, tuning = T) => awardRecords(g, tuning).map((a) => `${a.id}:${a.holder}:${a.values.word ?? ''}`)
+    it('a bigger moment takes the record; everyone still keeps their own award', () => {
+      expect(records(finished(2, [[0, ['GARDEN:000000']]]))).toEqual(['longWord:0:GARDEN'])
+      const taken = finished(2, [[0, ['GARDEN:000000']], [1, ['GARDENS:1111111']]])
+      expect(records(taken)).toEqual(['longWord:1:GARDENS'])
+      expect(ids(taken).filter((x) => x.startsWith('longWord'))).toEqual(['longWord:1', 'longWord:0'])
+    })
+    it('a tie keeps the record with whoever set it first', () => {
+      expect(records(finished(2, [[0, ['GARDEN:000000']], [1, ['CASTLE:111111']]]))).toEqual(['longWord:0:GARDEN'])
+    })
+    it('liveAwards 0 → only on the end screen; Weed toss is never live', () => {
+      const g = finished(2, [[0, ['GARDEN:000000']]])
+      expect(records(g, { ...T, liveAwards: { ...T.liveAwards, longWord: 0 } })).toEqual([])
+      expect(Object.keys(endscreen.liveAwards)).not.toContain('weedToss')
+    })
   })
 
   it('Bridge: the seed landed inside a word, letters on both sides · Hijack: a rival’s word grown into yours', () => {

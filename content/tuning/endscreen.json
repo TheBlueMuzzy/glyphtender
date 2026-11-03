@@ -6,6 +6,7 @@
     "ribbon4": "Results: the 4th place ribbon colour.",
     "ribbonSize": "Results: the ribbon's size, as a share of its glyphling's picture (0.45 = 45%). Try 0.35–0.6.",
     "awardOrder": "Which awards may show, and their order in the Highlights carousel: 1 = shown first. 0 = never shown. Only awards actually earned show; awards never add Magic.",
+    "liveAwards": "During the game: 1 = this award gets a banner over the board when a turn sets or takes its record (the biggest so far, by anyone); 0 = only on the end screen. Weed toss is never live: its proof is a rival's secret hand.",
     "carouselSeconds": "The Highlights carousel shows one award at a time and moves on by itself after this many seconds. Higher = more time to read each one. Try 3–6.",
     "carouselPauseSeconds": "After someone taps the carousel (or ◀ ▶ / a swipe), it waits this long before moving on by itself again. Try 2–5.",
     "lockdownMinDrop": "PROVISIONAL — set by hand to a clearly deliberate value and checked against the sims (research/sims.md); re-tune once the beta AI personalities can play positionally. Lockdown: one turn must take at least this many moves away from ONE rival glyphling. Higher = only big squeezes count. Try 4–8.",
@@ -99,6 +100,13 @@
     "awardOrder.trickster": "Award order: Trickster's Victory",
     "awardOrder.calledIt": "Award order: Called it",
     "awardOrder.closeCall": "Award order: Close call",
+    "liveAwards.lockdown": "Live: Lockdown",
+    "liveAwards.throughHedge": "Live: Through the hedge",
+    "liveAwards.completeTangle": "Live: Complete tangle",
+    "liveAwards.powerPlay": "Live: Power Play",
+    "liveAwards.longWord": "Live: Long word",
+    "liveAwards.hijack": "Live: Hijack",
+    "liveAwards.superBridge": "Live: Super Bridge",
     "maxMarkers": "Story chart: most moment markers on the lines",
     "chartDrawSeconds": "Story chart: time for the lines to draw in (seconds)",
     "chartLineWidth": "Story chart: line thickness",
@@ -127,6 +135,9 @@
       "ribbon3",
       "ribbon4",
       "ribbonSize"
+    ],
+    "Awards during the game": [
+      "liveAwards"
     ],
     "End screen: awards": [
       "awardOrder",
@@ -231,6 +242,15 @@
     "trickster": 13,
     "calledIt": 14,
     "closeCall": 15
+  },
+  "liveAwards": {
+    "lockdown": 1,
+    "throughHedge": 1,
+    "completeTangle": 1,
+    "powerPlay": 1,
+    "longWord": 1,
+    "hijack": 1,
+    "superBridge": 1
   },
   "carouselSeconds": 4,
   "carouselPauseSeconds": 4,

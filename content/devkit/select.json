@@ -154,7 +154,7 @@
       "label": "Award",
       "help": "One award in the end screen's highlights: who earned it and why.",
       "knobs": {
-        "Which comes first": ["endscreen.awardOrder"],
+        "Which comes first": ["endscreen.awardOrder"], "During the game": ["endscreen.liveAwards"],
         "When it is earned": ["endscreen.lockdownMinDrop", "endscreen.lockdownMaxAfter", "endscreen.pincerMinFrom", "endscreen.pincerMinShare", "endscreen.weedMaxMagic", "endscreen.weedMinBlocked", "endscreen.weedMinCut", "endscreen.walledMinMagic", "endscreen.walledMaxSize", "endscreen.hedgeMinOver", "endscreen.powerPlayMin", "endscreen.powerPlayMinLetters", "endscreen.longWordMinSmall", "endscreen.longWordMinLarge", "endscreen.hijackMinFrom", "endscreen.bridgeMinLength", "endscreen.superBridgeMinLength", "endscreen.closeCallMinAfter", "endscreen.tricksterMinBehind", "endscreen.calledItMinLead"],
         "Carousel": ["endscreen.carouselSeconds", "endscreen.carouselPauseSeconds"]
       },
