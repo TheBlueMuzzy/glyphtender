@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-03 — **Sprint 33 — Awards during the game: all 3 features ✅ (Muzzy "approved") — next: Muzzy's retro → archive Sprint 33 → /deliver v0.18 Awards during the game.** F100 Award records · F101 Award banner during the game · F102 Record mark on the end screen. check:full 40/40 at 468b25a. Muzzy: indicators off → only Lockdown + Complete tangle live (yes); Goops ladder asks wait until after this ships.
+2026-11-03 — **Released v0.14.0 — v0.18 Awards during the game ✅ (award banners during the game, Record badge on the end screen) — next: /sprint (or /roadmap); the Goops ladder asks now can go (framework Ideas).**
 Open: B030 (P3) — a Dev Kit tab slow to open under full-check load.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.18 Awards during the game · Sprint: 33 Awards during the game · Doing: — (Sprint 33 built + approved) · Branch: dev/v0-18-awards-live · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
+Stage: deliver · Milestone: v0.18 Awards during the game ✅ · Sprint: 33 done (archived) · Doing: — (v0.14.0 released) · Branch: main · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.0, beta stage, online)
 
 ## Key facts
 **Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)
@@ -42,6 +42,7 @@ Stage: develop · Milestone: v0.18 Awards during the game · Sprint: 33 Awards d
 **Since Dev Kit 0.28 (F90 — Quiet module updates):** the Dev Kit arrives ~2 s after the page — an e2e that opens it waits for `aside.devkit` attached, never a fixed time. Adding a sound in the Sound tab keeps its original in `audio-originals/` (committed; `npm run audio:check -- --fix` uses it). Port lookups (stop-servers, check-all's pre-flight) can miss a server started from Claude's shell — stop wrangler by name: `node ~/.claude/config/bmuz/scripts/stop-servers.mjs wrangler`.
 
 ## Log
+- 2026-11-03 — Released v0.14.0 — v0.18 Awards during the game ✅: F100 — Award records, F101 — Award banner during the game (after the score; the holder's glyphling swaps in when a record is taken; word awards wait when word hints are off), F102 — Record mark on the end screen. Online too (the server works out the records).
 - 2026-11-02 — Released v0.13.0 — v0.17 Online waits for you ✅: F99 — Bots wait in an empty match (52 bot moves + 106 storage rows in 2 min with nobody there → 0) + `bot:` ids refused (rooms 0.14.0); F98 — Steady Story chart shot (B028: whole-chart redraw before the shot) + B032 online-ai waits by turns. Security review: no real issues.
 - 2026-11-02 — Released v0.12.0 — v0.16 On today's framework ✅: Rejoin match + online matches survive a server restart; privacy page names Cloudflare's 30-day recovery copy; B033 logged from the security review.
 - 2026-11-01 — F96 — Matches survive a server restart ✅ — Sprint 31 done: an online match carries on after the server restarts or updates (same game, turn and timer); a match nobody touches for 7 days is deleted.
