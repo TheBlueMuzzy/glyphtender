@@ -1,0 +1,10 @@
+v0.14.0 — 2026-11-03
+
+Awards now show up during the game, not just at the end. When a turn sets a new best for an award, or takes it from another player, a banner shows the glyphling who holds it now.
+
+NEW
+• An award banner appears after the score when a finished turn sets or takes an award record. It shows the award, the move that earned it, and the holder's glyphling (it swaps in when a record changes hands).
+• With word hints turned off, awards that would give away a word wait for the end screen. Only Lockdown and Complete tangle show during the game.
+• On the end screen, an award whose record lasted to the end gets a Record badge on its holder's glyphling.
+• Works in online matches too: every player sees the same banners.
+• The banner follows the reduce motion setting.
