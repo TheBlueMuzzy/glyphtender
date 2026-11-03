@@ -328,7 +328,11 @@
   }
   /* one award at a time (the kit Carousel): the holder's glyphling (and a smaller rival's), then title over proof */
   .game-end-award { align-items: center; justify-content: center; inline-size: 100%; }
-  .game-end-award-art { display: flex; align-items: end; flex: none; }
+  .game-end-award-art { display: grid; grid-auto-flow: column; align-items: end; flex: none; }
+  /* v0.18: the Record badge, pinned across the bottom of the holder's glyphling (like the podium's ribbons): it shares
+     the glyphling's grid cell, so a card with it is no taller than one without */
+  .game-end-award-art > .game-end-art:first-child, .game-end-award-record { grid-area: 1 / 1; }
+  .game-end-award-record { align-self: end; justify-self: center; display: flex; font-size: 0.7rem; pointer-events: none; }
   .game-end-award-text { min-inline-size: 0; text-align: start; display: flex; flex-direction: column; }
 
   /* Story: the chart (it takes the page's height — GameOver.tsx chartHeight), its key right under it, then the

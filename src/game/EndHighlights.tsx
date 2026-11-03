@@ -45,7 +45,8 @@ export function EndHighlights({ awards, index, onIndex, name, autoSeconds, pause
 }
 
 /** One award: the holder's glyphling (and the rival's, small, when it's about them), the title over the proof.
- *  `record` (v0.18): it held the game's record for this award at the end — a small "Record" badge after the title. */
+ *  `record` (v0.18): it held the game's record for this award at the end — a small "Record" badge pinned on the
+ *  holder's glyphling. */
 export function AwardRow({ award, name, big = false, record = false }: { award: Award; name: (seat: number) => string; big?: boolean; record?: boolean }) {
   const { title, reason } = awardText(award, name)
   return (
@@ -54,9 +55,11 @@ export function AwardRow({ award, name, big = false, record = false }: { award: 
         {award.seats.slice(0, 2).map((seat, i) => (
           <img key={seat} className="game-end-art" data-size={i === 0 ? (big ? 'm' : 's') : 'xs'} src={glyphlingArt(seat)} alt={name(seat)} />
         ))}
+        {/* pinned on the holder's glyphling like the podium's ribbons — it takes no room, so no card changes size */}
+        {record && <span className="game-end-award-record"><Badge variant="primary">{w.record}</Badge></span>}
       </span>
       <span className="game-end-award-text">
-        <Text kind={big ? 'heading' : 'label'}>{title}{record && <> <Badge variant="primary">{w.record}</Badge></>}</Text>
+        <Text kind={big ? 'heading' : 'label'}>{title}</Text>
         <Text kind={big ? 'body' : 'caption'}>{reason}</Text>
       </span>
     </Row>
