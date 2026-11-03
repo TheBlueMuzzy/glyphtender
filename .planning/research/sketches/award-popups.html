@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <!-- /sketch starter (BMUZ). The planner's Sketches tab uses the title as the tab name and the description as its blurb. -->
 <title>S1: Awards during the game</title>
-<meta name="description" content="An award earned mid-game, two ways: A = a small banner with both glyphlings (who had it → who took it), C = the award badge flies from the old holder's glyphling on the board to the new one. Press First time and Steal under each style — which reads at a glance without stopping play?">
+<meta name="description" content="An award earned mid-game as a small banner over the board (Muzzy picked A, 2026-11-02). On a Steal the old holder's glyphling sits in the banner, shrinks away, and the new holder's grows past full size and settles in the same spot. Press First time and Steal — does the swap read as &quot;Blue took it from Yellow&quot; at a glance?">
 <style>
   :root { --bg: #05070d; --panel: #0b1224f0; --line: #1e293b; --ink: #e2e8f0; --dim: #64748b; --accent: #a855f7; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: #cbd5e1;
@@ -60,7 +60,6 @@
 </div>
 <div id="panel"></div>
 <div class="bar" id="bottom">
-  <div class="row"><button id="bA">A · Banner</button><button id="bC" class="on">C · Badge flies</button></div>
   <div class="row"><button id="bFirst">First time</button><button id="bSteal">Steal</button></div>
 </div>
 <script>
@@ -69,26 +68,26 @@ const $ = id => document.getElementById(id);
 
 // ===== Tweakable values (the sketch's "content/*.json"). Every knob lives here. =====
 const GOO = {
-  holdSeconds: 2,      // how long the award stays readable
-  flightSeconds: 0.9,  // C: badge travel time
-  afterScore: 0.3,     // pause after the score pop before the award shows
-  badgeSize: 44,       // C: badge diameter (px)
-  arcHeight: 120,      // C: how high the badge arcs on its way
-  bannerSize: 1,       // A: banner scale
+  holdSeconds: 2,      // how long the banner stays up after the new holder has settled
+  afterScore: 0.3,     // pause after the score pop before the banner slides in
+  swapDelay: 0.5,      // Steal: how long the old holder's glyphling shows before the swap
+  swapSeconds: 0.5,    // Steal: the swap itself (old shrinks away, new grows past full size, settles)
+  overshoot: 1.15,     // Steal: how far past full size the new glyphling grows before settling
+  bannerSize: 1,       // the whole banner's scale
   labelSize: 16,       // award title size (px); the other lines scale with it
 };
 // [name, min, max, step] rows; a one-item row is a group heading. 5–8 sliders max.
-const KNOBS = [['Timing'], ['holdSeconds', 0.8, 4, 0.1], ['flightSeconds', 0.3, 2, 0.05], ['afterScore', 0, 1.5, 0.05],
-  ['Look'], ['badgeSize', 24, 90, 1], ['arcHeight', 0, 300, 5], ['bannerSize', 0.6, 1.6, 0.05], ['labelSize', 11, 28, 1]];
+const KNOBS = [['Timing'], ['holdSeconds', 0.8, 4, 0.1], ['afterScore', 0, 1.5, 0.05], ['swapDelay', 0, 1.5, 0.05], ['swapSeconds', 0.2, 1.2, 0.05],
+  ['Look'], ['overshoot', 1, 1.5, 0.01], ['bannerSize', 0.6, 1.6, 0.05], ['labelSize', 11, 28, 1]];
 // One line per knob: what it does IN THIS SKETCH, and when you'd notice it. A knob Muzzy can't see working gets fixed or cut.
 const KNOB_HELP = {
-  holdSeconds: 'How long the award stays up once it has arrived (both styles). Too short = can\'t read the proof line.',
-  flightSeconds: 'C only: how long the badge takes to fly from Yellow\'s glyphling to Blue\'s on a Steal.',
-  afterScore: 'Gap between the "+5" score pop finishing and the award starting (both styles).',
-  badgeSize: 'C only: how big the flying badge is.',
-  arcHeight: 'C only: how high the badge loops on its way. 0 = a straight line across the board.',
-  bannerSize: 'A only: the whole banner bigger or smaller (glyphlings, padding and text together).',
-  labelSize: 'The award name\'s text size, in both styles; the smaller lines follow it.',
+  holdSeconds: 'How long the banner stays up once the new holder is in place. Too short = can\'t read the proof line.',
+  afterScore: 'Gap between the "+5" score pop finishing and the banner sliding in.',
+  swapDelay: 'Steal only: how long Yellow (the old holder) sits in the banner before the swap starts.',
+  swapSeconds: 'Steal only: how long the swap takes: Yellow shrinks away, then Blue grows in.',
+  overshoot: 'Steal only: how far past full size Blue grows before settling. 1 = no bounce.',
+  bannerSize: 'The whole banner bigger or smaller (glyphling, padding and text together).',
+  labelSize: 'The award name\'s text size; the smaller lines follow it.',
 };
 
 // ===== The sketch itself =====
@@ -198,55 +197,28 @@ function drawShow() {
     ctx.fillText('+5', np.x + board.s * 1.2, np.y - board.s * (0.6 + k * 0.8)); ctx.restore();
   }
   const a = t - SCORE_T - GOO.afterScore; if (a < 0) return;
-  if (show.style === 'A') {
-    // A: a banner across the top of the board, both glyphlings in full colour (who had it → who took it)
-    const sc = GOO.bannerSize, IN = 0.3, OUT = 0.3, total = IN + GOO.holdSeconds + OUT;
-    if (a > total) { show = null; return; }
-    const slide = a < IN ? ease(a / IN) : a > IN + GOO.holdSeconds ? 1 - ease((a - IN - GOO.holdSeconds) / OUT) : 1;
-    const g = 40 * sc, steal = show.kind === 'steal';
-    const art = { w: steal ? g * 2 + 22 * sc : g, h: g, draw: (x, y) => {
-      if (steal) {
-        glyph('yellow', x + g / 2, y, g);
-        ctx.fillStyle = COL.muted; ctx.font = `900 ${16 * sc}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('→', x + g + 11 * sc, y);
-        glyph('blue', x + g * 1.5 + 22 * sc, y, g);
-      } else glyph('blue', x + g / 2, y, g);
-    } };
-    const top = board.top - 10 + (1 - slide) * -60;
-    card(board.cx, Math.max(8, top), rows, sc, slide, art);
-    return;
-  }
-  // C: the badge leaves the old holder's glyphling and lands on the new one's, then the card shows beside it
-  const POP = 0.25, steal = show.kind === 'steal', fly = steal ? GOO.flightSeconds : 0, OUT = 0.3;
-  const total = POP + fly + GOO.holdSeconds + OUT;
+  // A banner across the top of the board with ONE glyphling slot (Muzzy 2026-11-02). On a Steal the old holder sits
+  // there first, shrinks away, and the new holder grows past full size and settles in the same spot. The banner is
+  // its full size from the start, so nothing in it moves or resizes during the swap.
+  const sc = GOO.bannerSize, IN = 0.3, OUT = 0.3, steal = show.kind === 'steal';
+  const swap = steal ? GOO.swapDelay + GOO.swapSeconds : 0, total = IN + swap + GOO.holdSeconds + OUT;
   if (a > total) { show = null; return; }
-  const d = GOO.badgeSize, lift = board.s * 1.0;
-  let bx, by, bs = 1, alpha = 1;
-  const from = steal ? op : np;
-  if (a < POP) { bx = from.x; by = from.y - lift; bs = back(a / POP); }
-  else if (a < POP + fly) {
-    const k = ease((a - POP) / fly);
-    bx = from.x + (np.x - from.x) * k; by = from.y - lift + (np.y - from.y) * k - Math.sin(Math.PI * k) * GOO.arcHeight;
-  } else {
-    bx = np.x; by = np.y - lift;
-    const land = a - POP - fly; bs = land < 0.2 ? 1 + 0.25 * Math.sin(Math.PI * land / 0.2) : 1;
-    if (a > POP + fly + GOO.holdSeconds) alpha = 1 - (a - POP - fly - GOO.holdSeconds) / OUT;
+  const slide = a < IN ? ease(a / IN) : a > IN + swap + GOO.holdSeconds ? 1 - ease((a - IN - swap - GOO.holdSeconds) / OUT) : 1;
+  // the slot: who is in it, and at what size
+  let who = 'blue', size = 1;
+  if (steal) {
+    const s = a - IN - GOO.swapDelay, shrink = GOO.swapSeconds * 0.4, grow = GOO.swapSeconds - shrink;
+    if (s < 0) who = 'yellow';
+    else if (s < shrink) { who = 'yellow'; size = 1 - Math.pow(s / shrink, 2); }
+    else {
+      const k = Math.min(1, (s - shrink) / grow), peak = 0.7; // up to the overshoot by 70%, then back to full size
+      size = k < peak ? GOO.overshoot * ease(k / peak) : GOO.overshoot + (1 - GOO.overshoot) * ease((k - peak) / (1 - peak));
+    }
   }
-  if (steal && a < POP + fly) { // a faint trail so the eye follows it from Yellow's glyphling
-    ctx.save(); ctx.globalAlpha = 0.25; ctx.setLineDash([4, 6]); ctx.strokeStyle = COL.accent; ctx.lineWidth = 2;
-    ctx.beginPath(); for (let i = 0; i <= 20; i++) { const k = i / 20 * ease((a - POP) / Math.max(fly, 0.01));
-      const x = op.x + (np.x - op.x) * k, y = op.y - lift + (np.y - op.y) * k - Math.sin(Math.PI * k) * GOO.arcHeight; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-    ctx.stroke(); ctx.restore();
-  }
-  badge(bx, by, d * bs, alpha);
-  if (a >= POP + fly) {
-    const land = a - POP - fly, cardIn = Math.min(1, land / 0.2);
-    const cardTop = np.y - lift - d / 2 - 8; // above the badge; measured first, then placed so it stays on screen
-    ctx.save(); ctx.globalAlpha = 0;
-    const m = card(np.x, 0, rows, 1, 0, null); ctx.restore();
-    let cx = Math.min(Math.max(np.x, board.left + m.w / 2 + 8), board.right - m.w / 2 - 8);
-    card(cx, Math.max(8, cardTop - m.h), rows, 1, Math.min(cardIn, alpha), null);
-  }
+  const g = 48 * sc;
+  const art = { w: g, h: g * GOO.overshoot, draw: (x, y) => { if (size > 0.01) glyph(who, x + g / 2, y, g * size); } };
+  const top = board.top - 10 + (1 - slide) * -60;
+  card(board.cx, Math.max(8, top), rows, sc, slide, art);
 }
 
 function draw() {
@@ -268,8 +240,6 @@ function layout() {
 }
 $('bReset').onclick = reset;
 $('bFirst').onclick = () => play('first'); $('bSteal').onclick = () => play('steal');
-$('bA').onclick = () => { style = 'A'; $('bA').classList.add('on'); $('bC').classList.remove('on'); };
-$('bC').onclick = () => { style = 'C'; $('bC').classList.add('on'); $('bA').classList.remove('on'); };
 
 // ===== Sketch kit (keep as is): docked knobs, presets, copy values, help lines, fps =====
 const SIDE = 300;
@@ -332,7 +302,7 @@ $('presets').onclick = e => {
 };
 drawPresets();
 $('bCopy').onclick = () => {
-  const text = document.title + String.fromCharCode(10) + JSON.stringify({ style, now: readKnobs(), presets }, null, 1);
+  const text = document.title + String.fromCharCode(10) + JSON.stringify({ now: readKnobs(), presets }, null, 1);
   const done = ok => { $('bCopy').textContent = ok ? 'Copied! Paste it in the chat' : 'Copy blocked: open full screen and try again';
     setTimeout(() => $('bCopy').textContent = 'Copy values for Claude', 2500); };
   (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => done(true), () => done(false));
@@ -351,7 +321,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.sketch = { GOO, readKnobs, setKnobs, play, setT: t => { if (show) show.t = t; }, setStyle: s => $(s === 'A' ? 'bA' : 'bC').click() }; // for Playwright checks
+window.sketch = { GOO, readKnobs, setKnobs, play, setT: t => { if (show) show.t = t; } }; // for Playwright checks
 </script>
 </body>
 </html>
