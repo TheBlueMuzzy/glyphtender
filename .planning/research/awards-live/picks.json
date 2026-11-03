@@ -1,0 +1,13 @@
+{
+  "sketch": ".planning/research/sketches/award-popups.html (S1: Awards during the game)",
+  "picked": "2026-11-02 — Muzzy: \"approved. looks great.\" (sketch defaults)",
+  "style": "A — a small banner over the board, ONE glyphling slot; on a steal the old holder shrinks away and the new one grows past full size and settles in the same spot",
+  "values": { "holdSeconds": 2, "afterScore": 0.3, "swapDelay": 0.5, "swapSeconds": 0.5, "overshoot": 1.15, "bannerSize": 1, "labelSize": 16 },
+  "rules": [
+    "Live: only the 8 one-moment awards (Lockdown, Weed toss, Through the hedge, Complete tangle, Power Play, Long word, Hijack, Super Bridge); the other 7 stay end-only",
+    "Everyone's awards show, bots included, same look",
+    "After that turn's score count-up, play carries on",
+    "Beaten later → celebrate again as a steal; a tie keeps the first holder, no banner",
+    "Always on, no Settings switch"
+  ]
+}
