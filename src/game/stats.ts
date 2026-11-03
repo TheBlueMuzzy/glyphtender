@@ -407,15 +407,18 @@ const AWARD_LEVELS: [AwardId, AwardId][] = [['superBridge', 'bridge']]
 // live: its proof is a rival's best word from their secret hand (an online screen doesn't have it, and showing it
 // would give the hand away).
 const NEVER_LIVE: AwardId[] = ['weedToss']
+// With word indicators off ("spot words yourself") nobody is shown the words a turn made or its Magic, so the awards
+// whose proof names them (a word, +N) wait for the end screen; Lockdown and Complete tangle still show.
+const WORD_AWARDS: AwardId[] = ['throughHedge', 'powerPlay', 'longWord', 'hijack', 'superBridge']
 
 /** Each live award's record so far (endscreen.json liveAwards = 1): the biggest moment of it by anyone; a tie keeps
  *  whoever set it first (the earlier turn). In the carousel's order. Online, the server works these out (its screens'
  *  views have no log until game over) — party/views.ts. */
-export function awardRecords(game: GameState, tuning: EndTuning = endscreenFile): Award[] {
+export function awardRecords(game: GameState, tuning: EndTuning = endscreenFile, wordIndicators = true): Award[] {
   const live = tuning.liveAwards as Partial<Record<AwardId, number>>
   const records = new Map<AwardId, Award>()
   for (const a of earnedAwards(game, tuning)) {
-    if (!((live[a.id] ?? 0) > 0) || NEVER_LIVE.includes(a.id)) continue
+    if (!((live[a.id] ?? 0) > 0) || NEVER_LIVE.includes(a.id) || (!wordIndicators && WORD_AWARDS.includes(a.id))) continue
     const old = records.get(a.id)
     if (!old || a.effect > old.effect || (a.effect === old.effect && a.moment < old.moment)) records.set(a.id, a)
   }

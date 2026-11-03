@@ -282,6 +282,11 @@ describe('awards (skill, earned only)', () => {
       expect(records(g, { ...T, liveAwards: { ...T.liveAwards, longWord: 0 } })).toEqual([])
       expect(Object.keys(endscreen.liveAwards)).not.toContain('weedToss')
     })
+    it('word indicators off: no award that names a word or Magic (they wait for the end); Lockdown still shows', () => {
+      const g = finished(2, [[0, ['GARDEN:000000'], { mobility: mob({ 2: [9, 5, 2] }) }]])
+      expect(records(g)).toEqual(['lockdown:0:', 'longWord:0:GARDEN'])
+      expect(awardRecords(g, T, false).map((a) => a.id)).toEqual(['lockdown'])
+    })
   })
 
   it('Bridge: the seed landed inside a word, letters on both sides · Hijack: a rival’s word grown into yours', () => {

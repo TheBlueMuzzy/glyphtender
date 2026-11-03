@@ -8,12 +8,23 @@
 // naming only the seeds it can still see (rules.ts feedViewFor).
 import { feedViewFor, viewFor } from '../src/engine/rules'
 import type { GameState } from '../src/engine/types'
+import { awardRecords, type Award } from '../src/game/stats'
 import type { GameView, Results } from './protocol'
 import { botTurns, type ServerGame } from './serverGame'
 
 /** The game as `seat` may see it (seat -1 = someone not playing: sees no hand at all) — the rules' viewFor
  *  (src/engine/rules.ts), the same for every game played through the Table. */
 export const hideSecrets = (game: GameState, seat: number): GameState => viewFor(game, seat)
+
+// Award records during the game (v0.18, TDD D103): a view has no log until game over, so the server works the live
+// awards' records out from its full log and sends only those (award, holder, proof, turn). Worked out once per game
+// state, not once per seat — up to ~18 ms on a long 4-player game (measured on the PC, F100 task 3).
+const recordsMade = new WeakMap<GameState, Award[]>()
+function recordsFor(game: GameState, wordIndicators: boolean): Award[] {
+  let records = recordsMade.get(game)
+  if (!records) recordsMade.set(game, (records = awardRecords(game, undefined, wordIndicators)))
+  return records
+}
 
 /** One player's view: their seat, the hidden game, and the results once it's over. */
 export function viewOf(state: ServerGame, seatId: string): GameView {
@@ -32,6 +43,7 @@ export function viewOf(state: ServerGame, seatId: string): GameView {
     myLastAction: state.lastOwnAction?.[mySeat] ?? 0, // (only this seat's own number; seat -1 → 0)
     options: state.options,
     turnEndsAt: state.turnEndsAt,
+    records: recordsFor(state.game, state.options.wordIndicators),
     results,
   }
 }

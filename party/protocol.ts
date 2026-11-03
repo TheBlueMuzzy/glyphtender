@@ -6,6 +6,7 @@ import type { Action, GameState } from '../src/engine/types'
 import type { GameEvent } from '../src/engine/rules'
 import type { Feed } from '../src/table/events'
 import type { PlayerStats } from '../src/store/stats'
+import type { Award } from '../src/game/stats'
 
 /** The host's new-game options (the same as the new-game screen, minus "hide seeds" — each player has their own device). */
 export interface OnlineOptions {
@@ -65,6 +66,10 @@ export interface GameView {
   options: OnlineOptions
   /** When the current turn's timer runs out (server time, ms), or null when there's no timer. */
   turnEndsAt: number | null
+  /** Each live award's game record so far (src/game/stats.ts awardRecords), worked out by the server from its full
+   *  log — the screen has no log until game over (TDD D103). Only the records' public facts, never the log. Missing
+   *  from a server older than v0.18: no records. */
+  records?: Award[]
   /** Only once the game is over. */
   results: Results | null
 }

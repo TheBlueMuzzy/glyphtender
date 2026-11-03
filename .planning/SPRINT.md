@@ -9,7 +9,8 @@ Done when: per live award (Lockdown · Through the hedge · Complete tangle · P
   done 2026-11-02: earnedAwards runs on a game in progress — 15 random games (2/3/4 players × 5 seeds, a throwaway vitest in src/game, deleted): after every logged turn the live records never went DOWN (0 in 15 games) and the last mid-game records = the end screen's in 15/15. A cast turn sits in state.pendingLog until its refresh choice is made (~85% of states between logged turns), so a record is known when the turn is FINISHED (after the refresh choice), which is after its score count-up. stats.ts + en.json + endscreen.json bundle for the server with esbuild --platform=neutral (54 KB, no node: imports). Random play almost never earns a live award (Through the hedge only, 5 record changes in 15 games) → tests use hand-built positions (engine/testkit), not random games.
 - [x] 🤖 2. Records for the 7 live awards (tie keeps the first) + tests; the live list in content — src/game/stats.ts
   done 2026-11-02: stats.ts awardRecords(game) — per live award the biggest effect by anyone, a tie keeps the earlier turn, built on earnedAwards (so it can't disagree with the end screen); Weed toss refused in code (NEVER_LIVE). content/tuning/endscreen.json liveAwards (7 × 1) + help + labels + section "Awards during the game"; select.json: on the Award object for now ("During the game") — moves to the banner's object in task 6. 3 new tests (taken by a bigger moment while both keep their own award · tie keeps the first · liveAwards 0); stats 47 + select 5 pass.
-- [ ] 🤖 3. Online: the server adds the records' public facts to each view (never the log) + test — party/views.ts
+- [x] 🤖 3. Online: the server adds the records' public facts to each view (never the log) + test — party/views.ts
+  done 2026-11-02: GameView.records (party/protocol.ts, optional: an older server sends none) = awardRecords on the server's full game, worked out once per game state (WeakMap), not once per seat. Cost measured (throwaway vitest): 2.8–4.5 ms on 2-player games (24–56 turns), 17–19 ms on 4-player games (63–69 turns) on the PC — fine for a Durable Object (30 s CPU per event, TDD §risks), and why it's cached per state. server.test: every view carries records; the last equals awardRecords(server game). stats + server 91 pass, tsc clean.
 - [ ] 🤖 4. The store notices a finished turn that sets or takes a record (local, bot, online) + test — src/store/gameStore.ts
 Check: stats + views + store tests; check:fast.
 
@@ -31,6 +32,8 @@ Done when: the award card that held its record at the end carries a small record
 Check: end-screen shots; check:full before the hand-off.
 
 ## Notes
+- Claude's call (2026-11-02, task 3): with word indicators OFF ("spot words yourself") the awards whose proof names a word or +Magic (Through the hedge, Power Play, Long word, Hijack, Super Bridge) wait for the end screen — showing GARDENS mid-game would spot the word for everyone; Lockdown and Complete tangle still show. (stats.ts WORD_AWARDS; same rule local and online.)
+- Ask Muzzy: with word indicators off, only Lockdown and Complete tangle show live — OK?
 - Claude's call (2026-11-02, task 1): the banner shows when the turn that set the record is FINISHED (after its refresh choice) — the record isn't known before; that is always after the score count-up, so the GDD's "after the score" holds.
 - Open bugs: no P0/P1. B030 (P3) — a Dev Kit tab slow under load — not in files this sprint touches.
 - Claude's call (2026-11-02): the banner is built in the game from kit parts (like AwardRow), not a new kit piece — it's Glyphtender's glyphlings + award words; promote to the kit if a second game wants one.
