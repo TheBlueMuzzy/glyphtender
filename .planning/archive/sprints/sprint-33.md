@@ -61,8 +61,8 @@ Also found by check:fast after the fixes: party/savedMatch's whole-game test tim
 - Open bugs: no P0/P1. B030 (P3) — a Dev Kit tab slow under load — not in files this sprint touches.
 - Claude's call (2026-11-02): the banner is built in the game from kit parts (like AwardRow), not a new kit piece — it's Glyphtender's glyphlings + award words; promote to the kit if a second game wants one.
 - Claude's call (2026-11-02): no new sound — the banner reuses end.award (same moment as the end screen's award card).
-- Ask Muzzy: the retro below — OK, or your words?
-Retro (Claude's draft):
+- Muzzy 2026-11-03: retro approved as written.
+Retro (approved by Muzzy 2026-11-03; the Change → /define skill §3 checklist line):
 - Went well: the sketch settled the look before any code (Muzzy's one-slot swap), and the reviews + measuring caught real bugs before Muzzy saw them (a new game's news dropped, online4's clipped reveal, the server redoing records on every move).
 - Went wrong: two design facts were read late — awards are kept per player (so a "steal" needed a new records rule) and an online screen has no log mid-game (so the server works records out) — found in /define and /sprint, after the sketch.
 - Change: before designing a change to an existing system, read how its code actually works first (5 minutes: who holds what, what each screen can see).
