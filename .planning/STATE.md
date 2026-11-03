@@ -7,6 +7,7 @@ Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone su
 Stage: deliver · Milestone: v0.17 Online waits for you ✅ · Sprint: — (32 done) · Doing: — (v0.13.0 released) · Branch: main · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
 
 ## Key facts
+**Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)
 **Remake.** Web remake of the Unity game. The original is read-only reference at `../glyphtender-original` (GitHub `TheBlueMuzzy/glyphtender-original`, renamed from `Glyphtender` 2026-09-30). Never copy it wholesale — pull ideas/assets across deliberately. Digest: `.planning/research/original-digest.md`.
 **AI source of truth** is the original's branch `festive-booth` (goal-selection model), not its `main`.
 **Muzzy's direction (2026-09-30):** phone (portrait AND landscape) + desktop — do responsive properly · first release = strong pass-and-play (AI replaces a seat next; online = "P0.5", reuse Roll Better's rooms if cheap) · tutorial not yet · UI kit **Cozy** style · think critically vs industry standards, don't just port.
