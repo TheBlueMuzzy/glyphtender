@@ -344,6 +344,7 @@ Goal (Muzzy 2026-11-02, sketch S1 approved): clever moves get a moment while the
 - **Could:** async play · spectators · leaderboards/accounts · 3D figurine glyphlings
 
 ## Ideas
+- 2026-11-03 — **Live awards can't leak secret scores** (v0.14.0 security review, hardening — nothing leaks today): add comeback, calledIt and trickster to NEVER_LIVE in src/game/stats.ts (or a test refusing a live award that reads running totals / the end log), so turning one on in content/tuning/endscreen.json can't send running-score margins mid-game.
 - 2026-10-30 — **Switch to the framework's AI arena** (from F90 — Quiet module updates; ai 0.8.3 prints it as wiring steps 1 + 5): write src/ai/arenaGame.ts (the game's half: plug, personalities, skills, targets), check it gives the same numbers as scripts/ai-arena.mjs, then point `ai:arena` at src/ai/kit/ai-arena.mjs and retire the game's own arena. ~1 session, players see no change (the catch-up rehearsal measured it as optional).
 - 2026-10-13 — → F100–F102 (v0.18, defined 2026-11-02). **Awards celebrated during the game** (Muzzy: "achievements to show up during the game somehow. some sort of celebration… any that are 'biggest' or 'longest' … only during the end screen as they do now"). Today all 15 are worked out once, after the game (stats.ts earnedAwards). Sorted:
   - **Live, the moment it happens (8):** Lockdown · Weed toss · Through the hedge · Complete tangle · Power Play · Long word · Hijack · Super Bridge (end of the planting turn).
