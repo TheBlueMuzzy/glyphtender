@@ -367,4 +367,14 @@
   .game-scorecard td[data-best] { background: color-mix(in srgb, var(--on-surface) 15%, transparent); }
   /* the players' avatars over the columns: 2.45em — set through the style name the kit's Avatar sizes itself by (B022) */
   .game-scorecard th[scope="col"] { --target-min: 2.45em; }
+
+  /* The award banner (v0.18, AwardBanner.tsx; sketch S1): over the top of the board, play carries on under it (taps go
+     through). Its slide and the glyphling swap are Web Animations in AwardBanner (times from endscreen.json live*). */
+  .game-award-banner { grid-area: 1 / 1; align-self: start; justify-self: center; z-index: 5; pointer-events: none;
+    margin-block-start: var(--gap-m); max-inline-size: calc(100% - 2 * var(--gap-m)); }
+  /* ONE glyphling slot: room round it for the overshoot, so the panel never changes size; the old and new holders
+     sit on the same spot */
+  .game-award-banner-slot { display: grid; place-items: center; flex: none; padding: var(--gap-xs); }
+  .game-award-banner-slot-avatar { grid-area: 1 / 1; display: flex; }
+  .game-award-banner-text { min-inline-size: 0; display: flex; flex-direction: column; text-align: start; }
 }

@@ -150,11 +150,22 @@
         "Look": ["endscreen.ribbon1", "endscreen.ribbon2", "endscreen.ribbon3", "endscreen.ribbon4", "endscreen.ribbonSize"]
       }
     },
+    "awardBanner": {
+      "label": "Award banner",
+      "help": "The banner over the board when a turn sets or takes an award's record during the game.",
+      "knobs": {
+        "Which awards": ["endscreen.liveAwards"],
+        "Timing": ["endscreen.liveAfterScore", "endscreen.liveHoldSeconds", "endscreen.liveSwapDelay", "endscreen.liveSwapSeconds"],
+        "Look": ["endscreen.liveOvershoot"]
+      },
+      "text": ["game.awardBanner", "game.gameOver.awards"],
+      "sounds": ["end.award"]
+    },
     "award": {
       "label": "Award",
       "help": "One award in the end screen's highlights: who earned it and why.",
       "knobs": {
-        "Which comes first": ["endscreen.awardOrder"], "During the game": ["endscreen.liveAwards"],
+        "Which comes first": ["endscreen.awardOrder"],
         "When it is earned": ["endscreen.lockdownMinDrop", "endscreen.lockdownMaxAfter", "endscreen.pincerMinFrom", "endscreen.pincerMinShare", "endscreen.weedMaxMagic", "endscreen.weedMinBlocked", "endscreen.weedMinCut", "endscreen.walledMinMagic", "endscreen.walledMaxSize", "endscreen.hedgeMinOver", "endscreen.powerPlayMin", "endscreen.powerPlayMinLetters", "endscreen.longWordMinSmall", "endscreen.longWordMinLarge", "endscreen.hijackMinFrom", "endscreen.bridgeMinLength", "endscreen.superBridgeMinLength", "endscreen.closeCallMinAfter", "endscreen.tricksterMinBehind", "endscreen.calledItMinLead"],
         "Carousel": ["endscreen.carouselSeconds", "endscreen.carouselPauseSeconds"]
       },

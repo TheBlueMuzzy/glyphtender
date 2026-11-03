@@ -18,10 +18,14 @@ Checked: 2026-11-02 — stats 47→51 tests, server.test (records in every view,
 
 ## F101 🎮 Award banner during the game
 Done when: after the turn's score count-up, a record set or taken shows the banner (one glyphling slot, title, who, proof; taking = old holder shrinks away, new one overshoots and settles), fixed size from the start, kit parts only, values in content, the end screen's award sound; reduce motion = no swap; proven locally and online at desktop + phone.
-- [ ] 🤖 5. The banner (fixed size, swap animation) — src/game/AwardBanner.tsx
-- [ ] 🤖 6. Its values in content + Dev Kit labels/help (hold 2 · afterScore 0.3 · swapDelay 0.5 · swapSeconds 0.5 · overshoot 1.15) — content/tuning/endscreen.json
-- [ ] 🤖 7. Its words (who / takes it from) — content/text/en.json
-- [ ] 🤖 8. Shown after the score count-up with end.award; reduce motion — src/game/GameScreen.tsx
+- [x] 🤖 5. The banner (fixed size, swap animation) — src/game/AwardBanner.tsx
+  done 2026-11-02: AwardBanner.tsx — Panel + Row + Avatar + Text (kit parts); one glyphling slot (old + new holder on the same grid spot, padding room for the overshoot); who = "{name}" / "{name} takes it from {other}" / "{name} beats their own record"; proof = the award's own end-screen reason (awardText). Motion = Web Animations (slide in/out, old shrinks over 40% of the swap, new grows to the overshoot at 70% and settles) — CSS variables for the times aren't allowed by check-ui, so the times are passed to element.animate like useThrow. One at a time, on the looks clock.
+- [x] 🤖 6. Its values in content + Dev Kit labels/help (hold 2 · afterScore 0.3 · swapDelay 0.5 · swapSeconds 0.5 · overshoot 1.15) — content/tuning/endscreen.json
+  done 2026-11-02: endscreen.json liveHoldSeconds 2 · liveAfterScore 0.3 · liveSwapDelay 0.5 · liveSwapSeconds 0.5 · liveOvershoot 1.15 (+ help, labels, ranges, section "Awards during the game"); select.json: a new "awardBanner" object (Which awards · Timing · Look, text, end.award) — liveAwards moved there from Award. The sketch's bannerSize/labelSize aren't knobs: the kit's text sizes rule (Claude's call). The slide (0.3 s) is fixed (tuning-ok).
+- [x] 🤖 7. Its words (who / takes it from) — content/text/en.json
+  done 2026-11-02: en.json game.awardBanner { set, taken, ownBest, label }.
+- [x] 🤖 8. Shown after the score count-up with end.award; reduce motion — src/game/GameScreen.tsx
+  done 2026-11-02: GameScreen puts <AwardBanner /> in .game-board (over the board, taps go through); it waits while the store's `scoring` is set, then liveAfterScore; plays end.award; reduce motion = no slide, no swap (the new holder is simply there). check:ui pass, select test pass, tsc clean.
 - [ ] 🤖 9. e2e: a record set, then taken, plays the banner — local + online, desktop + phone shots — e2e/award-banner.mjs
 Check: e2e award-banner, online, online-ai; check:fast; screenshots looked at.
 

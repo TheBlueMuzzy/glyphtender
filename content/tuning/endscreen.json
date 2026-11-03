@@ -7,6 +7,11 @@
     "ribbonSize": "Results: the ribbon's size, as a share of its glyphling's picture (0.45 = 45%). Try 0.35–0.6.",
     "awardOrder": "Which awards may show, and their order in the Highlights carousel: 1 = shown first. 0 = never shown. Only awards actually earned show; awards never add Magic.",
     "liveAwards": "During the game: 1 = this award gets a banner over the board when a turn sets or takes its record (the biggest so far, by anyone); 0 = only on the end screen. Weed toss is never live: its proof is a rival's secret hand.",
+    "liveHoldSeconds": "Award banner: how long it stays up once the new holder is in place (seconds). Too short = the proof line can't be read.",
+    "liveAfterScore": "Award banner: the gap after the turn is finished before it slides in (seconds).",
+    "liveSwapDelay": "Award banner, a record taken: how long the old holder's glyphling sits in the slot before the swap (seconds).",
+    "liveSwapSeconds": "Award banner, a record taken: the swap itself — the old holder shrinks away, then the new one grows in (seconds).",
+    "liveOvershoot": "Award banner, a record taken: how far past full size the new holder's glyphling grows before it settles. 1 = no bounce.",
     "carouselSeconds": "The Highlights carousel shows one award at a time and moves on by itself after this many seconds. Higher = more time to read each one. Try 3–6.",
     "carouselPauseSeconds": "After someone taps the carousel (or ◀ ▶ / a swipe), it waits this long before moving on by itself again. Try 2–5.",
     "lockdownMinDrop": "PROVISIONAL — set by hand to a clearly deliberate value and checked against the sims (research/sims.md); re-tune once the beta AI personalities can play positionally. Lockdown: one turn must take at least this many moves away from ONE rival glyphling. Higher = only big squeezes count. Try 4–8.",
@@ -100,6 +105,11 @@
     "awardOrder.trickster": "Award order: Trickster's Victory",
     "awardOrder.calledIt": "Award order: Called it",
     "awardOrder.closeCall": "Award order: Close call",
+    "liveHoldSeconds": "Banner: hold (s)",
+    "liveAfterScore": "Banner: wait before (s)",
+    "liveSwapDelay": "Banner: old holder shows (s)",
+    "liveSwapSeconds": "Banner: swap (s)",
+    "liveOvershoot": "Banner: overshoot",
     "liveAwards.lockdown": "Live: Lockdown",
     "liveAwards.throughHedge": "Live: Through the hedge",
     "liveAwards.completeTangle": "Live: Complete tangle",
@@ -137,7 +147,12 @@
       "ribbonSize"
     ],
     "Awards during the game": [
-      "liveAwards"
+      "liveAwards",
+      "liveHoldSeconds",
+      "liveAfterScore",
+      "liveSwapDelay",
+      "liveSwapSeconds",
+      "liveOvershoot"
     ],
     "End screen: awards": [
       "awardOrder",
@@ -186,6 +201,11 @@
     ]
   },
   "_ranges": {
+    "liveHoldSeconds": [0.8, 4, 0.1],
+    "liveAfterScore": [0, 1.5, 0.05],
+    "liveSwapDelay": [0, 1.5, 0.05],
+    "liveSwapSeconds": [0.2, 1.2, 0.05],
+    "liveOvershoot": [1, 1.5, 0.01],
     "ribbonSize": [0.25, 0.8, 0.01],
     "maxMarkers": [0, 12, 1],
     "chartDrawSeconds": [0, 4, 0.1],
@@ -252,6 +272,11 @@
     "hijack": 1,
     "superBridge": 1
   },
+  "liveHoldSeconds": 2,
+  "liveAfterScore": 0.3,
+  "liveSwapDelay": 0.5,
+  "liveSwapSeconds": 0.5,
+  "liveOvershoot": 1.15,
   "carouselSeconds": 4,
   "carouselPauseSeconds": 4,
   "ribbon1": "#f2c14e",
