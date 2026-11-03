@@ -15,6 +15,7 @@ Done when: per live award (Lockdown · Through the hedge · Complete tangle · P
   done 2026-11-02: src/store/awardNews.ts recordNews(before, after) → { record, previous } per new/changed record (+2 tests). gameStore: onlineRecords (from each view — onlinePlay.ts startFrom / show (the view's last change) / jumpTo) + awardNews queue + shownAwardNews(); a subscription works the records out when the log grows (local + local bots — one path) or takes the server's (online), and queues the news; the first records seen for a game (a loaded save, a join) are only remembered. Live tuning: liveTuning('endscreen'). +2 store tests (set → taken queue, loaded game silent; indicators off). check:fast ALL PASS.
 Check: stats + views + store tests; check:fast.
 Checked: 2026-11-02 — stats 47→51 tests, server.test (records in every view, the last = awardRecords of the server's game), store 31 incl. 2 new, awardNews 2; check:fast ALL PASS (5 checks). The online path is covered end to end in task 9 (e2e/award-banner.mjs).
+Approved: Muzzy 2026-11-03 ("approved") — F100: done.
 
 ## F101 🎮 Award banner during the game
 Done when: after the turn's score count-up, a record set or taken shows the banner (one glyphling slot, title, who, proof; taking = old holder shrinks away, new one overshoots and settles), fixed size from the start, kit parts only, values in content, the end screen's award sound; reduce motion = no swap; proven locally and online at desktop + phone.
@@ -32,6 +33,7 @@ Done when: after the turn's score count-up, a record set or taken shows the bann
   done 2026-11-02 in 468b25a (details in F102's check notes below): online4 alone PASS, store 162 + party 66 pass, award-banner e2e PASS, check:fast ALL PASS.
 Check: e2e award-banner, online, online-ai; check:fast; screenshots looked at.
 Checked: 2026-11-02 — e2e award-banner PASS (3 sizes + reduce motion; screenshots looked at by Claude: padding all round, inside the board); check:full at 468b25a ALL PASS — 40 checks (24.4 min) incl. awards, online, online4, online-ai. Reviewed: a fresh helper (1 real + 2 low; fixed / noted, task 14).
+Approved: Muzzy 2026-11-03 ("approved") — F101: done.
 
 ## F102 ✨ Record mark on the end screen
 Done when: the award card that held its record at the end carries a small record mark in Highlights and the Story slot.
@@ -39,18 +41,22 @@ Done when: the award card that held its record at the end carries a small record
   done 2026-11-02: AwardRow `record` → a kit Badge (primary) "Record" after the title (en.json game.gameOver.record), data-record on the row; GameOver works the final records out (awardRecords at the end — all 7 live awards, whatever the word-indicators option) and passes them to the Highlights carousel and the Story slot. tsc + check:ui clean; e2e:end PASS.
 - [x] 🤖 11. Re-take the end-screen shots — e2e/end-screen-shots.mjs
   done 2026-11-02: no re-take needed — the badge now changes no layout. Path there: after task 10, check:shots 2/162 differed (the whole end page moved: the badge after the title made a record card taller, and the carousel keeps its tallest card); inline in the title → 7/162 (it took the heading's size — far too big, see .scratch/glyphtender-f100/record-desktop.png); final: the kit Badge pinned across the bottom of the holder's glyphling, sharing its grid cell (like the podium's ribbons; position:absolute isn't allowed by check-ui) → check:shots "all 162 screenshots match the before set exactly (0 pixels differ)"; e2e:end PASS (129 ok). Looked at a record card at 390×844 and 1440×900 (Long word · SCORER, end-4p fixture): the badge reads, the card is no taller.
-- [ ] 🙋 12. Muzzy looks at the mark: does it read? — src/game/EndHighlights.tsx
-- [ ] 🙋 13. Play a game (local, then online with a friend) and tune the banner in the Dev Kit (tuning) — content/tuning/endscreen.json
+- [x] 🙋 12. Muzzy looks at the mark: does it read? — src/game/EndHighlights.tsx
+  done 2026-11-03: Muzzy "approved" (no tuning changes — the sketch values stand).
+- [x] 🙋 13. Play a game (local, then online with a friend) and tune the banner in the Dev Kit (tuning) — content/tuning/endscreen.json
+  done 2026-11-03: Muzzy "approved" (no tuning changes — the sketch values stand).
 Check: end-screen shots; check:full before the hand-off.
 Checked: 2026-11-02 — check:shots 162/162 the same (0 px); a record card looked at at 390×844 + 1440×900 (the badge pinned on the glyphling, the card no taller); e2e:end PASS; check:full at 468b25a ALL PASS — 40 checks.
+Approved: Muzzy 2026-11-03 ("approved") — F102: done.
 Full check 2026-11-02 at d4a1f3e: 39/40 — online4 FAILED ("clipped: Tangle bonus: +3 for Ada" / "Counting Bo's Magic…" on the reveal), and failed again ALONE → real: the banner, a grid item in .game-board without size containment, could push the board's column wider and squeeze the panel. Fixed: contain: inline-size + a width of min(board − margins, 24rem); online4 alone PASS.
 Review 2026-11-02 (a fresh helper, 6e562ad..d4a1f3e): 1 real — a new/loaded game emptied the queue while a banner showed; the old banner stayed and its end removed the new game's first news → shownAwardNews(news) only removes it if it's still the oldest, and the banner drops at once when the queue no longer starts with it (+ test). Low, taken: in pass-and-play the banner played under the dimmed handoff box → it waits for the handoff too. Low, left (noted): the Dev Kit's FULL pause doesn't freeze the banner's Web Animations (only its removal timer) — players never see that pause.
 Also found by check:fast after the fixes: party/savedMatch's whole-game test timed out (5.8 s > 5 s) — the server worked records out on EVERY change (a long game: up to 18 ms each). Root fix: cached by the game's log object (new only when a turn ends; the live awards are measured from the log alone) → party 66 pass, check:fast ALL PASS.
 
 ## Notes
+- Muzzy 2026-11-03: the Goops ladder asks (Dev Kit Ladder tab + no-bare-rank lint) wait until after this sprint ships (framework Ideas).
 - Review (2026-11-02, a fresh helper, F100 commits 1d3867d..6e562ad): 1 real — loadState (the Dev Kit loads a save straight over a game) didn't reset the award news, so a longer loaded log announced its old records with wrong previous holders; 2 low — online gameId change mid-game, and a Dev Kit tuning edit announcing an old moment. Fixed: store.gameRun (+1 on startGame / loadState / online startFrom) restarts the records; loadState + startFrom clear awardNews; locally only a record from a turn finished since the last look is news. +1 test, the load test no longer leaves first.
 - Claude's call (2026-11-02, task 3): with word indicators OFF ("spot words yourself") the awards whose proof names a word or +Magic (Through the hedge, Power Play, Long word, Hijack, Super Bridge) wait for the end screen — showing GARDENS mid-game would spot the word for everyone; Lockdown and Complete tangle still show. (stats.ts WORD_AWARDS; same rule local and online.)
-- Ask Muzzy: with word indicators off, only Lockdown and Complete tangle show live — OK?
+- Muzzy 2026-11-03: "yes" — with word indicators off only Lockdown and Complete tangle show live.
 - Claude's call (2026-11-02, task 1): the banner shows when the turn that set the record is FINISHED (after its refresh choice) — the record isn't known before; that is always after the score count-up, so the GDD's "after the score" holds.
 - Open bugs: no P0/P1. B030 (P3) — a Dev Kit tab slow under load — not in files this sprint touches.
 - Claude's call (2026-11-02): the banner is built in the game from kit parts (like AwardRow), not a new kit piece — it's Glyphtender's glyphlings + award words; promote to the kit if a second game wants one.

@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-02 23:50 — **Sprint 33 — Awards during the game: all 3 features built + checked + reviewed — waiting on Muzzy's look (tasks 12 + 13, then "approved").** F100 Award records (the measures, the server sends them online) · F101 Award banner during the game (one glyphling slot, the swap) · F102 Record mark on the end screen (a Record badge pinned on the glyphling). check:full ALL PASS 40/40 at 468b25a. Ask Muzzy: with word indicators off only Lockdown + Complete tangle show live — OK? Next: Muzzy plays (PC http://localhost:5180 · phone http://192.168.1.152:5180 — port 5173 is Goops'), says approved → F100–F102: done → retro → archive → /deliver v0.18.
+2026-11-03 — **Sprint 33 — Awards during the game: all 3 features ✅ (Muzzy "approved") — next: Muzzy's retro → archive Sprint 33 → /deliver v0.18 Awards during the game.** F100 Award records · F101 Award banner during the game · F102 Record mark on the end screen. check:full 40/40 at 468b25a. Muzzy: indicators off → only Lockdown + Complete tangle live (yes); Goops ladder asks wait until after this ships.
 Open: B030 (P3) — a Dev Kit tab slow to open under full-check load.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: develop · Milestone: v0.18 Awards during the game · Sprint: 33 Awards during the game · Doing: F100–F102 — built, waiting on Muzzy's look · Branch: dev/v0-18-awards-live · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
+Stage: develop · Milestone: v0.18 Awards during the game · Sprint: 33 Awards during the game · Doing: — (Sprint 33 built + approved) · Branch: dev/v0-18-awards-live · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
 
 ## Key facts
 **Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)
