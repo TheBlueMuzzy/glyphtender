@@ -165,6 +165,14 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D103 · 2026-11-02 · Award records are worked out by each screen from the end screen's own measures (v0.18 Awards during the game, F100–F102)
+  Proposed by: Claude (defining F100 — Award records) · design = Muzzy's (GDD §4 Highlights → During the game)
+  Chose: the live banner and the end screen read the SAME award measures (stats.ts earnedAwards over the log so far), so
+  a live award can never disagree with the end screen. Records = per award, the biggest effect so far by anyone; a tie
+  keeps the earlier turn. Each screen works them out from its own game state after each turn — no server change.
+  Weed toss is end-only: its proof needs a rival's best word from their secret hand, which an online screen doesn't have
+  (and showing it would give that hand away). F100's first task measures that the other 7 come out the same online.
+
 D102 · 2026-11-01 · A match being played is kept in its room's Durable Object storage (F96 — Matches survive a server restart)
   Proposed by: the rooms kit 0.10.0 (F100, harvested for every game) · keepMatchDays 7 = Muzzy's call (a live game)
   Chose: party/worker.ts copies the turn-based starter's storage parts — one key "room" (the kit's SavedRoom JSON:

@@ -1,10 +1,10 @@
 ## ▶ RESUME HERE
-2026-11-02 — **Released v0.13.0 — v0.17 Online waits for you ✅ — next: /sprint (or /roadmap).** A match everyone has left waits for its players (no bot moves, no storage writes) and goes on when someone rejoins; rooms 0.14.0 refuses `bot:` player ids; the Story chart screenshot is steady. Framework branch dev/rooms-bots-wait (rooms 0.14.0) still to merge in the framework.
+2026-11-02 — **Roadmap ready: v0.18 Awards during the game defined — F100 — Award records ready to start; F101 — Award banner during the game and F102 — Record mark on the end screen follow it. Next: /sprint.** Design in GDD §4 Highlights → During the game (sketch S1 approved, picks in research/awards-live/picks.json); TDD D103. Before: Released v0.13.0 — v0.17 Online waits for you ✅.
 Open: B030 (P3) — a Dev Kit tab slow to open under full-check load.
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: deliver · Milestone: v0.17 Online waits for you ✅ · Sprint: — (32 done) · Doing: — (v0.13.0 released) · Branch: main · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
+Stage: define → develop · Milestone: v0.18 Awards during the game · Sprint: — (32 done) · Doing: — (v0.13.0 released) · Branch: main · Version: 0.13.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.13.0, beta stage, online)
 
 ## Key facts
 **Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)
