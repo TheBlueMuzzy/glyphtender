@@ -106,7 +106,8 @@ const flush = () => new Promise<void>((r) => queueMicrotask(r)) // (the room sav
 const SECRET = /"record"|"bagSeed"|"rngSeed"|"botRng"|"paceRng"/
 
 describe('F96 — a match kept in storage', () => {
-  it('a whole game: every state can be saved, one save per change, and the stored match is wiped at the end (measured)', async () => {
+  // (3 whole games: over vitest's 5 s on GitHub's runner — it timed out there twice, 2026-11-03)
+  it('a whole game: every state can be saved, one save per change, and the stored match is wiped at the end (measured)', { timeout: 60_000 }, async () => {
     for (const [players, turnSeconds] of [[2, 0], [2, 60], [4, 0]]) {
       const { storage, server, conns } = startRoom(players, { turnSeconds })
       await flush()
