@@ -35,6 +35,7 @@ Done when: the award card that held its record at the end carries a small record
 - [x] 🤖 10. The record mark on AwardRow — src/game/EndHighlights.tsx
   done 2026-11-02: AwardRow `record` → a kit Badge (primary) "Record" after the title (en.json game.gameOver.record), data-record on the row; GameOver works the final records out (awardRecords at the end — all 7 live awards, whatever the word-indicators option) and passes them to the Highlights carousel and the Story slot. tsc + check:ui clean; e2e:end PASS.
 - [ ] 🤖 11. Re-take the end-screen shots — e2e/end-screen-shots.mjs
+  in progress 2026-11-02: check:shots after task 10 → 2 of 162 differed (end2/end4-results @1066×1192): the whole page moved a few px because wrapping the title in a Row changed every award card's height — the badge now sits inline in the title (cards without it unchanged); re-checking.
 - [ ] 🙋 12. Muzzy looks at the mark: does it read? — src/game/EndHighlights.tsx
 - [ ] 🙋 13. Play a game (local, then online with a friend) and tune the banner in the Dev Kit (tuning) — content/tuning/endscreen.json
 Check: end-screen shots; check:full before the hand-off.

@@ -56,7 +56,7 @@ export function AwardRow({ award, name, big = false, record = false }: { award: 
         ))}
       </span>
       <span className="game-end-award-text">
-        <Row gap="xs" className="kit-nowrap"><Text kind={big ? 'heading' : 'label'}>{title}</Text>{record && <Badge variant="primary">{w.record}</Badge>}</Row>
+        <Text kind={big ? 'heading' : 'label'}>{title}{record && <> <Badge variant="primary">{w.record}</Badge></>}</Text>
         <Text kind={big ? 'body' : 'caption'}>{reason}</Text>
       </span>
     </Row>
