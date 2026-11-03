@@ -32,7 +32,8 @@ Check: e2e award-banner, online, online-ai; check:fast; screenshots looked at.
 
 ## F102 ✨ Record mark on the end screen
 Done when: the award card that held its record at the end carries a small record mark in Highlights and the Story slot.
-- [ ] 🤖 10. The record mark on AwardRow — src/game/EndHighlights.tsx
+- [x] 🤖 10. The record mark on AwardRow — src/game/EndHighlights.tsx
+  done 2026-11-02: AwardRow `record` → a kit Badge (primary) "Record" after the title (en.json game.gameOver.record), data-record on the row; GameOver works the final records out (awardRecords at the end — all 7 live awards, whatever the word-indicators option) and passes them to the Highlights carousel and the Story slot. tsc + check:ui clean; e2e:end PASS.
 - [ ] 🤖 11. Re-take the end-screen shots — e2e/end-screen-shots.mjs
 - [ ] 🙋 12. Muzzy looks at the mark: does it read? — src/game/EndHighlights.tsx
 - [ ] 🙋 13. Play a game (local, then online with a friend) and tune the banner in the Dev Kit (tuning) — content/tuning/endscreen.json

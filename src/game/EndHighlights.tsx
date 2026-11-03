@@ -8,7 +8,7 @@
 import { useEffect } from 'react'
 import text from '../../content/text/en.json'
 import { playSound } from '../audio'
-import { Carousel, Row, Stack, Text } from '../ui/kit'
+import { Badge, Carousel, Row, Stack, Text } from '../ui/kit'
 import { glyphlingArt } from './art'
 import { awardText } from './endText'
 import type { Award } from './stats'
@@ -24,9 +24,11 @@ type Props = {
   pauseSeconds: number
   /** A wide screen (desktop, phone on its side): the award a size bigger, so it holds its own under the podium. */
   big?: boolean
+  /** v0.18: the awards ("id:holder") that held their game record at the end — they carry a record mark. */
+  records?: Set<string>
 }
 
-export function EndHighlights({ awards, index, onIndex, name, autoSeconds, pauseSeconds, big = false }: Props) {
+export function EndHighlights({ awards, index, onIndex, name, autoSeconds, pauseSeconds, big = false, records }: Props) {
   const any = awards.length > 0
   useEffect(() => {
     if (any) playSound('end.award')
@@ -36,24 +38,25 @@ export function EndHighlights({ awards, index, onIndex, name, autoSeconds, pause
     <Stack gap="xs" className="game-end-highlights">
       <div className="game-end-highlights-strip"><Text kind="heading">{w.highlights}</Text></div>
       <Carousel label={w.highlights} index={index} onIndexChange={onIndex} autoSeconds={autoSeconds} pauseSeconds={pauseSeconds}>
-        {awards.map((a) => <AwardRow key={`${a.id}:${a.holder}`} award={a} name={name} big={big} />)}
+        {awards.map((a) => <AwardRow key={`${a.id}:${a.holder}`} award={a} name={name} big={big} record={records?.has(`${a.id}:${a.holder}`)} />)}
       </Carousel>
     </Stack>
   )
 }
 
-/** One award: the holder's glyphling (and the rival's, small, when it's about them), the title over the proof. */
-export function AwardRow({ award, name, big = false }: { award: Award; name: (seat: number) => string; big?: boolean }) {
+/** One award: the holder's glyphling (and the rival's, small, when it's about them), the title over the proof.
+ *  `record` (v0.18): it held the game's record for this award at the end — a small "Record" badge after the title. */
+export function AwardRow({ award, name, big = false, record = false }: { award: Award; name: (seat: number) => string; big?: boolean; record?: boolean }) {
   const { title, reason } = awardText(award, name)
   return (
-    <Row gap="s" className="kit-nowrap game-end-award" data-knobs="award" data-award={award.id} data-holder={award.holder}>
+    <Row gap="s" className="kit-nowrap game-end-award" data-knobs="award" data-award={award.id} data-holder={award.holder} data-record={record || undefined}>
       <span className="game-end-award-art">
         {award.seats.slice(0, 2).map((seat, i) => (
           <img key={seat} className="game-end-art" data-size={i === 0 ? (big ? 'm' : 's') : 'xs'} src={glyphlingArt(seat)} alt={name(seat)} />
         ))}
       </span>
       <span className="game-end-award-text">
-        <Text kind={big ? 'heading' : 'label'}>{title}</Text>
+        <Row gap="xs" className="kit-nowrap"><Text kind={big ? 'heading' : 'label'}>{title}</Text>{record && <Badge variant="primary">{w.record}</Badge>}</Row>
         <Text kind={big ? 'body' : 'caption'}>{reason}</Text>
       </span>
     </Row>

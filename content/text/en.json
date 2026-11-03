@@ -118,6 +118,7 @@
       "splitTangles": "Tangles\u00a0{tangles}",
       "splitLabel": "{words} Magic from words, {tangles} from tangles",
       "highlights": "Highlights",
+      "record": "Record",
       "noLog": "This game was saved before the game log existed, so there's no story to tell.",
       "awards": {
         "lockdown": {
