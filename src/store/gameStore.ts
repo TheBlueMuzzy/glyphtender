@@ -705,6 +705,7 @@ useGameStore.subscribe((s) => {
 // Award records during the game (v0.18, awardNews.ts): whenever a turn is finished (the log grows) — or, online, a view
 // brings new records from the server — the records it set or took queue up for the banner. The first records seen for
 // a game (a loaded save, joining a match) are only remembered: nothing old is announced.
+const endTuning = liveTuning('endscreen', endscreenFile) // (follows the Dev Kit's edits)
 let recordsSeen: { records: Award[]; logLength: number; from: Award[] | null; run: number } | null = null
 useGameStore.subscribe((s) => {
   if (!s.game) return void (recordsSeen = null)
@@ -716,7 +717,7 @@ useGameStore.subscribe((s) => {
     records = s.onlineRecords
   } else {
     if (recordsSeen && logLength === recordsSeen.logLength) return
-    records = awardRecords(s.game, liveTuning('endscreen', endscreenFile).current, s.options?.wordIndicators ?? true)
+    records = awardRecords(s.game, endTuning.current, s.options?.wordIndicators ?? true)
   }
   // (locally, only a record from a turn finished since the last look is news — a Dev Kit tuning edit that makes an older
   // moment a record isn't announced as if this turn had set it)

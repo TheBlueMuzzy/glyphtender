@@ -40,6 +40,7 @@
     "e2e:portrait": "node e2e/portrait-layout.mjs",
     "e2e:spotlight": "node e2e/word-spotlight.mjs",
     "e2e:score": "node e2e/score-sequence.mjs",
+    "e2e:awards": "node e2e/award-banner.mjs",
     "e2e:previews": "node e2e/previews.mjs",
     "e2e:end": "node e2e/end-screen-shots.mjs",
     "e2e:margins": "node e2e/layout-margins.mjs",

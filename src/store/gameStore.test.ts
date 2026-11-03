@@ -7,6 +7,7 @@ import { setRails } from './railsLimit'
 import { castOptions, dropKind, highlightFor, letterIn, stepsDone, TRAY_GAP, undoNow } from './turnPlan'
 import { moveInRack, shuffleRack } from '../table/rack'
 import type { GameState, LogTurn } from '../engine/types'
+import type { Award } from '../game/stats'
 
 const store = () => useGameStore.getState()
 /** The id of the seed at hand position `i` of the player to move (tests name seeds the way the tray hands them out). */
@@ -506,15 +507,14 @@ describe('game store — award records during the game (v0.18)', () => {
     expect(store().awardNews.map((n) => [n.record.holder, n.record.values.word, n.previous?.holder])).toEqual([[0, 'GARDENSIDE', 1]])
   })
 
-  it('a Dev Kit tuning edit that makes an older moment a record is not announced as this turn\'s', () => {
+  it('online: the records come with the view — new ones queue up, the first view\'s are only remembered', () => {
     store().startGame({ players: 2, seed: 7 })
-    const game = store().game!
-    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN')]) })
-    store().shownAwardNews()
-    // the record measured now includes an old moment it didn't before (as if longWordMinSmall had been lowered): the
-    // next turn makes nothing new, so nothing is announced
-    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN'), turnWith(2, 1, 'AT')]) })
+    const record = (holder: number, moment: number, word: string): Award =>
+      ({ id: 'longWord', holder, seats: [holder], moment, values: { word, n: word.length }, effect: word.length })
+    useGameStore.setState({ online: { mySeat: 0, gameId: 1, version: 1, post: () => {}, landed: () => {}, resume: () => {} } as never, onlineRecords: [record(0, 3, 'GARDEN')], gameRun: store().gameRun + 1 })
     expect(store().awardNews).toEqual([])
+    useGameStore.setState({ onlineRecords: [record(1, 5, 'GARDENS')] })
+    expect(store().awardNews.map((n) => [n.record.holder, n.previous?.holder])).toEqual([[1, 0]])
   })
 
   it('word indicators off: the word awards wait for the end', () => {
