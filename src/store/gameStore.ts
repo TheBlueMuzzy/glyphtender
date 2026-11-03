@@ -146,8 +146,9 @@ export interface GameStore {
    *  announced). */
   gameRun: number
 
-  /** The banner has shown the oldest award news: it goes. */
-  shownAwardNews: () => void
+  /** The banner has shown this award news: it goes — only if it's still the oldest (a new game may have emptied the
+   *  queue meanwhile, and its own first news must stay). */
+  shownAwardNews: (news: AwardNews) => void
   /** `bots`: seats the AI plays on this device (store/localBot.ts — New Game's AI seats, tests, the Dev Kit).
    *  `ai`: who each of those AIs is (personality + skill ids, content/ai/); a bot seat left out plays the Survivor at First Class (seats.ts defaultAi). */
   startGame: (options: Partial<GameOptions> & { players: number; seed: number; turnOrder?: number[]; bots?: number[]; ai?: Record<number, AiPick>; extraWords?: ExtraWords; stack?: SeedStack }) => void
@@ -383,7 +384,9 @@ export const useGameStore = create<GameStore>()((set, get) => {
     awardNews: [],
     gameRun: 0,
 
-    shownAwardNews: () => set({ awardNews: get().awardNews.slice(1) }),
+    shownAwardNews: (news) => {
+      if (get().awardNews[0] === news) set({ awardNews: get().awardNews.slice(1) })
+    },
     startGame: ({ players, seed, turnOrder, boardName, minWordLength, hideSeeds, wordIndicators, bots = [], ai = {}, extraWords, stack }) => {
       const game = setupGame({ players, seed, turnOrder, boardName, rules: minWordLength ? { minWordLength } : undefined, extraWords, stack })
       const options: GameOptions = {

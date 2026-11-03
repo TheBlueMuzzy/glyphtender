@@ -497,7 +497,10 @@ describe('game store — award records during the game (v0.18)', () => {
     expect(store().awardNews.map((n) => [n.record.id, n.record.holder, n.previous?.holder ?? null])).toEqual([['longWord', 0, null]])
     useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN'), turnWith(2, 1, 'GARDENS')]) })
     expect(store().awardNews.map((n) => [n.record.id, n.record.holder, n.previous?.holder ?? null])).toEqual([['longWord', 0, null], ['longWord', 1, 0]])
-    store().shownAwardNews()
+    const shown = store().awardNews[0]
+    store().shownAwardNews(shown)
+    expect(store().awardNews).toHaveLength(1)
+    store().shownAwardNews(shown) // (a banner that was already shown, or one from an emptied queue, removes nothing)
     expect(store().awardNews).toHaveLength(1)
     // a game loaded mid-way (straight over this one, as the Dev Kit does): its records are only remembered, and the
     // news still waiting from the old game goes

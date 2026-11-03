@@ -374,8 +374,10 @@
 
   /* The award banner (v0.18, AwardBanner.tsx; sketch S1): over the top of the board, play carries on under it (taps go
      through). Its slide and the glyphling swap are Web Animations in AwardBanner (times from endscreen.json live*). */
+  /* contain: its width never pushes the board's grid wider (that squeezed the panel beside it — online4's reveal text
+     came out clipped); it's as wide as its words, up to the board's width less a margin each side */
   .game-award-banner { grid-area: 1 / 1; align-self: start; justify-self: center; z-index: 5; pointer-events: none;
-    margin-block-start: var(--gap-m); max-inline-size: calc(100% - 2 * var(--gap-m)); }
+    margin-block-start: var(--gap-m); contain: inline-size; inline-size: min(calc(100% - 2 * var(--gap-m)), 24rem); }
   /* ONE glyphling slot: room round it for the overshoot, so the panel never changes size; the old and new holders
      sit on the same spot */
   .game-award-banner-slot { display: grid; place-items: center; flex: none; padding: var(--gap-xs); }

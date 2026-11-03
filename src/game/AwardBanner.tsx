@@ -27,6 +27,8 @@ const SLIDE = 0.3 // tuning-ok: the slide in and out (seconds), fixed in sketch 
 export function AwardBanner() {
   const next = useGameStore((s) => s.awardNews[0] ?? null)
   const scoring = useGameStore((s) => s.scoring !== null)
+  // (pass-and-play: not behind the "pass the device" box — the next player sees it once they have the device)
+  const handoff = useGameStore((s) => s.handoff !== null)
   const shownAwardNews = useGameStore((s) => s.shownAwardNews)
   const t = useEndTuning()
   const colours = useGardenTuning()
@@ -34,9 +36,12 @@ export function AwardBanner() {
 
   // The oldest news shows once the score has finished counting up (and liveAfterScore has gone by)
   useEffect(() => {
-    if (!next || showing || scoring) return
+    if (!next || showing || scoring || handoff) return
     return looksClock.after(t.liveAfterScore * 1000, () => setShowing(next))
-  }, [next, showing, scoring, t.liveAfterScore])
+  }, [next, showing, scoring, handoff, t.liveAfterScore])
+  // The news on show is always the oldest in the queue: when it isn't any more, the queue was emptied (a new or loaded
+  // game) — that banner goes at once
+  if (showing && next !== showing) setShowing(null)
 
   const taken = !!showing?.previous && showing.previous.holder !== showing.record.holder
   const still = reduceMotion()
@@ -64,7 +69,7 @@ export function AwardBanner() {
     ]
     const stop = looksClock.after(ms(total), () => {
       setShowing(null)
-      shownAwardNews()
+      shownAwardNews(showing)
     })
     return () => {
       stop()

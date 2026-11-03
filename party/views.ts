@@ -17,12 +17,15 @@ import { botTurns, type ServerGame } from './serverGame'
 export const hideSecrets = (game: GameState, seat: number): GameState => viewFor(game, seat)
 
 // Award records during the game (v0.18, TDD D103): a view has no log until game over, so the server works the live
-// awards' records out from its full log and sends only those (award, holder, proof, turn). Worked out once per game
-// state, not once per seat — up to ~18 ms on a long 4-player game (measured on the PC, F100 task 3).
-const recordsMade = new WeakMap<GameState, Award[]>()
+// awards' records out from its full log and sends only those (award, holder, proof, turn). Worked out once per finished
+// turn — the log is a new object only when a turn ends (engine/tangle.ts), and the live awards are measured from the
+// log alone — not on every change or for every seat: up to ~18 ms on a long 4-player game (measured on the PC, F100
+// task 3); per change it made a whole saved game's test time out.
+const recordsMade = new WeakMap<object, Award[]>()
 function recordsFor(game: GameState, wordIndicators: boolean): Award[] {
-  let records = recordsMade.get(game)
-  if (!records) recordsMade.set(game, (records = awardRecords(game, undefined, wordIndicators)))
+  const key = game.log ?? game
+  let records = recordsMade.get(key)
+  if (!records) recordsMade.set(key, (records = awardRecords(game, undefined, wordIndicators)))
   return records
 }
 
