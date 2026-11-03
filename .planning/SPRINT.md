@@ -34,6 +34,7 @@ Done when: the award card that held its record at the end carries a small record
 Check: end-screen shots; check:full before the hand-off.
 
 ## Notes
+- Review (2026-11-02, a fresh helper, F100 commits 1d3867d..6e562ad): 1 real — loadState (the Dev Kit loads a save straight over a game) didn't reset the award news, so a longer loaded log announced its old records with wrong previous holders; 2 low — online gameId change mid-game, and a Dev Kit tuning edit announcing an old moment. Fixed: store.gameRun (+1 on startGame / loadState / online startFrom) restarts the records; loadState + startFrom clear awardNews; locally only a record from a turn finished since the last look is news. +1 test, the load test no longer leaves first.
 - Claude's call (2026-11-02, task 3): with word indicators OFF ("spot words yourself") the awards whose proof names a word or +Magic (Through the hedge, Power Play, Long word, Hijack, Super Bridge) wait for the end screen — showing GARDENS mid-game would spot the word for everyone; Lockdown and Complete tangle still show. (stats.ts WORD_AWARDS; same rule local and online.)
 - Ask Muzzy: with word indicators off, only Lockdown and Complete tangle show live — OK?
 - Claude's call (2026-11-02, task 1): the banner shows when the turn that set the record is FINISHED (after its refresh choice) — the record isn't known before; that is always after the score count-up, so the GDD's "after the score" holds.

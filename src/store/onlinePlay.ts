@@ -125,7 +125,7 @@ function startFrom(view: GameView) {
     },
     stats: view.results?.stats ?? emptyStats(game.config.players),
     botTurns: view.results?.botTurns ?? [], // (F62: the Story chart's bot band; an older server sends none)
-    onlineRecords: view.records ?? null, // (v0.18: the award records — an older server sends none)
+    onlineRecords: view.records ?? null, awardNews: [], gameRun: store().gameRun + 1, // (v0.18: the award records — an older server sends none; a joined game's are only remembered)
     trayOrder: game.hands.map(rackOf),
   })
 }

@@ -498,9 +498,22 @@ describe('game store — award records during the game (v0.18)', () => {
     expect(store().awardNews.map((n) => [n.record.id, n.record.holder, n.previous?.holder ?? null])).toEqual([['longWord', 0, null], ['longWord', 1, 0]])
     store().shownAwardNews()
     expect(store().awardNews).toHaveLength(1)
-    // a game loaded mid-way: its records are only remembered
-    store().leaveGame()
-    store().loadState(withLog(game, [turnWith(1, 0, 'GARDEN')]))
+    // a game loaded mid-way (straight over this one, as the Dev Kit does): its records are only remembered, and the
+    // news still waiting from the old game goes
+    store().loadState(withLog(game, [turnWith(1, 0, 'CASTLE'), turnWith(2, 1, 'GARDENING'), turnWith(3, 0, 'AT')]))
+    expect(store().awardNews).toEqual([])
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'CASTLE'), turnWith(2, 1, 'GARDENING'), turnWith(3, 0, 'AT'), turnWith(4, 0, 'GARDENSIDE')]) })
+    expect(store().awardNews.map((n) => [n.record.holder, n.record.values.word, n.previous?.holder])).toEqual([[0, 'GARDENSIDE', 1]])
+  })
+
+  it('a Dev Kit tuning edit that makes an older moment a record is not announced as this turn\'s', () => {
+    store().startGame({ players: 2, seed: 7 })
+    const game = store().game!
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN')]) })
+    store().shownAwardNews()
+    // the record measured now includes an old moment it didn't before (as if longWordMinSmall had been lowered): the
+    // next turn makes nothing new, so nothing is announced
+    useGameStore.setState({ game: withLog(game, [turnWith(1, 0, 'GARDEN'), turnWith(2, 1, 'AT')]) })
     expect(store().awardNews).toEqual([])
   })
 
