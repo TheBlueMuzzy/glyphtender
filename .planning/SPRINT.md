@@ -31,6 +31,7 @@ Done when: after the turn's score count-up, a record set or taken shows the bann
 - [x] 🤖 14. Fixes from the full check + review: the banner never widens the board (online4), a new game's news is never dropped, it waits for the handoff, the server works records out once per finished turn — src/game/AwardBanner.tsx
   done 2026-11-02 in 468b25a (details in F102's check notes below): online4 alone PASS, store 162 + party 66 pass, award-banner e2e PASS, check:fast ALL PASS.
 Check: e2e award-banner, online, online-ai; check:fast; screenshots looked at.
+Checked: 2026-11-02 — e2e award-banner PASS (3 sizes + reduce motion; screenshots looked at by Claude: padding all round, inside the board); check:full at 468b25a ALL PASS — 40 checks (24.4 min) incl. awards, online, online4, online-ai. Reviewed: a fresh helper (1 real + 2 low; fixed / noted, task 14).
 
 ## F102 ✨ Record mark on the end screen
 Done when: the award card that held its record at the end carries a small record mark in Highlights and the Story slot.
@@ -41,6 +42,7 @@ Done when: the award card that held its record at the end carries a small record
 - [ ] 🙋 12. Muzzy looks at the mark: does it read? — src/game/EndHighlights.tsx
 - [ ] 🙋 13. Play a game (local, then online with a friend) and tune the banner in the Dev Kit (tuning) — content/tuning/endscreen.json
 Check: end-screen shots; check:full before the hand-off.
+Checked: 2026-11-02 — check:shots 162/162 the same (0 px); a record card looked at at 390×844 + 1440×900 (the badge pinned on the glyphling, the card no taller); e2e:end PASS; check:full at 468b25a ALL PASS — 40 checks.
 Full check 2026-11-02 at d4a1f3e: 39/40 — online4 FAILED ("clipped: Tangle bonus: +3 for Ada" / "Counting Bo's Magic…" on the reveal), and failed again ALONE → real: the banner, a grid item in .game-board without size containment, could push the board's column wider and squeeze the panel. Fixed: contain: inline-size + a width of min(board − margins, 24rem); online4 alone PASS.
 Review 2026-11-02 (a fresh helper, 6e562ad..d4a1f3e): 1 real — a new/loaded game emptied the queue while a banner showed; the old banner stayed and its end removed the new game's first news → shownAwardNews(news) only removes it if it's still the oldest, and the banner drops at once when the queue no longer starts with it (+ test). Low, taken: in pass-and-play the banner played under the dimmed handoff box → it waits for the handoff too. Low, left (noted): the Dev Kit's FULL pause doesn't freeze the banner's Web Animations (only its removal timer) — players never see that pause.
 Also found by check:fast after the fixes: party/savedMatch's whole-game test timed out (5.8 s > 5 s) — the server worked records out on EVERY change (a long game: up to 18 ms each). Root fix: cached by the game's log object (new only when a turn ends; the live awards are measured from the log alone) → party 66 pass, check:fast ALL PASS.
