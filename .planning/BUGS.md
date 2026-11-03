@@ -1,6 +1,8 @@
 # Glyphtender — Bugs
-Open: 6 (P0 0 · P1 0 · P2 1 · P3 5)
+Open: 7 (P0 0 · P1 0 · P2 1 · P3 6)
 ## Open
+### B034 · P3 · open · found 2026-11-03 by check:full (v0.14.0 /deliver, d781911) · e2e:online4 Di 390×844 6-reveal (test or game — not known yet)
+Steps: `npm run check:full` (3 at a time) · Expected: Di's 390×844 Magic-reveal shot fits · Actual: "clipped: Tangle bonus: +3 for Ada" — the same symptom 468b25a fixed (the award banner widening the board). Alone right after: online4 PASS (182 s); 468b25a's full run passed too. Suspect: under load the award banner is still on screen (or sliding out) when the reveal shot is taken. Next time: screenshot + whether `.award-banner` is in the page at the clip.
 ### B030 · P3 · open · found 2026-10-19 by framework F63 (dev/framework-checks) · e2e: devkit-search, devkit-select, previews, words-tab (test, not the game)
 Steps: on a phone size, these scripts open a Dev Kit tab by pressing ▶ only · Expected: they find the tab wherever it is · Actual: they pass today, but devkit-sound broke exactly this way when the Dev Kit's Fonts tab moved Screens to an earlier page (fixed in 8b9122b: ◀ back to the first page, then forward). Fix idea: one shared "open Dev Kit tab" helper for every e2e script (better still, one the Dev Kit ships). Seen 2026-11-02 (F98 — Steady Story chart shot, check:full run 2 of 3 under full load): words-tab "locator.click: Timeout 30000ms — waiting for locator('.devkit-tab').filter({ hasText: /^Words$/ })"; alone right after: PASS (10 s). The shared helper should wait for the Dev Kit to arrive, not a fixed 30 s.
 ### B029 · P3 · open · found 2026-10-19 by check:full (framework F63, dev/framework-checks) · e2e:end (test, not the game as far as known)
