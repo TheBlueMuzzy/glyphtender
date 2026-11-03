@@ -125,6 +125,7 @@ function startFrom(view: GameView) {
     },
     stats: view.results?.stats ?? emptyStats(game.config.players),
     botTurns: view.results?.botTurns ?? [], // (F62: the Story chart's bot band; an older server sends none)
+    onlineRecords: view.records ?? null, // (v0.18: the award records — an older server sends none)
     trayOrder: game.hands.map(rackOf),
   })
 }
@@ -210,6 +211,7 @@ function show(view: GameView, change: Happened, last: boolean) {
     move: null, cast: null, selected: null, setAside: [], note: null,
     stats: (last ? view.results?.stats : null) ?? store().stats,
     botTurns: (last ? view.results?.botTurns : null) ?? store().botTurns,
+    onlineRecords: (last ? view.records : null) ?? store().onlineRecords, // (the records as of the view's newest change)
   })
   // a seed that just landed scores now (its words one at a time); the next change waits for it to fade
   if (sprout !== landed) store().startScoring()
@@ -236,6 +238,7 @@ function jumpTo(view: GameView) {
     move: null, cast: null, selected: null, setAside: [], note: lost ? 'problem' : null,
     stats: view.results?.stats ?? store().stats,
     botTurns: view.results?.botTurns ?? store().botTurns,
+    onlineRecords: view.records ?? store().onlineRecords,
   })
 }
 
