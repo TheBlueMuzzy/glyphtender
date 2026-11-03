@@ -169,7 +169,10 @@ D103 · 2026-11-02 · Award records are worked out by each screen from the end s
   Proposed by: Claude (defining F100 — Award records) · design = Muzzy's (GDD §4 Highlights → During the game)
   Chose: the live banner and the end screen read the SAME award measures (stats.ts earnedAwards over the log so far), so
   a live award can never disagree with the end screen. Records = per award, the biggest effect so far by anyone; a tie
-  keeps the earlier turn. Each screen works them out from its own game state after each turn — no server change.
+  keeps the earlier turn. Local / AI games: worked out on the device from the log. ONLINE: a screen's view has NO log
+  until game over (party/views.ts hideSecrets), so the server works the records out from its full log and adds them to
+  each view — only the records' public facts (award, holder, proof, turn), never the log; derived, so nothing new is
+  stored (no extra writes). Corrected 2026-11-02 while planning Sprint 33 (first draft said "no server change").
   Weed toss is end-only: its proof needs a rival's best word from their secret hand, which an online screen doesn't have
   (and showing it would give that hand away). F100's first task measures that the other 7 come out the same online.
 
