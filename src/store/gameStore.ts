@@ -610,7 +610,7 @@ export const useGameStore = create<GameStore>()((set, get) => {
     },
 
     moveTraySeed: (from, to, swap = false) => {
-      const { game, trayOrder } = get()
+      const { game, trayOrder, selected } = get()
       if (!game || !canPlay() || from === to) return
       // The drag referee: a seed may be reordered only after the move (B008), or while choosing what to refresh
       const seed: Piece = { kind: 'seed', id: trayOrder[game.current]?.[from] ?? TRAY_GAP }
@@ -618,7 +618,9 @@ export const useGameStore = create<GameStore>()((set, get) => {
       const order = [...trayOrder]
       order[game.current] = (swap ? swapInRack : moveInRack)(order[game.current], from, to)
       playSound('seed.drop') // (it settles into its new place)
-      set({ trayOrder: order })
+      // It settled, so it's no longer held (B004): a drag picks it up first, and it mustn't stay picked up with its hexes lit
+      const stillHeld = selected?.kind === 'seed' && selected.id === seed.id ? null : selected
+      set({ trayOrder: order, selected: stillHeld })
     },
     shuffleTray: () => {
       const { game, trayOrder } = get()

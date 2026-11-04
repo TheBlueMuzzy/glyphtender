@@ -20,6 +20,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { pickTab } from './devkit-tabs.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots/devkit-sound'
 const PORT = Number(process.argv[3] ?? 5418)
@@ -104,27 +105,6 @@ async function openGame(size) {
   await page.waitForFunction(() => window.__glyphtender?.store.getState().game !== null)
   await page.keyboard.press('Backquote')
   return { context, page, errors }
-}
-
-/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ◀ back to the first page, then ▶ to its page, like a person would). */
-async function pickTab(page, name) {
-  const inView = () => page.evaluate((name) => {
-    // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
-    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)
-    const box = tab?.getBoundingClientRect()
-    return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
-  }, name)
-  // (the tab may be on an EARLIER page than the one showing — e.g. Screens after Sound once the Dev Kit gained Fonts)
-  const back = page.getByRole('button', { name: 'Previous tools' })
-  for (let i = 0; i < 6 && !(await inView()) && (await back.isVisible()) && (await back.isEnabled()); i++) {
-    await back.click()
-    await page.waitForTimeout(250)
-  }
-  for (let i = 0; i < 6 && !(await inView()); i++) {
-    await page.getByRole('button', { name: 'Next tools' }).click()
-    await page.waitForTimeout(250)
-  }
-  await page.getByRole('tab', { name }).click()
 }
 
 /** The game's sound engine, read in the page (the same module the game uses). */

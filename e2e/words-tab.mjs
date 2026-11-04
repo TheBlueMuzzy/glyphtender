@@ -14,6 +14,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer as createHttpServer } from 'node:http'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { pickTab } from './devkit-tabs.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots/words-tab'
 const PORT = Number(process.argv[3] ?? 5432)
@@ -56,21 +57,6 @@ process.env.WORDS_SERVER = `http://127.0.0.1:${WORD_SERVER_PORT}`
 const server = await createServer({ server: { port: PORT, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
 await server.listen()
 const browser = await chromium.launch()
-
-/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first). */
-async function pickTab(page, name) {
-  const inView = () => page.evaluate((name) => {
-    // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
-    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)
-    const box = tab?.getBoundingClientRect()
-    return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
-  }, name)
-  for (let i = 0; i < 8 && !(await inView()); i++) {
-    await page.getByRole('button', { name: 'Next tools' }).click()
-    await page.waitForTimeout(250)
-  }
-  await page.locator('.devkit-tab', { hasText: new RegExp(`^${name}$`) }).click()
-}
 
 const rowWords = (page) => page.locator('.devkit-body:not([hidden]) .rv-row .rv-label').allTextContents()
 const box = (page, word) => page.locator('.devkit-body:not([hidden]) .rv-row').filter({ has: page.locator('.rv-label', { hasText: new RegExp(`^${word}$`) }) })

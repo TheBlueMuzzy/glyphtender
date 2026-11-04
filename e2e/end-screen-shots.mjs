@@ -33,6 +33,7 @@
 import { mkdirSync, readFileSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { openGame } from './open-game.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots'
 const PORT = Number(process.argv[3] ?? 5196)
@@ -149,12 +150,8 @@ try {
         check(`${name} fills the window (${Math.round(r.height)} px = ${Math.round((r.height / size.height) * 100)}% of ${size.height}; ${Math.round((r.width / page.width) * 100)}% of the width)`, r.height >= size.height * FILL || wide)
       }
 
-      await page.goto(`http://127.0.0.1:${PORT}/`)
-      // (F63: twice in 4 runs the dev hook never appeared — say what the page said, so the next one can be traced)
-      await page.waitForFunction(() => window.__glyphtender?.store, null, { timeout: 15000 }).catch(async (e) => {
-        const seen = await page.evaluate(() => ({ ready: document.readyState, root: document.getElementById('root')?.childElementCount, devkit: !!window.__devkit })).catch(() => null)
-        throw new Error(`${tag}: the game never booted (no window.__glyphtender in 15 s) — page ${JSON.stringify(seen)}; console errors: ${errors.join(' | ') || 'none'}`, { cause: e })
-      })
+      await openGame(page, `http://127.0.0.1:${PORT}/`, tag)
+      errors.length = 0 // (a load that failed and was tried again isn't the game's error: B029)
       await page.evaluate((g) => window.__glyphtender.store.getState().loadState(g), game)
 
       // ---- The Magic reveal, playing: calm and centred — chips in one tidy group, Skip a normal-size button ----
@@ -383,8 +380,13 @@ try {
         check(`the chart and slot keep their size (${JSON.stringify(before)} → ${JSON.stringify(after)})`,
           Math.abs(after.chart - before.chart) < 1 && Math.abs(after.slot - before.slot) < 1)
         if (timed && target.all > 1) {
-          await page.waitForTimeout(TUNING.carouselSeconds * 1000 + 600)
-          const s2 = await slotNow()
+          // (it moves on after carouselSeconds; a busy PC runs that clock late, so wait for the change itself — the same
+          // "fixed wait" family as B029. 10 turns' time: if it never changes, it really doesn't take turns.)
+          let s2 = await slotNow()
+          for (let t = 0; t < 100 && s2.text === s1.text; t++) {
+            await page.waitForTimeout(TUNING.carouselSeconds * 100)
+            s2 = await slotNow()
+          }
           check(`several moments take turns by themselves (“${s1.text}” → “${s2.text}”)`, s2.text !== s1.text && s2.shown === 1 && s2.award === s2.star)
           check('…still without moving the chart', Math.abs((await slotSize()).chart - before.chart) < 1)
         }
@@ -505,10 +507,43 @@ try {
     }
   }
 
+  // ---- The reveal's words pop as they change: never past the screen's edge, even at the biggest (B034) ----
+  for (const size of [{ width: 390, height: 844 }, { width: 360, height: 780 }]) {
+    const page = await browser.newPage({ viewport: size, isMobile: true, hasTouch: true })
+    await openGame(page, `http://127.0.0.1:${PORT}/`, `reveal pop ${size.width}x${size.height}`)
+    await page.evaluate((g) => {
+      const store = window.__glyphtender.store
+      store.getState().loadState(g)
+      store.setState({ seats: store.getState().seats.map((s, i) => ({ ...s, name: ['Ada', 'Bo', 'Cy', 'Di'][i] })) })
+    }, JSON.parse(readFileSync('e2e/fixtures/end-4p.json', 'utf8')).state.game)
+    // Each line, held at the pop's biggest moment (35% of the way through, kit.css kit-attention)
+    const past = new Set()
+    let lines = 0
+    for (let t = 0; t < 400 && !(await page.getByRole('dialog').count()); t++) {
+      const seen = await page.evaluate(() => {
+        const stack = document.querySelector('.game-prompt-row:not(.game-prompt-sizer) .kit-stack')
+        const pop = stack?.getAnimations().find((a) => a.animationName === 'kit-attention')
+        if (!pop) return null
+        const was = pop.currentTime
+        pop.currentTime = pop.effect.getTiming().duration * 0.35
+        const box = stack.getBoundingClientRect()
+        pop.currentTime = was
+        return { text: stack.textContent, off: box.left < 0 || box.right > innerWidth }
+      })
+      if (seen) {
+        lines++
+        if (seen.off) past.add(seen.text)
+      }
+      await page.waitForTimeout(50)
+    }
+    if (lines === 0 || past.size) fail(`${size.width}×${size.height}: the reveal's words go off screen at their biggest pop (${lines} looks; ${[...past].join(' · ')})`)
+    else console.log(`ok   ${size.width}x${size.height} the reveal's words stay on screen at their biggest pop (${lines} looks)`)
+    await page.close()
+  }
+
   // ---- Reduce motion: the chart is there at once ----
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' })
-  await page.goto(`http://127.0.0.1:${PORT}/`)
-  await page.waitForFunction(() => window.__glyphtender?.store, null, { timeout: 15000 })
+  await openGame(page, `http://127.0.0.1:${PORT}/`, 'reduce motion')
   const game = JSON.parse(readFileSync('e2e/fixtures/end-3p.json', 'utf8')).state.game
   await page.evaluate((g) => window.__glyphtender.store.getState().loadState(g), game)
   await page.getByRole('dialog', { name: /Grand Glyphtender/ }).waitFor({ timeout: 5000 }) // reduce motion: the reveal starts at its end

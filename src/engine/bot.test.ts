@@ -20,7 +20,8 @@ let positions = 0
 
 describe('a bot picks the same from its view as from the whole game (golden games)', () => {
   for (const set of SETS) {
-    it(`${set}: every position of the first ${GAMES_PER_SET} games`, () => {
+    // (8 whole games: over vitest's 5 s when the PC is busy — timed out 2026-11-03 beside two other Claude chats)
+    it(`${set}: every position of the first ${GAMES_PER_SET} games`, { timeout: 60_000 }, () => {
       const rules = glyphtenderRules(words)
       const bot = greedyBot(words)
       for (const game of load(set).slice(0, GAMES_PER_SET)) {

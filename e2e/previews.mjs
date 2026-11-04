@@ -13,6 +13,7 @@
 import { mkdirSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { pickTab } from './devkit-tabs.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots/previews'
 const PORT = Number(process.argv[3] ?? 5197)
@@ -99,17 +100,12 @@ try {
 
     // ` → Screens
     await page.keyboard.press('Backquote')
-    // (a tab on another carousel page: ▶ to it first, like a person would)
     const tabInView = (name) => page.evaluate((name) => {
       const view = document.querySelector('.devkit-tabs .dk-carousel-view').getBoundingClientRect()
       const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name).getBoundingClientRect()
       return tab.left >= view.left - 1 && tab.right <= view.right + 1
     }, name)
-    for (let i = 0; i < 6 && !(await tabInView('Screens')); i++) {
-      await page.getByRole('button', { name: 'Next tools' }).click()
-      await page.waitForTimeout(250)
-    }
-    await page.getByRole('tab', { name: 'Screens' }).click()
+    await pickTab(page, 'Screens')
     const buttons = page.locator('.devkit [data-preview]')
     await buttons.first().waitFor()
     const list = await buttons.evaluateAll((els) => els.map((b) => ({ id: b.dataset.preview, variant: b.dataset.variant ?? '', label: b.textContent })))

@@ -197,11 +197,18 @@ try {
             const label = await castButton().textContent()
             if (label !== 'Plant') fail(`${size.name}: indicators off but the button says "${label}"`)
             if (await page.locator('[data-word-hex]').count()) fail(`${size.name}: indicators off but a word has a border`)
+            await page.evaluate(() => { const s = window.__glyphtender.store.getState(); window.__beforePlant = { game: s.game, stats: s.stats } })
             await tap(castButton())
             await waitLanded()
             await page.waitForTimeout(700)
             if (await page.locator('[data-score-pops]').count()) fail(`${size.name}: indicators off but the Magic popped`)
             console.log(`ok   ${size.name} 13-indicators-off · plain Plant, no border, no pops`)
+            // That plant can tangle the last glyphling and end the game, and everything after this needs a game still in
+            // play (B025: 12-pause and 14-flipped found the Magic reveal): go back to before it
+            await page.evaluate(() => {
+              const s = window.__glyphtender.store.getState()
+              if (s.game.phase === 'over') s.loadState(window.__beforePlant.game, window.__beforePlant.stats)
+            })
             return
           }
           // none of its moves makes a word: take it back (Undo), or let go of it
@@ -387,9 +394,8 @@ try {
         await drag(page.locator('[data-tray-pos="0"]'), page.locator('[data-tray-pos="3"]'))
         const after = await store((s) => s.trayOrder[s.game.current].join())
         if (before === after) fail(`${size.name}: dragging in the tray after the move did not reorder it`)
-        // (the reorder drag leaves that seed picked up — B004 — tap it again to put it down)
-        const held = await store((s) => (s.selected?.kind === 'seed' ? s.trayOrder[s.game.current].indexOf(s.selected.id) : -1))
-        if (held >= 0) await tap(page.locator(`[data-tray-pos="${held}"]`))
+        // It settled in its new place, so it isn't left picked up (B004)
+        if (await store((s) => s.selected?.kind === 'seed')) fail(`${size.name}: the rearranged seed stayed picked up (B004)`)
       }
       // Plant (a move-only turn if the hand is empty)
       const hasSeeds = await store((s) => s.game.hands[s.game.current].length > 0)

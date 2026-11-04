@@ -134,7 +134,7 @@ async function playUntil(players, done, { seconds = 120, watch = null } = {}) {
         landedCheck = async () => {
           const landed = await watcher.page.waitForFunction((seat) => {
             const s = window.__glyphtender.store.getState()
-            return !s.trail && !s.move && !s.flying && s.game.lastTurn?.seat === seat
+            return !s.trail && !s.move && !s.flying && s.game?.lastTurn?.seat === seat // (no game for a moment: B023)
           }, seat, { timeout: 10000 }).then(() => true, () => false)
           const left = await watcher.page.evaluate(() => document.querySelectorAll('[data-trail]').length)
           check(`${watcher.name}: no trail left after ${p.name}'s turn landed (${left})`, landed && left === 0)
@@ -146,7 +146,7 @@ async function playUntil(players, done, { seconds = 120, watch = null } = {}) {
       }
       if (watch && watcher && (await p.store((s) => s.game.phase === 'play' || s.game.phase === 'refresh'))) {
         // The watcher's board replays the move: the glyphling glides first — picture it halfway
-        const arrived = await watcher.page.waitForFunction(() => { const s = window.__glyphtender.store.getState(); return s.move && s.game.current !== s.online.mySeat }, null, { timeout: 5000 }).then(() => true, () => false)
+        const arrived = await watcher.page.waitForFunction(() => { const s = window.__glyphtender.store.getState(); return s.move && s.game && s.game.current !== s.online.mySeat }, null, { timeout: 5000 }).then(() => true, () => false)
         if (arrived && !watch.done.has(watcher.name)) {
           watch.done.add(watcher.name)
           await watcher.page.waitForTimeout(60)

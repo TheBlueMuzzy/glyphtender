@@ -16,6 +16,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { pickTab } from './devkit-tabs.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots/devkit-ai'
 const PORT = Number(process.argv[3] ?? 5415)
@@ -84,19 +85,7 @@ try {
     const openAiTab = async () => {
       await panel.waitFor({ state: 'attached' }) // the Dev Kit loads a moment after the page
       await page.keyboard.press('Backquote')
-      const tab = page.getByRole('tab', { name: 'AI', exact: true })
-      // (The game's own tabs come last — AI, Sound, Words: on a narrow panel try the carousel pages from the last one back.)
-      const dots = panel.locator('.devkit-tabs .dk-carousel-dot')
-      const inView = () => tab.evaluate((t) => {
-        // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
-        const box = t.getBoundingClientRect()
-        return t.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
-      })
-      for (let i = (await dots.count()) - 1; i >= 0 && !(await inView()); i--) {
-        await dots.nth(i).click()
-        await page.waitForTimeout(250)
-      }
-      await tab.click()
+      await pickTab(page, 'AI')
       await page.getByLabel('Personality', { exact: true }).selectOption('Strategist')
     }
 

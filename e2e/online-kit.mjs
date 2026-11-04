@@ -122,7 +122,18 @@ export function makePlayer(name, context, size, { vitePort, out, fail }) {
   me.tap = (loc) => (size.mobile ? loc.tap() : loc.click())
   // A glyphling whose turn it is pulses (it never holds still), so Playwright's "wait until stable" would wait forever
   me.tapGlyph = (loc) => (size.mobile ? loc.tap({ force: true }) : loc.click({ force: true }))
-  me.store = (fn) => me.page.evaluate(`(${fn})(window.__glyphtender.store.getState())`)
+  // B023: online, a player's game can be null for a moment (between views), and every test's `s.game.x` would throw.
+  // Ask again until it's back; a game that stays gone still fails, with the same error.
+  me.store = async (fn) => {
+    for (let tries = 0; ; tries++) {
+      try {
+        return await me.page.evaluate(`(${fn})(window.__glyphtender.store.getState())`)
+      } catch (e) {
+        if (tries >= 40 || !/properties of null/.test(e.message)) throw e
+        await me.page.waitForTimeout(250)
+      }
+    }
+  }
   me.room = (fn) => me.page.evaluate(`(${fn})(window.__glyphtender.online.getState())`)
   me.shot = async (label, settle = 400, prefix = 'online') => {
     await me.page.waitForFunction(() => [...document.querySelectorAll('[data-glide]')].every((g) => g.getAnimations().length === 0), null, { timeout: 4000 }).catch(() => {})
