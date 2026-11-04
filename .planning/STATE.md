@@ -9,7 +9,7 @@ For the BMUZ / framework session (found in the sweep, not done):
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: deliver · Milestone: v0.18 Awards during the game ✅ · Sprint: 33 done (archived) · Doing: — (v0.14.1 released) · Branch: main · Version: 0.14.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.1, beta stage, online)
+Stage: deliver · Milestone: v0.18 Awards during the game ✅ · Sprint: 33 done (archived) · Doing: — (v0.14.1 released) · Branch: main · Version: 0.14.1.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.1, beta stage, online)
 
 ## Key facts
 **Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)

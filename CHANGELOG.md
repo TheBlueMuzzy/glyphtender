@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.14.1 — 2026-11-04
+
+Two small fixes. The words of the Magic reveal now stay on screen on a phone, and a seed you rearrange in your tray no longer stays picked up.
+
+### Fixed
+- The Magic reveal's words no longer run past the edge of a phone screen when they pop. They swell only as far as fits, with the same timing as before.
+- Dragging a seed to a new place in your tray now puts it down, so no hexes stay lit afterwards.
+
 ## v0.14.0 — 2026-11-03
 
 Awards now show up during the game, not just at the end. When a turn sets a new best for an award, or takes it from another player, a banner shows the glyphling who holds it now.
