@@ -282,6 +282,18 @@ describe('awards (skill, earned only)', () => {
       expect(records(g, { ...T, liveAwards: { ...T.liveAwards, longWord: 0 } })).toEqual([])
       expect(Object.keys(endscreen.liveAwards)).not.toContain('weedToss')
     })
+    it('awards whose proof is a margin between secret scores are never live, even switched on in content (F103)', () => {
+      const switchedOn = { ...T.liveAwards, comeback: 1, calledIt: 1, trickster: 1 }
+      const on = { ...T, liveAwards: switchedOn }
+      const comeback = finished(2, [[0, ['GARDENS:0000000']], [1, ['AT:11']], [0, ['AT:00']], [1, ['GARDENS:1111111', 'SEA:111']]])
+      const calledIt = finished(2, [[0, ['AT:00']], [1, ['TO:01']], [0, ['CAT:000']]])
+      const trickster = finished(3, [[0, ['GARDENS:0000000']], [1, ['AT:11']], [2, ['TO:22']]])
+      for (const [game, id] of [[comeback, 'comeback'], [calledIt, 'calledIt'], [trickster, 'trickster']] as const) {
+        expect(earnedAwards(game, T).map((a) => a.id)).toContain(id) // (earned at the end, as before)
+        expect(awardRecords(game, on).map((a) => a.id)).not.toContain(id)
+      }
+      for (const id of ['comeback', 'calledIt', 'trickster']) expect(Object.keys(endscreen.liveAwards)).not.toContain(id)
+    })
     it('word indicators off: no award that names a word or Magic (they wait for the end); Lockdown still shows', () => {
       const g = finished(2, [[0, ['GARDEN:000000'], { mobility: mob({ 2: [9, 5, 2] }) }]])
       expect(records(g)).toEqual(['lockdown:0:', 'longWord:0:GARDEN'])

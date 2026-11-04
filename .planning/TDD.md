@@ -165,6 +165,9 @@ flowchart LR
 
 ## 8. Decisions log
 ```
+D104 · 2026-11-04 · An award whose proof is a margin between secret scores is never live, whatever content says (F103 — Live award safety)
+  Biggest comeback, Called it and Trickster's Victory joined Weed toss in NEVER_LIVE (src/game/stats.ts): liveAwards leaves them off today, but one switched on would have sent running-score margins to every screen mid-game. Code refuses it rather than a note warning against it, because this is about secrecy, not taste. A test proves it.
+
 D103 · 2026-11-02 · Award records are worked out by each screen from the end screen's own measures (v0.18 Awards during the game, F100–F102)
   Proposed by: Claude (defining F100 — Award records) · design = Muzzy's (GDD §4 Highlights → During the game)
   Chose: the live banner and the end screen read the SAME award measures (stats.ts earnedAwards over the log so far), so

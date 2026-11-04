@@ -6,9 +6,12 @@ Stays the same: every banner that shows today still shows. No framework updates 
 
 ## F103 🧱 Live award safety
 Done when: Biggest comeback, Called it and Trickster's Victory can't show during the game even with liveAwards switched on for them in content, a test proves it, and the 7 live awards behave as before.
-- [ ] 🤖 1. Show the gap on today's code with a failing test, then add the 3 to NEVER_LIVE — src/game/stats.ts
-- [ ] 🤖 2. Dev Kit must not offer a live switch that does nothing for them — content/tuning/endscreen.json
-- [ ] 🤖 3. Record it: the GDD's list of what waits for the end + TDD Decisions — .planning/TDD.md
+- [x] 🤖 1. Show the gap on today's code with a failing test, then add the 3 to NEVER_LIVE — src/game/stats.ts
+  done 2026-11-04: the test failed first ("expected [ 'comeback', 'calledIt' ] to not include 'comeback'": both really would have shown if switched on). NEVER_LIVE now holds all 3 + Weed toss.
+- [x] 🤖 2. Dev Kit must not offer a live switch that does nothing for them — content/tuning/endscreen.json
+  done 2026-11-04: nothing to change, measured: liveAwards and its labels list only the 7 live awards, and the Dev Kit's rows come from those keys. The test now fails if one of the 3 is added.
+- [x] 🤖 3. Record it: the GDD's list of what waits for the end + TDD Decisions — .planning/TDD.md
+  done 2026-11-04: TDD D104. The GDD already says the momentum awards wait for the end: no change.
 Check: stats tests; check:fast; e2e:awards.
 
 ## F104 🔧 Framework AI arena

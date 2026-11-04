@@ -405,8 +405,9 @@ const AWARD_LEVELS: [AwardId, AwardId][] = [['superBridge', 'bridge']]
 // award has a GAME RECORD — the biggest moment of it so far, by anyone. A turn that sets or takes one gets a banner.
 // Measured with earnedAwards above, so a record can never disagree with the end screen (TDD D103). Weed toss is never
 // live: its proof is a rival's best word from their secret hand (an online screen doesn't have it, and showing it
-// would give the hand away).
-const NEVER_LIVE: AwardId[] = ['weedToss']
+// would give the hand away). Biggest comeback, Called it and Trickster's Victory neither: their proof is a margin between
+// players' secret running scores, so switching one on in content would send it to every screen mid-game (F103).
+const NEVER_LIVE: AwardId[] = ['weedToss', 'comeback', 'calledIt', 'trickster']
 // With word indicators off ("spot words yourself") nobody is shown the words a turn made or its Magic, so the awards
 // whose proof names them (a word, +N) wait for the end screen; Lockdown and Complete tangle still show.
 const WORD_AWARDS: AwardId[] = ['throughHedge', 'powerPlay', 'longWord', 'hijack', 'superBridge']
