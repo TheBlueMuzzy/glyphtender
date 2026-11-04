@@ -1,4 +1,4 @@
-// THE PERSONALITY CHECK, FOR THE DEV KIT — the same games and report as `npm run ai:arena` (scripts/ai-arena.mjs),
+// THE PERSONALITY CHECK, FOR THE DEV KIT — the same kind of games and report as `npm run ai:arena`,
 // in a smaller batch, with the personalities as they are in the AI tab (unsaved changes too). Pure: no screen, no
 // store — it runs inside a Web Worker (aiCheck.worker.ts) so the game stays alive while it plays.
 //   - N mixed tables at the main skill (2, 3, 4 players in turn; personalities shuffled, the same each run)
@@ -35,7 +35,7 @@ export function runPersonalityCheck(request: CheckRequest, wordList: WordList, o
   const total = totalGames(request.games, personalities.length)
   const boardFor = defaultBoardFor // the board players get for that many (content/data/boards.json)
 
-  // A small seeded shuffle so the same check always seats the same tables (as scripts/ai-arena.mjs)
+  // A small seeded shuffle so the same check always seats the same tables
   let pos = 12345
   const rand = () => (pos = (pos * 1103515245 + 12345) % 2147483648) / 2147483648
   const shuffled = <T>(xs: T[]) => xs.map((x) => [rand(), x] as const).sort((a, b) => a[0] - b[0]).map(([, x]) => x)

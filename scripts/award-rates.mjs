@@ -145,7 +145,7 @@ async function aiRun() {
   console.log(`\nawards per game: all ${all.perGame.toFixed(2)} · ${byRow.map((r) => `${r.label} ${r.perGame.toFixed(2)}`).join(' · ')}`)
 }
 
-/** Loads the AI (the same way as scripts/ai-arena.mjs). */
+/** Loads the AI through Vite. */
 async function setupAi(skillId) {
   const arena = await load('/src/ai/arena.ts')
   const bot = await load('/src/engine/bot.ts')

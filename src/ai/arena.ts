@@ -2,7 +2,7 @@
 // Plays whole games through the one rules door (full mode, so the game log the meters read is kept), each bot seeing
 // only its own seat's view. Then every seat becomes a row of behaviour meters, and the framework's Personality Check
 // (src/ai/kit/check.ts) judges them against content/ai/feel-targets.json.
-// Used by scripts/ai-arena.mjs (`npm run ai:arena`) and, later, the Dev Kit AI tab.
+// Used by the Dev Kit Run check and the balance sims. `npm run ai:arena` plays through the kit: arenaGame.ts (F104).
 import { averages, checkFeelTargets, skillLadder, tellApart, winRates, type FeelTarget, type GameResult } from './kit/check'
 import type { CheckReport } from './kit/report'
 import type { Personality, Skill } from './kit/types'
