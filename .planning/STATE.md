@@ -1,5 +1,5 @@
 ## ▶ RESUME HERE
-2026-11-04 — **Released v0.14.1 (bug sweep: 0 open bugs; the Magic reveal's words stay on a phone screen, a rearranged seed is put down) — next: /sprint (or /roadmap); Muzzy wants the BMUZ audit (/checkup) soon.**
+2026-11-04 — **Sprint 34 (v0.19 Maintenance) on branch `dev/v0-19-maintenance`: F103 — Live award safety, then F104 — Framework AI arena. Live is v0.14.1. After it: an audit of what should move to the framework (Muzzy). The framework catch-up (Crashes, Rooms, F89 — Half pause holds Glyphtender) waits for his next framework step in another chat. No player-facing work.**
 Muzzy (2026-11-03): no new Glyphtender features for now, it's his test bed for BMUZ + the framework: a **BMUZ audit (/checkup) soon**, and the framework CLI needs to reach a point where he can check things.
 For the BMUZ / framework session (found in the sweep, not done):
 - `stop-servers.mjs` crashes on a process with an odd character in its command line ("Bad control character in string literal") — F177 — Port lookup you can trust may not cover it.
@@ -9,7 +9,7 @@ For the BMUZ / framework session (found in the sweep, not done):
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: deliver · Milestone: v0.18 Awards during the game ✅ · Sprint: 33 done (archived) · Doing: — (v0.14.1 released) · Branch: main · Version: 0.14.1.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.1, beta stage, online)
+Stage: develop · Milestone: v0.19 Maintenance · Sprint: 34 · Doing: F103 — Live award safety · Branch: dev/v0-19-maintenance · Version: 0.14.1.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.1, beta stage, online)
 
 ## Key facts
 **Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)
