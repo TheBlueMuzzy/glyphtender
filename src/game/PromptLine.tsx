@@ -21,6 +21,8 @@ import { useExplore } from '../store/explore'
 import { viewerOf } from '../store/viewer'
 import words from '../../content/text/en.json'
 
+const KIT_POP_PEAK = 1.35 // tuning-ok: the biggest moment of the kit's pop (kit.css kit-attention), not a value of this game
+
 /** big: a roomy screen (big board hexes) — the prompt gets title-size words to match the big pieces.
  *  fixed: hold the frame at the height of the longest message (B013).
  *  hangRoom: px free left of the column (side layout) — the glyphling hangs out there if it fits. */
@@ -47,6 +49,24 @@ export function PromptLine({ big, fixed, hangRoom = 0 }: { big: boolean; fixed: 
     setIconRoom((old) => (Math.abs(old - need) < 1 ? old : need))
   }, [size])
   const hang = iconRoom > 0 && hangRoom >= iconRoom
+  // The reveal's words pop as they change (the kit's pop). On a phone its biggest moment ran past the screen's edge
+  // (B034), so here it swells only as far as fits: same motion and timing, a lower peak. Measured on .kit-hud-text, which
+  // the pop itself doesn't scale.
+  useLayoutEffect(() => {
+    const words = row.current?.querySelector('.kit-hud-text')
+    const pop = words?.querySelector('.kit-stack')?.getAnimations().find((a) => (a as CSSAnimation).animationName === 'kit-attention')
+    if (!row.current || !words || !pop) return
+    const box = words.getBoundingClientRect()
+    const margin = parseFloat(getComputedStyle(row.current).columnGap) || 0
+    const room = Math.min(box.left, document.documentElement.clientWidth - box.right) - margin
+    const fits = Math.max(1, 1 + room / (box.width / 2 || 1))
+    if (fits >= KIT_POP_PEAK) return
+    // (only the peak changes: the kit's own frames stay, with their easing)
+    const effect = pop.effect as KeyframeEffect
+    effect.setKeyframes(effect.getKeyframes().map((frame) => (
+      frame.computedOffset > 0 && frame.computedOffset < 1 ? { ...frame, transform: `scale(${fits})` } : frame
+    )))
+  }, [text])
   // The tutorial's rails callout is up: it says what to do, so the prompt steps aside (its room stays — B013)
   const calloutUp = useTutorial((s) => s.calloutUp)
   const avatar = <Avatar name={playerName(who)} src={glyphlingArt(who)} color={colours[colourOf(who)]} />

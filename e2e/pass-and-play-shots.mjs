@@ -38,7 +38,8 @@ function problems() {
   const out = []
   for (const el of document.querySelectorAll('.game button, .game-tray, .game-garden, .kit-screen button, .kit-text')) {
     const r = el.getBoundingClientRect()
-    if (!r.width || !r.height || el.closest('.kit-scroll, [data-scroll]')) continue
+    // (the award banner slides off the top on purpose; e2e:awards checks it)
+    if (!r.width || !r.height || el.closest('.kit-scroll, [data-scroll], .game-award-banner')) continue
     const name = (el.textContent || el.getAttribute('class') || '').trim().slice(0, 30)
     if (r.left < -0.5 || r.top < -0.5 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) out.push(`clipped: ${name}`)
     if (el.tagName === 'BUTTON' && (r.height < 43.5 || r.width < 43.5)) out.push(`small button: ${name} ${Math.round(r.width)}×${Math.round(r.height)}`)

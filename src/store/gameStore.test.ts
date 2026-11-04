@@ -315,6 +315,21 @@ describe('game store — Cast', () => {
     expect(lettersOf(store().game!.hands[0])).toEqual(['C', 'D', 'F', 'G', 'H', 'J', 'K', 'V'])
   })
 
+  it('rearranging the tray puts the seed down: nothing stays picked up (B004)', () => {
+    yellowToPlay()
+    store().tapGlyphling(0)
+    store().tapHex(hexAt('C6-6'))
+    const k = seed(7)
+    store().grabSeed(k) // (a drag picks the seed up first)
+    expect(store().selected).toEqual({ kind: 'seed', id: k })
+    store().moveTraySeed(7, 0)
+    expect(store().selected).toBeNull()
+    // Rearranging another seed leaves a held seed in the hand
+    store().grabSeed(seed(0))
+    store().moveTraySeed(3, 4)
+    expect(store().selected).toEqual({ kind: 'seed', id: seed(0) })
+  })
+
   it('the tray keeps its own order across a turn', () => {
     yellowToPlay()
     store().moveTraySeed(7, 0) // before the move: the tray can't be reordered (B008)

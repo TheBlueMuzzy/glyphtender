@@ -65,7 +65,8 @@ export function problems() {
   const out = []
   for (const el of document.querySelectorAll('.game button, .game-tray, .game-garden, .kit-screen button, .kit-text')) {
     const r = el.getBoundingClientRect()
-    if (!r.width || !r.height || el.closest('.kit-scroll, [data-scroll]')) continue
+    // (the award banner slides off the top on purpose; e2e:awards checks it)
+    if (!r.width || !r.height || el.closest('.kit-scroll, [data-scroll], .game-award-banner')) continue
     const name = (el.textContent || el.getAttribute('class') || '').trim().slice(0, 30)
     if (r.left < -0.5 || r.top < -0.5 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) out.push(`clipped: ${name}`)
     if (el.tagName === 'BUTTON' && (r.height < 43.5 || r.width < 43.5)) out.push(`small button: ${name} ${Math.round(r.width)}×${Math.round(r.height)}`)
@@ -122,7 +123,18 @@ export function makePlayer(name, context, size, { vitePort, out, fail }) {
   me.tap = (loc) => (size.mobile ? loc.tap() : loc.click())
   // A glyphling whose turn it is pulses (it never holds still), so Playwright's "wait until stable" would wait forever
   me.tapGlyph = (loc) => (size.mobile ? loc.tap({ force: true }) : loc.click({ force: true }))
-  me.store = (fn) => me.page.evaluate(`(${fn})(window.__glyphtender.store.getState())`)
+  // B023: online, a player's game can be null for a moment (between views), and every test's `s.game.x` would throw.
+  // Ask again until it's back; a game that stays gone still fails, with the same error.
+  me.store = async (fn) => {
+    for (let tries = 0; ; tries++) {
+      try {
+        return await me.page.evaluate(`(${fn})(window.__glyphtender.store.getState())`)
+      } catch (e) {
+        if (tries >= 40 || !/properties of null/.test(e.message)) throw e
+        await me.page.waitForTimeout(250)
+      }
+    }
+  }
   me.room = (fn) => me.page.evaluate(`(${fn})(window.__glyphtender.online.getState())`)
   me.shot = async (label, settle = 400, prefix = 'online') => {
     await me.page.waitForFunction(() => [...document.querySelectorAll('[data-glide]')].every((g) => g.getAnimations().length === 0), null, { timeout: 4000 }).catch(() => {})

@@ -82,6 +82,9 @@ export default defineConfig({
   test: {
     // Helpers' git worktrees live in .claude/worktrees — never run their copies of the tests
     exclude: ['**/node_modules/**', '**/dist/**', '.claude/**'],
+    // vitest's 5 s is too short for the tests that play whole games when the PC is busy (other Claude chats running):
+    // they failed at random. A test that really hangs still fails.
+    testTimeout: 60_000,
   },
   server: {
     host: true, // expose on local network for phone testing

@@ -16,12 +16,14 @@
 import { mkdirSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { pickTab } from './devkit-tabs.mjs'
 import layout from '../content/tuning/layout.json' with { type: 'json' }
 
 const OUT = process.argv[2] ?? 'e2e-shots/margins'
 const PORT = Number(process.argv[3] ?? 5233)
 const MIN_EDGE = 12 // px: nothing the player looks at or touches closer to an edge than this
 const PROMPT_CLEAR = 4 // px: the prompt's top at least this far below the turn bar (B019)
+const PLAY_WAIT_MS = 60_000 // tuning-ok: a test's patience for a turn to play out on a very busy PC
 const SIZES = [
   { width: 390, height: 844, mobile: true },
   { width: 360, height: 780, mobile: true },
@@ -164,8 +166,9 @@ try {
     await tap(page.locator(`[data-option="cast"] circle[data-hex="${pick.hex}"]`))
     await promptClear('planned')
     await tap(page.locator('.game-actions button').last()) // Plant (no Magic) → the refresh step
-    await page.waitForFunction(() => window.__glyphtender.store.getState().game.phase === 'refresh', null, { timeout: 8000 })
-    await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx === null, null, { timeout: 8000 })
+    // (the seed flies and lands first: slow on a busy PC, so a long wait — it failed at 8 s under check:full, B029's family)
+    await page.waitForFunction(() => window.__glyphtender.store.getState().game.phase === 'refresh', null, { timeout: PLAY_WAIT_MS })
+    await page.waitForFunction(() => window.__glyphtender.store.getState().refreshFx === null, null, { timeout: PLAY_WAIT_MS })
     await page.waitForTimeout(300)
     await page.screenshot({ path: `${OUT}/${name}-1b-refresh.png` })
     await promptClear('refresh')
@@ -186,17 +189,7 @@ try {
     await page.keyboard.press('Backquote')
     await page.locator('aside.devkit .devkit-tabs').waitFor()
     const toTab = async (tab) => {
-      for (let i = 0; i < 6; i++) {
-        const inView = await page.evaluate((tab) => {
-          const v = document.querySelector('.devkit-tabs .dk-carousel-view').getBoundingClientRect()
-          const t = [...document.querySelectorAll('.devkit-tab')].find((el) => el.textContent === tab).getBoundingClientRect()
-          return t.left >= v.left - 1 && t.right <= v.right + 1
-        }, tab)
-        if (inView) break
-        await page.getByRole('button', { name: 'Next tools' }).click()
-        await page.waitForTimeout(250)
-      }
-      await page.getByRole('tab', { name: tab }).click()
+      await pickTab(page, tab)
       await page.waitForTimeout(400)
     }
     await toTab('Tuning')

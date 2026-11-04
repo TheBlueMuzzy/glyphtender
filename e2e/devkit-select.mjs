@@ -18,6 +18,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'vite'
 import { chromium } from 'playwright-core'
+import { pickTab } from './devkit-tabs.mjs'
 
 const OUT = process.argv[2] ?? 'e2e-shots/devkit-select'
 const PORT = Number(process.argv[3] ?? 5448)
@@ -81,21 +82,6 @@ async function panelBack(page) {
   const bar = await page.locator('.devkit-tuck-bar').boundingBox()
   await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2, { steps: 4 }) // (not .hover(): the panel slides in under the mouse)
   await page.waitForTimeout(350)
-}
-
-/** Open a Dev Kit tab (on a phone the tabs row is a carousel: ▶ to its page first, like a person would). */
-async function pickTab(page, name) {
-  const inView = () => page.evaluate((name) => {
-    // pressable = it's what's under its own centre (a tab half past the page's edge is masked off, not just "off")
-    const tab = [...document.querySelectorAll('.devkit-tab')].find((t) => t.textContent === name)
-    const box = tab?.getBoundingClientRect()
-    return !box || tab.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2))
-  }, name)
-  for (let i = 0; i < 6 && !(await inView()); i++) {
-    await page.getByRole('button', { name: 'Next tools' }).click()
-    await page.waitForTimeout(250)
-  }
-  await page.getByRole('tab', { name }).click()
 }
 
 const server = await createServer({ server: { port: PORT, strictPort: true, host: '127.0.0.1' }, logLevel: 'warn' })
