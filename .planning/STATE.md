@@ -1,10 +1,15 @@
 ## ▶ RESUME HERE
-2026-11-03 — **Released v0.14.0 — v0.18 Awards during the game ✅ (award banners during the game, Record badge on the end screen) — next: /sprint (or /roadmap); the Goops ladder asks now can go (framework Ideas).**
-Open: B030 (P3) — a Dev Kit tab slow to open under full-check load.
+2026-11-03 — **Bug sweep done on branch `dev/bug-sweep`, not live yet: 0 open bugs. Two fixes players will see (B004 tray, B034 reveal pop), the rest test-only. Next: `/deliver` when Muzzy wants them live (full check first).**
+Live is still v0.14.0 — v0.18 Awards during the game ✅. Muzzy (2026-11-03): no new Glyphtender features for now, it's his test bed for BMUZ + the framework: a **BMUZ audit (/checkup) soon**, and the framework CLI needs to reach a point where he can check things.
+For the BMUZ / framework session (found in the sweep, not done):
+- `stop-servers.mjs` crashes on a process with an odd character in its command line ("Bad control character in string literal") — F177 — Port lookup you can trust may not cover it.
+- Kit HudText's `pop` (kit-attention, 1.35×) can run off a narrow phone: Glyphtender caps it in src/game/PromptLine.tsx; the kit should fit it itself.
+- Move Glyphtender's `e2e/open-game.mjs` (reload after ERR_NO_BUFFER_SPACE) + `e2e/devkit-tabs.mjs` into the framework; the other e2e scripts here still load pages the old way.
+- Stray crash maps: a local build drops untracked `releases/0.14.0.0/maps/assets/*.map` (Crashes 0.3.0 should stop it; 8 are sitting there, not committed — never add them).
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
-Stage: deliver · Milestone: v0.18 Awards during the game ✅ · Sprint: 33 done (archived) · Doing: — (v0.14.0 released) · Branch: main · Version: 0.14.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.0, beta stage, online)
+Stage: deliver · Milestone: v0.18 Awards during the game ✅ · Sprint: 33 done (archived) · Doing: — (bug sweep done, waiting for /deliver) · Branch: dev/bug-sweep · Version: 0.14.0.0 · Live: https://thebluemuzzy.github.io/glyphtender/ (v0.14.0, beta stage, online)
 
 ## Key facts
 **Planner (PPP):** https://claude.ai/artifact/VQuPtFFumWnq8E8u9szyCo (slug e616474a-1d74-42b2-bd6a-c7a285571914, first published 2026-11-02)
