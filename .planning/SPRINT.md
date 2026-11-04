@@ -13,6 +13,7 @@ Done when: Biggest comeback, Called it and Trickster's Victory can't show during
 - [x] 🤖 3. Record it: the GDD's list of what waits for the end + TDD Decisions — .planning/TDD.md
   done 2026-11-04: TDD D104. The GDD already says the momentum awards wait for the end: no change.
 Check: stats tests; check:fast; e2e:awards.
+Checked: 2026-11-04 — the new test failed first, then passed; stats 49 tests + server tests; e2e:awards PASS (the 7 live awards still show); check:full ALL PASS at 08d16ac.
 
 ## F104 🔧 Framework AI arena
 Done when: `npm run ai:arena` runs through the kit's arena on src/ai/arenaGame.ts and gives the same numbers as scripts/ai-arena.mjs for the same games, and the old script is gone. Scope: only that script. src/ai/arena.ts stays, because the Dev Kit's check and the balance sims still use it (a question for the framework audit).
@@ -25,6 +26,7 @@ Done when: `npm run ai:arena` runs through the kit's arena on src/ai/arenaGame.t
 - [x] 🤖 7. Record it: TDD Decisions, Key facts — .planning/TDD.md
   done 2026-11-04: TDD D105. For the framework audit: src/ai/arena.ts stays (Dev Kit Run check, balance sims, Sprout sim), and aiCheckRun.ts seats its mixed tables its own way, so the Dev Kit's check and `npm run ai:arena` no longer sit the same tables.
 Check: the comparison; arena + AI tests; check:fast; devkit-ai.
+Checked: 2026-11-04 — the comparison above; arenaGame.test 2/2; the real `npm run ai:arena` at its default size: 78 games, feel 4/10, tell-apart 64%, for-all 3/4; devkit-ai PASS within check:full ALL PASS (40 checks) at 08d16ac. The red feel targets aren't new: the matched run gave 4/10 on the old script too.
 
 Notes: F89 — Half pause holds Glyphtender, Crashes 0.3.0 and Rooms 0.15.0 are not in this sprint: each needs the framework (a new helper, or an update), and Muzzy said those come after his next framework step. They wait at the top of ROADMAP's Later.
 Bugs: 0 open.
