@@ -61,9 +61,11 @@ export function PromptLine({ big, fixed, hangRoom = 0 }: { big: boolean; fixed: 
     const room = Math.min(box.left, document.documentElement.clientWidth - box.right) - margin
     const fits = Math.max(1, 1 + room / (box.width / 2 || 1))
     if (fits >= KIT_POP_PEAK) return
-    ;(pop.effect as KeyframeEffect).setKeyframes([
-      { transform: 'scale(1)', offset: 0 }, { transform: `scale(${fits})`, offset: 0.35 }, { transform: 'scale(1)', offset: 1 },
-    ])
+    // (only the peak changes: the kit's own frames stay, with their easing)
+    const effect = pop.effect as KeyframeEffect
+    effect.setKeyframes(effect.getKeyframes().map((frame) => (
+      frame.computedOffset > 0 && frame.computedOffset < 1 ? { ...frame, transform: `scale(${fits})` } : frame
+    )))
   }, [text])
   // The tutorial's rails callout is up: it says what to do, so the prompt steps aside (its room stays — B013)
   const calloutUp = useTutorial((s) => s.calloutUp)
