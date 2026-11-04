@@ -5,7 +5,7 @@ For the BMUZ / framework session (found in the sweep, not done):
 - `stop-servers.mjs` crashes on a process with an odd character in its command line ("Bad control character in string literal") — F177 — Port lookup you can trust may not cover it.
 - Kit HudText's `pop` (kit-attention, 1.35×) can run off a narrow phone: Glyphtender caps it in src/game/PromptLine.tsx; the kit should fit it itself.
 - Move Glyphtender's `e2e/open-game.mjs` (reload after ERR_NO_BUFFER_SPACE) + `e2e/devkit-tabs.mjs` into the framework; the other e2e scripts here still load pages the old way.
-- Stray crash maps: a local build drops untracked `releases/0.14.0.0/maps/assets/*.map` (Crashes 0.3.0 should stop it; 8 are sitting there, not committed — never add them).
+- Stray crash maps: a local build drops untracked `releases/0.14.0.0/maps/assets/*.map` (Crashes 0.3.0 should stop it; until then, never commit them, and /deliver refuses while they are there: move them out of the folder first).
 Muzzy said (2026-10-14): the Dev Kit on a phone matters little — keep phone support at "it works", don't polish it.
 
 ## Where we are
